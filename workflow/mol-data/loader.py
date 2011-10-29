@@ -215,13 +215,13 @@ class Config(object):
             errors += validate_fields(
                 self.collection['fields']['required'], 
                 "Collections:Fields:Required", 
-                "source='MOLSourceDBFfields' AND required = 'y'", 
+                "required = 'y'", 
                 1)
 
             errors += validate_fields(
                 self.collection['fields']['optional'], 
                 "Collections:Fields:Optional", 
-                "source='MOLSourceDBFfields' AND required = ''", 
+                "required = ''", 
                 0)
 
             # In case of any errors, bail out.
