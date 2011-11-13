@@ -20,6 +20,7 @@
 """
 
 from collections import defaultdict
+import codecs
 import copy
 import csv
 import glob
@@ -63,12 +64,13 @@ def convertToJSON(provider_dir):
     
     original_dir = os.path.abspath(os.path.curdir)
     os.chdir(provider_dir)
-    logging.info("Processing directory '%s'." % provider_dir)
+    logging.info("Now in directory '%s'." % provider_dir)
 
     filename = "mol_source_%s.json" % provider_dir
     if os.path.exists(filename):
         os.remove(filename)
-    all_json = open(filename, "a")
+    # all_json = open(filename, "a")
+    all_json = codecs.open(filename, encoding='utf-8', mode="w")
     all_json.write("""{
   "type": "FeatureCollection",
   "features": [""")
@@ -121,9 +123,12 @@ def convertToJSON(provider_dir):
                 #logging.info('Mapping fields from DBF to specification: %s' % json_filename)
                 geojson = None
                 try:
-                    geojson = simplejson.loads(open(json_filename).read())
+                    geojson = simplejson.loads(
+                        codecs.open(json_filename, encoding='utf-8').read(), 
+                        encoding='utf-8')
+
                 except:
-                    logging.info('Unable to open or process %s' % json_filename)
+                    logging.error('Unable to open or process %s' % json_filename)
                     continue
 
                 # Step 2.3. For every feature:
@@ -138,7 +143,7 @@ def convertToJSON(provider_dir):
                     for key in properties.keys():
                         (new_key, new_value) = collection.map_field(row_count, key, properties[key])
                         if new_value is not None:
-                            new_properties[new_key] = new_value
+                            new_properties[new_key] = unicode(new_value)
 
                     # Convert field names to dbfnames.
                     dbf_properties = {}
@@ -153,7 +158,7 @@ def convertToJSON(provider_dir):
                 features_json = []
                 for feature in all_features:
                     try:
-                        features_json.append(simplejson.dumps(feature))
+                        features_json.append(simplejson.dumps(feature, ensure_ascii=False))
                     except:
                         logging.info('Unable to convert feature to JSON: %s' % feature)
 
@@ -169,8 +174,11 @@ def convertToJSON(provider_dir):
         # Zip up the GeoJSON document
         all_json.write("""]}""")
         all_json.close()
-        with ZipFile('%s.zip' % filename, 'w') as myzip:
-            myzip.write(filename) # TODO: Fails for big files (4GB)
+
+        myzip = ZipFile('%s.zip' % filename, 'w')
+        myzip.write(filename) # TODO: Fails for big files (4GB)
+        myzip.close()
+
         logging.info("%s written successfully." % filename)
 
     finally:

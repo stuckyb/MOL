@@ -111,11 +111,11 @@ class ProviderConfig(object):
 
             for (name, value) in self.collection['fields']['required'].iteritems():
                 if value is not None and value != '' and unicode(value)[0] != '=':
-                    dict[name] = value
+                    dict[name] = unicode(value)
             
             for (name, value) in self.collection['fields']['optional'].iteritems():
                 if value is not None and value != '' and unicode(value)[0] != '=':
-                    dict[name] = value
+                    dict[name] = unicode(value)
 
             return dict
 
