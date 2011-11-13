@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Aaron Steele and John Wieczorek
+# Copyright 2011 Aaron Steele, John Wieczorek, Gaurav Vaidya
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,455 +15,176 @@
 # limitations under the License.
 #
 
-"""This script implements the MoL workflow process for layers."""
+"""This script compresses a provider directory into a single all.json file for upload.
+
+"""
 
 from collections import defaultdict
 import copy
 import csv
 import glob
 import logging
-from unicodewriter import UnicodeDictWriter
+from unicodewriter import UnicodeDictWriter, UnicodeDictReader
 from optparse import OptionParser
 import os
+from osgeo import osr
+import psycopg2
 import simplejson
 import shlex
+import StringIO
 import subprocess
 import sys
 import time
 import urllib
 import yaml
+from zipfile import ZipFile
 
-class Config(object):
-    """Wraps the YAML object for a MoL config.yaml object."""
+from providerconfig import ProviderConfig
+
+def ogr2ogr_path():
+    """ Determines and returns the path to ogr2ogr. """
+
+    # For Macs which have GDAL.framework, we can autodetect it
+    # and use it automatically.
+
+    ogr2ogr_path = '/Library/Frameworks/GDAL.framework/Programs/ogr2ogr'
+    if not os.path.exists(ogr2ogr_path):
+        # We don't have a path to use; let subprocess.call
+        # find it.
+        ogr2ogr_path = 'ogr2ogr'
+
+    return ogr2ogr_path
+
+def convertToJSON(provider_dir):
+    """Converts the given directory into a JSON file (stored in the directory itself as 'all.json').
+
+    If '$dir/all.json' already exists, it will be overwritten.
+    """
     
-    @classmethod
-    def lower_keys(cls, x):
-        """Lower cases all nested dictionary keys."""
-        if isinstance(x, list):
-            return [cls.lower_keys(v) for v in x]
-        if isinstance(x, dict):
-            return dict((k.lower(), cls.lower_keys(v)) for k, v in x.iteritems())
-        return x
-    
-    class Collection(object):
-        def __init__(self, filename, collection, provider):
-            self.filename = filename
-            self.collection = collection
+    original_dir = os.path.abspath(os.path.curdir)
+    os.chdir(provider_dir)
+    logging.info("Processing directory '%s'." % provider_dir)
 
-            # Set up collection information.
-            fields = self.collection['fields']
-            if 'required' in fields:
-                fields['required']['provider'] = provider
-                fields['required']['collection'] = self.collection['collection']
+    filename = "mol_source_%s.json" % provider_dir
+    if os.path.exists(filename):
+        os.remove(filename)
+    all_json = open(filename, "a")
+    all_json.write("""{
+  "type": "FeatureCollection",
+  "features": [""")
 
-            if not _getoptions().no_validate:
-                self.validate()
-        
-        def __repr__(self):
-            return str(self.__dict__)
+    # We wrap this processing in a try-finally so that, no matter what happens,
+    # we change back to the original directory before we leave this subroutine.
+    try:
+        # Step 1. Load and validate the config.yaml file.
+        config = ProviderConfig("config.yaml", os.path.basename(provider_dir))
+        config.validate()
 
-        def get_row(self):
-            row = {}
-            return row
-            
-        def get_columns(self):
-            cols = []
-            cols.extend(self.collection['fields']['required'].keys())
-            cols.extend(self.collection['fields']['optional'].keys())
-            cols.extend(['layer_source', 'layer_collection', 'layer_filename', 'layer_polygons'])
-            return cols
+        all_features = []
 
-        def get_mapping(self, required=True):
-            """Returns a reverse fields for convienience."""
-            if required:
-                mapping = self.collection['fields']['required'] 
-            else:
-                mapping = self.collection['fields']['optional'] 
-            dd = defaultdict(list)
-            for mol, source in mapping.iteritems():
-                dd[source].append(mol)
-            return dd
-            #return dict((source, mol) for mol,source in mapping.iteritems())
-            
-        def getdir(self):
-            return self.collection['collection']
+        # Step 2. For each collection, and then each shapefile in that collection:
+        for collection in config.collections():
+            os.chdir(collection.getdir())
 
-        def get(self, key, default=None):
-            return self.collection.get(key, default)
-        
-        def validate(self):
-            """Validates the current "Collections" configuration.
-            
-            It does this by by checking field names against those specified
-            in http://www.google.com/fusiontables/DataSource?dsrcid=1348212, 
-            our current configuration source.
+            logging.info("Switching to collection '%s'." % collection.getdir())
 
-            Arguments:
-                none.
+            shapefiles = glob.glob('*.shp')
+            for shapefile in shapefiles:
 
-            Returns:
-                nothing.
+                # Determine the "name" (filename without extension) of this file.
+                name = shapefile[0:shapefile.index('.shp')]
 
-            No arguments are required. If validation fails, this method will
-            exit with an error message.
-            """
-            
-            ERR_VALIDATION = 3 # Conventionally, 0 = success, 1 = error, 2 = command line incorrect.
-            """ Fatal errors because of validation failures will cause an exit(ERR_VALIDATION) """
+                # Step 2.1. Convert this shapefile into a GeoJSON file, projected to
+                # EPSG 4326 (WGS 84).
+                json_filename = '%s.json' % name
+                
+                # Delete existing geojson file since we're appending.
+                if os.path.exists(json_filename):
+                    os.remove(json_filename)
 
-            config_section_to_validate = "'%s', directory '%s'" % (self.filename, self.getdir())
-            
-            # Step 1. Check if both required categories are present.
-            if not self.collection.has_key('fields') or not self.collection['fields'].has_key('required'):
-                logging.error("Required section 'Collections:Fields:Required' is not present in '%s'!" +
-                    "Validation failed.", config_section_to_validate)
-                exit(ERR_VALIDATION)
-
-            # Step 2. Validate fields.
-            fusiontable_id = 1348212
-            ft_partial_url = "http://www.google.com/fusiontables/api/query?sql="
-            
-            def validate_fields(fields, section, where_clause, required = 1):
-                """ Ensures that the keys of the dictionary provided precisely match the list of field 
-                names retrieved from the Fusion Table.
-
-                You provide the 'WHERE' clause of the SQL query you need to execute to get the list of 
-                valid fields (probably something like "source='MOLSourceFields' AND required = 'y'").
-
-                Arguments:
-                    fields: The dictionary whose keys we have to validate.
-                    where_clause: The SQL query we will run against the Fusion Table to retrieve the 
-                        list of valid field names.
-                    required: If set to '1' (the default), we identify these as required fields, and 
-                        ensure that *all* the field names retrieved by the query are present in the 
-                        'fields' dictionary. If set to '0', we only check that all field names present 
-                        in the fields dictionary are also set in the database results.
-                Returns:
-                    1 if there were any validation errors, 0 if there were none.
-                """
-
-                # Let's make sure that the 'fields' argument is set.
-                if fields is None: 
-                    if required == 1:
-                        logging.error("Required section '%s' not present in %s.", section, config_section_to_validate)
-                        exit(ERR_VALIDATION)
-                    else:
-                        logging.warning("Optional section '%s' not present in %s, ignoring.", section, config_section_to_validate)
-                        return 0
-
-                # Try retrieving the expected fields from the Fusion Table.
-                expected_fields = set()
-                errors = 0
-
+                command = [ogr2ogr_path(), 
+                    '-f', 'GeoJSON', 
+                    '-t_srs', 'EPSG:4326',
+                    json_filename,
+                    '%s.shp' % name
+                ]
+                                
                 try:
-                    urlconn = urllib.urlopen(
-                        ft_partial_url + 
-                        urllib.quote_plus(
-                            "SELECT alias, required, source FROM %d WHERE %s AND alias NOT EQUAL TO ''" 
-                                % (fusiontable_id, where_clause)
-                        )
-                    )
-                except IOError as (errno, strerror):
-                    logging.warning("Could not connect to the internet to validate %s: %s", config_section_to_validate, strerror)
-                    logging.warning("Continuing without validation.")
-                    return 0
+                    subprocess.call(command)
+                except:
+                    logging.warn('Unable to convert %s to GeoJSON - %s' % (name, command))
+                    if os.path.exists(json_filename):
+                        os.remove(json_filename)
+                    continue
 
-                # Read the field names into a dictionary.
-                rows = csv.DictReader(urlconn)
-                for row in rows:
-                    # We don't need to test for row['alias'], because our SQL statement already removes any blank aliases.
-                    if (row['alias'].lower()) in expected_fields:
-                        logging.error("Field alias '%s' is used twice in the Fusion Table, aborting.", 
-                            row['alias'].lower()
-                        )
-                        exit(1)
+                # Step 2.2. Load that GeoJSON file and do the mapping.
+                #logging.info('Mapping fields from DBF to specification: %s' % json_filename)
+                geojson = None
+                try:
+                    geojson = simplejson.loads(open(json_filename).read())
+                except:
+                    logging.info('Unable to open or process %s' % json_filename)
+                    continue
 
-                    # Add this field name to the list of expected fields.
-                    expected_fields.add(row['alias'].lower())
+                # Step 2.3. For every feature:
+                row_count = 0
+                for feature in geojson['features']:
+                    row_count = row_count + 1
 
-                urlconn.close()
+                    properties = feature['properties']
+                    new_properties = collection.default_fields()
+
+                    # Map the properties over.
+                    for key in properties.keys():
+                        (new_key, new_value) = collection.map_field(row_count, key, properties[key])
+                        if new_value is not None:
+                            new_properties[new_key] = new_value
+
+                    # Convert field names to dbfnames.
+                    dbf_properties = {}
+                    for fieldname in new_properties.keys():
+                        dbf_properties[ProviderConfig.fieldname_to_dbfname(fieldname)] = new_properties[fieldname]
+
+               
+                    # Replace the existing properties with the new one.
+                    feature['properties'] = dbf_properties
+                    all_features.append(feature)
                 
-                # Check if there are differences either ways for required sections, or for fields
-                # present in 'fields' but not in 'expected_fields' for optional sections.
-                errors = 0
-                field_aliases = set(fields.keys())
-                if len(field_aliases.difference(expected_fields)) > 0:
-                    logging.error("  Unexpected fields found in section '%s': %s", section, ", ".join(
-                        sorted(field_aliases.difference(expected_fields)))
-                    )
-                    errors = 1
-                
-                if len(expected_fields.difference(field_aliases)) > 0:
-                    if required == 1:
-                        logging.error("  Fields missing from section '%s': %s", section, ", ".join(
-                            sorted(expected_fields.difference(field_aliases)))
-                        )
-                        errors = 1
-                    else:
-                        # If these fields aren't required, let's just add the fields into the dict 
-                        # ourselves. Otherwise, downstream programs expecting these fields (such as 
-                        # bulkload_helper.py) mess up.
-                        for fieldname in (expected_fields.difference(field_aliases)):
-                            fields[fieldname] = ''
-                
-                # Returns 1 if there were any errors, 0 for no errors.
-                return errors
-            
-            # We want to give an error if *any* of these tests fail.
-            errors = 0
+                features_json = []
+                for feature in all_features:
+                    try:
+                        features_json.append(simplejson.dumps(feature))
+                    except:
+                        logging.info('Unable to convert feature to JSON: %s' % feature)
 
-            errors += validate_fields(
-                self.collection['fields']['required'], 
-                "Collections:Fields:Required", 
-                "required = 'y'", 
-                1)
+                all_json.write(','.join(features_json))
+                all_json.write(',')
+                all_json.flush()
+                all_features = []                
+                    
+                logging.info('%s converted to GeoJSON' % name)
 
-            errors += validate_fields(
-                self.collection['fields']['optional'], 
-                "Collections:Fields:Optional", 
-                "required = ''", 
-                0)
+            os.chdir('..')
 
-            # In case of any errors, bail out.
-            if errors > 0:
-                logging.error("%s could not be validated. Please fix the errors reported above and retry. " +
-                    "You can also use the '-V' command line argument to temporarily turn off validation, " +
-                    "if you only need to test other program functionality.", config_section_to_validate)
-                exit(ERR_VALIDATION)
-                
-            # No errors? Return successfully!
-            return
+        # Zip up the GeoJSON document
+        all_json.write("""]}""")
+        all_json.close()
+        with ZipFile('%s.zip' % filename, 'w') as myzip:
+            myzip.write(filename) # TODO: Fails for big files (4GB)
+        logging.info("%s written successfully." % filename)
 
-    def __init__(self, filename):
-        self.filename = filename
-        self.config = Config.lower_keys(yaml.load(open(filename, 'r').read()))
-
-    def collection_names(self):
-        return [x.get('collection') for x in self.collections()]
-
-    def collections(self):
-        return [Config.Collection(self.filename, collection, self.config['source']['name']) for collection in self.config['collections']]
-
-def source2csv(source_dir, options):
-    ''' Loads the collections in the given source directory. 
-    
-        Arguments:
-            source_dir - the relative path to the directory in which the config.yaml file is located.
-    '''
-    config = Config(os.path.join(source_dir, 'config.yaml'))        
-    logging.info('Collections in %s: %s' % (source_dir, config.collection_names()))
-    
-    for collection in config.collections(): # For each collection dir in the source dir       
-        coll_dir = collection.getdir()
-
-        original_dir = os.getcwd() # We'll need this to restore us to this dir at the end of processing this collection.
-        os.chdir(os.path.join(source_dir, coll_dir))
-        
-        # Create collection.csv writer
-        coll_file = open('collection.csv.txt', 'w')
-        coll_cols = collection.get_columns()
-        coll_cols.sort()
-        coll_csv = UnicodeDictWriter(coll_file, coll_cols)
-        # coll_csv = csv.DictWriter(coll_file, coll_cols)
-        coll_csv.writer.writerow(coll_csv.fieldnames)
-        coll_row = collection.get_row()
-        coll_row['layer_source'] = source_dir
-        coll_row['layer_collection'] = coll_dir            
-        
-        # Create polygons.csv writer
-        poly_file = open('collection.polygons.csv.txt', 'w')
-        poly_dw = UnicodeDictWriter(poly_file, ['shapefilename', 'json'])
-        # poly_dw = csv.DictWriter(poly_file, ['shapefilename', 'json'])
-        poly_dw.writer.writerow(poly_dw.fieldnames)
-    
-        # Convert DBF to CSV and add to collection.csv
-        shpfiles = glob.glob('*.shp')
-        logging.info('Processing %d layers in the %s/%s' % (len(shpfiles), source_dir, coll_dir))
-        for sf in shpfiles:
-            logging.info('Extracting DBF fields from %s' % sf)
-            csvfile = '%s.csv' % sf
-            if os.path.exists(csvfile): # ogr2ogr barfs if there are *any* csv files in the dir
-                os.remove(csvfile)
-
-            # For Macs which have GDAL.framework, we can autodetect it
-            # and use it automatically.
-            ogr2ogr_path = '/Library/Frameworks/GDAL.framework/Programs/ogr2ogr'
-            if not os.path.exists(ogr2ogr_path):
-                # We don't have a path to use; let subprocess.call
-                # find it.
-                ogr2ogr_path = 'ogr2ogr'
-
-            # TODO: optional command line option for ogr2ogr command
-
-            command = ogr2ogr_path + ' -f CSV "%s" "%s"' % (csvfile, sf)
-            args = shlex.split(command)
-            try:
-                subprocess.call(args)
-            except OSError as errmsg:
-                logging.error("""Error occurred while executing command line '%s': %s
-    Please ensure that %s is executable and available on your path.
-                """, command, args[0], errmsg)
-                raise # Re-raise the OSError exception.
-            
-            # Copy and update coll_row with DBF fields
-            row = copy.copy(coll_row)                
-            row['layer_filename'] = os.path.splitext(sf)[0]
-            dr = csv.DictReader(open(csvfile, 'r'), skipinitialspace=True)
-
-            # Lowercase all field names.
-            dr.fieldnames = map(lambda fn: fn.lower(), dr.fieldnames)
-           
-            layer_polygons = []
-            
-            for dbf in dr: # For each row in the DBF CSV file (1 row per polygon)
-    
-                polygon = {}
-    
-                for source, mols in collection.get_mapping().iteritems(): # Required DBF fields
-
-                    # Source may be blank for required fields, which is wrong.
-                    if source is None or source == '':
-                        logging.error('Required field(s) %s are not mapped to any value. Please check %s/config.yaml!' % (", ".join(mols), source_dir))
-                        sys.exit(1)        
-
-                    for mol in mols:
-                        if unicode(source)[0] == '=':
-                            # Map a DBF column to a field.
-                            # For case-insensitivity, we lowercase all field names.
-                            source_name = source[1:].lower()
-
-                            sourceval = dbf.get(source_name)
-                            if not source_name in dbf:
-                                logging.error('Unable to map required DBF field %s to %s. Valid fieldnames include: %s.' % (source_name, mol,  ", ".join(dr.fieldnames)))
-                                sys.exit(1)        
-                            row[mol] = sourceval
-                            polygon[mol] = sourceval
-
-                        else:
-                            # Sets the value of the field based on 'source'
-                            row[mol] = source
-                            polygon[mol] = source
-    
-                for source, mols in collection.get_mapping(required=False).iteritems(): #Optional DBF fields
-
-                    for mol in mols:
-                        # Source can be blank for optional fields, which is fine.
-                        if source is None or source == '':
-                            row[mol] = ''
-                            polygon[mol] = ''
-                            
-                        elif unicode(source)[0] == '=':
-                            # Map a DBF column to a field.
-                            # For case-insensitivity, we lowercase all field names.
-                            source_name = source[1:].lower()
-
-                            # Map a DBF column to a field.
-                            sourceval = dbf.get(source_name)
-                            if not source_name in dbf:
-                                logging.error('Unable to map optional DBF field %s to %s. Valid fieldnames include: %s.' % (source_name, mol, ", ".join(dr.fieldnames)))
-                                sys.exit(1) 
-                            row[mol] = sourceval
-                            polygon[mol] = sourceval
-
-                        else:
-                            # Sets the value of the field based on 'source'
-                            row[mol] = source
-                            polygon[mol] = source
-
-                # MOL-calculated fields (see issue #120) will eventually be calculated here.
-                # For now, that's just 'provider', 'contributor' and 'filename'.
-                row['filename'] = row['layer_filename']
-    
-                # Write coll_row to collection.csv
-                coll_csv.writerow(row)
-                layer_polygons.append(polygon)
-    
-            # Create JSON representation of dbfjson
-            polygons_json = simplejson.dumps(layer_polygons) # TODO: Showing up as string instead of JSON in API
-            d=dict(shapefilename=row['layer_filename'], json=polygons_json)
-            poly_dw.writerow(dict(shapefilename=row['layer_filename'], json=polygons_json))
-        poly_file.flush()
-        poly_file.close()
-    
-        # Important: Close the DictWriter file before trying to bulkload it
-        logging.info('All collection metadata saved to %s' % coll_file.name)
-        logging.info('All collection polygons saved to %s' % poly_file.name)
-        coll_file.flush()
-        coll_file.close()
-
-        # Bulkload...
-
-        # os.chdir(current_dir)
-        if not options.dry_run:
-            os.chdir('../../')
-            filename = os.path.abspath('%s/%s/collection.csv.txt' % (source_dir, coll_dir))
-
-            if options.config_file is None:
-                logging.error("No bulkloader configuration file specified: please specify one with the --config_file option.")
-                exit(2) # Since apparently '2' signals that something is wrong in the command line arguments.
-
-            config_file = os.path.abspath(options.config_file)
-
-            if options.localhost:
-                options.url = 'http://localhost:8080/_ah/remote_api'
-
-            # *nixes can run appcfg.py as a program without any problem. Windows, however,
-            # can only run appcfg.py if run through the shell. Therefore, we set the flag_run_in_shell
-            # depending on which operating system we're in.
-            flag_run_in_shell = (os.name == 'nt') # True if we're running in Windows; false otherwise.
-
-            # Bulkload Layer entities to App Engine for entire collection
-            cmd = [
-                'appcfg.py', 'upload_data', 
-                '--config_file=%s' % config_file, 
-                '--filename=%s' % filename, 
-                '--kind=Layer', 
-                '--url=%s' % options.url,
-                '--log_file=logs/bulkloader-log-%s' % time.strftime('%Y%m%d.%H%M%S'),
-                '--db_filename=progress/bulkloader-progress-%s.sql3' % time.strftime('%Y%m%d.%H%M%S')
-            ] 
-            subprocess.call(cmd, shell=flag_run_in_shell)
-
-            # Bulkload LayerIndex entities to App Engine for entire collection
-            cmd = [
-                'appcfg.py', 'upload_data', 
-                '--config_file=%s' % config_file, 
-                '--filename=%s' % filename, 
-                '--kind=LayerIndex', 
-                '--url=%s' % options.url,
-                '--log_file=logs/bulkloader-log-%s' % time.strftime('%Y%m%d.%H%M%S'),
-                '--db_filename=progress/bulkloader-progress-%s.sql3' % time.strftime('%Y%m%d.%H%M%S')
-            ] 
-            subprocess.call(cmd, shell=flag_run_in_shell)
-
-        # Go back to the original directory for the next collection.
+    finally:
         os.chdir(original_dir)
-    
+
+    logging.info("Processing of directory '%s' completed." % provider_dir)
+
 def _getoptions():
     ''' Parses command line options and returns them.'''
     parser = OptionParser()
-    parser.add_option('--config_file', 
-                      type='string', 
-                      dest='config_file',
-                      metavar='FILE', 
-                      help='Bulkload YAML config file.')
-    parser.add_option('-d', '--dry_run', 
-                      action="store_true", 
-                      dest='dry_run',
-                      help='Creates CSV file but does not bulkload it')                          
-    parser.add_option('-l', '--localhost', 
-                      action="store_true", 
-                      dest='localhost',
-                      help='Shortcut for bulkloading to http://localhost:8080/_ah/remote_api')                          
-    parser.add_option('-s', '--source_dir', 
-                      type='string', 
+    parser.add_option('-s', '--source_dir',
+                      type='string',
                       dest='source_dir',
                       help='Directory containing source to load.')
-
-    parser.add_option('--url', 
-                      type='string', 
-                      dest='url',
-                      help='URL endpoint to /remote_api to bulkload to.')                          
     parser.add_option('--no-validate', '-V',
                       action="store_true",
                       dest="no_validate",
@@ -475,18 +196,15 @@ def _getoptions():
 def main():
     logging.basicConfig(level=logging.DEBUG)
     options = _getoptions()
-    current_dir = os.path.curdir
-    if options.dry_run:
-            logging.info('Performing a dry run...')
 
     if options.source_dir is not None:
         if os.path.isdir(options.source_dir):
             logging.info('Processing source directory: %s' % options.source_dir)
-            source2csv(options.source_dir, options)
+            convertToJSON(options.source_dir)
             sys.exit(0)
         else:
             logging.info('Unable to locate source directory %s.' % options.source_dir)
-            sys.exit(1)    
+            sys.exit(1)
     else:
         source_dirs = [x for x in os.listdir('.') if os.path.isdir(x)]
 
@@ -496,9 +214,12 @@ def main():
 
         logging.info('Processing source directories: %s' % source_dirs)
         for sd in source_dirs: # For each source dir (e.g., jetz, iucn)
-            source2csv(sd, options)
-    
-    logging.info('Loading finished!')
+            if not os.path.exists(sd + "/config.yaml"):
+                logging.info('Directory "%s": No config.yaml found, ignoring directory.' % sd)
+            else:
+                convertToJSON(sd)
+
+    logging.info('Processing completed.')
 
 if __name__ == '__main__':
     main()
