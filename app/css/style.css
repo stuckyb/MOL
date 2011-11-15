@@ -104,7 +104,7 @@ div#container #top .demoText{
     margin-left: -400px;
     width: 800px;
     margin-top: 15px;
-    font-size: 1.3em;
+    font-size: 1.33em;
     text-align: justify;
     color: #3a0082;
 }
@@ -349,6 +349,19 @@ div#content .wrapper .details .description{
     font-size: 1.2em;
     padding: 5px 0 5px 0;
 }
+
+/* Added a new "recent updates" section to the front page */
+div#content .recent_updates {
+    color: white;
+    border-top: 1px solid white;
+    padding-bottom: 1.5em;
+}
+
+/* "Recent update" links should be the same color as blog links. */
+div#content .recent_updates a {
+    color: #B8FD82;
+}
+
 div#content .wrapper #left{ 
     float: left;
     width: 495px;
