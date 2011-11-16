@@ -379,16 +379,17 @@ MOL.modules.Map = function(mol) {
                 if (this._bounds) {
                     return this._bounds;
                 }
-                if (layerInfo && layerInfo.extentNorthWest && layerInfo.extentSouthEast) {
-                    north = parseFloat(layerInfo.extentNorthWest.split(',')[0]),
-                    west = parseFloat(layerInfo.extentNorthWest.split(',')[1]),
-                    south = parseFloat(layerInfo.extentSouthEast.split(',')[0]),
-                    east = parseFloat(layerInfo.extentSouthEast.split(',')[1]),
-                    bounds.extend(new LatLng(north, west));
-                    bounds.extend(new LatLng(south, east));
-                } 
-                this._bounds = bounds;
                 return bounds;
+                // if (layerInfo && layerInfo.extentNorthWest && layerInfo.extentSouthEast) {
+                //     north = parseFloat(layerInfo.extentNorthWest.split(',')[0]),
+                //     west = parseFloat(layerInfo.extentNorthWest.split(',')[1]),
+                //     south = parseFloat(layerInfo.extentSouthEast.split(',')[0]),
+                //     east = parseFloat(layerInfo.extentSouthEast.split(',')[1]),
+                //     bounds.extend(new LatLng(north, west));
+                //     bounds.extend(new LatLng(south, east));
+                // } 
+                // this._bounds = bounds;
+                // return bounds;
             },
 
             hide: function() {
@@ -416,6 +417,7 @@ MOL.modules.Map = function(mol) {
                     keyName = this.getLayer().getKeyName(),
                     layerSource = this.getLayer().getSource(),
                     layerType = this.getLayer().getType(),
+                    layerName = this.getLayer().getName(),
                     color = this.getColor();
 
                 this._mapType = new google.maps.ImageMapType(
@@ -424,26 +426,29 @@ MOL.modules.Map = function(mol) {
                             var normalizedCoord = self._getNormalizedCoord(coord, zoom),
                                 bound = Math.pow(2, zoom),
                                 tileParams = '',
-                                backendTileApi = 'http://96.126.97.48/layers/api/tile/',
+                                
+                                backendTileApi = 'https://eighty.cartodb.com/tiles/mol_cody/', //{z}/{x}/{y}.png'; //http://96.126.97.48/layers/api/tile/',
 //                                backendTileApi = 'http://127.0.0.1:5003/layers/api/tile/',
                                 tileurl = null;                                
 
                             if (!normalizedCoord) {
                                 return null;
                             }              
-                            tileParams = tileParams + 'key_name=' + keyName;
-                            tileParams = tileParams + '&source=' + layerSource;
-                            tileParams = tileParams + '&r=' + color.getRed(),
-                            tileParams = tileParams + '&g=' + color.getGreen(),
-                            tileParams = tileParams + '&b=' + color.getBlue(),
-                            tileParams = tileParams + '&x=' + normalizedCoord.x;
-                            tileParams = tileParams + '&y=' + normalizedCoord.y;
-                            tileParams = tileParams + '&z=' + zoom;      
-                            if (zoom < 9){
-                                tileurl = "/data/tile?" + tileParams;
-                            } else {
-                                tileurl = backendTileApi + layerType + "?" + tileParams;
-                            }
+                            // tileParams = tileParams + 'key_name=' + keyName;
+                            // tileParams = tileParams + '&source=' + layerSource;
+                            // tileParams = tileParams + '&r=' + color.getRed(),
+                            // tileParams = tileParams + '&g=' + color.getGreen(),
+                            // tileParams = tileParams + '&b=' + color.getBlue(),
+                            tileParams = tileParams + "sql=select * from mol_cody where scientific = '" + layerName + "'";
+                            // tileParams = tileParams + '&x=' + normalizedCoord.x;
+                            // tileParams = tileParams + '&y=' + normalizedCoord.y;
+                            // tileParams = tileParams + '&z=' + zoom;      
+                            // if (zoom < 9){
+                            //     tileurl = "/data/tile?" + tileParams;
+                            // } else {
+                            //     tileurl = backendTileApi + layerType + "?" + tileParams;
+                            // }
+                            tileurl = backendTileApi + zoom + '/' + normalizedCoord.x + '/' + normalizedCoord.y + '.png?' + tileParams;
                             mol.log.info(tileurl);
                             return tileurl;
                         },
