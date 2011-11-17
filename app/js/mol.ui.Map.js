@@ -369,27 +369,20 @@ MOL.modules.Map = function(mol) {
 
             bounds: function() {
                 var layer = this.getLayer(),
-                    layerInfo = layer.getInfo(),
-                    north = null,
-                    west = null,
-                    south = null,
-                    east = null,
+                    extent = layer.getExtent(),
+                    north = extent[0][2][1],
+                    west = extent[0][0][0],
+                    south = extent[0][0][1],
+                    east = extent[0][2][0],
                     bounds = new google.maps.LatLngBounds(),
                     LatLng = google.maps.LatLng;
                 if (this._bounds) {
                     return this._bounds;
                 }
+                bounds.extend(new LatLng(north, west));
+                bounds.extend(new LatLng(south, east));
+                this._bounds = bounds;
                 return bounds;
-                // if (layerInfo && layerInfo.extentNorthWest && layerInfo.extentSouthEast) {
-                //     north = parseFloat(layerInfo.extentNorthWest.split(',')[0]),
-                //     west = parseFloat(layerInfo.extentNorthWest.split(',')[1]),
-                //     south = parseFloat(layerInfo.extentSouthEast.split(',')[0]),
-                //     east = parseFloat(layerInfo.extentSouthEast.split(',')[1]),
-                //     bounds.extend(new LatLng(north, west));
-                //     bounds.extend(new LatLng(south, east));
-                // } 
-                // this._bounds = bounds;
-                // return bounds;
             },
 
             hide: function() {

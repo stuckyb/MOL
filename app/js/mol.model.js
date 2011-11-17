@@ -51,6 +51,7 @@ MOL.modules.model = function(mol) {
                 this._type = params.type;
                 this._source = params.source;
                 this._name = params.name;
+                this._extent = params.extent;
                 this._name2 = params.name2;
                 this._key_name = params.key_name;
                 this._json = params.json;
@@ -59,6 +60,10 @@ MOL.modules.model = function(mol) {
                 this._icon = null;
             },
             
+            getExtent: function() {
+                return this._extent;                
+            },
+
             getInfo: function() {
                 return this._info;
             },

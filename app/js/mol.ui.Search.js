@@ -635,9 +635,10 @@ MOL.modules.Search = function(mol) {
                                 type: result.type, 
                                 source: result.source,
                                 name: result.name, 
-                                name2: result.name2, 
-                                key_name: result.key_name,
-                                info: result.info
+                                extent: result.extent
+                                //name2: result.name2, 
+                                //key_name: result.key_name,
+                                //info: result.info
                             } 
                         );
                         config.action = 'add';
@@ -666,6 +667,7 @@ MOL.modules.Search = function(mol) {
                         layer = new Layer(
                             {
                                 type: result.type, 
+                                extent: result.extent,
                                 source: result.source, 
                                 name: result.name, 
                                 name2: result.name2, 
@@ -710,6 +712,7 @@ MOL.modules.Search = function(mol) {
                         {
                             widget: fw, 
                             source: res.source, 
+                            extent: res.extent,
                             //source: result.source === 'MOL' ? 'IUCN' : result.source, 
                             type: res.type, 
                             name: res.name,
@@ -838,7 +841,7 @@ MOL.modules.Search = function(mol) {
                     + "provider as source, "
                     + "type, "
                     + "scientific as name, "
-                    + "st_extent(the_geom_webmercator) as the_geom "
+                    + "ST_SetSRID(ST_EXTENT(the_geom), 4326) as the_geom "
                     + "from mol_cody "
                     + "where "
                     + "scientific @@ to_tsquery('" + query +  "') "
