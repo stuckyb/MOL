@@ -560,7 +560,7 @@ MOL.modules.Search = function(mol) {
                 widget.keyup(
                     function(event) {
                       if (event.keyCode === 13) {
-                          self._onGoButonClick();
+                          self._onGoButtonClick();
                       }
                     }
                 );
