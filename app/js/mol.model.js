@@ -47,6 +47,7 @@ MOL.modules.model = function(mol) {
     mol.model.Layer = Class.extend(
         {
             init: function(params) {
+                this._id = [params.name, params.source, params.type].join('_');
                 this._type = params.type;
                 this._source = params.source;
                 this._name = params.name;
@@ -99,7 +100,7 @@ MOL.modules.model = function(mol) {
             },
             
             getId: function() {
-                return this._key_name;
+                return this._id;
             },
             
             getLid: function() {
