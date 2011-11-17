@@ -202,6 +202,26 @@ MOL.modules.LayerControl = function(mol) {
                             layerUi = display.getNewLayer();
                             layerUi.getName().text(layerName);
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
+                            
+                            layerButton = layerUi.getType();
+                            console.log("intercepted")
+                            layerButton.click(
+                            	function(event) {
+                            		window.hi = $(this)
+                            		html =  '<div id="css" style="">' +
+                            				'<h1>Carto like css</h1>' +
+                            				'<p>change the css and press update css, i.e <em>line-color: #FFF;</em></p>' +
+                            				'<textarea id="css_text">' +
+                            				'{\n' +
+                            				'\tpolygon-fill: rgba(134, 32, 128,0.7);\n' +
+                            				'\tline-color: rgba(82, 202, 231,0.1);\n' +
+                            				'}\n' +
+                            				'</textarea>' +
+                            				'<button id="update_css">udpate css</button>' +
+                            				'</div>'
+                            		window.hi.parent().parent().parent().append(html)
+                            	})
+                            
                             layerUi.attr('id', layerId);
                             
                             // Handles layer selection.
