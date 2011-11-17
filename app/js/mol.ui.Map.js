@@ -393,13 +393,13 @@ MOL.modules.Map = function(mol) {
             },
 
             hide: function() {
-                var keyName = this.getLayer().getId(),
+                var layerId = this.getLayer().getId(),
                     map = this.getMap();
 
                 if (this.isVisible()) {
                     map.overlayMapTypes.forEach(
                         function(x, i) {
-                            if (x && x.name === keyName) {
+                            if (x && x.name === layerId) {
                                 map.overlayMapTypes.removeAt(i);
                             }
                         }
@@ -414,7 +414,7 @@ MOL.modules.Map = function(mol) {
 
             refresh: function() {              
                 var self = this,
-                    keyName = this.getLayer().getId(),
+                    layerId = this.getLayer().getId(),
                     layerSource = this.getLayer().getSource(),
                     layerType = this.getLayer().getType(),
                     layerName = this.getLayer().getName(),
@@ -425,37 +425,21 @@ MOL.modules.Map = function(mol) {
                         getTileUrl: function(coord, zoom) {
                             var normalizedCoord = self._getNormalizedCoord(coord, zoom),
                                 bound = Math.pow(2, zoom),
-                                tileParams = '',
-                                
-                                backendTileApi = 'https://eighty.cartodb.com/tiles/mol_cody/', //{z}/{x}/{y}.png'; //http://96.126.97.48/layers/api/tile/',
-//                                backendTileApi = 'http://127.0.0.1:5003/layers/api/tile/',
+                                tileParams = '',                                
+                                backendTileApi = 'https://eighty.cartodb.com/tiles/mol_cody/', 
                                 tileurl = null;                                
 
                             if (!normalizedCoord) {
                                 return null;
                             }              
-                            // tileParams = tileParams + 'key_name=' + keyName;
-                            // tileParams = tileParams + '&source=' + layerSource;
-                            // tileParams = tileParams + '&r=' + color.getRed(),
-                            // tileParams = tileParams + '&g=' + color.getGreen(),
-                            // tileParams = tileParams + '&b=' + color.getBlue(),
+
                             tileParams = tileParams + "sql=select * from mol_cody where scientific = '" + layerName + "'";
-                            // tileParams = tileParams + '&x=' + normalizedCoord.x;
-                            // tileParams = tileParams + '&y=' + normalizedCoord.y;
-                            // tileParams = tileParams + '&z=' + zoom;      
-                            // if (zoom < 9){
-                            //     tileurl = "/data/tile?" + tileParams;
-                            // } else {
-                            //     tileurl = backendTileApi + layerType + "?" + tileParams;
-                            // }
                             tileurl = backendTileApi + zoom + '/' + normalizedCoord.x + '/' + normalizedCoord.y + '.png?' + tileParams;
-                            mol.log.info(tileurl);
                             return tileurl;
                         },
                         tileSize: new google.maps.Size(256, 256),
                         isPng: true,
-                        opacity: 0.5,
-                        name: keyName
+                        name: layerId
                     });
             },
 

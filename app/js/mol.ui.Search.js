@@ -31,19 +31,19 @@ MOL.modules.Search = function(mol) {
              */
             uniques: function(key, response) {
                 var results = [],
-                    row = null;
+                    properties = null;
 
-                for (i in response.rows) {
-                    row = response.rows[i];
+                for (i in response.features) {
+                    properties = response.features[i].properties;
                     switch (key) {
                     case 'name':
-                        results.push(row.name);
+                        results.push(properties.name);
                         break;
                     case 'type':
-                        results.push(row.type);
+                        results.push(properties.type);
                         break;
                     case 'source':
-                        results.push(row.source);
+                        results.push(properties.source);
                         break;
                     }
                 }
@@ -114,14 +114,14 @@ MOL.modules.Search = function(mol) {
                 var layers = [],
                     sources = [],
                     types = [],
-                    row = null;
+                    properties = null;
                 
-                for (i in response.rows) {
-                    row = response.rows[i];
-                    if (name === row.name) {
+                for (i in response.features) {
+                    properties = response.features[i].properties;
+                    if (name === properties.name) {
                         layers.push(i + '');
-                        sources.push(row.source);
-                        types.push(row.type);
+                        sources.push(properties.source);
+                        types.push(properties.type);
                     }
                 }
                 return {
@@ -138,14 +138,14 @@ MOL.modules.Search = function(mol) {
                 var layers = [],
                     names = [],
                     types = [],
-                    row = null;
+                    properties = null;
                 
-                for (i in response.rows) {
-                    row = response.rows[i];
-                    if (source === row.source) {
+                for (i in response.features) {
+                    properties = response.features[i].properties;
+                    if (source === properties.source) {
                         layers.push(i + '');
-                        names.push(row.name);
-                        types.push(row.type);
+                        names.push(properties.name);
+                        types.push(properties.type);
                     }
                 }
                 return {
@@ -162,14 +162,14 @@ MOL.modules.Search = function(mol) {
                 var layers = [],
                     sources = [],
                     names = [],
-                    row = null;
+                    properties = null;
                 
-                for (i in response.rows) {
-                    row = response.rows[i];
-                    if (type === row.type) {
+                for (i in response.features) {
+                    properties = response.features[i].properties;
+                    if (type === properties.type) {
                         layers.push(i + '');
-                        sources.push(row.source);
-                        names.push(row.name);
+                        sources.push(properties.source);
+                        names.push(properties.name);
                     }
                 }
                 return {
@@ -183,18 +183,19 @@ MOL.modules.Search = function(mol) {
              * Returns the layers profile.
              */
             getLayers: function(response) {
-                var rows = response.rows,
-                    row = null,
+                var features = response.features,
+                    feature = null,
                     key = null,
                     layers = {};
 
-                for (i in rows) {
-                    row = rows[i];
+                for (i in features) {
+                    feature = features[i];
                     key = i + '';
                     layers[key] = {
-                        'name': row.name,
-                        'source': row.source,
-                        'type': row.type
+                        'name': feature.properties.name,
+                        'source': feature.properties.source,
+                        'type': feature.properties.type,
+                        'extent': feature.geometry.coordinates
                     };
                 }
                 return layers;
@@ -829,18 +830,28 @@ MOL.modules.Search = function(mol) {
                     callback = null,
                     display = this._display,
                     self = this,
-                    fn = null;
+                    fn = null,
+                    url = null;
                 
-                $.getJSON(
-                    "http://eighty.cartodb.com/api/v1/sql?q=" +
-                        encodeURIComponent("SELECT distinct(scientific) as name,type,provider as source FROM mol_cody where scientific @@ to_tsquery('" + query + "')") + 
-                        "&dp=6&callback=?",
+                url = "http://eighty.cartodb.com/api/v1/sql?q=" 
+                    + "select "
+                    + "provider as source, "
+                    + "type, "
+                    + "scientific as name, "
+                    + "st_extent(the_geom_webmercator) as the_geom "
+                    + "from mol_cody "
+                    + "where "
+                    + "scientific @@ to_tsquery('" + query +  "') "
+                    + "group by provider, type, scientific&format=geojson";
+
+                mol.log.info(url);
+
+                $.getJSON(url,
                     function(response) {
                         var Result = mol.ui.Search.Result,
                             CartoDbResult = mol.ui.Search.CartoDbResult,
                             filterNames = ['Names','Sources','Types'],
                             r = new CartoDbResult(response).convert();
-                        
                         self._result = new Result(r),
                         self._displayPage(r.layers);
                         display.clearFilters();
