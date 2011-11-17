@@ -656,9 +656,11 @@ MOL.modules.model = function(mol) {
     mol.model.Layer = Class.extend(
         {
             init: function(params) {
+                this._id = [params.name, params.source, params.type].join('_');
                 this._type = params.type;
                 this._source = params.source;
                 this._name = params.name;
+                this._extent = params.extent;
                 this._name2 = params.name2;
                 this._key_name = params.key_name;
                 this._json = params.json;
@@ -667,6 +669,10 @@ MOL.modules.model = function(mol) {
                 this._icon = null;
             },
             
+            getExtent: function() {
+                return this._extent;                
+            },
+
             getInfo: function() {
                 return this._info;
             },
@@ -708,7 +714,7 @@ MOL.modules.model = function(mol) {
             },
             
             getId: function() {
-                return this._key_name;
+                return this._id;
             },
             
             getLid: function() {
@@ -1444,7 +1450,7 @@ MOL.modules.LayerControl = function(mol) {
                     function(event) {
                         var action = event.getAction(),
                             layer = event.getLayer(),
-                            layerId = layer ? layer.getKeyName() : null,
+                            layerId = layer ? layer.getId() : null,
                             layerType = layer? layer.getType() : null,
                             layerName = layer ? layer.getName() : null,
                             layerSubName = layer ? layer.getSubName() : null,
@@ -1456,7 +1462,8 @@ MOL.modules.LayerControl = function(mol) {
                             toggle = null,
                             widget = null,
                             nullTest = null,
-                            styleNames = null;
+                            styleNames = null,
+                            layerButton = null;
                     
                         switch (action) {                                                       
                             
@@ -1471,6 +1478,26 @@ MOL.modules.LayerControl = function(mol) {
                             layerUi = display.getNewLayer();
                             layerUi.getName().text(layerName);
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
+                            
+                            layerButton = layerUi.getType();
+                            layerButton.click(
+                            	function(event) {
+                            		var html =  '<div id="css" style="">' +
+                            				'<h1>Carto like css</h1>' +
+                            				'<p>change the css and press update css, i.e <em>line-color: #FFF;</em></p>' +
+                            				'<textarea id="css_text">' +
+                            				'{\n' +
+                            				'\tpolygon-fill: rgba(134, 32, 128,0.7);\n' +
+                            				'\tline-color: rgba(82, 202, 231,0.1);\n' +
+                            				'}\n' +
+                            				'</textarea>' +
+                            				'<button id="update_css">udpate css</button>' +
+                            				'</div>';
+                            		$(document).append(html);
+                            	}
+                            );
+                            
+                            
                             layerUi.attr('id', layerId);
                             
                             // Handles layer selection.
@@ -2227,38 +2254,35 @@ MOL.modules.Map = function(mol) {
                 }
             },
 
-            bounds: function() {
+            /**
+             * Returns a google.maps.LatLngBounds for this layer.
+             */
+            bounds: function() {                
                 var layer = this.getLayer(),
-                    layerInfo = layer.getInfo(),
-                    north = null,
-                    west = null,
-                    south = null,
-                    east = null,
+                    extent = layer.getExtent(), // GeoJSON bounding box as polygon
+                    north = extent[0][2][1],
+                    west = extent[0][0][0],
+                    south = extent[0][0][1],
+                    east = extent[0][2][0],
                     bounds = new google.maps.LatLngBounds(),
                     LatLng = google.maps.LatLng;
                 if (this._bounds) {
                     return this._bounds;
                 }
-                if (layerInfo && layerInfo.extentNorthWest && layerInfo.extentSouthEast) {
-                    north = parseFloat(layerInfo.extentNorthWest.split(',')[0]),
-                    west = parseFloat(layerInfo.extentNorthWest.split(',')[1]),
-                    south = parseFloat(layerInfo.extentSouthEast.split(',')[0]),
-                    east = parseFloat(layerInfo.extentSouthEast.split(',')[1]),
-                    bounds.extend(new LatLng(north, west));
-                    bounds.extend(new LatLng(south, east));
-                } 
+                bounds.extend(new LatLng(north, west));
+                bounds.extend(new LatLng(south, east));
                 this._bounds = bounds;
                 return bounds;
             },
 
             hide: function() {
-                var keyName = this.getLayer().getKeyName(),
+                var layerId = this.getLayer().getId(),
                     map = this.getMap();
 
                 if (this.isVisible()) {
                     map.overlayMapTypes.forEach(
                         function(x, i) {
-                            if (x && x.name === keyName) {
+                            if (x && x.name === layerId) {
                                 map.overlayMapTypes.removeAt(i);
                             }
                         }
@@ -2273,9 +2297,10 @@ MOL.modules.Map = function(mol) {
 
             refresh: function() {              
                 var self = this,
-                    keyName = this.getLayer().getKeyName(),
+                    layerId = this.getLayer().getId(),
                     layerSource = this.getLayer().getSource(),
                     layerType = this.getLayer().getType(),
+                    layerName = this.getLayer().getName(),
                     color = this.getColor();
 
                 this._mapType = new google.maps.ImageMapType(
@@ -2283,34 +2308,21 @@ MOL.modules.Map = function(mol) {
                         getTileUrl: function(coord, zoom) {
                             var normalizedCoord = self._getNormalizedCoord(coord, zoom),
                                 bound = Math.pow(2, zoom),
-                                tileParams = '',
-                                backendTileApi = 'http://96.126.97.48/layers/api/tile/',
-//                                backendTileApi = 'http://127.0.0.1:5003/layers/api/tile/',
+                                tileParams = '',                                
+                                backendTileApi = 'https://eighty.cartodb.com/tiles/mol_cody/', 
                                 tileurl = null;                                
 
                             if (!normalizedCoord) {
                                 return null;
                             }              
-                            tileParams = tileParams + 'key_name=' + keyName;
-                            tileParams = tileParams + '&source=' + layerSource;
-                            tileParams = tileParams + '&r=' + color.getRed(),
-                            tileParams = tileParams + '&g=' + color.getGreen(),
-                            tileParams = tileParams + '&b=' + color.getBlue(),
-                            tileParams = tileParams + '&x=' + normalizedCoord.x;
-                            tileParams = tileParams + '&y=' + normalizedCoord.y;
-                            tileParams = tileParams + '&z=' + zoom;      
-                            if (zoom < 9){
-                                tileurl = "/data/tile?" + tileParams;
-                            } else {
-                                tileurl = backendTileApi + layerType + "?" + tileParams;
-                            }
-                            mol.log.info(tileurl);
+
+                            tileParams = tileParams + "sql=select * from mol_cody where scientific = '" + layerName + "'";
+                            tileurl = backendTileApi + zoom + '/' + normalizedCoord.x + '/' + normalizedCoord.y + '.png?' + tileParams;
                             return tileurl;
                         },
                         tileSize: new google.maps.Size(256, 256),
                         isPng: true,
-                        opacity: 0.5,
-                        name: keyName
+                        name: layerId
                     });
             },
 
@@ -2844,6 +2856,203 @@ MOL.modules.Search = function(mol) {
     mol.ui.Search = {};
 
     /**
+     * Converts a CartoDB SQL response to a profile response.
+     * 
+     */
+    mol.ui.Search.CartoDbResult = Class.extend(    
+        {
+            init: function(response) {
+                this.response = response;
+            },
+            
+            convert: function() {
+                return {
+                    "layers": this.getLayers(this.response), 
+                    "names": this.genNames(this.response), 
+                    "sources": this.genSources(this.response), 
+                    "types": this.genTypes(this.response)
+                };
+            },
+
+            /**
+             * Returns an array of unique values in the response. Key value is 
+             * name, source, or type.
+             */
+            uniques: function(key, response) {
+                var results = [],
+                    properties = null;
+
+                for (i in response.features) {
+                    properties = response.features[i].properties;
+                    switch (key) {
+                    case 'name':
+                        results.push(properties.name);
+                        break;
+                    case 'type':
+                        results.push(properties.type);
+                        break;
+                    case 'source':
+                        results.push(properties.source);
+                        break;
+                    }
+                }
+                return _.uniq(results);
+            },
+
+            /**
+             * Returns the top level names profile object.
+             *  
+             * {"name": "types":[], "sources":[], "layers":[]}
+             * 
+             */
+            genNames: function(response) {
+                var names = this.uniques('name', response),
+                    name = null,
+                    profile = {};
+                
+                for (i in names) {
+                    name = names[i];
+                    profile[name] = this.getNameProfile(name, response);
+                }
+                
+                return profile;
+            },
+            
+            /**
+             * Returns the top level types profile object.
+             *  
+             * {"type": "names":[], "sources":[], "layers":[]}
+             * 
+             */
+            genTypes: function(response) {
+                var types = this.uniques('type', response),
+                    type = null,
+                    profile = {};
+                
+                for (i in types) {
+                    type = types[i];
+                    profile[type] = this.getTypeProfile(type, response);
+                }
+                
+                return profile;
+            },
+
+            /**
+             * Returns the top level source profile object.
+             *  
+             * {"source": "names":[], "types":[], "layers":[]}
+             * 
+             */
+            genSources: function(response) {
+                var sources = this.uniques('source', response),
+                    source = null,
+                    profile = {};
+                
+                for (i in sources) {
+                    source = sources[i];
+                    profile[source] = this.getSourceProfile(source, response);
+                }
+                
+                return profile;
+            },
+
+            /**
+             * Returns a profile for a single name.
+             */
+            getNameProfile: function(name, response) {
+                var layers = [],
+                    sources = [],
+                    types = [],
+                    properties = null;
+                
+                for (i in response.features) {
+                    properties = response.features[i].properties;
+                    if (name === properties.name) {
+                        layers.push(i + '');
+                        sources.push(properties.source);
+                        types.push(properties.type);
+                    }
+                }
+                return {
+                    "layers": _.uniq(layers),
+                    "sources" : _.uniq(sources),
+                    "types": _.uniq(types)
+                };
+            },
+
+            /**
+             * Returns a profile for a single source.
+             */
+            getSourceProfile: function(source, response) {
+                var layers = [],
+                    names = [],
+                    types = [],
+                    properties = null;
+                
+                for (i in response.features) {
+                    properties = response.features[i].properties;
+                    if (source === properties.source) {
+                        layers.push(i + '');
+                        names.push(properties.name);
+                        types.push(properties.type);
+                    }
+                }
+                return {
+                    "layers": _.uniq(layers),
+                    "names" : _.uniq(names),
+                    "types": _.uniq(types)
+                };
+            },
+
+            /**
+             * Returns a profile for a single type.
+             */
+            getTypeProfile: function(type, response) {
+                var layers = [],
+                    sources = [],
+                    names = [],
+                    properties = null;
+                
+                for (i in response.features) {
+                    properties = response.features[i].properties;
+                    if (type === properties.type) {
+                        layers.push(i + '');
+                        sources.push(properties.source);
+                        names.push(properties.name);
+                    }
+                }
+                return {
+                    "layers": _.uniq(layers),
+                    "sources" : _.uniq(sources),
+                    "names": _.uniq(names)
+                };
+            },
+            
+            /**
+             * Returns the layers profile.
+             */
+            getLayers: function(response) {
+                var features = response.features,
+                    feature = null,
+                    key = null,
+                    layers = {};
+
+                for (i in features) {
+                    feature = features[i];
+                    key = i + '';
+                    layers[key] = {
+                        'name': feature.properties.name,
+                        'source': feature.properties.source,
+                        'type': feature.properties.type,
+                        'extent': feature.geometry.coordinates
+                    };
+                }
+                return layers;
+            }            
+        }
+    );
+
+    /**
      * Wraps a search response and surfaces an API for accessing data from it.
      */
     mol.ui.Search.Result = Class.extend(
@@ -3275,9 +3484,10 @@ MOL.modules.Search = function(mol) {
                                 type: result.type, 
                                 source: result.source,
                                 name: result.name, 
-                                name2: result.name2, 
-                                key_name: result.key_name,
-                                info: result.info
+                                extent: result.extent
+                                //name2: result.name2, 
+                                //key_name: result.key_name,
+                                //info: result.info
                             } 
                         );
                         config.action = 'add';
@@ -3306,6 +3516,7 @@ MOL.modules.Search = function(mol) {
                         layer = new Layer(
                             {
                                 type: result.type, 
+                                extent: result.extent,
                                 source: result.source, 
                                 name: result.name, 
                                 name2: result.name2, 
@@ -3350,12 +3561,14 @@ MOL.modules.Search = function(mol) {
                         {
                             widget: fw, 
                             source: res.source, 
+                            extent: res.extent,
                             //source: result.source === 'MOL' ? 'IUCN' : result.source, 
                             type: res.type, 
                             name: res.name,
                             name2: res.name2,
                             key_name: res.key_name,
-                            info: JSON.parse(res.info)
+                            info: {}
+                            //info: JSON.parse(res.info)
                         }
                     );
 
@@ -3469,30 +3682,73 @@ MOL.modules.Search = function(mol) {
                     callback = null,
                     display = this._display,
                     self = this,
-                    fn = null;
+                    fn = null,
+                    url = null;
                 
-                callback = new ActionCallback(
+                url = "http://eighty.cartodb.com/api/v1/sql?q=" 
+                    + "select "
+                    + "provider as source, "
+                    + "type, "
+                    + "scientific as name, "
+                    + "ST_SetSRID(ST_EXTENT(the_geom), 4326) as the_geom "
+                    + "from mol_cody "
+                    + "where "
+                    + "scientific @@ to_tsquery('" + query +  "') "
+                    + "group by provider, type, scientific&format=geojson";
+
+                mol.log.info(url);
+
+                $.getJSON(url,
                     function(response) {
                         var Result = mol.ui.Search.Result,
-                            filterNames = ['Names','Sources','Types'];
-                        self._result = new Result(response),
-                        self._displayPage(response.layers);
+                            CartoDbResult = mol.ui.Search.CartoDbResult,
+                            filterNames = ['Names','Sources','Types'],
+                            r = new CartoDbResult(response).convert();
+                        self._result = new Result(r),
+                        self._displayPage(r.layers);
                         display.clearFilters();
                         for (i in filterNames) {
                             fn = filterNames[i];
-                            self._createNewFilter(fn,response);
+                            self._createNewFilter(fn, r);
                         }
                         if (cb) {
                             cb();
                         }
-                    },
-
-                    function(error) {
-                        mol.log.error(error);
                     }
                 );
 
-                api.execute(action, callback);
+                    // function(error) {
+                    //     mol.log.error(error);
+                    // }
+                //);
+
+                //     function(data) {
+                //         console.log(data);
+                //     }
+                // );
+                
+                // callback = new ActionCallback(
+                //     function(response) {
+                //         var Result = mol.ui.Search.Result,
+                //             filterNames = ['Names','Sources','Types'];
+                //         self._result = new Result(response),
+                //         self._displayPage(response.layers);
+                //         display.clearFilters();
+                //         for (i in filterNames) {
+                //             fn = filterNames[i];
+                //             self._createNewFilter(fn,response);
+                //         }
+                //         if (cb) {
+                //             cb();
+                //         }
+                //     },
+
+                //     function(error) {
+                //         mol.log.error(error);
+                //     }
+                // );
+
+                // api.execute(action, callback);
             },
 
             /**
@@ -3964,7 +4220,7 @@ MOL.modules.Metadata = function(mol) {
                     collectionName = layer.getSubName(),
                     display = this._display,
                     self = this,
-                    tmp = itemId.split("/"),
+                    tmp = ['foo', 'bar'], //itemId.split("/"),
                     collectionId = "collection/" + tmp[0] + "/" + tmp[1] + "/latest",
                     c = null,
                     it = null;
