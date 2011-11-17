@@ -187,7 +187,8 @@ MOL.modules.LayerControl = function(mol) {
                             toggle = null,
                             widget = null,
                             nullTest = null,
-                            styleNames = null;
+                            styleNames = null,
+                            layerButton = null;
                     
                         switch (action) {                                                       
                             
@@ -204,11 +205,9 @@ MOL.modules.LayerControl = function(mol) {
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
                             
                             layerButton = layerUi.getType();
-                            console.log("intercepted")
                             layerButton.click(
                             	function(event) {
-                            		window.hi = $(this)
-                            		html =  '<div id="css" style="">' +
+                            		var html =  '<div id="css" style="">' +
                             				'<h1>Carto like css</h1>' +
                             				'<p>change the css and press update css, i.e <em>line-color: #FFF;</em></p>' +
                             				'<textarea id="css_text">' +
@@ -218,9 +217,11 @@ MOL.modules.LayerControl = function(mol) {
                             				'}\n' +
                             				'</textarea>' +
                             				'<button id="update_css">udpate css</button>' +
-                            				'</div>'
-                            		window.hi.parent().parent().parent().append(html)
-                            	})
+                            				'</div>';
+                            		$(document).append(html);
+                            	}
+                            );
+                            
                             
                             layerUi.attr('id', layerId);
                             
