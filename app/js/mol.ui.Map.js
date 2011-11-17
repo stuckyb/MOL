@@ -393,7 +393,7 @@ MOL.modules.Map = function(mol) {
             },
 
             hide: function() {
-                var keyName = this.getLayer().getKeyName(),
+                var keyName = this.getLayer().getId(),
                     map = this.getMap();
 
                 if (this.isVisible()) {
@@ -414,7 +414,7 @@ MOL.modules.Map = function(mol) {
 
             refresh: function() {              
                 var self = this,
-                    keyName = this.getLayer().getKeyName(),
+                    keyName = this.getLayer().getId(),
                     layerSource = this.getLayer().getSource(),
                     layerType = this.getLayer().getType(),
                     layerName = this.getLayer().getName(),
