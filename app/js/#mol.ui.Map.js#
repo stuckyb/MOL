@@ -391,7 +391,7 @@ MOL.modules.Map = function(mol) {
             hide: function() {
                 var layerId = this.getLayer().getId(),
                     map = this.getMap();
-
+                
                 if (this.isVisible()) {
                     map.overlayMapTypes.forEach(
                         function(x, i) {
