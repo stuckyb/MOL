@@ -460,286 +460,333 @@ MOL.modules.Map = function(mol) {
             }
         }
     );
-    mol.ui.Map.CartoTileLayer = mol.ui.Map.MapLayer.extend({
-    	_fallback_config: {
-			user: 'eighty',
-			table: 'mol_cody',
-			columns: [],
-			debug: true,
-			css: "{ polygon-fill: rgba(134, 32, 128,0.7); line-color: rgba(82, 202, 231,0.1); }"
-		},
-    	_sql_url: function(sql) {
-    		url = 'http://' + this._config.user + ".cartodb.com/api/v1/sql?q=" + encodeURIComponent(sql) + "&format=geojson&dp=6";
-    		if (this._config.debug) {
-    			console.log(url);
-    		};
-    		return url;
-    	},
-    	_fetchTile: function(x, y, zoom, callback) {
-    		var self = this;
-    		tile_point = self._projection.tilePoint(x, y, zoom),
-    		geom_column = 'the_geom';
-    		
-    		var columns = [geom_column].concat(self._config.columns).join(',');
-    		var sql = "select " + columns + " from " + this._config.table + " where scientific = '" + this.getLayer().getName() + "'";
-    		
-    		data = self._cache[sql]
-    		if (data) {
-    	        console.log("CACHED");
-    	        callback(data);
-    		} else {
-    			$.getJSON(this._sql_url(sql), function(data){
-    		        self._cache[sql] = data;
-    		        callback(data);
-    		    });
-    		}
-    	},
-    	_redraw: function() {
-    		for(var t in this._tiles) {
-    	        var tile = this._tiles[t];
-    	    }
-    	},
-    	// Method which override MapType in Google Map V3
-    	
-    	apply_style: function(ctx, data) {
-    	        var css = CartoCSS.apply(this._config.css, data);
-    	        var mapper = {
-    	            'point-color': 'fillStyle',
-    	            'line-color': 'strokeStyle',
-    	            'line-width': 'lineWidth',
-    	            'polygon-fill': 'fillStyle'
-    	        };
+    mol.ui.Map.CartoTileLayer = mol.ui.Map.MapLayer.extend(
+        {
+    	    _fallback_config: {
+			    user: 'eighty',
+			    table: 'mol_cody',
+			    columns: [],
+			    debug: true,
+			    css: "{ polygon-fill: rgba(134, 32, 128,0.7); line-color: rgba(82, 202, 231,0.1); }"
+		    },
 
-    	        for(var attr in css) {
-// console.log(attr);
-    	            var c = mapper[attr];
-    	            if(c) {
+    	    _sql_url: function(sql) {
+    		    var url = 'http://' + this._config.user + ".cartodb.com/api/v1/sql?q=" + encodeURIComponent(sql) + "&format=geojson&dp=6";
+
+    		    if (this._config.debug) {
+    			    console.log(url);
+    		    };
+    		    return url;
+    	    },
+
+    	    _fetchTile: function(x, y, zoom, callback) {
+    		    var self = this,
+    		        tile_point = self._projection.tilePoint(x, y, zoom),
+    		        geom_column = 'the_geom',
+    		        columns = [geom_column].concat(self._config.columns).join(','),
+    		        sql = "select " + columns + " from " + this._config.table + " where scientific = '" + this.getLayer().getName() + "'",
+                    data = self._cache[sql];
+
+    		    if (data) {
+    	            console.log("CACHED");
+    	            callback(data);
+    		    } else {
+    			    $.getJSON(
+                        this._sql_url(sql), 
+                        function(data) {
+    		                self._cache[sql] = data;
+    		                callback(data);
+    		            }
+                    );
+    		    }
+    	    },
+
+    	    _redraw: function() {
+                var tile = null;
+
+    		    for (var t in this._tiles) {
+    	            tile = this._tiles[t];
+    	        }
+    	    },
+    	    // Method which override MapType in Google Map V3
+    	    
+    	    apply_style: function(ctx, data) {
+    	        var css = CartoCSS.apply(this._config.css, data),
+                    c = null;
+    	            mapper = {
+    	                'point-color': 'fillStyle',
+    	                'line-color': 'strokeStyle',
+    	                'line-width': 'lineWidth',
+    	                'polygon-fill': 'fillStyle'
+    	            };
+                
+    	        for (var attr in css) {
+    	            c = mapper[attr];
+    	            if (c) {
     	                ctx[c] = css[attr];
     	            }
     	        }
     	    },
-    	getTile: function(coord, zoom, ownerDocument) {
-    		var self = this;
-    		var primitive_render = {
-        	        'Point': function(ctx, x, y, zoom, coordinates) {
-    	                  ctx.save();
-    	                  var radius = 2;
-    	                  var p = self.map_latlon(coordinates, zoom);
-    	                  ctx.translate(p.x, p.y);
-    	                  ctx.beginPath();
-    	                  ctx.arc(radius, radius, radius, 0, Math.PI * 2, true);
-    	                  ctx.closePath();
-    	                  ctx.fill();
-    	                  ctx.stroke();
-    	                  ctx.restore();
-    		        },
-    		        'MultiPoint': function(ctx, x, y,zoom, coordinates) {
-    		              var prender = primitive_render['Point'];
-    		              for(var i=0; i < coordinates.length; ++i) {
-    		                  prender(ctx, zoom, coordinates[i]);
-    		              }
-    		        },
-    		        'Polygon': function(ctx, x, y, zoom, coordinates) {
-    		              ctx.beginPath();
-    		              var p = self.map_latlon(coordinates[0][0], x, y, zoom);
-    		              ctx.moveTo(p.x, p.y);
-    		              for(var i=0; i < coordinates[0].length; ++i) {
-    		                p = self.map_latlon(coordinates[0][i], x, y, zoom);
-    		                ctx.lineTo(p.x, p.y);
-    		             }
-    		             ctx.closePath();
-    		             ctx.fill();
-    		             ctx.stroke();
-    		        },
-    		        'MultiPolygon': function(ctx, x, y, zoom, coordinates) {
-    		              var prender = primitive_render['Polygon'];
-    		              for(var i=0; i < coordinates.length; ++i) {
-    		                  prender(ctx, x, y, zoom, coordinates[i]);
-    		              }
-    		        }
-    		    }
-    		
-    		var self = this;
-    		var canvas = ownerDocument.createElement('canvas');
-    	    canvas.style.border  = "none";
-    	    canvas.style.margin  = "0";
-    	    canvas.style.padding = "0";
-    	    
-    	    // prepare canvas and context sizes
-    	    var ctx    = canvas.getContext('2d');
-    	    ctx.width  = canvas.width = this.tileSize.width;
-    	    ctx.height = canvas.height = this.tileSize.height;
-    	    
-    	    var tile_id = coord.x + '_' + coord.y + '_' + zoom;
-    	    canvas.setAttribute('id', tile_id);
-    	    
-    	    if (tile_id in this._tiles) {
-    	    	delete this._tiles[tile_id];
-    	    } else {
-    	    	self._fetchTile(coord.x, coord.y, zoom, function(data) {
-    	            var tile_point = self._projection.tilePoint(coord.x, coord.y, zoom);
-    	            var primitives = data.features;
-    	            if(primitives.length) {
-    	                  for(var i = 0; i < primitives.length; ++i) {
 
-    	                      // reset primitive layer context
-    	                      ctx.clearRect(0,0,canvas.width,canvas.height);
+    	    getTile: function(coord, zoom, ownerDocument) {
+    		    var self = this,
+                    canvas = ownerDocument.createElement('canvas'),
+                    ctx = null,
+                    tile_id = null,
+    		        primitive_render = {
+        	            'Point': function(ctx, x, y, zoom, coordinates) {
+    	                    ctx.save();
+    	                    var radius = 2;
+    	                    var p = self.map_latlon(coordinates, zoom);
+    	                    ctx.translate(p.x, p.y);
+    	                    ctx.beginPath();
+    	                    ctx.arc(radius, radius, radius, 0, Math.PI * 2, true);
+    	                    ctx.closePath();
+    	                    ctx.fill();
+    	                    ctx.stroke();
+    	                    ctx.restore();
+    		            },
+    		            'MultiPoint': function(ctx, x, y,zoom, coordinates) {
+    		                var prender = primitive_render['Point'];
+    		                for (var i=0; i < coordinates.length; ++i) {
+    		                    prender(ctx, zoom, coordinates[i]);
+    		                }
+    		            },
+    		            'Polygon': function(ctx, x, y, zoom, coordinates) {
+                            var p = null;
+                                
+    		                ctx.beginPath();
+    		                p = self.map_latlon(coordinates[0][0], x, y, zoom);
+    		                ctx.moveTo(p.x, p.y);
+    		                for (var i=0; i < coordinates[0].length; ++i) {
+    		                    p = self.map_latlon(coordinates[0][i], x, y, zoom);
+    		                    ctx.lineTo(p.x, p.y);
+    		                }
+    		                ctx.closePath();
+    		                ctx.fill();
+    		                ctx.stroke();
+    		            },
+    		            'MultiPolygon': function(ctx, x, y, zoom, coordinates) {
+    		                var prender = primitive_render['Polygon'];
 
-    	                      // get layer geometry
-    	                      var renderer = primitive_render[primitives[i].geometry.type];
+    		                for (var i=0; i < coordinates.length; ++i) {
+    		                    prender(ctx, x, y, zoom, coordinates[i]);
+    		                }
+    		            }
+    		        };
+                
+    	        canvas.style.border  = "none";
+    	        canvas.style.margin  = "0";
+    	        canvas.style.padding = "0";
+    	        
+    	        // prepare canvas and context sizes
+    	        ctx = canvas.getContext('2d');
+    	        ctx.width  = canvas.width = this.tileSize.width;
+    	        ctx.height = canvas.height = this.tileSize.height;
+    	        
+    	        tile_id = coord.x + '_' + coord.y + '_' + zoom;
+    	        canvas.setAttribute('id', tile_id);
+    	        
+    	        if (tile_id in this._tiles) {
+    	    	    delete this._tiles[tile_id];
+    	        } else {
+    	    	    self._fetchTile(
+                        coord.x, 
+                        coord.y, 
+                        zoom, 
+                        function(data) {
+    	                    var tile_point = self._projection.tilePoint(coord.x, coord.y, zoom),
+    	                        primitives = data.features,
+                                renderer = null;
 
-    	                      // render layer, calculate hitgrid and composite
-								// onto main ctx
-    	                      if(renderer) {
-    	                          self.apply_style(ctx, primitives[i].properties);
-    	                          renderer(ctx, coord.x, coord.y, zoom, primitives[i].geometry.coordinates);
+    	                    if (primitives.length) {
+    	                        for (var i = 0; i < primitives.length; ++i) {
+                                    
+    	                            // reset primitive layer context
+    	                            ctx.clearRect(0,0,canvas.width,canvas.height);
+                                    
+    	                            // get layer geometry
+    	                            renderer = primitive_render[primitives[i].geometry.type];
+                                    
+    	                            // render layer, calculate hitgrid and composite
+								    // onto main ctx
+    	                            if (renderer) {
+    	                                self.apply_style(ctx, primitives[i].properties);
+    	                                renderer(ctx, coord.x, coord.y, zoom, primitives[i].geometry.coordinates);
+                                        
+    	                                // here is where we would calculate hit grid
+    	                                // TODO: Implement hit grid :D
+    	                                
+    	                                // composite layer context onto main context
+    	                                ctx.drawImage(canvas,0,0);
+    	                            } else {
+    	                                console.log("no renderer for ", primitives[i].geometry.type);
+    	                            }
+    	                        }
+    	                    }
+    	                }
+                    );
+    	        }
+    	        
+    	        this._tiles[tile_id] = {canvas: canvas, ctx: ctx, coord: coord, zoom: zoom};    	        
+    	        return canvas;
+    	    },
 
-    	                          // here is where we would calculate hit grid
-    	                          // TODO: Implement hit grid :D
-    	                          
-    	                          // composite layer context onto main context
-    	                          ctx.drawImage(canvas,0,0);
-    	                      } else {
-    	                        console.log("no renderer for ", primitives[i].geometry.type);
-    	                      }
-    	                   }
-    	            }
-    	          });
-    	    }
-    	    
-    	    this._tiles[tile_id] = {canvas: canvas, ctx: ctx, coord: coord, zoom: zoom};
-    	    
-    	    return canvas;
-    	},
-    	map_latlon: function (latlng, x, y, zoom) {
-            latlng = new google.maps.LatLng(latlng[1], latlng[0]);
-            return this._projection.latLngToTilePoint(latlng, x, y, zoom);        
-        },
-    	reRenderTile: function(tile_info, coord, zoom) {
-    		var primitive_render = {
-        	        'Point': function(ctx, x, y, zoom, coordinates) {
-    	                  ctx.save();
-    	                  var radius = 2;
-    	                  var p = self.map_latlon(coordinates, zoom);
-    	                  ctx.translate(p.x, p.y);
-    	                  ctx.beginPath();
-    	                  ctx.arc(radius, radius, radius, 0, Math.PI * 2, true);
-    	                  ctx.closePath();
-    	                  ctx.fill();
-    	                  ctx.stroke();
-    	                  ctx.restore();
-    		        },
-    		        'MultiPoint': function(ctx, x, y,zoom, coordinates) {
-    		              var prender = primitive_render['Point'];
-    		              for(var i=0; i < coordinates.length; ++i) {
-    		                  prender(ctx, zoom, coordinates[i]);
-    		              }
-    		        },
-    		        'Polygon': function(ctx, x, y, zoom, coordinates) {
-    		              ctx.beginPath();
-    		              var p = self.map_latlon(coordinates[0][0], x, y, zoom);
-    		              ctx.moveTo(p.x, p.y);
-    		              for(var i=0; i < coordinates[0].length; ++i) {
-    		                p = self.map_latlon(coordinates[0][i], x, y, zoom);
-    		                ctx.lineTo(p.x, p.y);
-    		             }
-    		             ctx.closePath();
-    		             ctx.fill();
-    		             ctx.stroke();
-    		        },
-    		        'MultiPolygon': function(ctx, x, y, zoom, coordinates) {
-    		              var prender = primitive_render['Polygon'];
-    		              for(var i=0; i < coordinates.length; ++i) {
-    		                  prender(ctx, x, y, zoom, coordinates[i]);
-    		              }
-    		        }
-    		    }
-    		
-            var ctx = tile_info.ctx;
+    	    map_latlon: function (latlng, x, y, zoom) {
+                latlng = new google.maps.LatLng(latlng[1], latlng[0]);
+                return this._projection.latLngToTilePoint(latlng, x, y, zoom);        
+            },
 
-            // draw each primitive onto its own blank canvas to allow us to
-			// build up a hitgrid
-            // Fast in chrome, slow in safari
-            var layer_canvas  = document.createElement('canvas');
-            layer_canvas.width  = ctx.width;
-            layer_canvas.height = ctx.height;
-            var layer_ctx = layer_canvas.getContext('2d');
+    	    reRenderTile: function(tile_info, coord, zoom) {
+    		    var ctx = tile_info.ctx,
+                    layer_canvas = null,
+                    layer_ctx = null,
+                    primitive_render = {
+        	            'Point': function(ctx, x, y, zoom, coordinates) {
+    	                    var radius = 2,
+    	                        p = self.map_latlon(coordinates, zoom);
 
-            tile_info.canvas.width = tile_info.canvas.width ;
-            self.tile_data(coord.x, coord.y, zoom, function(data) {
-              var tile_point = self._projection.tilePoint(coord.x, coord.y, zoom);
-              var primitives = data.features;
-              if(primitives.length) {
-                    for(var i = 0; i < primitives.length; ++i) {
+    	                    ctx.save();
+    	                    ctx.translate(p.x, p.y);
+    	                    ctx.beginPath();
+    	                    ctx.arc(radius, radius, radius, 0, Math.PI * 2, true);
+    	                    ctx.closePath();
+    	                    ctx.fill();
+    	                    ctx.stroke();
+    	                    ctx.restore();
+    		            },
+    		            'MultiPoint': function(ctx, x, y,zoom, coordinates) {
+    		                var prender = primitive_render['Point'];
+    		      
+                            for (var i=0; i < coordinates.length; ++i) {
+    		                    prender(ctx, zoom, coordinates[i]);
+    		                }
+    		            },
+    		            'Polygon': function(ctx, x, y, zoom, coordinates) {
+    		                var p = self.map_latlon(coordinates[0][0], x, y, zoom);
 
-                        // reset primitive layer context
-                        layer_ctx.clearRect(0,0,layer_canvas.width,layer_canvas.height);
-
-                        // get layer geometry
-                        var renderer = primitive_render[primitives[i].geometry.type];
-
-                        // render layer, calculate hitgrid and composite onto
-						// main ctx
-                        if(renderer) {
-                            self.apply_style(layer_ctx, primitives[i].properties);
-                            renderer(layer_ctx, coord.x, coord.y, zoom, primitives[i].geometry.coordinates);
-
-                            // here is where we would calculate hit grid
-                            // TODO: Implement hit grid :D
+    		                ctx.beginPath();
+    		                ctx.moveTo(p.x, p.y);
+    		                for (var i=0; i < coordinates[0].length; ++i) {
+    		                    p = self.map_latlon(coordinates[0][i], x, y, zoom);
+    		                    ctx.lineTo(p.x, p.y);
+    		                }
+    		                ctx.closePath();
+    		                ctx.fill();
+    		                ctx.stroke();
+    		            },
+    		            'MultiPolygon': function(ctx, x, y, zoom, coordinates) {
+    		                var prender = primitive_render['Polygon'];
                             
-                            // composite layer context onto main context
-                            ctx.drawImage(layer_canvas,0,0);
-                        } else {
-                          console.log("no renderer for ", primitives[i].geometry.type);
-                        }
-                     }
-              }
-            });
+    		                for (var i=0; i < coordinates.length; ++i) {
+    		                    prender(ctx, x, y, zoom, coordinates[i]);
+    		                }
+    		            }
+    		        };
+                
+                // draw each primitive onto its own blank canvas to allow us to
+			    // build up a hitgrid
+                // Fast in chrome, slow in safari
+                layer_canvas  = document.createElement('canvas');
+                layer_canvas.width  = ctx.width;
+                layer_canvas.height = ctx.height;
+                layer_ctx = layer_canvas.getContext('2d');
+                
+                tile_info.canvas.width = tile_info.canvas.width ;
+                self.tile_data(
+                    coord.x, 
+                    coord.y, 
+                    zoom, 
+                    function(data) {
+                        var tile_point = self._projection.tilePoint(coord.x, coord.y, zoom),
+                            primitives = data.features,
+                            renderer = null;
 
-      },
-    	init: function(map, layer, config) {
-			this.tileSize = new google.maps.Size(256,256);
-			this._map = map;
-			this._layer = layer;
-			this._projection = new MercatorProjection();
-			this._cache = {}; // cache stores geojson data
-			this._tiles = {}; // stores the actual image
-			this._config = config || this._fallback_config;
-			this._map.overlayMapTypes.insertAt(0, this);
-			
-    	},
-	    // Abstract functions:
-	    show: function() {
-	    	var layer = this.getLayer(),
-	    	style = this.getStyle(),
-	    	bounds = this.bounds(),
-	    	LatLngBounds = google.maps.LatLngBounds,
-            LatLng = google.maps.LatLng,
-            map = this.getMap();
-	    	if (!this.isVisible()) {
-	    		this.refresh();
-	    	}
-	    },
-	    hide: function() {
-	    	
-	    },
-	    isVisible: function() {
-	    },
-	    refresh: function() {
-	        for(var t in this._tiles) {
-	            var tile = this._tiles[t];
-	            this.reRenderTile(tile, tile.coord, tile.zoom);
+                        if (primitives.length) {
+                            for(var i = 0; i < primitives.length; ++i) {
+                                
+                                // reset primitive layer context
+                                layer_ctx.clearRect(0,0,layer_canvas.width,layer_canvas.height);
+                                
+                                // get layer geometry
+                                renderer = primitive_render[primitives[i].geometry.type];
+                                
+                                // render layer, calculate hitgrid and composite onto
+						        // main ctx
+                                if (renderer) {
+                                    self.apply_style(layer_ctx, primitives[i].properties);
+                                    renderer(layer_ctx, coord.x, coord.y, zoom, primitives[i].geometry.coordinates);
+                                    
+                                    // here is where we would calculate hit grid
+                                    // TODO: Implement hit grid :D
+                                    
+                                    // composite layer context onto main context
+                                    ctx.drawImage(layer_canvas,0,0);
+                                } else {
+                                    console.log("no renderer for ", primitives[i].geometry.type);
+                                }
+                            }
+                        }
+                    }
+                );                
+            },
+            
+    	    init: function(map, layer, config) {
+			    this.tileSize = new google.maps.Size(256,256);
+			    this._map = map;
+			    this._layer = layer;
+			    this._projection = new MercatorProjection();
+			    this._cache = {}; // cache stores geojson data
+			    this._tiles = {}; // stores the actual image
+			    this._config = config || this._fallback_config;
+			    this._map.overlayMapTypes.insertAt(0, this);
+			    
+    	    },
+	        
+            // Abstract functions:
+	        show: function() {
+	    	    var layer = this.getLayer(),
+	    	        style = this.getStyle(),
+	    	        bounds = this.bounds(),
+	    	        LatLngBounds = google.maps.LatLngBounds,
+                    LatLng = google.maps.LatLng,
+                    map = this.getMap();
+
+	    	    if (!this.isVisible()) {
+	    		    this.refresh();
+	    	    }
+	        },
+
+	        hide: function() {	    	    
+                // TODO
+	        },
+
+	        isVisible: function() {
+                // TODO
+	        },
+
+	        refresh: function() {
+                var tile = null;
+                
+	            for (var t in this._tiles) {
+	                tile = this._tiles[t];
+	                this.reRenderTile(tile, tile.coord, tile.zoom);
+	            }
+	        },
+
+	        bounds: function() {
+                // TODO
+	        },
+
+	        getStyle: function() {
+	    	    return this._config.css;
+	        },
+
+	        setStyle: function(style) {
+	    	    this._config.css = style;
 	        }
-	    },
-	    bounds: function() {
-	    },
-	    getStyle: function() {
-	    	return this._config.css;
-	    },
-	    setStyle: function(style) {
-	    	this._config.css = style;
-	    }
-    });
+        }
+    );
     
     /**
 	 * The Map Engine.
