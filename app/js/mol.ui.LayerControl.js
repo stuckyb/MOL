@@ -221,8 +221,6 @@ MOL.modules.LayerControl = function(mol) {
                             		$(document).append(html);
                             	}
                             );
-                            
-                            
                             layerUi.attr('id', layerId);
                             
                             // Handles layer selection.
