@@ -466,7 +466,7 @@ MOL.modules.Map = function(mol) {
 			    user: 'eighty',
 			    table: 'mol_cody',
 			    columns: [],
-			    debug: true,
+			    debug: false,
 			    css: "{ polygon-fill: rgba(134, 32, 128,0.7); line-color: rgba(82, 202, 231,0.1); }"
 		    },
 
@@ -765,7 +765,7 @@ MOL.modules.Map = function(mol) {
                 // TODO
 	        },
 
-	        refresh: function() {
+	        refresh: function() {                
                 var tile = null;
                 
 	            for (var t in this._tiles) {
