@@ -483,10 +483,12 @@ MOL.modules.Map = function(mol) {
     		    };
     		    return url;
     	    },
-    	    getZoomGrade: function(zoom) {
-    	    	if (zoom >= 17){
+    	    getZoomGrade: function(zoom) { 
+                var grade = null;
+
+    	    	if (zoom >= 17) {
     		    	grade = 5;
-    		    } else if (zoom >= 14 ){
+    		    } else if (zoom >= 14 ) {
     		    	grade = 4;
     		    } else if (zoom >= 10){
     		    	grade = 3;
@@ -510,22 +512,22 @@ MOL.modules.Map = function(mol) {
     		        sql = null,
                     data = self._cache[sql];
     		    if (zoom >= 17){
-    		    	the_geom = geom_column
+    		    	the_geom = geom_column;
     		    } else if (zoom >= 14 ){
-    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.000001) as the_geom'
+    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.000001) as the_geom';
     		    } else if (zoom >= 10){
-    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.0001) as the_geom'
+    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.0001) as the_geom';
     		    } else if (zoom >=6){
-    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.001) as the_geom'
+    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.001) as the_geom';
     		    } else if (zoom >= 4){
-    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.01) as the_geom'
+    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.01) as the_geom';
     		    } else {
-    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.1) as the_geom'
+    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.1) as the_geom';
     		    }
     		    columns = [the_geom].concat(self._config.columns).join(',');
     		    sql = "select " + columns + " from " + this._config.table + " where scientific = '" + this.getLayer().getName() + "'";
     		    if (zoom >= 3) {
-    		    	sql += " and the_geom && ST_SetSRID(ST_MakeBox2D("
+    		    	sql += " and the_geom && ST_SetSRID(ST_MakeBox2D(";
     		    	sql += "ST_Point(" + bbox[0].lng() + "," + bbox[0].lat() +"),";
     		    	sql += "ST_Point(" + bbox[1].lng() + "," + bbox[1].lat() +")), 4326)";
     		    }
@@ -546,13 +548,14 @@ MOL.modules.Map = function(mol) {
     	    },
     	    applyStyle: function(ctx, data) {
     	        var css = CartoCSS.apply(this.getStyle(), data),
-                    c = null;
+                    c = null,
     	            mapper = {
     	                'point-color': 'fillStyle',
     	                'line-color': 'strokeStyle',
     	                'line-width': 'lineWidth',
     	                'polygon-fill': 'fillStyle'
     	            };
+
     	        for (var attr in css) {
     	            c = mapper[attr];
     	            if (c) {
@@ -560,23 +563,20 @@ MOL.modules.Map = function(mol) {
     	            }
     	        }
     	    },
+
     	    mapLatLon: function (latlng, x, y, zoom) {
                 latlng = new google.maps.LatLng(latlng[1], latlng[0]);
                 return this._projection.latLngToTilePoint(latlng, x, y, zoom);        
             },
+
             getCallback: function(parent, ctx, layer_ctx, x, y, zoom, layer_canvas) {
-            	var parent = parent,
-            		primitive_render = parent.primitive_render
-            		ctx = ctx,
-            		layer_ctx = layer_ctx,
-            		layer_canvas = layer_canvas,
-            		x = x,
-            		y = y,
-            		zoom = zoom;
+            	var primitive_render = parent.primitive_render;
+
             	return function(data) {
                     var tile_point = parent._projection.tilePoint(x, y, zoom),
                         primitives = data.features,
                         renderer = null;
+
                     if (primitives.length) {
                         for(var i = 0; i < primitives.length; ++i) {
                             // reset primitive layer context
@@ -601,8 +601,9 @@ MOL.modules.Map = function(mol) {
                             }
                         }
                     }
-                }
+                };
             },
+
     	    renderTile: function(tile_info, coord, zoom) {
     		    var self = this,
     		    	ctx = tile_info.ctx,
@@ -636,6 +637,7 @@ MOL.modules.Map = function(mol) {
                     ctx = null,
                     tile_id = null,
 					primitive_render = self.primitive_render;
+
     	        canvas.style.border  = "none";
     	        canvas.style.margin  = "0";
     	        canvas.style.padding = "0";
@@ -661,11 +663,13 @@ MOL.modules.Map = function(mol) {
     	        self._tiles[tile_id] = {canvas: canvas, ctx: ctx, coord: coord, zoom: zoom};    	        
     	        return canvas;
     	    },
+
     	    releaseTile: function(tileCanvas) {
     	    	var self = this,
     	    		tile_id = tileCanvas.getAttribute('id');
     	    	delete delete self._tiles[tile_id];
     	    },
+
     	    /**
 			 * Inherited methods from parent class
 			 */
@@ -721,24 +725,29 @@ MOL.modules.Map = function(mol) {
 		            }
 		        };
     	    },
+
     	    show: function() {
 	    	    var layer = this.getLayer(),
 	    	        style = this.getStyle(),
 	    	        bounds = this.bounds(),
 	    	        LatLngBounds = google.maps.LatLngBounds,
                     LatLng = google.maps.LatLng,
-                    map = this.getMap();
+                    map = this.getMap(),
+                    tile = null;
+
 	    	    if (!this.isVisible()) {
 	    	    	for (var t in this._tiles) {
 		                tile = this._tiles[t];
 		                $(tile.canvas).show();
 		            }
-//	    	    	this.refresh();
+	    	    	// this.refresh();
                     this._onMap = true;
 	    	    }
 	        },
+
 	        hide: function() {
 	        	var tile = null;
+
 	            if (this.isVisible()) {
 	                for (var t in this._tiles) {
 		                tile = this._tiles[t];
@@ -747,27 +756,30 @@ MOL.modules.Map = function(mol) {
 	                this._onMap = false;
 	            }
 	        },
+
 	        isVisible: function() {
 	        	return this._onMap;
 	        },
 
 	        refresh: function() {
                 var tile = null;
+
 	            for (var t in this._tiles) {
 	                tile = this._tiles[t];
 	                this.renderTile(tile, tile.coord, tile.zoom);
 	            }
 	        },
+
 	        bounds: function() {
 	        	var layer = this.getLayer(),
-                extent = layer.getExtent(), // GeoJSON bounding box as
-											// polygon
+                extent = layer.getExtent(), // GeoJSON bounding box as polygon											
                 north = extent[0][2][1],
                 west = extent[0][0][0],
                 south = extent[0][0][1],
                 east = extent[0][2][0],
                 bounds = new google.maps.LatLngBounds(),
                 LatLng = google.maps.LatLng;
+
 	            if (this._bounds) {
 	                return this._bounds;
 	            }
@@ -776,9 +788,11 @@ MOL.modules.Map = function(mol) {
 	            this._bounds = bounds;
 	            return bounds;
 	        },
+
 	        getStyle: function() {
 	    	    return this._config.css;
 	        },
+
 	        setStyle: function(style) {
 	    	    this._config.css = style;
 	    	    this.refresh();
