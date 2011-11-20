@@ -631,13 +631,11 @@ MOL.modules.Map = function(mol) {
 			 * @See http://code.google.com/apis/maps/documentation/javascript/maptypes.html
 			 */
             getTile: function(coord, zoom, ownerDocument) {
-            	console.log("getTile @ " + zoom)
     		    var self = this,
                     canvas = ownerDocument.createElement('canvas'),
                     ctx = null,
                     tile_id = null,
 					primitive_render = self.primitive_render;
-                
     	        canvas.style.border  = "none";
     	        canvas.style.margin  = "0";
     	        canvas.style.padding = "0";
@@ -675,7 +673,7 @@ MOL.modules.Map = function(mol) {
 				var self = this;
 			    this.tileSize = new google.maps.Size(256,256);
 			    this._map = map;
-			    this._onMap = false;
+			    this._onMap = true;
 			    this._layer = layer;
 			    this._projection = new MercatorProjection();
 			    this._cache = {}; // cache stores geojson data
@@ -735,6 +733,7 @@ MOL.modules.Map = function(mol) {
 		                tile = this._tiles[t];
 		                $(tile.canvas).show();
 		            }
+//	    	    	this.refresh();
                     this._onMap = true;
 	    	    }
 	        },
