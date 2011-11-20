@@ -225,12 +225,12 @@ MOL.modules.LayerControl = function(mol) {
                             			function() {
                             				bus.fireEvent(
                             					new LayerEvent(
-                            							{
-                            								action: 'update_style',
-                            								layer: layer
-                            							}
+                            						{
+                            							action: 'update_style',
+                            							layer: layer
+                            						}
                             					)
-                            				)
+                            				);
                             			}
                             		);
                             		bus.fireEvent(
