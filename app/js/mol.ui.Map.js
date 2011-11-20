@@ -474,7 +474,7 @@ MOL.modules.Map = function(mol) {
 			    this.table = 'mol_cody';
 			    this.columns = [];
 			    this.debug = false;
-			    this.css = "{ polygon-fill: rgba(134, 32, 128,0.7); line-color: rgba(82, 202, 231,0.1); }";
+			    this.css = "{\n  polygon-fill: rgba(134, 32, 128, 0.7);\n  line-color: rgba(82, 202, 231, 0.1);\n}";
 		    },
     	    getSqlUrl: function(sql) {
     		    var url = 'http://' + this._config.user + ".cartodb.com/api/v1/sql?q=" + encodeURIComponent(sql) + "&format=geojson&dp=6";
@@ -1024,7 +1024,7 @@ MOL.modules.Map = function(mol) {
                             break;   
                         case 'get_style':
                         	if (mapLayer instanceof mol.ui.Map.CartoTileLayer) {
-                        		$("#css_text").val(mapLayer.getStyle().replace(/(\;|\{)/gi, "$1\n\t\t").replace(/}/gi, "\n}"));
+                        		$("#css_text").val(mapLayer.getStyle()); //(/(\;|\{)/gi, "$1\n  ").replace(/}/gi, "}"));
                         	}
                         	break;
                         case 'update_style':
