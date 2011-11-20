@@ -53,6 +53,12 @@ MOL.modules.Map = function(mol) {
             },
             setColor: function(color) {
                 this._color = color;
+            },
+            getStyle: function() {
+            	throw new mol.exceptions.NotImplementedError('getStyle()');
+            },
+            setStyle: function() {
+            	throw new mol.exceptions.NotImplementedError('setStyle()');
             }
         }
     );
@@ -370,11 +376,12 @@ MOL.modules.Map = function(mol) {
             },
 
             /**
-             * Returns a google.maps.LatLngBounds for this layer.
-             */
+			 * Returns a google.maps.LatLngBounds for this layer.
+			 */
             bounds: function() {                
                 var layer = this.getLayer(),
-                    extent = layer.getExtent(), // GeoJSON bounding box as polygon
+                    extent = layer.getExtent(), // GeoJSON bounding box as
+												// polygon
                     north = extent[0][2][1],
                     west = extent[0][0][0],
                     south = extent[0][0][1],
@@ -462,37 +469,74 @@ MOL.modules.Map = function(mol) {
     );
     mol.ui.Map.CartoTileLayer = mol.ui.Map.MapLayer.extend(
         {
-    	    _fallback_config: {
-			    user: 'eighty',
-			    table: 'mol_cody',
-			    columns: [],
-			    debug: false,
-			    css: "{ polygon-fill: rgba(134, 32, 128,0.7); line-color: rgba(82, 202, 231,0.1); }"
+    	    DefaultConfig: function() {
+			    this.user = 'eighty';
+			    this.table = 'mol_cody';
+			    this.columns = [];
+			    this.debug = false;
+			    this.css = "{ polygon-fill: rgba(134, 32, 128,0.7); line-color: rgba(82, 202, 231,0.1); }";
 		    },
-
-    	    _sql_url: function(sql) {
+    	    getSqlUrl: function(sql) {
     		    var url = 'http://' + this._config.user + ".cartodb.com/api/v1/sql?q=" + encodeURIComponent(sql) + "&format=geojson&dp=6";
-
     		    if (this._config.debug) {
-    			    console.log(url);
+    		    	mol.log.info(url);
     		    };
     		    return url;
     	    },
-
-    	    _fetchTile: function(x, y, zoom, callback) {
+    	    getZoomGrade: function(zoom) {
+    	    	if (zoom >= 17){
+    		    	grade = 5;
+    		    } else if (zoom >= 14 ){
+    		    	grade = 4;
+    		    } else if (zoom >= 10){
+    		    	grade = 3;
+    		    } else if (zoom >=6){
+    		    	grade = 2;
+    		    } else if (zoom >= 4){
+    		    	grade = 1;
+    		    } else {
+    		    	grade = 0;
+    		    }
+    	    	return grade;
+    	    },
+    	    fetchTile: function(x, y, zoom, callback) {
     		    var self = this,
-    		        tile_point = self._projection.tilePoint(x, y, zoom),
-    		        geom_column = 'the_geom',
-    		        columns = [geom_column].concat(self._config.columns).join(','),
-    		        sql = "select " + columns + " from " + this._config.table + " where scientific = '" + this.getLayer().getName() + "'",
+    		    	projection = new MercatorProjection(),
+    		        tile_point = projection.tilePoint(x, y, zoom),
+    		        bbox = projection.tileBBox(x, y, zoom),
+    		        geom_column = "the_geom",
+    		        the_geom = null,
+    		        columns = null,
+    		        sql = null,
                     data = self._cache[sql];
-
+    		    if (zoom >= 17){
+    		    	the_geom = geom_column
+    		    } else if (zoom >= 14 ){
+    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.000001) as the_geom'
+    		    } else if (zoom >= 10){
+    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.0001) as the_geom'
+    		    } else if (zoom >=6){
+    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.001) as the_geom'
+    		    } else if (zoom >= 4){
+    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.01) as the_geom'
+    		    } else {
+    		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.1) as the_geom'
+    		    }
+    		    columns = [the_geom].concat(self._config.columns).join(',');
+    		    sql = "select " + columns + " from " + this._config.table + " where scientific = '" + this.getLayer().getName() + "'";
+    		    if (zoom >= 3) {
+    		    	sql += " and the_geom && ST_SetSRID(ST_MakeBox2D("
+    		    	sql += "ST_Point(" + bbox[0].lng() + "," + bbox[0].lat() +"),";
+    		    	sql += "ST_Point(" + bbox[1].lng() + "," + bbox[1].lat() +")), 4326)";
+    		    }
     		    if (data) {
-    	            console.log("CACHED");
+    	            if (this._config.debug) {
+    	            	mol.log.info("CACHED");
+        		    };
     	            callback(data);
     		    } else {
     			    $.getJSON(
-                        this._sql_url(sql), 
+                        this.getSqlUrl(sql), 
                         function(data) {
     		                self._cache[sql] = data;
     		                callback(data);
@@ -500,18 +544,8 @@ MOL.modules.Map = function(mol) {
                     );
     		    }
     	    },
-
-    	    _redraw: function() {
-                var tile = null;
-
-    		    for (var t in this._tiles) {
-    	            tile = this._tiles[t];
-    	        }
-    	    },
-    	    // Method which override MapType in Google Map V3
-    	    
-    	    apply_style: function(ctx, data) {
-    	        var css = CartoCSS.apply(this._config.css, data),
+    	    applyStyle: function(ctx, data) {
+    	        var css = CartoCSS.apply(this.getStyle(), data),
                     c = null;
     	            mapper = {
     	                'point-color': 'fillStyle',
@@ -519,7 +553,6 @@ MOL.modules.Map = function(mol) {
     	                'line-width': 'lineWidth',
     	                'polygon-fill': 'fillStyle'
     	            };
-                
     	        for (var attr in css) {
     	            c = mapper[attr];
     	            if (c) {
@@ -527,54 +560,82 @@ MOL.modules.Map = function(mol) {
     	            }
     	        }
     	    },
-
-    	    getTile: function(coord, zoom, ownerDocument) {
+    	    mapLatLon: function (latlng, x, y, zoom) {
+                latlng = new google.maps.LatLng(latlng[1], latlng[0]);
+                return this._projection.latLngToTilePoint(latlng, x, y, zoom);        
+            },
+            getCallback: function(parent, ctx, layer_ctx, x, y, zoom, layer_canvas) {
+            	var parent = parent,
+            		primitive_render = parent.primitive_render
+            		ctx = ctx,
+            		layer_ctx = layer_ctx,
+            		layer_canvas = layer_canvas,
+            		x = x,
+            		y = y,
+            		zoom = zoom;
+            	return function(data) {
+                    var tile_point = parent._projection.tilePoint(x, y, zoom),
+                        primitives = data.features,
+                        renderer = null;
+                    if (primitives.length) {
+                        for(var i = 0; i < primitives.length; ++i) {
+                            // reset primitive layer context
+                            layer_ctx.clearRect(0,0,layer_canvas.width,layer_canvas.height);
+                            // get layer geometry
+                            renderer = primitive_render[primitives[i].geometry.type];
+                            
+                            // render layer, calculate hitgrid and composite
+							// onto
+					        // main ctx
+                            if (renderer) {
+                                parent.applyStyle(layer_ctx, primitives[i].properties);
+                                renderer(layer_ctx, x, y, zoom, primitives[i].geometry.coordinates);
+                                
+                                // here is where we would calculate hit grid
+                                // TODO: Implement hit grid :D
+                                
+                                // composite layer context onto main context
+                                ctx.drawImage(layer_canvas,0,0);
+                            } else {
+                            	mol.log.error("no renderer for ", primitives[i].geometry.type);
+                            }
+                        }
+                    }
+                }
+            },
+    	    renderTile: function(tile_info, coord, zoom) {
+    		    var self = this,
+    		    	ctx = tile_info.ctx,
+                    layer_canvas = null,
+                    layer_ctx = null;
+                
+                // draw each primitive onto its own blank canvas to allow us to
+			    // build up a hitgrid
+                // Fast in chrome, slow in safari
+                layer_canvas  = document.createElement('canvas');
+                layer_canvas.width  = ctx.width;
+                layer_canvas.height = ctx.height;
+                layer_ctx = layer_canvas.getContext('2d');
+                
+                tile_info.canvas.width = tile_info.canvas.width; // clear canvas for redraw
+                self.fetchTile(
+                    coord.x,
+                    coord.y, 
+                    zoom,
+                    self.getCallback(self, ctx, layer_ctx, coord.x, coord.y, zoom, layer_canvas)
+                );                
+            },
+            /**
+			 * Map Types Functions
+			 * 
+			 * @See http://code.google.com/apis/maps/documentation/javascript/maptypes.html
+			 */
+            getTile: function(coord, zoom, ownerDocument) {
     		    var self = this,
                     canvas = ownerDocument.createElement('canvas'),
                     ctx = null,
                     tile_id = null,
-    		        primitive_render = {
-        	            'Point': function(ctx, x, y, zoom, coordinates) {
-    	                    ctx.save();
-    	                    var radius = 2;
-    	                    var p = self.map_latlon(coordinates, zoom);
-    	                    ctx.translate(p.x, p.y);
-    	                    ctx.beginPath();
-    	                    ctx.arc(radius, radius, radius, 0, Math.PI * 2, true);
-    	                    ctx.closePath();
-    	                    ctx.fill();
-    	                    ctx.stroke();
-    	                    ctx.restore();
-    		            },
-    		            'MultiPoint': function(ctx, x, y,zoom, coordinates) {
-    		                var prender = primitive_render['Point'];
-    		                for (var i=0; i < coordinates.length; ++i) {
-    		                    prender(ctx, zoom, coordinates[i]);
-    		                }
-    		            },
-    		            'Polygon': function(ctx, x, y, zoom, coordinates) {
-                            var p = null;
-                                
-    		                ctx.beginPath();
-    		                p = self.map_latlon(coordinates[0][0], x, y, zoom);
-    		                ctx.moveTo(p.x, p.y);
-    		                for (var i=0; i < coordinates[0].length; ++i) {
-    		                    p = self.map_latlon(coordinates[0][i], x, y, zoom);
-    		                    ctx.lineTo(p.x, p.y);
-    		                }
-    		                ctx.closePath();
-    		                ctx.fill();
-    		                ctx.stroke();
-    		            },
-    		            'MultiPolygon': function(ctx, x, y, zoom, coordinates) {
-    		                var prender = primitive_render['Polygon'];
-
-    		                for (var i=0; i < coordinates.length; ++i) {
-    		                    prender(ctx, x, y, zoom, coordinates[i]);
-    		                }
-    		            }
-    		        };
-                
+					primitive_render = self.primitive_render;
     	        canvas.style.border  = "none";
     	        canvas.style.margin  = "0";
     	        canvas.style.padding = "0";
@@ -590,200 +651,137 @@ MOL.modules.Map = function(mol) {
     	        if (tile_id in this._tiles) {
     	    	    delete this._tiles[tile_id];
     	        } else {
-    	    	    self._fetchTile(
+    	    	    self.fetchTile(
                         coord.x, 
                         coord.y, 
-                        zoom, 
-                        function(data) {
-    	                    var tile_point = self._projection.tilePoint(coord.x, coord.y, zoom),
-    	                        primitives = data.features,
-                                renderer = null;
-
-    	                    if (primitives.length) {
-    	                        for (var i = 0; i < primitives.length; ++i) {
-                                    
-    	                            // reset primitive layer context
-    	                            ctx.clearRect(0,0,canvas.width,canvas.height);
-                                    
-    	                            // get layer geometry
-    	                            renderer = primitive_render[primitives[i].geometry.type];
-                                    
-    	                            // render layer, calculate hitgrid and composite
-								    // onto main ctx
-    	                            if (renderer) {
-    	                                self.apply_style(ctx, primitives[i].properties);
-    	                                renderer(ctx, coord.x, coord.y, zoom, primitives[i].geometry.coordinates);
-                                        
-    	                                // here is where we would calculate hit grid
-    	                                // TODO: Implement hit grid :D
-    	                                
-    	                                // composite layer context onto main context
-    	                                ctx.drawImage(canvas,0,0);
-    	                            } else {
-    	                                console.log("no renderer for ", primitives[i].geometry.type);
-    	                            }
-    	                        }
-    	                    }
-    	                }
+                        zoom,
+                        self.getCallback(self, ctx, ctx, coord.x, coord.y, zoom, canvas)
                     );
     	        }
-    	        
-    	        this._tiles[tile_id] = {canvas: canvas, ctx: ctx, coord: coord, zoom: zoom};    	        
+    	        self._tiles[tile_id] = {canvas: canvas, ctx: ctx, coord: coord, zoom: zoom};    	        
     	        return canvas;
     	    },
-
-    	    map_latlon: function (latlng, x, y, zoom) {
-                latlng = new google.maps.LatLng(latlng[1], latlng[0]);
-                return this._projection.latLngToTilePoint(latlng, x, y, zoom);        
-            },
-
-    	    reRenderTile: function(tile_info, coord, zoom) {
-    		    var ctx = tile_info.ctx,
-                    layer_canvas = null,
-                    layer_ctx = null,
-                    primitive_render = {
-        	            'Point': function(ctx, x, y, zoom, coordinates) {
-    	                    var radius = 2,
-    	                        p = self.map_latlon(coordinates, zoom);
-
-    	                    ctx.save();
-    	                    ctx.translate(p.x, p.y);
-    	                    ctx.beginPath();
-    	                    ctx.arc(radius, radius, radius, 0, Math.PI * 2, true);
-    	                    ctx.closePath();
-    	                    ctx.fill();
-    	                    ctx.stroke();
-    	                    ctx.restore();
-    		            },
-    		            'MultiPoint': function(ctx, x, y,zoom, coordinates) {
-    		                var prender = primitive_render['Point'];
-    		      
-                            for (var i=0; i < coordinates.length; ++i) {
-    		                    prender(ctx, zoom, coordinates[i]);
-    		                }
-    		            },
-    		            'Polygon': function(ctx, x, y, zoom, coordinates) {
-    		                var p = self.map_latlon(coordinates[0][0], x, y, zoom);
-
-    		                ctx.beginPath();
-    		                ctx.moveTo(p.x, p.y);
-    		                for (var i=0; i < coordinates[0].length; ++i) {
-    		                    p = self.map_latlon(coordinates[0][i], x, y, zoom);
-    		                    ctx.lineTo(p.x, p.y);
-    		                }
-    		                ctx.closePath();
-    		                ctx.fill();
-    		                ctx.stroke();
-    		            },
-    		            'MultiPolygon': function(ctx, x, y, zoom, coordinates) {
-    		                var prender = primitive_render['Polygon'];
-                            
-    		                for (var i=0; i < coordinates.length; ++i) {
-    		                    prender(ctx, x, y, zoom, coordinates[i]);
-    		                }
-    		            }
-    		        };
-                
-                // draw each primitive onto its own blank canvas to allow us to
-			    // build up a hitgrid
-                // Fast in chrome, slow in safari
-                layer_canvas  = document.createElement('canvas');
-                layer_canvas.width  = ctx.width;
-                layer_canvas.height = ctx.height;
-                layer_ctx = layer_canvas.getContext('2d');
-                
-                tile_info.canvas.width = tile_info.canvas.width ;
-                self.tile_data(
-                    coord.x, 
-                    coord.y, 
-                    zoom, 
-                    function(data) {
-                        var tile_point = self._projection.tilePoint(coord.x, coord.y, zoom),
-                            primitives = data.features,
-                            renderer = null;
-
-                        if (primitives.length) {
-                            for(var i = 0; i < primitives.length; ++i) {
-                                
-                                // reset primitive layer context
-                                layer_ctx.clearRect(0,0,layer_canvas.width,layer_canvas.height);
-                                
-                                // get layer geometry
-                                renderer = primitive_render[primitives[i].geometry.type];
-                                
-                                // render layer, calculate hitgrid and composite onto
-						        // main ctx
-                                if (renderer) {
-                                    self.apply_style(layer_ctx, primitives[i].properties);
-                                    renderer(layer_ctx, coord.x, coord.y, zoom, primitives[i].geometry.coordinates);
-                                    
-                                    // here is where we would calculate hit grid
-                                    // TODO: Implement hit grid :D
-                                    
-                                    // composite layer context onto main context
-                                    ctx.drawImage(layer_canvas,0,0);
-                                } else {
-                                    console.log("no renderer for ", primitives[i].geometry.type);
-                                }
-                            }
-                        }
-                    }
-                );                
-            },
-            
+    	    releaseTile: function(tileCanvas) {
+    	    	var self = this,
+    	    		tile_id = tileCanvas.getAttribute('id');
+    	    	delete delete self._tiles[tile_id];
+    	    },
+    	    /**
+			 * Inherited methods from parent class
+			 */
     	    init: function(map, layer, config) {
+				var self = this;
 			    this.tileSize = new google.maps.Size(256,256);
 			    this._map = map;
+			    this._onMap = true;
 			    this._layer = layer;
 			    this._projection = new MercatorProjection();
 			    this._cache = {}; // cache stores geojson data
 			    this._tiles = {}; // stores the actual image
-			    this._config = config || this._fallback_config;
+			    this._config = config || new this.DefaultConfig();
 			    this._map.overlayMapTypes.insertAt(0, this);
-			    
+				this.primitive_render = {
+    	            Point: function(ctx, x, y, zoom, coordinates) {
+	                    ctx.save();
+	                    var radius = 2;
+	                    var p = self.mapLatLon(coordinates, zoom);
+	                    ctx.translate(p.x, p.y);
+	                    ctx.beginPath();
+	                    ctx.arc(radius, radius, radius, 0, Math.PI * 2, true);
+	                    ctx.closePath();
+	                    ctx.fill();
+	                    ctx.stroke();
+	                    ctx.restore();
+		            },
+		            MultiPoint: function(ctx, x, y,zoom, coordinates) {
+		                var prender = self.primitive_render.Point;
+		                for (var i=0; i < coordinates.length; ++i) {
+		                    prender(ctx, zoom, coordinates[i]);
+		                }
+		            },
+		            Polygon: function(ctx, x, y, zoom, coordinates) {
+                        var p = null;
+                            
+		                ctx.beginPath();
+		                p = self.mapLatLon(coordinates[0][0], x, y, zoom);
+		                ctx.moveTo(p.x, p.y);
+		                for (var i=0; i < coordinates[0].length; ++i) {
+		                    p = self.mapLatLon(coordinates[0][i], x, y, zoom);
+		                    ctx.lineTo(p.x, p.y);
+		                }
+		                ctx.closePath();
+		                ctx.fill();
+		                ctx.stroke();
+		            },
+		            MultiPolygon: function(ctx, x, y, zoom, coordinates) {
+		                var prender = self.primitive_render.Polygon;
+		                for (var i=0; i < coordinates.length; ++i) {
+		                    prender(ctx, x, y, zoom, coordinates[i]);
+		                }
+		            }
+		        };
     	    },
-	        
-            // Abstract functions:
-	        show: function() {
+    	    show: function() {
 	    	    var layer = this.getLayer(),
 	    	        style = this.getStyle(),
 	    	        bounds = this.bounds(),
 	    	        LatLngBounds = google.maps.LatLngBounds,
                     LatLng = google.maps.LatLng,
                     map = this.getMap();
-
 	    	    if (!this.isVisible()) {
-	    		    this.refresh();
+	    	    	for (var t in this._tiles) {
+		                tile = this._tiles[t];
+		                $(tile.canvas).show();
+		            }
+//	    	    	this.refresh();
+                    this._onMap = true;
 	    	    }
 	        },
-
-	        hide: function() {	    	    
-                // TODO
-	        },
-
-	        isVisible: function() {
-                // TODO
-	        },
-
-	        refresh: function() {                
-                var tile = null;
-                
-	            for (var t in this._tiles) {
-	                tile = this._tiles[t];
-	                this.reRenderTile(tile, tile.coord, tile.zoom);
+	        hide: function() {
+	        	var tile = null;
+	            if (this.isVisible()) {
+	                for (var t in this._tiles) {
+		                tile = this._tiles[t];
+		                $(tile.canvas).hide();
+		            }
+	                this._onMap = false;
 	            }
 	        },
-
-	        bounds: function() {
-                // TODO
+	        isVisible: function() {
+	        	return this._onMap;
 	        },
 
+	        refresh: function() {
+                var tile = null;
+	            for (var t in this._tiles) {
+	                tile = this._tiles[t];
+	                this.renderTile(tile, tile.coord, tile.zoom);
+	            }
+	        },
+	        bounds: function() {
+	        	var layer = this.getLayer(),
+                extent = layer.getExtent(), // GeoJSON bounding box as
+											// polygon
+                north = extent[0][2][1],
+                west = extent[0][0][0],
+                south = extent[0][0][1],
+                east = extent[0][2][0],
+                bounds = new google.maps.LatLngBounds(),
+                LatLng = google.maps.LatLng;
+	            if (this._bounds) {
+	                return this._bounds;
+	            }
+	            bounds.extend(new LatLng(north, west));
+	            bounds.extend(new LatLng(south, east));
+	            this._bounds = bounds;
+	            return bounds;
+	        },
 	        getStyle: function() {
 	    	    return this._config.css;
 	        },
-
 	        setStyle: function(style) {
 	    	    this._config.css = style;
+	    	    this.refresh();
 	        }
         }
     );
@@ -802,10 +800,9 @@ MOL.modules.Map = function(mol) {
 			 *            the mol.events.Bus for event handling
 			 * @constructor
 			 */
-            init: function(api, bus, mapType) {
+            init: function(api, bus) {
                 this._api = api;
                 this._bus = bus;
-                this._mapType = mapType;
                 this._controlDivs = {};
                 this._mapLayers = {};
             },            
@@ -817,12 +814,12 @@ MOL.modules.Map = function(mol) {
 
                 switch (layerType) {
                 case 'points':
-                    mapLayer = new this._mapType.PointLayer(map, layer, this._markerCanvas);
+                    mapLayer = new mol.ui.Map.PointLayer(map, layer, this._markerCanvas);
                     break;
                 case 'range':
                 case 'ecoregion':
                 case 'pa':
-                    mapLayer = new this._mapType.CartoTileLayer(map, layer);
+                    mapLayer = new mol.ui.Map.CartoTileLayer(map, layer);
                     break;
                 }
                 this._mapLayers[layerId] = mapLayer;
@@ -856,17 +853,15 @@ MOL.modules.Map = function(mol) {
 			 * @override mol.ui.Engine.start
 			 */
             start: function(container) {
-                var MarkerCanvas = this._mapType.MarkerCanvas;
+                var MarkerCanvas = mol.ui.Map.MarkerCanvas;
 
-                this._bindDisplay(new this._mapType.Display(), container);
+                this._bindDisplay(new mol.ui.Map.Display(), container);
 
                 this._markerCanvas = new MarkerCanvas(21, 18);
 
                 this._addMapControlEventHandler();
                 this._addLayerEventHandler();
-                if (this._mapType == mol.ui.Map) {
-                	this._addColorEventHandler();
-                }
+                this._addColorEventHandler();
             },
 
             /**
@@ -901,10 +896,6 @@ MOL.modules.Map = function(mol) {
                     z: map.getZoom()
                 };
             },
-            
-            getMapType: function() {
-            	return this._mapType;
-            },
 
             _bindDisplay: function(display, container) {
                 this._display = display;
@@ -925,7 +916,7 @@ MOL.modules.Map = function(mol) {
                     TOP_CENTER = ControlPosition.TOP_CENTER,
                     BOTTOM_LEFT = ControlPosition.BOTTOM_LEFT,
                     TOP_LEFT = ControlPosition.TOP_LEFT,
-                    Control = this._mapType.Control;
+                    Control = mol.ui.Map.Control;
                 
                 this._rightControl = new Control('RightControl');
                 controls[TOP_RIGHT].clear();
@@ -953,10 +944,8 @@ MOL.modules.Map = function(mol) {
                     LayerEvent = mol.events.LayerEvent,
                     LayerControlEvent = mol.events.LayerControlEvent,
                     layers = this._layers,
-                    self = this;
-                if (self._mapType == mol.ui.Map) {
+                    self = this,
                     ColorEvent = mol.events.ColorEvent;
-                }
                 
                 bus.addHandler(
                     LayerControlEvent.TYPE,
@@ -977,10 +966,8 @@ MOL.modules.Map = function(mol) {
                             zoomLayerIds = event.getZoomLayerIds(),
                             mapLayer = layerId ? self._getMapLayer(layerId) : null,                        
                             action = event.getAction(),
-                            bounds = new google.maps.LatLngBounds();
-                            if (this._mapType == mol.ui.Map) {
-                            	colorEventConfig = {};
-                            }                
+                            bounds = new google.maps.LatLngBounds(),
+                            colorEventConfig = {};
                         switch (action) {
 
                         case 'add':
@@ -988,17 +975,13 @@ MOL.modules.Map = function(mol) {
                                 return;
                             }                            
                             self._addMapLayer(map, layer);
-                            
-                            if (self._mapType == mol.ui.Map) {
-                            	colorEventConfig = {
-                                        action: 'get',
-                                        category: layer.getType(),
-                                        id: layerId
-                                    };
-                                bus.fireEvent(new ColorEvent(colorEventConfig));
-                            }
+                            colorEventConfig = {
+                            	action: 'get',
+                            	category: layer.getType(),
+                            	id: layerId
+                            };
+                            bus.fireEvent(new ColorEvent(colorEventConfig));
                             break;
-
                         case 'zoom':
                             if (zoomLayerIds.length !== 0) {
                                 for (x in zoomLayerIds) {
@@ -1024,8 +1007,19 @@ MOL.modules.Map = function(mol) {
                             if (mapLayer) {
                                 mapLayer.hide();
                             }    
-                            break;                            
-                        }                        
+                            break;   
+                        case 'get_style':
+                        	if (mapLayer instanceof mol.ui.Map.CartoTileLayer) {
+                        		$("#css_text").val(mapLayer.getStyle().replace(/(\;|\{)/gi, "$1\n\t\t").replace(/}/gi, "\n}"));
+                        	}
+                        	break;
+                        case 'update_style':
+                        	if (mapLayer instanceof mol.ui.Map.CartoTileLayer) {
+                        		var css = $("#css_text").val().replace(/[\n\t]/gi, '');
+                        		mapLayer.setStyle(css);
+                        	}
+                        	break;
+                        }
                     }
                 );
             },
@@ -1039,7 +1033,7 @@ MOL.modules.Map = function(mol) {
                     MapControlEvent = mol.events.MapControlEvent,
                     controls = this._map.controls,
                     controlDivs = this._controlDivs,
-                    ControlPosition = this._mapType.Control.ControlPosition,
+                    ControlPosition = mol.ui.Map.Control.ControlPosition,
                     TOP_RIGHT = ControlPosition.TOP_RIGHT,
                     TOP_CENTER = ControlPosition.TOP_CENTER,
                     BOTTOM_LEFT = ControlPosition.BOTTOM_LEFT,
