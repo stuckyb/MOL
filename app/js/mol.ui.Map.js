@@ -524,10 +524,11 @@ MOL.modules.Map = function(mol) {
     		    }
     		    columns = [the_geom].concat(self._config.columns).join(',');
     		    sql = "select " + columns + " from " + this._config.table + " where scientific = '" + this.getLayer().getName() + "'";
-    		    sql += " and the_geom && ST_SetSRID(ST_MakeBox2D("
-    		    sql += "ST_Point(" + bbox[0].lng() + "," + bbox[0].lat() +"),";
-    		    sql += "ST_Point(" + bbox[1].lng() + "," + bbox[1].lat() +")), 4326)";
-
+    		    if (zoom >= 3) {
+    		    	sql += " and the_geom && ST_SetSRID(ST_MakeBox2D("
+    		    	sql += "ST_Point(" + bbox[0].lng() + "," + bbox[0].lat() +"),";
+    		    	sql += "ST_Point(" + bbox[1].lng() + "," + bbox[1].lat() +")), 4326)";
+    		    }
     		    if (data) {
     	            if (this._config.debug) {
     	            	mol.log.info("CACHED");
@@ -663,21 +664,14 @@ MOL.modules.Map = function(mol) {
     	        return canvas;
     	    },
     	    releaseTile: function(tileCanvas) {
-    	    	console.log("releaseTile");
     	    	var self = this,
-    	    		tile = null;
-    	    	for (var t in self._tiles) {
-	                tile = self._tiles[t];
-	                if (tile.canvas == tileCanvas) {
-	                	delete self._tiles[t];
-	                }
-	            }
+    	    		tile_id = tileCanvas.getAttribute('id');
+    	    	delete delete self._tiles[tile_id];
     	    },
     	    /**
 			 * Inherited methods from parent class
 			 */
     	    init: function(map, layer, config) {
-    	    	window.hi = map;
 				var self = this;
 			    this.tileSize = new google.maps.Size(256,256);
 			    this._map = map;
