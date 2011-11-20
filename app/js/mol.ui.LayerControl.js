@@ -107,6 +107,7 @@ MOL.modules.LayerControl = function(mol) {
                     function(event) {
                         bus.fireEvent(new LayerControlEvent('add-click'));
                         display.toggleShareLink("", false);
+                        $(".mol-LayerControl-Search").find("input").focus();
                     }
                 );
 
@@ -203,22 +204,43 @@ MOL.modules.LayerControl = function(mol) {
                             layerUi = display.getNewLayer();
                             layerUi.getName().text(layerName);
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
-                            
                             layerButton = layerUi.getType();
                             layerButton.click(
                             	function(event) {
-                            		var html =  '<div id="css" style="">' +
-                            				'<h1>Carto like css</h1>' +
-                            				'<p>change the css and press update css, i.e <em>line-color: #FFF;</em></p>' +
+                            		$("#css").remove();
+                            		var html =  '<div id="css" class="widgetTheme" style="">' +
+                            				'<h1 class="layerNomial">' + layerName + '</h1><br>' +
                             				'<textarea id="css_text">' +
-                            				'{\n' +
-                            				'\tpolygon-fill: rgba(134, 32, 128,0.7);\n' +
-                            				'\tline-color: rgba(82, 202, 231,0.1);\n' +
-                            				'}\n' +
                             				'</textarea>' +
                             				'<button id="update_css">udpate css</button>' +
+                            				'<button id="close_css">close</button>' +
                             				'</div>';
-                            		$(document).append(html);
+                            		$("body").append(html);
+                            		$("#close_css").click(
+                            			function() {
+                            				$("#css").remove();
+                            			}
+                            		);
+                            		$("#update_css").click(
+                            			function() {
+                            				bus.fireEvent(
+                            					new LayerEvent(
+                            							{
+                            								action: 'update_style',
+                            								layer: layer
+                            							}
+                            					)
+                            				)
+                            			}
+                            		);
+                            		bus.fireEvent(
+                        				new LayerEvent(
+                        						{
+                        							action: 'get_style',
+                        							layer: layer
+                        						}
+                        				)
+                        			);
                             	}
                             );
                             layerUi.attr('id', layerId);

@@ -53,6 +53,12 @@ MOL.modules.Map = function(mol) {
             },
             setColor: function(color) {
                 this._color = color;
+            },
+            getStyle: function() {
+            	throw new mol.exceptions.NotImplementedError('getStyle()');
+            },
+            setStyle: function() {
+            	throw new mol.exceptions.NotImplementedError('setStyle()');
             }
         }
     );
@@ -463,21 +469,22 @@ MOL.modules.Map = function(mol) {
     );
     mol.ui.Map.CartoTileLayer = mol.ui.Map.MapLayer.extend(
         {
-    	    _fallback_config: {
-			    user: 'eighty',
-			    table: 'mol_cody',
-			    columns: [],
-			    debug: true,
-			    css: "{ polygon-fill: rgba(134, 32, 128,0.7); line-color: rgba(82, 202, 231,0.1); }"
+    	    DefaultConfig: function() {
+			    this.user = 'eighty';
+			    this.table = 'mol_cody';
+			    this.columns = [];
+			    this.debug = true;
+			    this.css = "{ polygon-fill: rgba(134, 32, 128,0.7); line-color: rgba(82, 202, 231,0.1); }"
 		    },
-    	    _sql_url: function(sql) {
+    	    sql_url: function(sql) {
     		    var url = 'http://' + this._config.user + ".cartodb.com/api/v1/sql?q=" + encodeURIComponent(sql) + "&format=geojson&dp=6";
     		    if (this._config.debug) {
     			    console.log(url);
     		    };
     		    return url;
     	    },
-    	    _fetchTile: function(x, y, zoom, callback) {
+    	    fetchTile: function(x, y, zoom, callback) {
+    	    	console.log("fetchTile");
     		    var self = this,
     		    	projection = new MercatorProjection(),
     		        tile_point = projection.tilePoint(x, y, zoom),
@@ -511,7 +518,7 @@ MOL.modules.Map = function(mol) {
     	            callback(data);
     		    } else {
     			    $.getJSON(
-                        this._sql_url(sql), 
+                        this.sql_url(sql), 
                         function(data) {
     		                self._cache[sql] = data;
     		                callback(data);
@@ -519,18 +526,8 @@ MOL.modules.Map = function(mol) {
                     );
     		    }
     	    },
-
-    	    _redraw: function() {
-                var tile = null;
-
-    		    for (var t in this._tiles) {
-    	            tile = this._tiles[t];
-    	        }
-    	    },
-    	    // Method which override MapType in Google Map V3
-    	    
     	    apply_style: function(ctx, data) {
-    	        var css = CartoCSS.apply(this._config.css, data),
+    	        var css = CartoCSS.apply(this.getStyle(), data),
                     c = null;
     	            mapper = {
     	                'point-color': 'fillStyle',
@@ -538,7 +535,6 @@ MOL.modules.Map = function(mol) {
     	                'line-width': 'lineWidth',
     	                'polygon-fill': 'fillStyle'
     	            };
-                
     	        for (var attr in css) {
     	            c = mapper[attr];
     	            if (c) {
@@ -546,16 +542,14 @@ MOL.modules.Map = function(mol) {
     	            }
     	        }
     	    },
-
-    	    
-
     	    map_latlon: function (latlng, x, y, zoom) {
                 latlng = new google.maps.LatLng(latlng[1], latlng[0]);
                 return this._projection.latLngToTilePoint(latlng, x, y, zoom);        
             },
-
     	    renderTile: function(tile_info, coord, zoom) {
-    		    var ctx = tile_info.ctx,
+    	    	console.log("renderTile");
+    		    var self = this,
+    		    	ctx = tile_info.ctx,
                     layer_canvas = null,
                     layer_ctx = null,
                     primitive_render = this.primitive_render;
@@ -569,8 +563,8 @@ MOL.modules.Map = function(mol) {
                 layer_ctx = layer_canvas.getContext('2d');
                 
                 tile_info.canvas.width = tile_info.canvas.width ;
-                self.tile_data(
-                    coord.x, 
+                self.fetchTile(
+                    coord.x,
                     coord.y, 
                     zoom, 
                     function(data) {
@@ -613,6 +607,7 @@ MOL.modules.Map = function(mol) {
 			 * @See http://code.google.com/apis/maps/documentation/javascript/maptypes.html
 			 */
             getTile: function(coord, zoom, ownerDocument) {
+    	    	console.log("getTile");
     		    var self = this,
                     canvas = ownerDocument.createElement('canvas'),
                     ctx = null,
@@ -634,7 +629,7 @@ MOL.modules.Map = function(mol) {
     	        if (tile_id in this._tiles) {
     	    	    delete this._tiles[tile_id];
     	        } else {
-    	    	    self._fetchTile(
+    	    	    self.fetchTile(
                         coord.x, 
                         coord.y, 
                         zoom, 
@@ -678,29 +673,24 @@ MOL.modules.Map = function(mol) {
     	        this._tiles[tile_id] = {canvas: canvas, ctx: ctx, coord: coord, zoom: zoom};    	        
     	        return canvas;
     	    },
-    	    
     	    releaseTile: function(tile) {
     	    	var self = this,
     	    		id = tile.getAttribute('id');
     	        delete self._tiles[id];
     	    },
-            
-            
             /**
-			 * 
+			 * Inherited methods from parent class
 			 */
-            
-            
-            
     	    init: function(map, layer, config) {
 				var self = this;
 			    this.tileSize = new google.maps.Size(256,256);
 			    this._map = map;
+			    this._onMap = false;
 			    this._layer = layer;
 			    this._projection = new MercatorProjection();
 			    this._cache = {}; // cache stores geojson data
 			    this._tiles = {}; // stores the actual image
-			    this._config = config || this._fallback_config;
+			    this._config = config || new this.DefaultConfig();
 			    this._map.overlayMapTypes.insertAt(0, this);
 				this.primitive_render = {
     	            Point: function(ctx, x, y, zoom, coordinates) {
@@ -743,21 +733,18 @@ MOL.modules.Map = function(mol) {
 		            }
 		        };
     	    },
-	        
-            // Abstract functions:
-	        show: function() {
+    	    show: function() {
 	    	    var layer = this.getLayer(),
 	    	        style = this.getStyle(),
 	    	        bounds = this.bounds(),
 	    	        LatLngBounds = google.maps.LatLngBounds,
                     LatLng = google.maps.LatLng,
                     map = this.getMap();
-
 	    	    if (!this.isVisible()) {
 	    		    this.refresh();
+                    this._onMap = true;
 	    	    }
 	        },
-
 	        hide: function() {
 	        	var tile = null;
                 
@@ -765,30 +752,25 @@ MOL.modules.Map = function(mol) {
 	                tile = this._tiles[t];
 	                this.releaseTile(tile);
 	            }
+                this._onMap = false;
 	        },
-
 	        isVisible: function() {
-                // TODO
+	        	return this._onMap;
 	        },
-
 	        refresh: function() {
                 var tile = null;
-                
 	            for (var t in this._tiles) {
 	                tile = this._tiles[t];
 	                this.renderTile(tile, tile.coord, tile.zoom);
 	            }
 	        },
-
 	        bounds: function() {
 	        	var bounds = google.maps.LatLngBounds;
-//	        		latlng = 
+	        	
 	        },
-
 	        getStyle: function() {
 	    	    return this._config.css;
 	        },
-
 	        setStyle: function(style) {
 	    	    this._config.css = style;
 	    	    this.refresh();
@@ -810,10 +792,9 @@ MOL.modules.Map = function(mol) {
 			 *            the mol.events.Bus for event handling
 			 * @constructor
 			 */
-            init: function(api, bus, mapType) {
+            init: function(api, bus) {
                 this._api = api;
                 this._bus = bus;
-                this._mapType = mapType;
                 this._controlDivs = {};
                 this._mapLayers = {};
             },            
@@ -825,12 +806,12 @@ MOL.modules.Map = function(mol) {
 
                 switch (layerType) {
                 case 'points':
-                    mapLayer = new this._mapType.PointLayer(map, layer, this._markerCanvas);
+                    mapLayer = new mol.ui.Map.PointLayer(map, layer, this._markerCanvas);
                     break;
                 case 'range':
                 case 'ecoregion':
                 case 'pa':
-                    mapLayer = new this._mapType.CartoTileLayer(map, layer);
+                    mapLayer = new mol.ui.Map.CartoTileLayer(map, layer);
                     break;
                 }
                 this._mapLayers[layerId] = mapLayer;
@@ -864,17 +845,15 @@ MOL.modules.Map = function(mol) {
 			 * @override mol.ui.Engine.start
 			 */
             start: function(container) {
-                var MarkerCanvas = this._mapType.MarkerCanvas;
+                var MarkerCanvas = mol.ui.Map.MarkerCanvas;
 
-                this._bindDisplay(new this._mapType.Display(), container);
+                this._bindDisplay(new mol.ui.Map.Display(), container);
 
                 this._markerCanvas = new MarkerCanvas(21, 18);
 
                 this._addMapControlEventHandler();
                 this._addLayerEventHandler();
-                if (this._mapType == mol.ui.Map) {
-                	this._addColorEventHandler();
-                }
+                this._addColorEventHandler();
             },
 
             /**
@@ -909,10 +888,6 @@ MOL.modules.Map = function(mol) {
                     z: map.getZoom()
                 };
             },
-            
-            getMapType: function() {
-            	return this._mapType;
-            },
 
             _bindDisplay: function(display, container) {
                 this._display = display;
@@ -933,7 +908,7 @@ MOL.modules.Map = function(mol) {
                     TOP_CENTER = ControlPosition.TOP_CENTER,
                     BOTTOM_LEFT = ControlPosition.BOTTOM_LEFT,
                     TOP_LEFT = ControlPosition.TOP_LEFT,
-                    Control = this._mapType.Control;
+                    Control = mol.ui.Map.Control;
                 
                 this._rightControl = new Control('RightControl');
                 controls[TOP_RIGHT].clear();
@@ -961,10 +936,8 @@ MOL.modules.Map = function(mol) {
                     LayerEvent = mol.events.LayerEvent,
                     LayerControlEvent = mol.events.LayerControlEvent,
                     layers = this._layers,
-                    self = this;
-                if (self._mapType == mol.ui.Map) {
+                    self = this,
                     ColorEvent = mol.events.ColorEvent;
-                }
                 
                 bus.addHandler(
                     LayerControlEvent.TYPE,
@@ -985,10 +958,8 @@ MOL.modules.Map = function(mol) {
                             zoomLayerIds = event.getZoomLayerIds(),
                             mapLayer = layerId ? self._getMapLayer(layerId) : null,                        
                             action = event.getAction(),
-                            bounds = new google.maps.LatLngBounds();
-                            if (this._mapType == mol.ui.Map) {
-                            	colorEventConfig = {};
-                            }                
+                            bounds = new google.maps.LatLngBounds(),
+                            colorEventConfig = {};
                         switch (action) {
 
                         case 'add':
@@ -996,17 +967,13 @@ MOL.modules.Map = function(mol) {
                                 return;
                             }                            
                             self._addMapLayer(map, layer);
-                            
-                            if (self._mapType == mol.ui.Map) {
-                            	colorEventConfig = {
-                                        action: 'get',
-                                        category: layer.getType(),
-                                        id: layerId
-                                    };
-                                bus.fireEvent(new ColorEvent(colorEventConfig));
-                            }
+                            colorEventConfig = {
+                            	action: 'get',
+                            	category: layer.getType(),
+                            	id: layerId
+                            };
+                            bus.fireEvent(new ColorEvent(colorEventConfig));
                             break;
-
                         case 'zoom':
                             if (zoomLayerIds.length !== 0) {
                                 for (x in zoomLayerIds) {
@@ -1032,8 +999,19 @@ MOL.modules.Map = function(mol) {
                             if (mapLayer) {
                                 mapLayer.hide();
                             }    
-                            break;                            
-                        }                        
+                            break;   
+                        case 'get_style':
+                        	if (mapLayer instanceof mol.ui.Map.CartoTileLayer) {
+                        		$("#css_text").val(mapLayer.getStyle());
+                        	}
+                        	break;
+                        case 'update_style':
+                        	if (mapLayer instanceof mol.ui.Map.CartoTileLayer) {
+                        		var css = $("#css_text").val().replace(/[\n\t]/gi, '');
+                        		mapLayer.setStyle(css);
+                        	}
+                        	break;
+                        }
                     }
                 );
             },
@@ -1047,7 +1025,7 @@ MOL.modules.Map = function(mol) {
                     MapControlEvent = mol.events.MapControlEvent,
                     controls = this._map.controls,
                     controlDivs = this._controlDivs,
-                    ControlPosition = this._mapType.Control.ControlPosition,
+                    ControlPosition = mol.ui.Map.Control.ControlPosition,
                     TOP_RIGHT = ControlPosition.TOP_RIGHT,
                     TOP_CENTER = ControlPosition.TOP_CENTER,
                     BOTTOM_LEFT = ControlPosition.BOTTOM_LEFT,

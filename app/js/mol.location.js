@@ -19,10 +19,8 @@ MOL.modules.location = function(mol) {
                 this._colorSetter = new mol.ui.ColorSetter.Api({'bus': this._bus});
                 this._container = $('body');
 
-                this._mapEngine = new mol.ui.Map.Engine(this._api, this._bus, mol.ui.Map);
-                if (this._mapEngine.getMapType() == mol.ui.Map) {
-                    this._colorSetter = new mol.ui.ColorSetter.Api({'bus': this._bus});
-                }
+                this._mapEngine = new mol.ui.Map.Engine(this._api, this._bus);
+                this._colorSetter = new mol.ui.ColorSetter.Api({'bus': this._bus});
                 
                 this._mapEngine.start(this._container);
 
