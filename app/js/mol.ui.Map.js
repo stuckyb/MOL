@@ -483,24 +483,6 @@ MOL.modules.Map = function(mol) {
     		    };
     		    return url;
     	    },
-    	    getZoomGrade: function(zoom) { 
-                var grade = null;
-
-    	    	if (zoom >= 17) {
-    		    	grade = 5;
-    		    } else if (zoom >= 14 ) {
-    		    	grade = 4;
-    		    } else if (zoom >= 10){
-    		    	grade = 3;
-    		    } else if (zoom >=6){
-    		    	grade = 2;
-    		    } else if (zoom >= 4){
-    		    	grade = 1;
-    		    } else {
-    		    	grade = 0;
-    		    }
-    	    	return grade;
-    	    },
     	    fetchTile: function(x, y, zoom, callback) {
     		    var self = this,
     		    	projection = new MercatorProjection(),
