@@ -16,6 +16,8 @@ __author__ = "Aaron Steele (eightysteele@gmail.com)"
 __contributors__ = []
 
 from connector import EarthEngine
+from auth_gae import ClientLogin
+
 import datetime
 import logging
 import os
@@ -31,7 +33,10 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext.webapp import template
 
-proxy = EarthEngine(open('ee_token.txt').read())
+email, passwd = open('auth.txt').read().split(',')
+token = ClientLogin().authorize(email, passwd)
+proxy = EarthEngine(token)
+logging.info('email=%s, passwd=%s, token=%s' % (email, passwd, token))
 
 class Home(webapp.RequestHandler):
     def get(self):

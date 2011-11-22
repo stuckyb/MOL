@@ -47,6 +47,7 @@ class EarthEngine( object ):
                 deadline=600)
             self.last_response = dict(code=response.status_code, content=response.content)
             if response.status_code == 200:
+                logging.info('RESPONSE.CONTENT=%s' % response.content)
                 data = json.loads( response.content )
             else:
                 data = { 'error': { 'type':'http', 'code': response.status_code } }

@@ -37,7 +37,45 @@ app._getNormalizedCoord = function(coord, zoom) {
         y: y
     };
 };
+   
+
+app.calcStats = function(polygon) {
     
+    // TODO: wire in stat updates when polygon edited
+    google.maps.event.addListener(
+        polygon.getPath(), 
+        'set_at', 
+        function(data) {
+            app.calcStats(polygon);
+        }
+    );
+    
+    app.loadingImg.show();
+    app.coordinates = [[]];
+    polygon.getPath().forEach(
+        function(latLng) {
+            app.coordinates[0].push([latLng.lng(), latLng.lat()]);
+        }
+    );
+    app.polygon = polygon;
+    app.loadingImg.show();
+    app.infowin.close();
+    $.post(
+        '/earthengine/pointstats',
+        'coordinates=' + JSON.stringify(app.coordinates),
+        function(data) {  
+            var stats = JSON.stringify(data, undefined, 2),
+            point = app.coordinates[0][0],
+            latlng = new google.maps.LatLng(point[1], point[0]);
+            
+            app.infowin.setContent('Stats: ' + data);
+            app.infowin.setPosition(latlng);
+            app.infowin.open(app.map);
+            app.loadingImg.hide();
+        }
+    );        
+};
+
 /**
  * Immediate function setup.
  */
@@ -67,7 +105,7 @@ app.init = function () {
     app.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(app.loadingImg[0]);
     app.loadingImg.hide();
 
-    app.clearButton = $('<button id="clearMapButton">Clear Polygons</button>'); 
+    app.clearButton = $('<div><button id="clearMapButton"  style="top: 3px;" width="200px">Clear Polygons</button></div>'); 
     app.clearButton.click(
         function(event) {
             app.polygon.setMap(null);
@@ -75,7 +113,8 @@ app.init = function () {
         }
     );
 
-    app.map.controls[google.maps.ControlPosition.TOP_CENTER].push(app.clearButton[0]);
+    app.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(app.clearButton[0]);
+    app.map.controls[google.maps.ControlPosition.TOP_CENTER].push(app.loadingImg[0]);
 
     app.infowin = new google.maps.InfoWindow();
 
@@ -123,13 +162,13 @@ app.init = function () {
         }
     );
 
-    // Drawing manager for polygons
+    // Drawing manager for polygons.
     app.drawingManager = new google.maps.drawing.DrawingManager(
         {
             drawingMode: null,
             drawingControl: true,
             drawingControlOptions: {
-                position: google.maps.ControlPosition.TOP_CENTER,
+                position: google.maps.ControlPosition.TOP_RIGHT,
                 drawingModes: [
                     google.maps.drawing.OverlayType.POLYGON
                 ]
@@ -154,33 +193,7 @@ app.init = function () {
         app.drawingManager, 
         'polygoncomplete', 
         function(polygon) {
-
-            // TODO: wire in stat updates when polygon edited
-            google.maps.event.addListener(polygon.getPath(), 'set_at', function(data){console.log('hi');});
-
-            app.loadingImg.show();
-            app.coordinates = [[]];
-            polygon.getPath().forEach(
-                function(latLng) {
-                   app.coordinates[0].push([latLng.lng(), latLng.lat()]);
-                }
-            );
-            app.polygon = polygon;
-            app.loadingImg.show();
-            app.infowin.close();
-            $.post(
-                '/earthengine/pointstats',
-                'coordinates=' + JSON.stringify(app.coordinates),
-                function(data) {  
-                    var stats = JSON.stringify(data, undefined, 2),
-                        point = app.coordinates[0][0],
-                        latlng = new google.maps.LatLng(point[1], point[0]);
-                    app.infowin.setContent('Stats: ' + data);
-                    app.infowin.setPosition(latlng);
-                    app.infowin.open(app.map);
-                    app.loadingImg.hide();
-                }
-            );
+            app.calcStats(polygon);
         }
 
     );
