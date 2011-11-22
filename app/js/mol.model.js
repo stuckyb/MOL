@@ -46,6 +46,21 @@ MOL.modules.model = function(mol) {
      */
     mol.model.Layer = Class.extend(
         {
+        	Config: function() {
+        		this.user = 'eighty';
+			    this.table = 'mol_cody';
+			    this.host = 'cartodb.com'
+			    this.columns = [];
+			    this.debug = false;
+			    this.style = "{\n  polygon-fill: rgba(134, 32, 128, 0.7);\n  line-color: rgba(82, 202, 231, 0.1);\n}";
+        		this.getStyle = function() {
+        			return this.style;
+        		};
+        		this.setStyle = function(style) {
+        			this.style = style;
+        		};
+        	},
+        	
             init: function(params) {
                 this._id = [params.name, params.source, params.type].join('_');
                 this._type = params.type;
@@ -58,6 +73,7 @@ MOL.modules.model = function(mol) {
                 this._info = params.info;
                 this._color = null;
                 this._icon = null;
+                this._config = params.config || new this.Config();
             },
             
             getExtent: function() {
@@ -118,6 +134,14 @@ MOL.modules.model = function(mol) {
             
             setColor: function(color) {
                 this._color = color;
+            },
+            
+            getConfig: function() {
+                return this._config;                
+            },
+            
+            setConfig: function(config) {
+                this._config = config;
             }
         }
     );

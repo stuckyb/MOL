@@ -211,6 +211,7 @@ MOL.modules.LayerControl = function(mol) {
                             		var html =  '<div id="css" class="widgetTheme" style="">' +
                             				'<h1 class="layerNomial">' + layerName + '</h1><br>' +
                             				'<textarea id="css_text">' +
+                            				layer.getConfig().getStyle() +
                             				'</textarea>' +
                             				'<button id="update_css">udpate css</button>' +
                             				'<button id="close_css">close</button>' +
@@ -223,6 +224,7 @@ MOL.modules.LayerControl = function(mol) {
                             		);
                             		$("#update_css").click(
                             			function() {
+                            				layer.getConfig().setStyle($("#css_text").val());
                             				bus.fireEvent(
                             					new LayerEvent(
                             						{
@@ -233,14 +235,6 @@ MOL.modules.LayerControl = function(mol) {
                             				);
                             			}
                             		);
-                            		bus.fireEvent(
-                        				new LayerEvent(
-                        						{
-                        							action: 'get_style',
-                        							layer: layer
-                        						}
-                        				)
-                        			);
                             	}
                             );
                             layerUi.attr('id', layerId);

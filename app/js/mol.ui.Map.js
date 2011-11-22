@@ -54,11 +54,11 @@ MOL.modules.Map = function(mol) {
             setColor: function(color) {
                 this._color = color;
             },
-            getStyle: function() {
-            	throw new mol.exceptions.NotImplementedError('getStyle()');
+            getConfig: function() {
+                return this._config;                
             },
-            setStyle: function() {
-            	throw new mol.exceptions.NotImplementedError('setStyle()');
+            setConfig: function(config) {
+                this._config = config;
             }
         }
     );
@@ -344,6 +344,7 @@ MOL.modules.Map = function(mol) {
     
     mol.ui.Map.TileLayer = mol.ui.Map.MapLayer.extend(
         {
+		    
             init: function(map, layer) {
                 this._super(map, layer);
                 this._mapType = null;
@@ -423,6 +424,7 @@ MOL.modules.Map = function(mol) {
                     layerSource = this.getLayer().getSource(),
                     layerType = this.getLayer().getType(),
                     layerName = this.getLayer().getName(),
+                    config = this.getLayer().getConfig(),
                     color = this.getColor();
 
                 this._mapType = new google.maps.ImageMapType(
@@ -431,14 +433,14 @@ MOL.modules.Map = function(mol) {
                             var normalizedCoord = self._getNormalizedCoord(coord, zoom),
                                 bound = Math.pow(2, zoom),
                                 tileParams = '',                                
-                                backendTileApi = 'https://eighty.cartodb.com/tiles/mol_cody/', 
+                                backendTileApi = 'https://' + config.user + '.' + config.host + '/tiles/' + config.table + '/', 
                                 tileurl = null;                                
 
                             if (!normalizedCoord) {
                                 return null;
                             }              
 
-                            tileParams = tileParams + "sql=select * from mol_cody where scientific = '" + layerName + "'";
+                            tileParams = tileParams + "sql=select * from " + config.table + " where scientific = '" + layerName + "'";
                             tileurl = backendTileApi + zoom + '/' + normalizedCoord.x + '/' + normalizedCoord.y + '.png?' + tileParams;
                             return tileurl;
                         },
@@ -469,22 +471,17 @@ MOL.modules.Map = function(mol) {
     );
     mol.ui.Map.CartoTileLayer = mol.ui.Map.MapLayer.extend(
         {
-    	    DefaultConfig: function() {
-			    this.user = 'eighty';
-			    this.table = 'mol_cody';
-			    this.columns = [];
-			    this.debug = false;
-			    this.css = "{\n  polygon-fill: rgba(134, 32, 128, 0.7);\n  line-color: rgba(82, 202, 231, 0.1);\n}";
-		    },
     	    getSqlUrl: function(sql) {
-    		    var url = 'http://' + this._config.user + ".cartodb.com/api/v1/sql?q=" + encodeURIComponent(sql) + "&format=geojson&dp=6";
-    		    if (this._config.debug) {
+    		    var config = this.getLayer().getConfig(),
+    		    	url = 'http://' + config.user + ".cartodb.com/api/v1/sql?q=" + encodeURIComponent(sql) + "&format=geojson&dp=6";
+    		    if (config.debug) {
     		    	mol.log.info(url);
     		    };
     		    return url;
     	    },
     	    fetchTile: function(x, y, zoom, callback) {
     		    var self = this,
+    		    	config = this.getLayer().getConfig(),
     		    	projection = new MercatorProjection(),
     		        tile_point = projection.tilePoint(x, y, zoom),
     		        bbox = projection.tileBBox(x, y, zoom),
@@ -506,15 +503,15 @@ MOL.modules.Map = function(mol) {
     		    } else {
     		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.1) as the_geom';
     		    }
-    		    columns = [the_geom].concat(self._config.columns).join(',');
-    		    sql = "select " + columns + " from " + this._config.table + " where scientific = '" + this.getLayer().getName() + "'";
+    		    columns = [the_geom].concat(config.columns).join(',');
+    		    sql = "select " + columns + " from " + config.table + " where scientific = '" + this.getLayer().getName() + "'";
     		    if (zoom >= 3) {
     		    	sql += " and the_geom && ST_SetSRID(ST_MakeBox2D(";
     		    	sql += "ST_Point(" + bbox[0].lng() + "," + bbox[0].lat() +"),";
     		    	sql += "ST_Point(" + bbox[1].lng() + "," + bbox[1].lat() +")), 4326)";
     		    }
     		    if (data) {
-    	            if (this._config.debug) {
+    	            if (config.debug) {
     	            	mol.log.info("CACHED");
         		    };
     	            callback(data);
@@ -529,7 +526,7 @@ MOL.modules.Map = function(mol) {
     		    }
     	    },
     	    applyStyle: function(ctx, data) {
-    	        var css = CartoCSS.apply(this.getStyle(), data),
+    	        var css = CartoCSS.apply(this.getLayer().getConfig().getStyle(), data),
                     c = null,
     	            mapper = {
     	                'point-color': 'fillStyle',
@@ -578,6 +575,9 @@ MOL.modules.Map = function(mol) {
                                 
                                 // composite layer context onto main context
                                 ctx.drawImage(layer_canvas,0,0);
+                                if (!parent.isVisible()) {
+                                	$(layer_canvas).hide();
+                                }
                             } else {
                             	mol.log.error("no renderer for ", primitives[i].geometry.type);
                             }
@@ -649,13 +649,13 @@ MOL.modules.Map = function(mol) {
     	    releaseTile: function(tileCanvas) {
     	    	var self = this,
     	    		tile_id = tileCanvas.getAttribute('id');
-    	    	delete delete self._tiles[tile_id];
+    	    	delete self._tiles[tile_id];
     	    },
 
     	    /**
 			 * Inherited methods from parent class
 			 */
-    	    init: function(map, layer, config) {
+    	    init: function(map, layer) {
 				var self = this;
 			    this.tileSize = new google.maps.Size(256,256);
 			    this._map = map;
@@ -664,7 +664,6 @@ MOL.modules.Map = function(mol) {
 			    this._projection = new MercatorProjection();
 			    this._cache = {}; // cache stores geojson data
 			    this._tiles = {}; // stores the actual image
-			    this._config = config || new this.DefaultConfig();
 			    this._map.overlayMapTypes.insertAt(0, this);
 				this.primitive_render = {
     	            Point: function(ctx, x, y, zoom, coordinates) {
@@ -710,7 +709,6 @@ MOL.modules.Map = function(mol) {
 
     	    show: function() {
 	    	    var layer = this.getLayer(),
-	    	        style = this.getStyle(),
 	    	        bounds = this.bounds(),
 	    	        LatLngBounds = google.maps.LatLngBounds,
                     LatLng = google.maps.LatLng,
@@ -769,15 +767,6 @@ MOL.modules.Map = function(mol) {
 	            bounds.extend(new LatLng(south, east));
 	            this._bounds = bounds;
 	            return bounds;
-	        },
-
-	        getStyle: function() {
-	    	    return this._config.css;
-	        },
-
-	        setStyle: function(style) {
-	    	    this._config.css = style;
-	    	    this.refresh();
 	        }
         }
     );
@@ -815,6 +804,9 @@ MOL.modules.Map = function(mol) {
                 case 'range':
                 case 'ecoregion':
                 case 'pa':
+                	/*
+                	 * Switching between CartoTileLayer (Canvas) and TileLayer (Tile)
+                	 */
                     mapLayer = new mol.ui.Map.CartoTileLayer(map, layer);
                     break;
                 }
@@ -1003,16 +995,10 @@ MOL.modules.Map = function(mol) {
                             if (mapLayer) {
                                 mapLayer.hide();
                             }    
-                            break;   
-                        case 'get_style':
-                        	if (mapLayer instanceof mol.ui.Map.CartoTileLayer) {
-                        		$("#css_text").val(mapLayer.getStyle()); //(/(\;|\{)/gi, "$1\n  ").replace(/}/gi, "}"));
-                        	}
-                        	break;
+                            break;
                         case 'update_style':
-                        	if (mapLayer instanceof mol.ui.Map.CartoTileLayer) {
-                        		var css = $("#css_text").val().replace(/[\n\t]/gi, '');
-                        		mapLayer.setStyle(css);
+                        	if (mapLayer instanceof mol.ui.Map.CartoTileLayer || mapLayer instanceof mol.ui.Map.TileLayer) {
+                        		mapLayer.refresh();
                         	}
                         	break;
                         }
