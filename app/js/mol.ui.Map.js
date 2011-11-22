@@ -433,14 +433,20 @@ MOL.modules.Map = function(mol) {
                             var normalizedCoord = self._getNormalizedCoord(coord, zoom),
                                 bound = Math.pow(2, zoom),
                                 tileParams = '',                                
-                                backendTileApi = 'https://' + config.user + '.' + config.host + '/tiles/' + config.table + '/', 
+                                backendTileApi = 'https://' + config.user + '.' + config.host + '/tiles/' + config.table + '/',
+                                geom_column = "the_geom",
+                		        the_geom = null,
+                		        style = null,
                                 tileurl = null;                                
 
                             if (!normalizedCoord) {
                                 return null;
-                            }              
-
-                            tileParams = tileParams + "sql=select * from " + config.table + " where scientific = '" + layerName + "'";
+                            }
+                            style = "#" + config.table + config.getStyle().replace(/[\n|\t|\s]/gi, '');
+                            style = encodeURIComponent(style);
+                            
+                            tileParams += "sql=select " + "*" + " from " + config.table + " where scientific = '" + layerName + "'";
+                            tileParams += "&style="+style;
                             tileurl = backendTileApi + zoom + '/' + normalizedCoord.x + '/' + normalizedCoord.y + '.png?' + tileParams;
                             return tileurl;
                         },
@@ -807,7 +813,7 @@ MOL.modules.Map = function(mol) {
                 	/*
                 	 * Switching between CartoTileLayer (Canvas) and TileLayer (Tile)
                 	 */
-                    mapLayer = new mol.ui.Map.CartoTileLayer(map, layer);
+                    mapLayer = new mol.ui.Map.TileLayer(map, layer);
                     break;
                 }
                 this._mapLayers[layerId] = mapLayer;
