@@ -36,7 +36,6 @@ from google.appengine.ext.webapp import template
 email, passwd = open('auth.txt').read().split(',')
 token = ClientLogin().authorize(email, passwd)
 proxy = EarthEngine(token)
-logging.info('email=%s, passwd=%s, token=%s' % (email, passwd, token))
 
 class Home(webapp.RequestHandler):
     def get(self):
