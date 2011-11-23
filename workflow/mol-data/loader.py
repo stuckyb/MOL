@@ -21,9 +21,11 @@
 
 import codecs
 import glob
+import hashlib
 import logging
 from optparse import OptionParser
 import os
+import random
 import simplejson
 import subprocess
 import time
@@ -199,17 +201,23 @@ def uploadGeoJSONEntry(entry, table_name):
         cartodb_settings['CONSUMER_SECRET'],
         cartodb_settings['user'],
         cartodb_settings['password'],
-        cartodb_settings['cartodb_domain'],
-        'http://layers.moldb.io:3000'
+        cartodb_settings['cartodb_domain']
     )
 
     # Ugh. Sterilize SQL by eliminating "'"s.
     str_geom = simplejson.dumps(entry['geometry']).encode('utf-8')
-    str_properties = entry['properties'].__str__().replace("\"", "\\\"").encode('utf-8')
+    str_properties = simplejson.dumps(entry['properties']).encode('utf-8')
 
     # print cdb.sql("INSERT INTO %s (original_geom, properties) VALUES ('%s', '%s')" % (table_name, str_geom.encode('ascii'), str_properties.encode('ascii')))
     # print cdb.sql("INSERT INTO %s (the_geom, properties) VALUES ('%s', '%s')" % (table_name, str_geom, "{\"blech\": \"eek\"}"))
-    sql = "INSERT INTO %s (the_geom, properties) VALUES (ST_GeomFromGeoJSON('%s'::TEXT), '%s')" % (table_name, str_geom, "{\"blech\": \"eek\"}")
+    tag = hashlib.sha1(random.random().__str__() + str_properties).hexdigest()
+
+    sql = "INSERT INTO %(table_name)s (the_geom, properties) VALUES ($%(tag)s$%(the_geom)s$%(tag)s$, $%(tag)s$%(properties)s$%(tag)s$)" % {
+            'table_name': table_name, 
+            'tag': tag,
+            'the_geom': "0" * 10000000, 
+            'properties': str_properties
+        }
     print "SQL: [%s]" % sql
     print cdb.sql(sql)
 
