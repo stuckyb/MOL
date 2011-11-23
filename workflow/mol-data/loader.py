@@ -19,25 +19,15 @@
 
 """
 
-from collections import defaultdict
 import codecs
-import copy
-import csv
 import glob
 import logging
-from unicodewriter import UnicodeDictWriter, UnicodeDictReader
 from optparse import OptionParser
 import os
-from osgeo import osr
-import psycopg2
 import simplejson
-import shlex
-import StringIO
 import subprocess
-import sys
 import time
-import urllib
-import yaml
+from cartodb import CartoDB
 from zipfile import ZipFile
 
 from providerconfig import ProviderConfig
@@ -149,10 +139,14 @@ def convertToJSON(provider_dir):
                     dbf_properties = {}
                     for fieldname in new_properties.keys():
                         dbf_properties[ProviderConfig.fieldname_to_dbfname(fieldname)] = new_properties[fieldname]
-
                
                     # Replace the existing properties with the new one.
                     feature['properties'] = dbf_properties
+
+                    # Upload to CartoDB.
+                    uploadGeoJSONEntry(feature, 'temp_geodb')
+    
+                    # Save into all_features.
                     all_features.append(feature)
                 
                 features_json = []
@@ -186,6 +180,41 @@ def convertToJSON(provider_dir):
 
     logging.info("Processing of directory '%s' completed." % provider_dir)
 
+def uploadGeoJSONEntry(entry, table_name):
+    """Uploads a single GeoJSON entry to any URL capable of accepting SQL statements. We 
+    convert the GeoJSON into a single INSERT SQL statement and send it.
+
+    Arguments:
+        entry: A GeoJSON row entry containing geometry and field information for upload.
+        table_name: The name of the table to add this GeoJSON entry to.
+        query_string: A URL format string containing a '%s', which will be replaced with
+            a uri-encoded SQL string.
+
+    Returns: none.
+    """
+    global cartodb_settings
+
+    cdb = CartoDB(
+        cartodb_settings['CONSUMER_KEY'],
+        cartodb_settings['CONSUMER_SECRET'],
+        cartodb_settings['user'],
+        cartodb_settings['password'],
+        cartodb_settings['cartodb_domain'],
+        'http://layers.moldb.io:3000'
+    )
+
+    # Ugh. Sterilize SQL by eliminating "'"s.
+    str_geom = simplejson.dumps(entry['geometry']).encode('utf-8')
+    str_properties = entry['properties'].__str__().replace("\"", "\\\"").encode('utf-8')
+
+    # print cdb.sql("INSERT INTO %s (original_geom, properties) VALUES ('%s', '%s')" % (table_name, str_geom.encode('ascii'), str_properties.encode('ascii')))
+    # print cdb.sql("INSERT INTO %s (the_geom, properties) VALUES ('%s', '%s')" % (table_name, str_geom, "{\"blech\": \"eek\"}"))
+    sql = "INSERT INTO %s (the_geom, properties) VALUES (ST_GeomFromGeoJSON('%s'::TEXT), '%s')" % (table_name, str_geom, "{\"blech\": \"eek\"}")
+    print "SQL: [%s]" % sql
+    print cdb.sql(sql)
+
+    time.sleep(10)
+
 def _getoptions():
     ''' Parses command line options and returns them.'''
     parser = OptionParser()
@@ -201,9 +230,22 @@ def _getoptions():
 
     return parser.parse_args()[0]
 
+cartodb_settings = None
+
 def main():
     logging.basicConfig(level=logging.DEBUG)
     options = _getoptions()
+
+    # Load up the cartodb settings: we'll need them later.
+    global cartodb_settings
+    try:
+        cartodb_settings = simplejson.loads(
+            codecs.open('cartodb.json', encoding='utf-8').read(), 
+            encoding='utf-8')
+    except Exception as ex:
+        logging.error("Could not load CartoDB setting file 'cartodb.json': %s" % ex)
+        exit(1)
+
 
     if options.source_dir is not None:
         if os.path.isdir(options.source_dir):
