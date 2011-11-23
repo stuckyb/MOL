@@ -19,25 +19,14 @@
 
 """
 
-from collections import defaultdict
 import codecs
-import copy
-import csv
 import glob
 import logging
-from unicodewriter import UnicodeDictWriter, UnicodeDictReader
 from optparse import OptionParser
 import os
-from osgeo import osr
-import psycopg2
 import simplejson
-import shlex
-import StringIO
 import subprocess
-import sys
 import time
-import urllib
-import yaml
 from zipfile import ZipFile
 
 from providerconfig import ProviderConfig
