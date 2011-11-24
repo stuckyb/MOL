@@ -204,24 +204,42 @@ def uploadGeoJSONEntry(entry, table_name):
         cartodb_settings['cartodb_domain']
     )
 
-    # Ugh. Sterilize SQL by eliminating "'"s.
-    str_geom = simplejson.dumps(entry['geometry']).encode('utf-8')
-    str_properties = simplejson.dumps(entry['properties']).encode('utf-8')
+    # Get the fields and values ready to be turned into an SQL statement
+    properties = entry['properties']
+    fields = properties.keys()
+    # oauth2 has cannot currently send UTF-8 data in the URL. So we go 
+    # back to ASCII at this point. This can be fixed by waiting for oauth2
+    # to be fixed (https://github.com/simplegeo/python-oauth2/pull/91 might
+    # be a fix), or we can clone our own python-oauth2 and fix that.
+    # Another alternative would be to use POST and multipart/form-data,
+    # which is probably the better long term solution anyway.
+    values = [v.encode('ascii', 'replace') for v in properties.values()]
+        # 'values' will be in the same order as 'fields'
+        # as long as there are "no intervening modifications to the 
+        # dictionary" [http://docs.python.org/library/stdtypes.html#dict]
 
-    # print cdb.sql("INSERT INTO %s (original_geom, properties) VALUES ('%s', '%s')" % (table_name, str_geom.encode('ascii'), str_properties.encode('ascii')))
-    # print cdb.sql("INSERT INTO %s (the_geom, properties) VALUES ('%s', '%s')" % (table_name, str_geom, "{\"blech\": \"eek\"}"))
-    tag = hashlib.sha1(random.random().__str__() + str_properties).hexdigest()
-
-    sql = "INSERT INTO %(table_name)s (the_geom, properties) VALUES ($%(tag)s$%(the_geom)s$%(tag)s$, $%(tag)s$%(properties)s$%(tag)s$)" % {
+    # Generate a 'tag', by calculating a SHA-1 hash of the concatenation
+    # of the current time (in seconds since the epoch) and the string
+    # representation of the property values in the order that Python is
+    # using on our system. The 40-hexadecimal character hash digest so
+    # produced is prepended with the string 'tag_', since only a valid
+    # identifier (starting with a character) may be a tag.
+    #
+    # So as to have smaller requests, we use 8 character tags (from
+    # position 20-28 of the SHA-1 hexdigest).
+    tag = "$tag_" + hashlib.sha1( 
+        time.time().__str__() + 
+        properties.values().__str__()
+        ).hexdigest()[20:28] + "$"
+    
+    # Turn the fields and values into an SQL statement.
+    sql = "INSERT INTO %(table_name)s (%(cols)s) VALUES (%(values)s)" % {
             'table_name': table_name, 
-            'tag': tag,
-            'the_geom': "0" * 10000000, 
-            'properties': str_properties
+            'cols': ", ".join(fields),
+            'values': tag + (tag + ", " + tag).join(values) + tag
         }
-    print "SQL: [%s]" % sql
+    print "Sending SQL: [%s]" % sql
     print cdb.sql(sql)
-
-    time.sleep(10)
 
 def _getoptions():
     ''' Parses command line options and returns them.'''
