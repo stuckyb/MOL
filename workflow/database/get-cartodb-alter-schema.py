@@ -16,8 +16,8 @@
 #
 
 """This script downloads the field information Fusion Table, and 
-prints out a GeoJSON file with a single record in it. This is the
-easiest way to set up a suitable table on CartoDB.
+prints out PostgreSQL ALTER TABLE instructions which will create 
+a table for storing the fields specified in it.
 """
 
 import csv
@@ -41,14 +41,14 @@ class TableSchema(object):
         and sets up the schema in this object.
         """
         
-        fusiontable_id = 1326977 # 1348212
+        fusiontable_id = 1348212
         ft_partial_url = "http://www.google.com/fusiontables/api/query?sql="
             
         try:
             urlconn = urllib.urlopen(
                 ft_partial_url + 
                 urllib.quote_plus(
-                    "SELECT fieldname, dbfname, required, indexed, type, source FROM %d WHERE alias NOT EQUAL TO ''" 
+                    "SELECT alias, required, indexed, type, source FROM %d WHERE alias NOT EQUAL TO ''" 
                         % (fusiontable_id)
                 )
             )
@@ -86,36 +86,21 @@ class TableSchema(object):
 
         urlconn.close()
 
-    def get_geojson(self):
-        """ Returns a string representation of this table schema as a GeoJSON file for PostgreSQL."""
+    def setup_cartodb_table(self):
+        """ Returns a string representation of this table schema as set of ALTER TABLE commands
+        for PostgreSQL on CartoDB."""
 
-        create_template = """
-{
-    "type": "FeatureCollection",
-    "features": [
-        {
-            "geometry": { 
-                "type": "Polygon", 
-                "coordinates": [[[1,1],[1,2],[2,1],[2,2]]] 
-            },
-
-            "type": "Feature",
-            "properties": {
-                %s
-            }
-        }
-    ]
-}
-"""
         columns = []
         for field in self.schema.keys():
-            column_schema = self.schema[dbfname]
+            column_schema = self.schema[field]
 
-	    columns.append("\"%s\": \"To be deleted\"" % (
-		field
+	    columns.append("ALTER TABLE temp_geodb ADD COLUMN %s %s %s" % (
+		field,
+                column_schema['type'] if column_schema['type'] else "TEXT",
+		"NOT NULL" if column_schema['required'] else "NULL"
 	    ))
 
-	return create_template % (",\n    ".join(columns))
+	return create_template % (";\n".join(columns))
 
     def __repr__(self):
         """ Returns a string representation of this object. """
@@ -139,7 +124,7 @@ def main():
 
     schema = TableSchema()
     schema.load_from_ft()
-    print schema.get_geojson()
+    print schema.get_pg_table()
 
 if __name__ == '__main__':
     main()
