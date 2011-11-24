@@ -21,12 +21,15 @@
 
 import codecs
 import glob
+import hashlib
 import logging
 from optparse import OptionParser
 import os
+import random
 import simplejson
 import subprocess
 import time
+from cartodb import CartoDB
 from zipfile import ZipFile
 
 from providerconfig import ProviderConfig
@@ -138,10 +141,14 @@ def convertToJSON(provider_dir):
                     dbf_properties = {}
                     for fieldname in new_properties.keys():
                         dbf_properties[ProviderConfig.fieldname_to_dbfname(fieldname)] = new_properties[fieldname]
-
                
                     # Replace the existing properties with the new one.
                     feature['properties'] = dbf_properties
+
+                    # Upload to CartoDB.
+                    uploadGeoJSONEntry(feature, 'temp_geodb')
+    
+                    # Save into all_features.
                     all_features.append(feature)
                 
                 features_json = []
@@ -175,6 +182,65 @@ def convertToJSON(provider_dir):
 
     logging.info("Processing of directory '%s' completed." % provider_dir)
 
+def uploadGeoJSONEntry(entry, table_name):
+    """Uploads a single GeoJSON entry to any URL capable of accepting SQL statements. We 
+    convert the GeoJSON into a single INSERT SQL statement and send it.
+
+    Arguments:
+        entry: A GeoJSON row entry containing geometry and field information for upload.
+        table_name: The name of the table to add this GeoJSON entry to.
+        query_string: A URL format string containing a '%s', which will be replaced with
+            a uri-encoded SQL string.
+
+    Returns: none.
+    """
+    global cartodb_settings
+
+    cdb = CartoDB(
+        cartodb_settings['CONSUMER_KEY'],
+        cartodb_settings['CONSUMER_SECRET'],
+        cartodb_settings['user'],
+        cartodb_settings['password'],
+        cartodb_settings['cartodb_domain']
+    )
+
+    # Get the fields and values ready to be turned into an SQL statement
+    properties = entry['properties']
+    fields = properties.keys()
+    # oauth2 has cannot currently send UTF-8 data in the URL. So we go 
+    # back to ASCII at this point. This can be fixed by waiting for oauth2
+    # to be fixed (https://github.com/simplegeo/python-oauth2/pull/91 might
+    # be a fix), or we can clone our own python-oauth2 and fix that.
+    # Another alternative would be to use POST and multipart/form-data,
+    # which is probably the better long term solution anyway.
+    values = [v.encode('ascii', 'replace') for v in properties.values()]
+        # 'values' will be in the same order as 'fields'
+        # as long as there are "no intervening modifications to the 
+        # dictionary" [http://docs.python.org/library/stdtypes.html#dict]
+
+    # Generate a 'tag', by calculating a SHA-1 hash of the concatenation
+    # of the current time (in seconds since the epoch) and the string
+    # representation of the property values in the order that Python is
+    # using on our system. The 40-hexadecimal character hash digest so
+    # produced is prepended with the string 'tag_', since only a valid
+    # identifier (starting with a character) may be a tag.
+    #
+    # So as to have smaller requests, we use 8 character tags (from
+    # position 20-28 of the SHA-1 hexdigest).
+    tag = "$tag_" + hashlib.sha1( 
+        time.time().__str__() + 
+        properties.values().__str__()
+        ).hexdigest()[20:28] + "$"
+    
+    # Turn the fields and values into an SQL statement.
+    sql = "INSERT INTO %(table_name)s (%(cols)s) VALUES (%(values)s)" % {
+            'table_name': table_name, 
+            'cols': ", ".join(fields),
+            'values': tag + (tag + ", " + tag).join(values) + tag
+        }
+    print "Sending SQL: [%s]" % sql
+    print cdb.sql(sql)
+
 def _getoptions():
     ''' Parses command line options and returns them.'''
     parser = OptionParser()
@@ -190,9 +256,22 @@ def _getoptions():
 
     return parser.parse_args()[0]
 
+cartodb_settings = None
+
 def main():
     logging.basicConfig(level=logging.DEBUG)
     options = _getoptions()
+
+    # Load up the cartodb settings: we'll need them later.
+    global cartodb_settings
+    try:
+        cartodb_settings = simplejson.loads(
+            codecs.open('cartodb.json', encoding='utf-8').read(), 
+            encoding='utf-8')
+    except Exception as ex:
+        logging.error("Could not load CartoDB setting file 'cartodb.json': %s" % ex)
+        exit(1)
+
 
     if options.source_dir is not None:
         if os.path.isdir(options.source_dir):
