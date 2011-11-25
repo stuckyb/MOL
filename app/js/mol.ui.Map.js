@@ -442,7 +442,7 @@ MOL.modules.Map = function(mol) {
                             if (!normalizedCoord) {
                                 return null;
                             }
-                            style = "#" + config.table + config.getStyle().replace(/[\n|\t|\s]/gi, '');
+                            style = "#" + config.table + config.getStyle().toString().replace(/[\n|\t|\s]/gi, '');
                             style = encodeURIComponent(style);
                             
                             tileParams += "sql=select " + "*" + " from " + config.table + " where scientific = '" + layerName + "'";
@@ -532,7 +532,7 @@ MOL.modules.Map = function(mol) {
     		    }
     	    },
     	    applyStyle: function(ctx, data) {
-    	        var css = CartoCSS.apply(this.getLayer().getConfig().getStyle(), data),
+    	        var css = CartoCSS.apply(this.getLayer().getConfig().getStyle().toString(), data),
                     c = null,
     	            mapper = {
     	                'point-color': 'fillStyle',
@@ -1291,4 +1291,5 @@ MOL.modules.Map = function(mol) {
             }            
         }
     );
+
 };

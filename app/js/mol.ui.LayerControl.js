@@ -211,12 +211,54 @@ MOL.modules.LayerControl = function(mol) {
                             		var html =  '<div id="css" class="widgetTheme" style="">' +
                             				'<h1 class="layerNomial">' + layerName + '</h1><br>' +
                             				'<textarea id="css_text">' +
-                            				layer.getConfig().getStyle() +
+                            				layer.getConfig().getStyle().toString() +
                             				'</textarea>' +
-                            				'<button id="update_css">udpate css</button>' +
-                            				'<button id="close_css">close</button>' +
+                            				'<div id="fill" class="colorSelector">' +
+											'<div style="background-color: rgb(161, 161, 201); "></div>' +
+											'</div>' +
+                            				'<div id="line" class="colorSelector">' +
+											'<div style="background-color: rgb(161, 161, 201); "></div>' +
+											'</div>' +
+											'<br>' +
+                            				'<button id="update_css">update css</button>' +
+                            				'<button id="close_css"><img src="/static/maps/search/cancel.png"></button>' +
                             				'</div>';
                             		$("body").append(html);
+                            		$('#fill.colorSelector').ColorPicker({
+                            			color: '#0000ff',
+                            			onShow: function (colpkr) {
+											console.log("show: " + colpkr);
+                            				$(colpkr).fadeIn(500);
+                            				return false;
+                            			},
+                            			onHide: function (colpkr) {
+											console.log("hide: " + colpkr);
+                            				$(colpkr).fadeOut(500);
+                            				return false;
+                            			},
+                            			onChange: function (hsb, hex, rgb) {
+											console.log(rgb);
+                            				$("#fill.colorSelector div").css('backgroundColor', '#' + hex);
+                            			}
+                            		});
+									$('#line.colorSelector').ColorPicker({
+                            			color: '#0000ff',
+                            			onShow: function (colpkr) {
+											console.log("show: " + colpkr);
+                            				$(colpkr).fadeIn(500);
+                            				return false;
+                            			},
+                            			onHide: function (colpkr) {
+											console.log("hide: " + colpkr);
+                            				$(colpkr).fadeOut(500);
+                            				return false;
+                            			},
+                            			onChange: function (hsb, hex, rgb) {
+											console.log(rgb);
+                            				$("#line.colorSelector div").css('backgroundColor', '#' + hex);
+                            			}
+                            		});
+
                             		$("#close_css").click(
                             			function() {
                             				$("#css").remove();
@@ -235,6 +277,7 @@ MOL.modules.LayerControl = function(mol) {
                             				);
                             			}
                             		);
+                            		
                             	}
                             );
                             layerUi.attr('id', layerId);
