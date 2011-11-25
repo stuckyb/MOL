@@ -20,11 +20,14 @@ prints out PostgreSQL ALTER TABLE instructions which will create
 a table for storing the fields specified in it.
 """
 
+import codecs
 import csv
+import logging
 import simplejson
 import urllib
-import logging
 from optparse import OptionParser
+
+from cartodb import CartoDB
 
 class TableSchema(object):
     """Represents the table schema."""
@@ -86,21 +89,38 @@ class TableSchema(object):
 
         urlconn.close()
 
-    def setup_cartodb_table(self):
-        """ Returns a string representation of this table schema as set of ALTER TABLE commands
-        for PostgreSQL on CartoDB."""
+    def setup_cartodb_table(self, table_name):
+        """ Set up the schema we need on CartoDB table 'table_name' """
 
-        columns = []
+        print "Logging in to CartoDB using the settings in 'cartodb.json'."
+        try:
+            cartodb_settings = simplejson.loads(
+                codecs.open('cartodb.json', encoding='utf-8').read(), 
+                encoding='utf-8')
+        except Exception as ex:
+            logging.error("Could not load CartoDB setting file 'cartodb.json': %s" % ex)
+            exit(1)
+
+        cdb = CartoDB(
+            cartodb_settings['CONSUMER_KEY'],
+            cartodb_settings['CONSUMER_SECRET'],
+            cartodb_settings['user'],
+            cartodb_settings['password'],
+            cartodb_settings['cartodb_domain']
+        )
+
         for field in self.schema.keys():
             column_schema = self.schema[field]
 
-	    columns.append("ALTER TABLE temp_geodb ADD COLUMN %s %s %s" % (
+	    cdb.sql("ALTER TABLE %s ADD COLUMN %s %s %s" % (
+                table_name,
 		field,
                 column_schema['type'] if column_schema['type'] else "TEXT",
 		"NOT NULL" if column_schema['required'] else "NULL"
 	    ))
+            print "\tField '%s' created." % field
 
-	return create_template % (";\n".join(columns))
+	return
 
     def __repr__(self):
         """ Returns a string representation of this object. """
@@ -110,11 +130,12 @@ class TableSchema(object):
 def _getoptions():
     ''' Parses command line options and returns them.'''
     parser = OptionParser()
-    #parser.add_option('--no-validate', '-V',
-    #                  action="store_true",
-    #                  dest="no_validate",
-    #                  help="Turns off validation of the config.yaml files being processed."
-    #)
+    parser.add_option("-t", "--table",
+        action="store",
+        dest="tablename",
+        default="temp_geodb",
+        help="The name of the table to add the required columns to (default: 'temp_geodb')."
+    )
 
     return parser.parse_args()[0]
 
@@ -124,7 +145,8 @@ def main():
 
     schema = TableSchema()
     schema.load_from_ft()
-    print schema.get_pg_table()
+    schema.setup_cartodb_table(options.tablename)
+    print "Exiting."
 
 if __name__ == '__main__':
     main()

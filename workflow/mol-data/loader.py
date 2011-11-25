@@ -58,7 +58,9 @@ def convertToJSON(provider_dir):
     os.chdir(provider_dir)
     logging.info("Now in directory '%s'." % provider_dir)
 
-    filename = "mol_source_%s.json" % provider_dir
+    # TODO: how?
+    # filename = "mol_source_%s.json" % provider_dir
+    filename = "mol_source_this.json"
     if os.path.exists(filename):
         os.remove(filename)
     # all_json = open(filename, "a")
@@ -143,7 +145,9 @@ def convertToJSON(provider_dir):
                         dbf_properties[ProviderConfig.fieldname_to_dbfname(fieldname)] = new_properties[fieldname]
                
                     # Replace the existing properties with the new one.
-                    feature['properties'] = dbf_properties
+                    # feature['properties'] = dbf_properties
+                    # No - let's try uploading to CartoDB without.
+                    feature['properties'] = new_properties
 
                     # Upload to CartoDB.
                     uploadGeoJSONEntry(feature, 'temp_geodb')
@@ -213,7 +217,7 @@ def uploadGeoJSONEntry(entry, table_name):
     # be a fix), or we can clone our own python-oauth2 and fix that.
     # Another alternative would be to use POST and multipart/form-data,
     # which is probably the better long term solution anyway.
-    values = [v.encode('ascii', 'replace') for v in properties.values()]
+    values = [unicode(v).encode('ascii', 'replace') for v in properties.values()]
         # 'values' will be in the same order as 'fields'
         # as long as there are "no intervening modifications to the 
         # dictionary" [http://docs.python.org/library/stdtypes.html#dict]
