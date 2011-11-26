@@ -41,6 +41,61 @@ MOL.modules.model = function(mol) {
         }
     );
 
+	mol.model.RGBA = Class.extend({
+		init: function() {
+			this.r = 134;
+			this.g = 32;
+			this.b = 128;
+			this.a = 0.7;
+		},
+		update: function(rgb, alpha) {
+			if (rgb) {
+				this.r = rgb.r;
+				this.g = rgb.g;
+				this.b = rgb.b;
+			}
+			if (alpha) {
+				this.a = alpha;
+			}
+		},
+		toString: function() {
+			return "rgba("+this.r+","+this.g+","+this.b+","+this.a+")";
+		}
+	});
+
+	mol.model.Style = Class.extend({
+		init: function() {
+			this.properties = {
+				'polygon-fill': new mol.model.RGBA(),
+				'line-color': new mol.model.RGBA()
+			};
+		},
+		setFill: function(rgb, alpha) {
+			this.updateProperty('polygon-fill', rgb, alpha);
+		},
+		setStroke: function(rgb, alpha) {
+			this.updateProperty('line-color', rgb, alpha);
+		},
+		updateProperty: function(tag, rgb, alpha) {
+			this.properties[tag].update(rgb, alpha);
+		},
+		toString: function() {
+			result = "{";
+			for (var property in this.properties) {
+				result += property+"\:" + this.properties[property] + ";";
+			}
+			result += "}";
+			return result;
+		},
+		toDisplayString: function() {
+			result = "{\n";
+			for (var property in this.properties) {
+				result += "    "+property+"\:" + this.properties[property] + ";\n";
+			}
+			result += "}";
+			return result;
+		}
+	});
     /**
      * The layer model.
      */
@@ -52,7 +107,7 @@ MOL.modules.model = function(mol) {
 			    this.host = 'cartodb.com'
 			    this.columns = [];
 			    this.debug = false;
-			    this.style = "{\n  polygon-fill: rgba(134, 32, 128, 0.7);\n  line-color: rgba(82, 202, 231, 0.1);\n}";
+			    this.style = new mol.model.Style();
         		this.getStyle = function() {
         			return this.style;
         		};

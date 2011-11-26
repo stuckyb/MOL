@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<link href="../../../js/colorpicker/css/colorpicker.css" rel='stylesheet' type='text/css'>
 <link href="http://fonts.googleapis.com/css?family=Josefin+Sans"
 	rel='stylesheet' type='text/css'>
 <link rel="stylesheet" href="../../../css/mol.css">
@@ -16,6 +17,7 @@
 
 <script src="../../../js/carto/gmaps_mercator.js"></script>
 <script src="../../../js/carto/cartodb_vector.js"></script>
+<script src="../../../js/colorpicker/js/colorpicker.js"></script>
 
 
 {% if prod %}
@@ -37,7 +39,6 @@
 <script src="../../../js/mol.ui.Map.js"></script>
 <script src="../../../js/mol.ui.Search.js"></script>
 <script src="../../../js/mol.ui.Metadata.js"></script>
-
 
 {% endif %}
 
@@ -62,7 +63,7 @@
 #css {
 	border-radius: 5px;
 	width: 400px;
-	height: 320px;
+	height: 350px;
 	padding: 0 20px;
 	position: absolute;
 	top: 0px;
@@ -85,6 +86,41 @@ textarea {
 	padding: 5px 10px;
 	font-size: 16px;
 }
+
+#close_css {
+	position: absolute;
+	top: 8px;
+	right: 17px;
+}
+
+.style_block {
+	display:block;
+	width: 100%;
+	height: 34px;
+	clear:both;
+}
+
+.color_selector {
+	position: relative;
+	width: 36px;
+	height: 36px;
+	z-index: 1;
+	float: left;
+}
+
+.color_selector div {
+	width: 30px;
+	height: 30px;
+	border-radius: 3px;
+	background: url(../../../js/colorpicker/images/select.png) center;
+}
+
+.colorpicker {
+	z-index: 2;
+}
+
+
+
 </style>
 
 </head>
