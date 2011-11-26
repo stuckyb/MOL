@@ -1005,6 +1005,8 @@ MOL.modules.Map = function(mol) {
                         case 'update_style':
                         	if (mapLayer instanceof mol.ui.Map.CartoTileLayer || mapLayer instanceof mol.ui.Map.TileLayer) {
                         		mapLayer.refresh();
+                                mapLayer.hide();
+                                mapLayer.show();
                         	}
                         	break;
                         }
@@ -1266,9 +1268,19 @@ MOL.modules.Map = function(mol) {
                     maxZoom: 15,
                     mapTypeControlOptions: {position: google.maps.ControlPosition.BOTTOM_LEFT},
                     center: new google.maps.LatLng(0,0),
-                    mapTypeId: google.maps.MapTypeId.TERRAIN
-                };
+                    mapTypeId: google.maps.MapTypeId.ROADMAP,
+                    styles: [
+                        {"featureType":"all",
+                         "elementType":"all",
+                         "stylers":[{"lightness":43},{"visibility":"simplified"},{"saturation":-59}]
+                        },
+                        {
+                            "elementType":"labels","stylers":[{"visibility":"on"}]
+                        }
 
+                    ]
+                };
+                
                 this._id = 'map';
                 this._super($('<div>').attr({'id': this._id}));
                 $('body').append(this.getElement());
