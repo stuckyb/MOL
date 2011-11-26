@@ -150,7 +150,7 @@ def convertToJSON(provider_dir):
                     feature['properties'] = new_properties
 
                     # Upload to CartoDB.
-                    uploadGeoJSONEntry(feature, 'temp_geodb')
+                    uploadGeoJSONEntry(feature, _getoptions().table_name)
     
                     # Save into all_features.
                     all_features.append(feature)
@@ -252,6 +252,18 @@ def _getoptions():
                       type='string',
                       dest='source_dir',
                       help='Directory containing source to load.')
+    parser.add_option('-t', '--table',
+                      type="string",
+                      action="store",
+                      dest="table_name",
+                      default="temp_geodb",
+                      help="The CartoDB table to load the data into.")
+    parser.add_option("-c", "--cartodb",
+                      type="string",
+                      action="store",
+                      dest="cartodb_json",
+                      default="cartodb.json",
+                      help="The cartodb.json you wish you read CartoDB settings from.")
     parser.add_option('--no-validate', '-V',
                       action="store_true",
                       dest="no_validate",
