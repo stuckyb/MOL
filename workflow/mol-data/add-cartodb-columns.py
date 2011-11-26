@@ -101,6 +101,7 @@ class TableSchema(object):
             logging.error("Could not load CartoDB setting file 'cartodb.json': %s" % ex)
             exit(1)
 
+        print "Updating table %s." % table_name
         cdb = CartoDB(
             cartodb_settings['CONSUMER_KEY'],
             cartodb_settings['CONSUMER_SECRET'],
