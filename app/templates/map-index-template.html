@@ -63,7 +63,7 @@
 #css {
 	border-radius: 5px;
 	width: 400px;
-	height: 320px;
+	height: 350px;
 	padding: 0 20px;
 	position: absolute;
 	top: 0px;
@@ -93,20 +93,34 @@ textarea {
 	right: 17px;
 }
 
-.colorSelector {
+.style_block {
+	display:block;
+	width: 100%;
+	height: 34px;
+	clear:both;
+}
+
+.color_selector {
 	position: relative;
 	width: 36px;
 	height: 36px;
-	z-index: 1000;
+	z-index: 1;
 	float: left;
 }
 
-.colorSelector div {
+.color_selector div {
 	width: 30px;
 	height: 30px;
 	border-radius: 3px;
 	background: url(../../../js/colorpicker/images/select.png) center;
 }
+
+.colorpicker {
+	z-index: 2;
+}
+
+
+
 </style>
 
 </head>

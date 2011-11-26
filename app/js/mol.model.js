@@ -48,7 +48,7 @@ MOL.modules.model = function(mol) {
 			this.b = 128;
 			this.a = 0.7;
 		},
-		updateValues: function(rgb, alpha) {
+		update: function(rgb, alpha) {
 			if (rgb) {
 				this.r = rgb.r;
 				this.g = rgb.g;
@@ -66,9 +66,9 @@ MOL.modules.model = function(mol) {
 	mol.model.Style = Class.extend({
 		init: function() {
 			this.properties = {
-				'polygon-fill':  new mol.model.RGBA(),
+				'polygon-fill': new mol.model.RGBA(),
 				'line-color': new mol.model.RGBA()
-			}
+			};
 		},
 		setFill: function(rgb, alpha) {
 			this.updateProperty('polygon-fill', rgb, alpha);
@@ -77,12 +77,20 @@ MOL.modules.model = function(mol) {
 			this.updateProperty('line-color', rgb, alpha);
 		},
 		updateProperty: function(tag, rgb, alpha) {
-			this.properties[tag] = this.properties[tag].updateValues(rgb, alpha);
+			this.properties[tag].update(rgb, alpha);
 		},
 		toString: function() {
 			result = "{";
 			for (var property in this.properties) {
 				result += property+"\:" + this.properties[property] + ";";
+			}
+			result += "}";
+			return result;
+		},
+		toDisplayString: function() {
+			result = "{\n";
+			for (var property in this.properties) {
+				result += "    "+property+"\:" + this.properties[property] + ";\n";
 			}
 			result += "}";
 			return result;
