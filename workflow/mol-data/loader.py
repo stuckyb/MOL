@@ -27,6 +27,7 @@ from optparse import OptionParser
 import os
 import random
 import simplejson
+import shapely.geometry
 import subprocess
 import sys
 import time
@@ -223,6 +224,13 @@ def uploadGeoJSONEntry(entry, table_name):
         # as long as there are "no intervening modifications to the 
         # dictionary" [http://docs.python.org/library/stdtypes.html#dict]
 
+    # Determine the geometry for this object, by converting the GeoJSON
+    # geometry representation into WKT.
+    # geometry = "SRID=4326;" + shapely.geometry.asShape(entry['geometry']).wkb
+    geometry = shapely.geometry.asShape(entry['geometry']).wkb.encode('hex')
+        # We can use SRID=4326 because we loaded it in that SRID from
+        # ogr2ogr.
+
     # Generate a 'tag', by calculating a SHA-1 hash of the concatenation
     # of the current time (in seconds since the epoch) and the string
     # representation of the property values in the order that Python is
@@ -238,8 +246,9 @@ def uploadGeoJSONEntry(entry, table_name):
         ).hexdigest()[20:28] + "$"
     
     # Turn the fields and values into an SQL statement.
-    sql = "INSERT INTO %(table_name)s (%(cols)s) VALUES (%(values)s)" % {
-            'table_name': table_name, 
+    sql = "INSERT INTO %(table_name)s (the_geom, %(cols)s) VALUES (ST_Multi(GeomFromWKB(decode(%(geometry)s, 'hex'), 4326)), %(values)s)" % {
+            'table_name': table_name,
+            'geometry': tag + geometry + tag,
             'cols': ", ".join(fields),
             'values': tag + (tag + ", " + tag).join(values) + tag
         }
