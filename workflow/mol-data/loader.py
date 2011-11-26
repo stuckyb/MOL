@@ -28,6 +28,7 @@ import os
 import random
 import simplejson
 import subprocess
+import sys
 import time
 from cartodb import CartoDB
 from zipfile import ZipFile
