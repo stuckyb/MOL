@@ -807,7 +807,7 @@ MOL.modules.Map = function(mol) {
                 	/*
                 	 * Switching between CartoTileLayer (Canvas) and TileLayer (Tile)
                 	 */
-                    mapLayer = new mol.ui.Map.CartoTileLayer(map, layer);
+                    mapLayer = new mol.ui.Map.TileLayer(map, layer);
                     break;
                 }
                 this._mapLayers[layerId] = mapLayer;
