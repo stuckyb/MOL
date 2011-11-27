@@ -1,2 +1,4 @@
 *.csv*
-db.json
+*.json
+*.zip
+jetz2
