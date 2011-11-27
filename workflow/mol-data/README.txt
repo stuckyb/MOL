@@ -13,3 +13,4 @@ You need the following programs to run loader.py:
 
 You will also need the following Python modules:
  - simplejson (http://pypi.python.org/pypi/simplejson/)
+ - shapely (http://pypi.python.org/pypi/Shapely)

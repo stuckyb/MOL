@@ -150,7 +150,7 @@ class ProviderConfig(object):
                 logging.error("is_required('%s') called on a fieldname not in the spec" % fieldname)
                 exit(1)
 
-        def getdir(self):
+        def getname(self):
             return self.collection['collection']
 
         def get(self, key, default=None):
@@ -176,7 +176,7 @@ class ProviderConfig(object):
             ERR_VALIDATION = 3 # Conventionally, 0 = success, 1 = error, 2 = command line incorrect.
             """ Fatal errors because of validation failures will cause an exit(ERR_VALIDATION) """
 
-            config_section_to_validate = "'%s', collection '%s'" % (self.filename, self.getdir())
+            config_section_to_validate = "'%s', collection '%s'" % (self.filename, self.getname())
 
             # Step 1. Check if both required categories are present.
             if not self.collection.has_key('fields') or not self.collection['fields'].has_key('required'):
