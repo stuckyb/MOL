@@ -225,9 +225,9 @@ def convertToJSON(provider_dir):
         all_json.write("""]}""")
         all_json.close()
 
-        myzip = ZipFile('%s.zip' % filename, 'w')
-        myzip.write(filename) # TODO: Fails for big files (4GB)
-        myzip.close()
+        #myzip = ZipFile('%s.zip' % filename, 'w')
+        #myzip.write(filename) # TODO: Fails for big files (4GB)
+        #myzip.close()
 
         logging.info("%s written successfully." % filename)
 
