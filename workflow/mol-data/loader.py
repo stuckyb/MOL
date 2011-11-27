@@ -136,7 +136,7 @@ def convertToJSON(provider_dir):
 
                     features = geojson['features']
 
-            elif os.path.isfile(name) and name.rfind('.csv', len(name) - 4, len(name)) != -1:
+            elif os.path.isfile(name) and name.lower().rfind('.csv', len(name) - 4, len(name)) != -1:
                 # This is a .csv file! 
                 csvfile = open(name, "r")
                 reader = UnicodeDictReader(csvfile)
