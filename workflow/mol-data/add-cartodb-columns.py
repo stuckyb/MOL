@@ -18,6 +18,12 @@
 """This script downloads the field information Fusion Table, and 
 prints out PostgreSQL ALTER TABLE instructions which will create 
 a table for storing the fields specified in it.
+
+AN IMPORTANT CAVEAT: If the field spec defines a field which
+overlaps with an existing CartoDB field, you are responsible
+for deleting that field before running this script. Currently,
+as of Dec 2011, the only field which conflicts in this way
+is the 'description' field.
 """
 
 import codecs
