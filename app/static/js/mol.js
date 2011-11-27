@@ -652,11 +652,81 @@ MOL.modules.model = function(mol) {
         }
     );
 
+	mol.model.RGBA = Class.extend({
+		init: function() {
+			this.r = 134;
+			this.g = 32;
+			this.b = 128;
+			this.a = 0.7;
+		},
+		update: function(rgb, alpha) {
+			if (rgb) {
+				this.r = rgb.r;
+				this.g = rgb.g;
+				this.b = rgb.b;
+			}
+			if (alpha) {
+				this.a = alpha;
+			}
+		},
+		toString: function() {
+			return "rgba("+this.r+","+this.g+","+this.b+","+this.a+")";
+		}
+	});
+
+	mol.model.Style = Class.extend({
+		init: function() {
+			this.properties = {
+				'polygon-fill': new mol.model.RGBA(),
+				'line-color': new mol.model.RGBA()
+			};
+		},
+		setFill: function(rgb, alpha) {
+			this.updateProperty('polygon-fill', rgb, alpha);
+		},
+		setStroke: function(rgb, alpha) {
+			this.updateProperty('line-color', rgb, alpha);
+		},
+		updateProperty: function(tag, rgb, alpha) {
+			this.properties[tag].update(rgb, alpha);
+		},
+		toString: function() {
+			result = "{";
+			for (var property in this.properties) {
+				result += property+"\:" + this.properties[property] + ";";
+			}
+			result += "}";
+			return result;
+		},
+		toDisplayString: function() {
+			result = "{\n";
+			for (var property in this.properties) {
+				result += "    "+property+"\:" + this.properties[property] + ";\n";
+			}
+			result += "}";
+			return result;
+		}
+	});
     /**
      * The layer model.
      */
     mol.model.Layer = Class.extend(
         {
+        	Config: function() {
+        		this.user = 'eighty';
+			    this.table = 'mol_cody';
+			    this.host = 'cartodb.com'
+			    this.columns = [];
+			    this.debug = false;
+			    this.style = new mol.model.Style();
+        		this.getStyle = function() {
+        			return this.style;
+        		};
+        		this.setStyle = function(style) {
+        			this.style = style;
+        		};
+        	},
+        	
             init: function(params) {
                 this._id = [params.name, params.source, params.type].join('_');
                 this._type = params.type;
@@ -669,6 +739,7 @@ MOL.modules.model = function(mol) {
                 this._info = params.info;
                 this._color = null;
                 this._icon = null;
+                this._config = params.config || new this.Config();
             },
             
             getExtent: function() {
@@ -729,6 +800,14 @@ MOL.modules.model = function(mol) {
             
             setColor: function(color) {
                 this._color = color;
+            },
+            
+            getConfig: function() {
+                return this._config;                
+            },
+            
+            setConfig: function(config) {
+                this._config = config;
             }
         }
     );
@@ -1488,11 +1567,64 @@ MOL.modules.LayerControl = function(mol) {
                             		var html =  '<div id="css" class="widgetTheme" style="">' +
                             				'<h1 class="layerNomial">' + layerName + '</h1><br>' +
                             				'<textarea id="css_text">' +
+                            				layer.getConfig().getStyle().toDisplayString() +
                             				'</textarea>' +
-                            				'<button id="update_css">udpate css</button>' +
-                            				'<button id="close_css">close</button>' +
+											'<div class="style_block">' +
+                            				'<div id="fill" class="color_selector">' +
+											'<div style="background-color: rgb(161, 161, 201); "></div>' +
+											'</div>' +
+											'<input id="fill_alpha" type="range"  min="0" max="100" value="70" style="float:left;" />' +
+											'</div>' +
+											'<div class="style_block">' +
+                            				'<div id="line" class="color_selector">' +
+											'<div style="background-color: rgb(161, 161, 201); "></div>' +
+											'</div>' +
+											'<input id="stroke_alpha" type="range"  min="0" max="100" value="70" style="float:left;" />' +
+											'</div>' +
+                            				'<div class="style_block"><button id="update_css">update css</button></div>' +
+                            				'<button id="close_css"><img src="/static/maps/search/cancel.png"></button>' +
                             				'</div>';
                             		$("body").append(html);
+                            		$('#fill.color_selector').ColorPicker({
+                            			color: '#0000ff',
+                            			onShow: function (colpkr) {
+                            				$(colpkr).fadeIn(500);
+                            				return false;
+                            			},
+                            			onHide: function (colpkr) {
+                            				$(colpkr).fadeOut(500);
+                            				return false;
+                            			},
+                            			onChange: function (hsb, hex, rgb) {
+											layer.getConfig().getStyle().setFill(rgb);
+                            				$("#fill.color_selector div").css('backgroundColor', '#' + hex);
+											$("#css_text").val(layer.getConfig().getStyle().toDisplayString());
+                            			}
+                            		});
+									document.getElementById("fill_alpha").onchange = function() {
+										layer.getConfig().getStyle().setFill(null, this.value/100);
+										$("#css_text").val(layer.getConfig().getStyle().toDisplayString());
+									};
+									$('#line.color_selector').ColorPicker({
+                            			color: '#0000ff',
+                            			onShow: function (colpkr) {
+                            				$(colpkr).fadeIn(500);
+                            				return false;
+                            			},
+                            			onHide: function (colpkr) {
+                            				$(colpkr).fadeOut(500);
+                            				return false;
+                            			},
+                            			onChange: function (hsb, hex, rgb) {
+											layer.getConfig().getStyle().setStroke(rgb);
+                            				$("#line.color_selector div").css('backgroundColor', '#' + hex);
+											$("#css_text").val(layer.getConfig().getStyle().toDisplayString());
+                            			}
+                            		});
+									document.getElementById("stroke_alpha").onchange = function() {
+										layer.getConfig().getStyle().setStroke(null, this.value/100);
+										$("#css_text").val(layer.getConfig().getStyle().toDisplayString());
+									};
                             		$("#close_css").click(
                             			function() {
                             				$("#css").remove();
@@ -1510,14 +1642,7 @@ MOL.modules.LayerControl = function(mol) {
                             				);
                             			}
                             		);
-                            		bus.fireEvent(
-                        				new LayerEvent(
-                        						{
-                        							action: 'get_style',
-                        							layer: layer
-                        						}
-                        				)
-                        			);
+                            		
                             	}
                             );
                             layerUi.attr('id', layerId);
@@ -1963,11 +2088,11 @@ MOL.modules.Map = function(mol) {
             setColor: function(color) {
                 this._color = color;
             },
-            getStyle: function() {
-            	throw new mol.exceptions.NotImplementedError('getStyle()');
+            getConfig: function() {
+                return this._config;                
             },
-            setStyle: function() {
-            	throw new mol.exceptions.NotImplementedError('setStyle()');
+            setConfig: function(config) {
+                this._config = config;
             }
         }
     );
@@ -2253,6 +2378,7 @@ MOL.modules.Map = function(mol) {
     
     mol.ui.Map.TileLayer = mol.ui.Map.MapLayer.extend(
         {
+		    
             init: function(map, layer) {
                 this._super(map, layer);
                 this._mapType = null;
@@ -2332,6 +2458,7 @@ MOL.modules.Map = function(mol) {
                     layerSource = this.getLayer().getSource(),
                     layerType = this.getLayer().getType(),
                     layerName = this.getLayer().getName(),
+                    config = this.getLayer().getConfig(),
                     color = this.getColor();
 
                 this._mapType = new google.maps.ImageMapType(
@@ -2340,14 +2467,20 @@ MOL.modules.Map = function(mol) {
                             var normalizedCoord = self._getNormalizedCoord(coord, zoom),
                                 bound = Math.pow(2, zoom),
                                 tileParams = '',                                
-                                backendTileApi = 'https://eighty.cartodb.com/tiles/mol_cody/', 
+                                backendTileApi = 'https://' + config.user + '.' + config.host + '/tiles/' + config.table + '/',
+                                geom_column = "the_geom",
+                		        the_geom = null,
+                		        style = null,
                                 tileurl = null;                                
 
                             if (!normalizedCoord) {
                                 return null;
-                            }              
-
-                            tileParams = tileParams + "sql=select * from mol_cody where scientific = '" + layerName + "'";
+                            }
+                            style = "#" + config.table + config.getStyle().toString().replace(/[\n|\t|\s]/gi, '');
+                            style = encodeURIComponent(style);
+                            
+                            tileParams += "sql=select " + "*" + " from " + config.table + " where scientific = '" + layerName + "'";
+                            tileParams += "&style="+style;
                             tileurl = backendTileApi + zoom + '/' + normalizedCoord.x + '/' + normalizedCoord.y + '.png?' + tileParams;
                             return tileurl;
                         },
@@ -2378,40 +2511,17 @@ MOL.modules.Map = function(mol) {
     );
     mol.ui.Map.CartoTileLayer = mol.ui.Map.MapLayer.extend(
         {
-    	    DefaultConfig: function() {
-			    this.user = 'eighty';
-			    this.table = 'mol_cody';
-			    this.columns = [];
-			    this.debug = false;
-			    this.css = "{\n  polygon-fill: rgba(134, 32, 128, 0.7);\n  line-color: rgba(82, 202, 231, 0.1);\n}";
-		    },
     	    getSqlUrl: function(sql) {
-    		    var url = 'http://' + this._config.user + ".cartodb.com/api/v1/sql?q=" + encodeURIComponent(sql) + "&format=geojson&dp=6";
-    		    if (this._config.debug) {
+    		    var config = this.getLayer().getConfig(),
+    		    	url = 'http://' + config.user + ".cartodb.com/api/v1/sql?q=" + encodeURIComponent(sql) + "&format=geojson&dp=6";
+    		    if (config.debug) {
     		    	mol.log.info(url);
     		    };
     		    return url;
     	    },
-    	    getZoomGrade: function(zoom) { 
-                var grade = null;
-
-    	    	if (zoom >= 17) {
-    		    	grade = 5;
-    		    } else if (zoom >= 14 ) {
-    		    	grade = 4;
-    		    } else if (zoom >= 10){
-    		    	grade = 3;
-    		    } else if (zoom >=6){
-    		    	grade = 2;
-    		    } else if (zoom >= 4){
-    		    	grade = 1;
-    		    } else {
-    		    	grade = 0;
-    		    }
-    	    	return grade;
-    	    },
     	    fetchTile: function(x, y, zoom, callback) {
     		    var self = this,
+    		    	config = this.getLayer().getConfig(),
     		    	projection = new MercatorProjection(),
     		        tile_point = projection.tilePoint(x, y, zoom),
     		        bbox = projection.tileBBox(x, y, zoom),
@@ -2433,15 +2543,15 @@ MOL.modules.Map = function(mol) {
     		    } else {
     		    	the_geom = 'ST_SimplifyPreserveTopology("'+geom_column+'",0.1) as the_geom';
     		    }
-    		    columns = [the_geom].concat(self._config.columns).join(',');
-    		    sql = "select " + columns + " from " + this._config.table + " where scientific = '" + this.getLayer().getName() + "'";
+    		    columns = [the_geom].concat(config.columns).join(',');
+    		    sql = "select " + columns + " from " + config.table + " where scientific = '" + this.getLayer().getName() + "'";
     		    if (zoom >= 3) {
     		    	sql += " and the_geom && ST_SetSRID(ST_MakeBox2D(";
     		    	sql += "ST_Point(" + bbox[0].lng() + "," + bbox[0].lat() +"),";
     		    	sql += "ST_Point(" + bbox[1].lng() + "," + bbox[1].lat() +")), 4326)";
     		    }
     		    if (data) {
-    	            if (this._config.debug) {
+    	            if (config.debug) {
     	            	mol.log.info("CACHED");
         		    };
     	            callback(data);
@@ -2456,7 +2566,7 @@ MOL.modules.Map = function(mol) {
     		    }
     	    },
     	    applyStyle: function(ctx, data) {
-    	        var css = CartoCSS.apply(this.getStyle(), data),
+    	        var css = CartoCSS.apply(this.getLayer().getConfig().getStyle().toString(), data),
                     c = null,
     	            mapper = {
     	                'point-color': 'fillStyle',
@@ -2505,6 +2615,9 @@ MOL.modules.Map = function(mol) {
                                 
                                 // composite layer context onto main context
                                 ctx.drawImage(layer_canvas,0,0);
+                                if (!parent.isVisible()) {
+                                	$(layer_canvas).hide();
+                                }
                             } else {
                             	mol.log.error("no renderer for ", primitives[i].geometry.type);
                             }
@@ -2576,13 +2689,13 @@ MOL.modules.Map = function(mol) {
     	    releaseTile: function(tileCanvas) {
     	    	var self = this,
     	    		tile_id = tileCanvas.getAttribute('id');
-    	    	delete delete self._tiles[tile_id];
+    	    	delete self._tiles[tile_id];
     	    },
 
     	    /**
 			 * Inherited methods from parent class
 			 */
-    	    init: function(map, layer, config) {
+    	    init: function(map, layer) {
 				var self = this;
 			    this.tileSize = new google.maps.Size(256,256);
 			    this._map = map;
@@ -2591,7 +2704,6 @@ MOL.modules.Map = function(mol) {
 			    this._projection = new MercatorProjection();
 			    this._cache = {}; // cache stores geojson data
 			    this._tiles = {}; // stores the actual image
-			    this._config = config || new this.DefaultConfig();
 			    this._map.overlayMapTypes.insertAt(0, this);
 				this.primitive_render = {
     	            Point: function(ctx, x, y, zoom, coordinates) {
@@ -2637,7 +2749,6 @@ MOL.modules.Map = function(mol) {
 
     	    show: function() {
 	    	    var layer = this.getLayer(),
-	    	        style = this.getStyle(),
 	    	        bounds = this.bounds(),
 	    	        LatLngBounds = google.maps.LatLngBounds,
                     LatLng = google.maps.LatLng,
@@ -2696,15 +2807,6 @@ MOL.modules.Map = function(mol) {
 	            bounds.extend(new LatLng(south, east));
 	            this._bounds = bounds;
 	            return bounds;
-	        },
-
-	        getStyle: function() {
-	    	    return this._config.css;
-	        },
-
-	        setStyle: function(style) {
-	    	    this._config.css = style;
-	    	    this.refresh();
 	        }
         }
     );
@@ -2742,7 +2844,10 @@ MOL.modules.Map = function(mol) {
                 case 'range':
                 case 'ecoregion':
                 case 'pa':
-                    mapLayer = new mol.ui.Map.CartoTileLayer(map, layer);
+                	/*
+                	 * Switching between CartoTileLayer (Canvas) and TileLayer (Tile)
+                	 */
+                    mapLayer = new mol.ui.Map.TileLayer(map, layer);
                     break;
                 }
                 this._mapLayers[layerId] = mapLayer;
@@ -2930,16 +3035,12 @@ MOL.modules.Map = function(mol) {
                             if (mapLayer) {
                                 mapLayer.hide();
                             }    
-                            break;   
-                        case 'get_style':
-                        	if (mapLayer instanceof mol.ui.Map.CartoTileLayer) {
-                        		$("#css_text").val(mapLayer.getStyle()); //(/(\;|\{)/gi, "$1\n  ").replace(/}/gi, "}"));
-                        	}
-                        	break;
+                            break;
                         case 'update_style':
-                        	if (mapLayer instanceof mol.ui.Map.CartoTileLayer) {
-                        		var css = $("#css_text").val().replace(/[\n\t]/gi, '');
-                        		mapLayer.setStyle(css);
+                        	if (mapLayer instanceof mol.ui.Map.CartoTileLayer || mapLayer instanceof mol.ui.Map.TileLayer) {
+                        		mapLayer.refresh();
+                                mapLayer.hide();
+                                mapLayer.show();
                         	}
                         	break;
                         }
@@ -3201,9 +3302,19 @@ MOL.modules.Map = function(mol) {
                     maxZoom: 15,
                     mapTypeControlOptions: {position: google.maps.ControlPosition.BOTTOM_LEFT},
                     center: new google.maps.LatLng(0,0),
-                    mapTypeId: google.maps.MapTypeId.TERRAIN
-                };
+                    mapTypeId: google.maps.MapTypeId.ROADMAP,
+                    styles: [
+                        {"featureType":"all",
+                         "elementType":"all",
+                         "stylers":[{"lightness":43},{"visibility":"simplified"},{"saturation":-59}]
+                        },
+                        {
+                            "elementType":"labels","stylers":[{"visibility":"on"}]
+                        }
 
+                    ]
+                };
+                
                 this._id = 'map';
                 this._super($('<div>').attr({'id': this._id}));
                 $('body').append(this.getElement());
@@ -3226,6 +3337,7 @@ MOL.modules.Map = function(mol) {
             }            
         }
     );
+
 };
 /**
  * Search module has a display used as a map control. It allows users to search
