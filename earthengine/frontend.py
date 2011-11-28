@@ -94,9 +94,9 @@ class GetMapId(webapp.RequestHandler):
                         ]
                     }
                 ),
-            bands="intersectionCount")#,
-            #min=1,
-            #max=533170)
+            bands="intersectionCount",
+            min=1,
+            max=32)
         url = '/mapid?%s' % urllib.urlencode(query)
         response = proxy.get(url)
         self.response.out.write(simplejson.dumps(response['data']))
