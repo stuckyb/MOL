@@ -39,6 +39,8 @@ app._getNormalizedCoord = function(coord, zoom) {
 };
    
 
+app.polygons = [];
+
 app.calcStats = function(polygon) {
     
     // TODO: wire in stat updates when polygon edited
@@ -57,7 +59,7 @@ app.calcStats = function(polygon) {
             app.coordinates[0].push([latLng.lng(), latLng.lat()]);
         }
     );
-    app.polygon = polygon;
+    app.polygons.push(polygon);
     app.loadingImg.show();
     app.infowin.close();
     $.post(
@@ -108,7 +110,10 @@ app.init = function () {
     app.clearButton = $('<div><button id="clearMapButton"  style="top: 3px;" width="200px">Clear Polygons</button></div>'); 
     app.clearButton.click(
         function(event) {
-            app.polygon.setMap(null);
+            for (x in app.polygons) {
+               app.polygons[x].setMap(null); 
+            }
+            app.polgons = [];
             app.infowin.close();
         }
     );
@@ -142,17 +147,20 @@ app.init = function () {
     // Earth Engine image overlay map tiles:
     $.post(
         '/earthengine/mapid', 
-        '',
+        {tableid: app.urlParams['tableid']},
         function (data) {
             var mapid = JSON.parse(data)['mapid'],
                 token = JSON.parse(data)['token'],
-                EARTH_ENGINE_TILE_SERVER = 'http://earthengine.googleapis.com/map/';
+                EARTH_ENGINE_TILE_SERVER = 'http://earthengine.googleapis.com/map/',
+                tileUrl = null;
             
             app.map.overlayMapTypes.push(
                 new google.maps.ImageMapType(
                     {
                         getTileUrl: function(coord, zoom) {
-                            return EARTH_ENGINE_TILE_SERVER + mapid + "/"+ zoom + "/"+ coord.x + "/" + coord.y +"?token=" + token;
+                            tileUrl = EARTH_ENGINE_TILE_SERVER + mapid + "/"+ zoom + "/"+ coord.x + "/" + coord.y +"?token=" + token;
+                            console.log(tileUrl);
+                            return tileUrl;
                         },
                         tileSize: new google.maps.Size(256, 256),
                         isPng: true

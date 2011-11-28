@@ -77,6 +77,7 @@ class GetPointVal(webapp.RequestHandler):
     
 class GetMapId(webapp.RequestHandler):
     def post(self):
+        tableid = self.request.get('tableid') or 2191296
         query = dict(
             image=simplejson.dumps(
                 {
@@ -84,7 +85,7 @@ class GetMapId(webapp.RequestHandler):
                     "args":[
                         {
                             "type":"FeatureCollection",
-                            "table_id":2191296
+                            "table_id":int(tableid)
                             }
                         ]
                     }
