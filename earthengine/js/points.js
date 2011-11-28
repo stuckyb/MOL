@@ -64,7 +64,7 @@ app.calcStats = function(polygon) {
     app.infowin.close();
     $.post(
         '/earthengine/pointstats',
-        'coordinates=' + JSON.stringify(app.coordinates),
+        {tableid: app.urlParams['tableid'], coordinates: JSON.stringify(app.coordinates)},
         function(data) {  
             var stats = JSON.stringify(data, undefined, 2),
             point = app.coordinates[0][0],
@@ -131,7 +131,7 @@ app.init = function () {
             app.infowin.close();
             $.post(
                 '/earthengine/pointval',
-                'll=' + event.latLng.toUrlValue(),
+                {tableid: app.urlParams['tableid'], ll:event.latLng.toUrlValue()},
                 function(data) {  
                     var ic = JSON.parse(data)['points'][0]['bands']['intersectionCount'][0];
 

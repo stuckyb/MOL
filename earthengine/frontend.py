@@ -44,18 +44,22 @@ class Home(webapp.RequestHandler):
 
 class GetPointStats(webapp.RequestHandler):
     def post(self):
+        tableid = self.request.get('tableid') or 2191296
         coordinates = self.request.get('coordinates')        
         logging.info(coordinates)        
-        image = """{"creator":"MOL/com.google.earthengine.examples.polyintersect.GetStats","args":[{"creator":"MOL/com.google.earthengine.examples.polyintersect.CountPolygonIntersect","args":[{"type":"FeatureCollection","table_id":2191296}]},"intersectionCount",{"features":[{"type":"Feature","geometry":{"type":"Polygon","coordinates":%s}}]}]}""" % coordinates
+        image = """{"creator":"MOL/com.google.earthengine.examples.polyintersect.GetStats","args":[{"creator":"MOL/com.google.earthengine.examples.polyintersect.CountPolygonIntersect","args":[{"type":"FeatureCollection","table_id":%s}]},"intersectionCount",{"features":[{"type":"Feature","geometry":{"type":"Polygon","coordinates":%s}}]}]}""" % (tableid, coordinates)
         query = dict(
             image=image,
             fields='stats')
         url = '/value?%s' % urllib.urlencode(query)
+        logging.info(query)
         response = proxy.get(url)
+        logging.info(response)
         self.response.out.write(simplejson.dumps(response['data']))        
         
 class GetPointVal(webapp.RequestHandler):
     def post(self):
+        tableid = self.request.get('tableid') or 2191296
         lat, lng = [float(x) for x in self.request.get('ll').split(',')]
         query = dict(
                         image=simplejson.dumps(
@@ -64,7 +68,7 @@ class GetPointVal(webapp.RequestHandler):
                     "args":[
                         {
                             "type":"FeatureCollection",
-                            "table_id":2191296
+                            "table_id":int(tableid)
                             }
                         ]
                     }
@@ -90,9 +94,9 @@ class GetMapId(webapp.RequestHandler):
                         ]
                     }
                 ),
-            bands="intersectionCount",
-            min=1,
-            max=8)
+            bands="intersectionCount")#,
+            #min=1,
+            #max=533170)
         url = '/mapid?%s' % urllib.urlencode(query)
         response = proxy.get(url)
         self.response.out.write(simplejson.dumps(response['data']))
