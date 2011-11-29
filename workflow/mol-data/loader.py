@@ -92,12 +92,15 @@ def convertToJSON(provider_dir):
 
             if os.path.isdir(name):
                 # A directory of shapefiles.
+                os.chdir(name)
 
                 shapefiles = glob.glob('*.shp')
                 for shapefile in shapefiles:
 
                     # Determine the "name" (filename without extension) of this file.
                     name = shapefile[0:shapefile.index('.shp')]
+
+                    logging.info("Processing shapefile: %s." % name)
 
                     # Step 2.1. Convert this shapefile into a GeoJSON file, projected to
                     # EPSG 4326 (WGS 84).
@@ -113,11 +116,11 @@ def convertToJSON(provider_dir):
                         json_filename,
                         '%s.shp' % name
                     ]
-                                    
+
                     try:
                         subprocess.call(command)
                     except:
-                        logging.warn('Unable to convert %s to GeoJSON - %s' % (name, command))
+                        logging.error('Unable to convert %s to GeoJSON - %s' % (name, command))
                         if os.path.exists(json_filename):
                             os.remove(json_filename)
                         continue
@@ -135,6 +138,10 @@ def convertToJSON(provider_dir):
                         continue
 
                     features = geojson['features']
+                
+                # Return to the provider dir.
+                os.chdir(original_dir)
+                os.chdir(provider_dir)
 
             elif os.path.isfile(name) and name.lower().rfind('.csv', len(name) - 4, len(name)) != -1:
                 # This is a .csv file! 
@@ -200,6 +207,7 @@ def convertToJSON(provider_dir):
                 feature['properties'] = new_properties
 
                 # Upload to CartoDB.
+                logging.info("\tUploading feature.");
                 uploadGeoJSONEntry(feature, _getoptions().table_name)
 
                 # Save into all_features.
@@ -217,9 +225,11 @@ def convertToJSON(provider_dir):
             all_json.flush()
             all_features = []                
                 
-            logging.info('%s converted to GeoJSON' % name)
+            logging.info('Converted %s to GeoJSON' % name)
 
-            os.chdir('..')
+            # Go back to the provider directory.
+            os.chdir(original_dir)
+            os.chdir(provider_dir)
 
         # Zip up the GeoJSON document
         all_json.write("""]}""")
