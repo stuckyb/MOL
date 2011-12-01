@@ -456,7 +456,8 @@ MOL.modules.Map = function(mol) {
 //                        name: layerId
 //                    });
                 if (google.maps.CartoDBLayer) {
-                	self.layer = new google.maps.CartoDBLayer({
+                	window.map = map;
+                	new google.maps.CartoDBLayer({
                 		map_canvas : 'map',
         				map : map,
         				user_name : config.user,
@@ -464,7 +465,8 @@ MOL.modules.Map = function(mol) {
         				query : "select * from " + config.table + " where scientific = '" + layerName + "'",
         				map_style : true,
         				infowindow : true,
-        				auto_bound : true
+        				auto_bound : true,
+        				layerId: layerId
         			});
         		}
             },
