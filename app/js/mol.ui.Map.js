@@ -131,7 +131,7 @@ MOL.modules.Map = function(mol) {
                 return bounds;
             },
 
-            isVisible: function() {                
+            isVisible: function() {
                 return this._onMap;
             },
 

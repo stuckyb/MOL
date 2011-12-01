@@ -276,14 +276,36 @@ MOL.modules.LayerControl = function(mol) {
                             widget = layerUi.getInfoLink();
                             widget.click(
                                 function(event) {
-                                    bus.fireEvent(
-                                        new LayerEvent(
-                                            {
-                                                action: 'view-metadata',
-                                                layer: layer
-                                            }
-                                        )
-                                    );
+                                	var r = display.getNewMetaDataViewer(),
+                                		config = layer.getConfig(),
+                                		title = r.getTitle(),
+                                		closeButton = r.getCloseButton(),
+                                		columns = ['bibliograp', 'collection', 'contact', 'creator','descriptio', 'layer_coll', 'layer_file', 'layer_sour','provider', 'publisher', 'rights', 'scientific', 'title', 'type'],
+                                		queryUrl = 'https://' + config.user + '.' + config.host + '/api/v1/sql?q=';
+                                	
+                                	query = "SELECT " + columns.join(',') + " FROM " + config.table +  " where scientific = '" + layerName + "'";
+                                	url = queryUrl + query;
+                                	console.log("baseurl: " + url);
+                                	
+                                	title._element.html(layerName);
+                                	closeButton.click(
+                                		function() {
+                                			r._reset();
+                                		}
+                                	);
+                                	
+                                	$.getJSON(
+                                			url, 
+                                            function(data) {
+                                				window.hi = data;
+//                                				for (var key in data.rows) {
+                                					var row = data.rows[0];
+                                					for (var key in row) {
+                                						r.addDescription(key, row[key]);
+                                					}
+//                                				}
+                        		            }
+                                        );
                                 }
                             );
                             break;
@@ -378,6 +400,43 @@ MOL.modules.LayerControl = function(mol) {
             }
         }
     );
+    
+    mol.ui.LayerControl.MetaDataViewer = mol.ui.Display.extend(
+    	{
+    		init: function() {
+    			this._reset();
+    			this._super(this._html());
+    		},
+    		getTitle: function() {
+    			var x = this._title,
+            	s = '#title';
+    			return x ? x : (this._title = this.findChild(s));
+    		},
+    		getDescription: function() {
+    			var x = this._desc,
+            	s = '#description';
+    			return x ? x : (this._desc = this.findChild(s));
+    		},
+    		getCloseButton: function() {
+    			var x = this._closeButton,
+            	s = '#close_meta';
+    			return x ? x : (this._closeButton = this.findChild(s));
+    		},
+    		addDescription: function(key, value) {
+    			this.getDescription()._element.append('<tr><td>'+key+'</td><td>'+value+'</td></tr>');
+    		},
+    		_reset: function() {
+    			$('#meta').remove();
+    		},
+    		_html: function() {
+    			return '<div id="meta" class="metadata widgetTheme">' +
+    				'<h1 id="title"></h1>' + 
+    				'<table id="description" class="widgetTheme"></table>' +
+    				'<button id="close_meta"><img src="/static/maps/search/cancel.png"></button>' +
+    				'</div>';
+    		}
+    	}
+    )
     
     /**
      *  
@@ -568,6 +627,11 @@ MOL.modules.LayerControl = function(mol) {
             },
             getNewStyleControl: function(layer) {
                 var r = new mol.ui.LayerControl.StyleControl(layer);
+                this.findChild('.scrollContainer').append(r);
+                return r;
+            },
+            getNewMetaDataViewer: function() {
+            	var r = new mol.ui.LayerControl.MetaDataViewer();
                 this.findChild('.scrollContainer').append(r);
                 return r;
             },
