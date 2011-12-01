@@ -42,6 +42,13 @@ For full usage information:
   ./shp2gft.py --help
 """
 
+# Put FT library on path.
+import sys
+sys.path.append('gft/src')
+from authorization.oauth import OAuth
+from sql.sqlbuilder import SQL
+import ftclient
+
 import getpass
 import glob
 import logging
@@ -51,10 +58,11 @@ import os
 import shlex
 import shutil
 import subprocess
-import sys
 import tempfile
+import yaml
 
 WORKSPACE_DIR_NAME = 'workspace'
+MAX_FUSION_TABLE_ROWS = 90000
 
 def _get_creds(email=None):
     """Prompts the user and returns a username and password."""
@@ -109,7 +117,47 @@ def _get_options():
         dest='email',
         help='The GMail address used for authentication.')
 
+    # Option specifying a config file.
+    parser.add_option(
+        '-c', 
+        type='string',
+        dest='config',
+        help='The config YAML file.')
+
+    # Option specifying an internal test
+    parser.add_option(
+        '-x', 
+        type='string',
+        dest='test',
+        help='Flag for testing.')
+
     return parser.parse_args()[0]
+
+def _get_feature_count(pathname):
+    command = 'ogrinfo -al -so %s' % pathname
+    p = subprocess.Popen(
+        shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, error = p.communicate()
+    count = int(output.split('\n')[5].split('Feature Count:')[1].strip())
+    return count
+
+def _create_fusion_table(name, oauth_client):
+    """This needs to be generalized."""
+    table = {
+        name: {
+            'SpecID':'NUMBER', 
+            'Latin':'STRING', 
+            'OccCode':'NUMBER',
+            'Date':'STRING',
+            'EditsInfo':'STRING',
+            'Citation':'STRING',
+            'Notes':'STRING',
+            'Origin':'NUMBER',
+            'geometry': 'LOCATION'
+            }
+        }
+    tableid = int(oauth_client.query(SQL().createTable(table)).split("\n")[1])
+    logging.info('Created new Fusion Table: http://www.google.com/fusiontables/DataSource?dsrcid=%s' % tableid)
 
 def upload(name, table, sfd):
     os.chdir(sfd)
@@ -130,8 +178,6 @@ def upload(name, table, sfd):
     
     if error:
         logging.info("ERROR: %s" % error)
-
-    #subprocess.call(shlex.split(command))
 
     logging.info('Appended %s polygons to the %s Fusion Table' \
                      % (name, table))
@@ -154,7 +200,24 @@ def main():
     """
     logging.basicConfig(level=logging.DEBUG)
     options = _get_options()
+
+    # Check for test.
+    if options.test:
+        _get_feature_count('/data/puma/puma_concolor.shp')
+        sys.exit(0)
     
+    # Get Fusion Tables client.
+    config = yaml.load(open(options.config, 'r'))        
+    consumer_key = config['client_id']
+    consumer_secret = config['client_secret'] 
+    url, token, secret = OAuth().generateAuthorizationURL(consumer_key, consumer_secret, consumer_key)
+    print "Visit this URL in a browser: "
+    print url
+    raw_input("Hit enter after authorization")
+    token, secret = OAuth().authorize(consumer_key, consumer_secret, token, secret)
+    oauth_client = ftclient.OAuthFTClient(consumer_key, consumer_secret, token, secret)
+    #oauth_client = ftclient.OAuthFTClient(consumer_key, consumer_secret)   
+
     # Get authentication token.
     auth_token = os.getenv('GFT_AUTH')
     if not auth_token:
@@ -166,17 +229,29 @@ def main():
     sfd = os.path.abspath(options.dir)
     os.chdir(sfd)
 
-    # Create workspace directory.
-    if not os.path.exists(WORKSPACE_DIR_NAME): 
-       os.mkdir(WORKSPACE_DIR_NAME)
-
     pool = multiprocessing.Pool(processes=200)
-    tasks = [(os.path.splitext(f)[0], options.table, sfd) \
-                 for f in glob.glob('*.shp')]
-    logging.info('Preparing %s tasks' % len(tasks))
-    result = pool.map_async(_upload, tasks, chunksize=200)
-    result.wait()
+    table_count = 0
+    feature_count = 0
+    tasks = []
 
+    for f in glob.glob('*.shp'):
+        table_name = '%s-%s' % (options.table, table_count)
+        if feature_count >= MAX_FUSION_TABLE_ROWS:
+            logging.info('Preparing %s tasks with %s rows' % (len(tasks), feature_count))
+            _create_fusion_table(table_name, oauth_client)
+            result = pool.map_async(_upload, tasks, chunksize=200)
+            result.wait()
+            feature_count = 0
+            table_count += 1
+            tasks = []
+        feature_count += _get_feature_count(os.path.join(sfd, f))
+        tasks.append((os.path.splitext(f)[0], table_name, sfd))
+            
+    if len(tasks) > 0:
+        logging.info('Preparing %s tasks' % len(tasks))
+        result = pool.map_async(_upload, tasks, chunksize=200)
+        result.wait()
+    
     # for f in glob.glob('*.shp'):
     #     # Shapefile name without the .shp extension.
     #     name = os.path.splitext(f)[0]
