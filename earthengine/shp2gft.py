@@ -45,12 +45,14 @@ For full usage information:
 import getpass
 import glob
 import logging
+import multiprocessing
 import optparse
 import os
 import shlex
 import shutil
 import subprocess
 import sys
+import tempfile
 
 WORKSPACE_DIR_NAME = 'workspace'
 
@@ -109,6 +111,36 @@ def _get_options():
 
     return parser.parse_args()[0]
 
+def upload(name, table, sfd):
+    os.chdir(sfd)
+
+    workspace = tempfile.mkdtemp()
+
+    # Copy and rename the shapefile into the workspace.
+    for x in glob.glob('%s.*' % name):
+        dst = os.path.join(workspace, table)
+        shutil.copy(x, x.replace(name, dst))
+
+    # Upload shapefile to the Google Fusion table.
+    os.chdir(workspace)
+    command = 'ogr2ogr -append -f GFT "GFT:" %s.shp' % table
+    p = subprocess.Popen(
+        shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    error, output = p.communicate()
+    
+    if error:
+        logging.info("ERROR: %s" % error)
+
+    #subprocess.call(shlex.split(command))
+
+    logging.info('Appended %s polygons to the %s Fusion Table' \
+                     % (name, table))
+
+    shutil.rmtree(workspace)
+
+def _upload(args):
+    upload(*args)
+
 def main():
     """Bulkloads shapefiles to an existing Google Fusion Table.
 
@@ -135,35 +167,42 @@ def main():
     os.chdir(sfd)
 
     # Create workspace directory.
-    if not os.path.exists(WORKSPACE_DIR_NAME):
-        os.mkdir(WORKSPACE_DIR_NAME)
-        
-    for f in glob.glob('*.shp'):
-        # Shapefile name without the .shp extension.
-        name = os.path.splitext(f)[0]
-        
-        # Copy and rename the shapefile into the workspace.
-        for x in glob.glob('%s.*' % name):
-            dst = os.path.join(WORKSPACE_DIR_NAME, options.table)
-            shutil.copy(x, x.replace(name, dst))
+    if not os.path.exists(WORKSPACE_DIR_NAME): 
+       os.mkdir(WORKSPACE_DIR_NAME)
 
-        # Upload shapefile to the Google Fusion table.
-        os.chdir(WORKSPACE_DIR_NAME)
-        command = 'ogr2ogr -append -f GFT "GFT:" %s.shp' % options.table
-        subprocess.call(shlex.split(command))
-        
-        logging.info('Appended %s polygons to the %s Fusion Table' \
-                         % (name, options.table))
-        
-        # Cleanup the workspace by deleting all files in it.
-        for item in os.listdir(os.curdir):
-            os.remove(item)
+    pool = multiprocessing.Pool(processes=200)
+    tasks = [(os.path.splitext(f)[0], options.table, sfd) \
+                 for f in glob.glob('*.shp')]
+    logging.info('Preparing %s tasks' % len(tasks))
+    result = pool.map_async(_upload, tasks, chunksize=200)
+    result.wait()
 
-        # Change back into the Shapefiles directory.
-        os.chdir(sfd)
+    # for f in glob.glob('*.shp'):
+    #     # Shapefile name without the .shp extension.
+    #     name = os.path.splitext(f)[0]
+        
+        # # Copy and rename the shapefile into the workspace.
+        # for x in glob.glob('%s.*' % name):
+        #     dst = os.path.join(WORKSPACE_DIR_NAME, options.table)
+        #     shutil.copy(x, x.replace(name, dst))
+
+        # # Upload shapefile to the Google Fusion table.
+        # os.chdir(WORKSPACE_DIR_NAME)
+        # command = 'ogr2ogr -append -f GFT "GFT:" %s.shp' % options.table
+        # subprocess.call(shlex.split(command))
+        
+        # logging.info('Appended %s polygons to the %s Fusion Table' \
+        #                  % (name, options.table))
+        
+        # # Cleanup the workspace by deleting all files in it.
+        # for item in os.listdir(os.curdir):
+        #     os.remove(item)
+
+        # # Change back into the Shapefiles directory.
+        # os.chdir(sfd)
     
     # Remove workspace directory.
-    shutil.rmtree(WORKSPACE_DIR_NAME)
+#    shutil.rmtree(WORKSPACE_DIR_NAME)
 
 if __name__ == '__main__':
     main()
