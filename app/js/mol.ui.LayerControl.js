@@ -301,7 +301,7 @@ MOL.modules.LayerControl = function(mol) {
 //                                				for (var key in data.rows) {
                                 					var row = data.rows[0];
                                 					for (var key in row) {
-                                						r.addDescription(key, row[key]);
+                                						r.addDescription(key.charAt(0).toUpperCase() + key.slice(1), row[key]);
                                 					}
 //                                				}
                         		            }
