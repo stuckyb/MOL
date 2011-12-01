@@ -58,7 +58,8 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 	      getTileUrl: function(coord, zoom) {
 	        return 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query;
 	      },
-	      tileSize: new google.maps.Size(256, 256)
+	      tileSize: new google.maps.Size(256, 256),
+	      name: params.layerId
 	    };
 	    var cartodb_imagemaptype = new google.maps.ImageMapType(cartodb_layer);
 	    params.map.overlayMapTypes.insertAt(0, cartodb_imagemaptype);
@@ -137,7 +138,8 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 	      getTileUrl: function(coord, zoom) {
 	        return 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query;
 	      },
-	      tileSize: new google.maps.Size(256, 256)
+	      tileSize: new google.maps.Size(256, 256),
+	      name: params.layerId
 	    };
 	    var cartodb_imagemaptype = new google.maps.ImageMapType(cartodb_layer);
 	    params.map.overlayMapTypes.insertAt(0, cartodb_imagemaptype);
@@ -166,8 +168,9 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
         },
         clickAction: 'full'
       };
-      
-      var wax_tile = new wax.g.connector(params.tilejson);
+      var opt = params.tilejson;
+      opt.name = params.layerId;
+      var wax_tile = new wax.g.connector(opt);
       params.map.overlayMapTypes.insertAt(0,wax_tile);
       params.interaction = wax.g.interaction(params.map, params.tilejson, params.waxOptions);
 	  }
@@ -181,7 +184,14 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
         params.tilejson = generateTileJson();
 
         // Remove old wax
-        params.map.overlayMapTypes.clear();
+//        params.map.overlayMapTypes.clear();
+        params.map.overlayMapTypes.forEach(
+                function(x, i) {
+                    if (x && x.name === params.layerId) {
+                        map.overlayMapTypes.removeAt(i);
+                    }
+                }
+            );
 
         // Setup new wax
         params.tilejson.grids = wax.util.addUrlData(params.tilejson.grids_base,  'cache_buster=' + params.cache_buster);
@@ -201,7 +211,14 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
       // If you are not using interaction on the tiles... let's update your tiles
       if (!params.infowindow) {
         // First remove previous cartodb - tiles.
-        params.map.overlayMapTypes.clear();
+//        params.map.overlayMapTypes.clear();
+    	  params.map.overlayMapTypes.forEach(
+                function(x, i) {
+                    if (x && x.name === params.layerId) {
+                        map.overlayMapTypes.removeAt(i);
+                    }
+                }
+            );
 
      	  // Then add the cartodb tiles
      	 	params.query = sql;
@@ -209,7 +226,8 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
     			  getTileUrl: function(coord, zoom) {
     			  return 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query;
     		  },
-  			  tileSize: new google.maps.Size(256, 256)
+  			  tileSize: new google.maps.Size(256, 256),
+    	      name: params.layerId
   	    };
   	    
   	    var cartodb_imagemaptype = new google.maps.ImageMapType(cartodb_layer);
@@ -295,15 +313,20 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 	    url:'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/infowindow?callback=?',
 	    dataType: 'jsonp',
 	    success:function(result){
+	    	console.log("not else: "+result);
 	      var columns = JSON.parse(result.infowindow);
 	      if (columns) {
 	        that.columns_ = parseColumns(columns);
 	      } else {
+	    	  console.log("else");
 	        $.ajax({
       		  method:'get',
       	    url: 'http://'+ that.params_.user_name +'.cartodb.com/api/v1/sql/?q='+escape('select * from '+ that.params_.table_name + ' LIMIT 1'),
       	    dataType: 'jsonp',
       	    success: function(columns) {
+      	    	var self = this;
+      	    	window.hi = columns;
+      	    	console.log("hi: " + self.url);
       	      that.columns_ = parseColumns(columns.rows[0]);
       	    },
       	    error: function(e) {}
