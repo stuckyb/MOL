@@ -938,7 +938,7 @@ MOL.modules.Search = function(mol) {
                         var action = event.getAction(),
                             displayNotVisible = !display.isVisible();               
                         
-                        if (action === 'add-click' && displayNotVisible) {
+                        if (action === 'search-click' && displayNotVisible) {
                             display.show();
                             display.getSearchBox().focus();
                         }
