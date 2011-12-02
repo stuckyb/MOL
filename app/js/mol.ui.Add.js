@@ -9,10 +9,60 @@ MOL.modules.Add = function(mol) {
 			init: function(config) {
                 this._super(this._html());
 			},
+			getUserNameInput: function() {
+				var x = this._usernameInput,
+                s = '#username';
+				return x ? x : (this.usernameInput = this.findChild(s));
+			},
+			getTableNameInput: function() {
+				var x = this._tablenameInput,
+                s = '#tablename';
+				return x ? x : (this.tablenameInput = this.findChild(s));
+			},
+			getQueryInput: function() {
+				var x = this._queryInput,
+                s = '#query';
+				return x ? x : (this.queryInput= this.findChild(s));
+			},
+			getCloseButton: function(){
+                var x = this._closeButton,
+                    s = '.cancel';
+                return x ? x : (this._closeButton = this.findChild(s));
+            },
+            getGoButton: function() {
+                var x = this._goButton,
+                    s = '.execute';
+                return x ? x : (this._goButton = this.findChild(s));
+            },
 			_html: function() {
-				return	'<div class="mol-LayerControl-Search widgetTheme">' + 
-		                '  <div class="title">Add:</div>' + 
+				return	'<div class="mol-LayerControl-Add widgetTheme">' + 
+		                '  <div class="title" style="width:100%; display:block; padding-bottom:5px; font-size: 20px;">Add:</div>' + 
+		                '  <div class="key">Username</div>' + 
+		                '  <input id="username" class="value" type="text" placeholder="username e.g. eighty">' + 
+		                '  <div class="key">Table</div>' + 
+		                '  <input id="tablename" class="value" placeholder="tablename e.g. mol_cody">' +
+		                '  <div class="key">Query</div>' + 
+		                '  <input id="query" class="value" placeholder="query e.g. select *">' +
+		                '  <button class="execute">Add</button>' +
+		                '  <button class="cancel"><img src="/static/maps/search/cancel.png" ></button>' + 
 		                '</div>';
+		                /*
+		                '<div class="mol-LayerControl-Results">' + 
+		                '  <div class="filters">' + 
+		                '  </div>' + 
+		                '  <div class="searchResults widgetTheme">' + 
+		                '    <div class="resultHeader">' +
+		                '       Results' +
+		                '       <a href="" class="selectNone">none</a>' +
+		                '       <a href="" class="selectAll">all</a>' +
+		                '    </div>' + 
+		                '    <ol class="resultList"></ol>' + 
+		                '    <div class="pageNavigation">' + 
+		                '       <button class="addAll">Map Selected Layers</button>' + 
+		                '    </div>' + 
+		                '  </div>' + 
+		                '</div>';
+		                */
 			}
 		}
 	);
@@ -58,13 +108,39 @@ MOL.modules.Add = function(mol) {
             /**
              * Binds the display.
              */
-            _bindDisplay: function(display, text) {   
+            _bindDisplay: function(display, text) {
+            	var widget = null,
+            		result = null,
+            		self = this;
+            	
                 this._display = display;
                 display.setEngine(this);
                 
                 this._addLayerControlEventHandler();
                 
                 display.hide();
+                
+                // Close button:
+                widget = display.getCloseButton();
+                widget.click(
+                    function(event) {
+                        display.hide();
+                        //display.clearFilters();
+                        //display.clearResults();
+                        //display.getResultsContainer().hide();
+                        //console.log('close');
+                    }
+                );
+                
+                // Go button
+                widget = display.getGoButton();
+                //widget.text(text.go);
+                widget.click(
+                	function(event) {
+                		self._onGoButtonClick();
+                	}
+                );
+                
                 this._addDisplayToMap();
             },
             
@@ -109,6 +185,13 @@ MOL.modules.Add = function(mol) {
                         }
                     }
                 );
+            },
+            
+            _onGoButtonClick: function() {
+            	var username = this._display.getUserNameInput().val(),
+            		tablename = this._display.getTableNameInput().val(),
+            		query = this._display.getQueryInput().val();
+            	alert(username+'.moldb.io/'+tablename+ '/'+query);
             }
         }
     );
