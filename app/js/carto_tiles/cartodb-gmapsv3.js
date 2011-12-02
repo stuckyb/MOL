@@ -164,6 +164,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
           },
           click: function(feature, div, opt3, evt){
             params.infowindow.open(feature);
+            throw "infowindow fired";
           }
         },
         clickAction: 'full'
