@@ -93,9 +93,10 @@ def convertToJSON(provider_dir):
             if os.path.isdir(name):
                 # A directory of shapefiles.
 
+                os.chdir(name)
+
                 shapefiles = glob.glob('*.shp')
                 for shapefile in shapefiles:
-
                     # Determine the "name" (filename without extension) of this file.
                     name = shapefile[0:shapefile.index('.shp')]
 
@@ -136,6 +137,8 @@ def convertToJSON(provider_dir):
 
                     features = geojson['features']
 
+                os.chdir('..')
+
             elif os.path.isfile(name) and name.lower().rfind('.csv', len(name) - 4, len(name)) != -1:
                 # This is a .csv file! 
                 csvfile = open(name, "r")
@@ -174,7 +177,7 @@ def convertToJSON(provider_dir):
                     features.append(feature)
 
                 csvfile.close()
-                
+
             # Step 2.3. For every feature:
             row_count = 0
             for feature in features:
@@ -217,7 +220,7 @@ def convertToJSON(provider_dir):
             all_json.flush()
             all_features = []                
                 
-            logging.info('%s converted to GeoJSON' % name)
+            logging.info('%s converted to GeoJSON, %d features processed.' % (name, len(features)))
 
             os.chdir('..')
 
@@ -226,7 +229,9 @@ def convertToJSON(provider_dir):
         all_json.close()
 
         myzip = ZipFile('%s.zip' % filename, 'w')
-        myzip.write(filename) # TODO: Fails for big files (4GB)
+        # The following statement fails because the filename is
+        # not being properly set.
+        # myzip.write(filename) # TODO: Fails for big files (4GB)
         myzip.close()
 
         logging.info("%s written successfully." % filename)
@@ -255,7 +260,7 @@ def uploadGeoJSONEntry(entry, table_name):
         cartodb_settings['CONSUMER_SECRET'],
         cartodb_settings['user'],
         cartodb_settings['password'],
-        cartodb_settings['cartodb_domain']
+        cartodb_settings['domain']
     )
 
     # Get the fields and values ready to be turned into an SQL statement
