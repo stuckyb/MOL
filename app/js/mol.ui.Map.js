@@ -466,7 +466,9 @@ MOL.modules.Map = function(mol) {
         				map_style : true,
         				infowindow : true,
         				auto_bound : true,
-        				layerId: layerId
+        				layerId: layerId,
+        				columns: ['bibliograp', 'collection', 'contact', 'creator','descriptio'],
+        				auto_bound: false
         			});
         		}
             },

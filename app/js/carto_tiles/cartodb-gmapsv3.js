@@ -295,12 +295,12 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 	  this.latlng_ = new google.maps.LatLng(0,0);
 		this.feature_;
 		this.map_ = params.map;
-		this.columns_;
+		this.columns_ = params.columns || ['*']; // ['bibliograp', 'collection', 'contact', 'creator','descriptio', 'layer_coll', 'layer_file', 'layer_sour','provider', 'publisher', 'rights', 'scientific', 'title', 'type'];
 	  this.offsetHorizontal_ = -107;
 	  this.width_ = 214;
 	  this.setMap(params.map);
 	  this.params_ = params;
-	  this.getActiveColumns(params);
+//	  this.getActiveColumns(params);
 	}
 
 
