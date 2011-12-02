@@ -62,7 +62,7 @@ import tempfile
 import yaml
 
 WORKSPACE_DIR_NAME = 'workspace'
-MAX_FUSION_TABLE_ROWS = 90000
+MAX_FUSION_TABLE_ROWS = 50000
 
 def _get_creds(email=None):
     """Prompts the user and returns a username and password."""
@@ -142,7 +142,7 @@ def _get_feature_count(pathname):
     return count
 
 def _create_fusion_table(name, oauth_client):
-    """This needs to be generalized."""
+    """Creates a new FT by name."""
     table = {
         name: {
             'SpecID':'NUMBER', 
@@ -211,8 +211,7 @@ def main():
     consumer_key = config['client_id']
     consumer_secret = config['client_secret'] 
     url, token, secret = OAuth().generateAuthorizationURL(consumer_key, consumer_secret, consumer_key)
-    print "Visit this URL in a browser: "
-    print url
+    print "Visit this URL in a browser: %s" % url
     raw_input("Hit enter after authorization")
     token, secret = OAuth().authorize(consumer_key, consumer_secret, token, secret)
     oauth_client = ftclient.OAuthFTClient(consumer_key, consumer_secret, token, secret)
@@ -229,17 +228,19 @@ def main():
     sfd = os.path.abspath(options.dir)
     os.chdir(sfd)
 
+    # Setup the multiprocessing pool.
     pool = multiprocessing.Pool(processes=200)
     table_count = 0
     feature_count = 0
     tasks = []
 
+    # Upload shapefiles to FT.
     for f in glob.glob('*.shp'):
         table_name = '%s-%s' % (options.table, table_count)
         if feature_count >= MAX_FUSION_TABLE_ROWS:
             logging.info('Preparing %s tasks with %s rows' % (len(tasks), feature_count))
             _create_fusion_table(table_name, oauth_client)
-            result = pool.map_async(_upload, tasks, chunksize=200)
+            result = pool.map_async(_upload, tasks, chunksize=10)
             result.wait()
             feature_count = 0
             table_count += 1
@@ -249,35 +250,8 @@ def main():
             
     if len(tasks) > 0:
         logging.info('Preparing %s tasks' % len(tasks))
-        result = pool.map_async(_upload, tasks, chunksize=200)
+        result = pool.map_async(_upload, tasks, chunksize=10)
         result.wait()
-    
-    # for f in glob.glob('*.shp'):
-    #     # Shapefile name without the .shp extension.
-    #     name = os.path.splitext(f)[0]
-        
-        # # Copy and rename the shapefile into the workspace.
-        # for x in glob.glob('%s.*' % name):
-        #     dst = os.path.join(WORKSPACE_DIR_NAME, options.table)
-        #     shutil.copy(x, x.replace(name, dst))
-
-        # # Upload shapefile to the Google Fusion table.
-        # os.chdir(WORKSPACE_DIR_NAME)
-        # command = 'ogr2ogr -append -f GFT "GFT:" %s.shp' % options.table
-        # subprocess.call(shlex.split(command))
-        
-        # logging.info('Appended %s polygons to the %s Fusion Table' \
-        #                  % (name, options.table))
-        
-        # # Cleanup the workspace by deleting all files in it.
-        # for item in os.listdir(os.curdir):
-        #     os.remove(item)
-
-        # # Change back into the Shapefiles directory.
-        # os.chdir(sfd)
-    
-    # Remove workspace directory.
-#    shutil.rmtree(WORKSPACE_DIR_NAME)
 
 if __name__ == '__main__':
     main()
