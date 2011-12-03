@@ -94,8 +94,6 @@ def convertToJSON(provider_dir):
                 # A directory of shapefiles.
                 os.chdir(name)
 
-                os.chdir(name)
-
                 shapefiles = glob.glob('*.shp')
                 for shapefile in shapefiles:
                     # Determine the "name" (filename without extension) of this file.
@@ -185,6 +183,10 @@ def convertToJSON(provider_dir):
 
                 csvfile.close()
 
+            # Intermediate step: delete previous entries from
+            # this provider/collection combination.
+            deletePreviousEntries(_getoptions().table_name, collection.get_provider(), collection.get_collection())
+
             # Step 2.3. For every feature:
             row_count = 0
             for feature in features:
@@ -251,6 +253,51 @@ def convertToJSON(provider_dir):
 
     logging.info("Processing of directory '%s' completed." % provider_dir)
 
+def deletePreviousEntries(table_name, provider, collection):
+    """Delete previous database entries refering to this provider/collection combination.
+
+    Arguments:
+        table_name: The name of the table to delete rows in.
+        provider: The provider whose entries are to be delete.
+        collection: The collection within that provider's entries to be deleted.
+            Only rows matching BOTH the provider and the collection will be
+            deleted.
+
+    Returns: none.
+    """
+    global cartodb_settings
+
+    cdb = CartoDB(
+        cartodb_settings['CONSUMER_KEY'],
+        cartodb_settings['CONSUMER_SECRET'],
+        cartodb_settings['user'],
+        cartodb_settings['password'],
+        cartodb_settings['domain']
+    )
+
+    # Generate a 'tag', by calculating a SHA-1 hash of the concatenation
+    # of the current time (in seconds since the epoch) and the string
+    # representation of the property values in the order that Python is
+    # using on our system. The 40-hexadecimal character hash digest so
+    # produced is prepended with the string 'tag_', since only a valid
+    # identifier (starting with a character) may be a tag.
+    #
+    # So as to have smaller requests, we use 8 character tags (from
+    # position 20-28 of the SHA-1 hexdigest).
+    tag = "$tag_" + hashlib.sha1( 
+        time.time().__str__() + 
+        provider + '/' + collection
+        ).hexdigest()[20:28] + "$"
+
+    # Delete any previous entries stored under this provider(source)/collection.
+    sql = "DELETE FROM %(table_name)s WHERE provider=%(provider)s AND collection=%(collection)s;" % {
+        'table_name': table_name,
+        'provider': tag + provider + tag,
+        'collection': tag + collection + tag
+    }
+    print "Sending SQL: [%s]" % sql
+    print cdb.sql(sql)
+
 def uploadGeoJSONEntry(entry, table_name):
     """Uploads a single GeoJSON entry to any URL capable of accepting SQL statements. We 
     convert the GeoJSON into a single INSERT SQL statement and send it.
@@ -307,7 +354,7 @@ def uploadGeoJSONEntry(entry, table_name):
         time.time().__str__() + 
         properties.values().__str__()
         ).hexdigest()[20:28] + "$"
-    
+
     # Turn the fields and values into an SQL statement.
     sql = "INSERT INTO %(table_name)s (the_geom, %(cols)s) VALUES (%(st_multi)s(GeomFromWKB(decode(%(geometry)s, 'hex'), 4326)), %(values)s)" % {
             'table_name': table_name,

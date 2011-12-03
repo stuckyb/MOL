@@ -80,6 +80,12 @@ class ProviderConfig(object):
         def __repr__(self):
             return str(self.__dict__)
 
+        def get_provider(self):
+            return self.collection['fields']['required']['provider']
+
+        def get_collection(self):
+            return self.collection['fields']['required']['collection']
+
         def get_defined_fields(self):
             """Returns columns storing metadata (which is all of them except the generated ones)."""
             cols = []
@@ -303,6 +309,9 @@ query failed to return any results; this should never happen:\n\t%s""", sql)
 
             # No errors? Return successfully!
             return
+
+    def get_provider(self):
+        return self.provider
 
     def __init__(self, filename, provider):
         self.filename = filename
