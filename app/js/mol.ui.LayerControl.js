@@ -207,6 +207,7 @@ MOL.modules.LayerControl = function(mol) {
                             layerButton = layerUi.getType();
                             layerButton.click(
                             	function(event) {
+                            		/** Editing **/
                             		$("#css").remove();
                             		var html =  '<div id="css" class="widgetTheme" style="">' +
                             				'<h1 class="layerNomial">' + layerName + '</h1><br>' +
@@ -286,7 +287,6 @@ MOL.modules.LayerControl = function(mol) {
                             				);
                             			}
                             		);
-                            		
                             	}
                             );
                             layerUi.attr('id', layerId);
@@ -415,6 +415,74 @@ MOL.modules.LayerControl = function(mol) {
             }
         }
     );
+    
+    /**
+     *  
+     */
+    mol.ui.LayerControl.StyleControl = mol.ui.Display.extend(
+    	{
+    		init: function(layer) {
+                this._layer = layer;
+                this._super();
+                this.setInnerHtml(this._html());
+                this._show = true;
+    		},
+    		getControl: function() {
+    			var x = this._styleControl,
+                	s = '#css';
+    			return x ? x : (this._styleControl = this.findChild(s));
+    		},
+    		getControl: function() {
+    			var x = this._styleControl,
+                	s = '#css';
+    			return x ? x : (this._styleControl = this.findChild(s));
+    		},
+    		getFillPalette: function() {
+    			var x = this._styleControl,
+            	s = '#fill.color_selector';
+    			return x ? x : (this._styleControl = this.findChild(s));
+    		},
+    		getStrokePalette: function() {
+    			var x = this._styleControl,
+            	s = '#line.color_selector';
+    			return x ? x : (this._styleControl = this.findChild(s));
+    		},
+    		getFillSlider: function() {
+    			var x = this._styleControl,
+            	s = '#fill_alpha';
+    			return x ? x : (this._styleControl = this.findChild(s));
+    		},
+    		getStrokeSlider: function() {
+    			var x = this._styleControl,
+            	s = '#stroke_alpha';
+    			return x ? x : (this._styleControl = this.findChild(s));
+    		},
+    		_html: function() {
+    			return '<div id="css" class="widgetTheme" style="">' +
+				'<h1 class="layerNomial">' + layerName + '</h1><br>' +
+				'<textarea id="css_text">' +
+				this._layer.getConfig().getStyle().toDisplayString() +
+				'</textarea>' +
+				'<div class="style_block">' +
+				'<div id="fill" class="color_selector">' +
+				'<div style="background-color: rgb(161, 161, 201); "></div>' +
+				'</div>' +
+				'<input id="fill_alpha" type="range"  min="0" max="100" value="70" style="float:left;" />' +
+				'</div>' +
+				'<div class="style_block">' +
+				'<div id="line" class="color_selector">' +
+				'<div style="background-color: rgb(161, 161, 201); "></div>' +
+				'</div>' +
+				'<input id="stroke_alpha" type="range"  min="0" max="100" value="70" style="float:left;" />' +
+				'</div>' +
+				'<div class="style_block"><button id="update_css">update css</button></div>' +
+				'<button id="close_css"><img src="/static/maps/search/cancel.png"></button>' +
+				'</div>';
+    		}
+    			
+    	}
+    );
+    
     
     /**
      * The LayerControl display.
