@@ -113,7 +113,7 @@ class TableSchema(object):
             cartodb_settings['CONSUMER_SECRET'],
             cartodb_settings['user'],
             cartodb_settings['password'],
-            cartodb_settings['cartodb_domain']
+            cartodb_settings['domain']
         )
 
         for field in self.schema.keys():
