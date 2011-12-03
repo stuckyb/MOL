@@ -14,6 +14,11 @@ MOL.modules.Add = function(mol) {
                 s = '#username';
 				return x ? x : (this.usernameInput = this.findChild(s));
 			},
+			getDomainInput: function() {
+				var x = this._domainInput,
+                s = '#domain';
+				return x ? x : (this.domainInput = this.findChild(s));
+			},
 			getTableNameInput: function() {
 				var x = this._tablenameInput,
                 s = '#tablename';
@@ -34,11 +39,19 @@ MOL.modules.Add = function(mol) {
                     s = '.execute';
                 return x ? x : (this._goButton = this.findChild(s));
             },
+            clearAll: function() {
+            	this.getUserNameInput().val(new String());
+            	this.getDomainInput().val(new String());
+            	this.getTableNameInput().val(new String());
+            	this.getQueryInput().val(new String());
+            },
 			_html: function() {
 				return	'<div class="mol-LayerControl-Add widgetTheme">' + 
 		                '  <div class="title" style="width:100%; display:block; padding-bottom:5px; font-size: 20px;">Add:</div>' + 
 		                '  <div class="key">Username</div>' + 
 		                '  <input id="username" class="value" type="text" placeholder="username e.g. eighty">' + 
+		                '  <div class="key">Domain</div>' + 
+		                '  <input id="domain" class="value" placeholder="domain e.g. cartodb.com:80">' +
 		                '  <div class="key">Table</div>' + 
 		                '  <input id="tablename" class="value" placeholder="tablename e.g. mol_cody">' +
 		                '  <div class="key">Query</div>' + 
@@ -125,10 +138,7 @@ MOL.modules.Add = function(mol) {
                 widget.click(
                     function(event) {
                         display.hide();
-                        //display.clearFilters();
-                        //display.clearResults();
-                        //display.getResultsContainer().hide();
-                        //console.log('close');
+                        display.clearAll();
                     }
                 );
                 
@@ -191,8 +201,14 @@ MOL.modules.Add = function(mol) {
             	var username = this._display.getUserNameInput().val(),
             		tablename = this._display.getTableNameInput().val(),
             		query = this._display.getQueryInput().val();
-            	alert(username+'.moldb.io/'+tablename+ '/'+query);
-            }
+            	if (username.length > 0 && tablename.length > 0) {
+            		alert(username+'.moldb.io/'+tablename+ '/'+query);
+            	} else {
+            		alert('Please fill in both username and tablename');
+            	}
+            },
+            
+            
         }
     );
 }

@@ -641,6 +641,7 @@ MOL.modules.Search = function(mol) {
                                 //info: result.info
                             } 
                         );
+                        
                         config.action = 'add';
                         config.layer = layer;
                         bus.fireEvent(new LayerEvent(config));                               
