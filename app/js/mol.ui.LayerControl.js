@@ -101,16 +101,26 @@ MOL.modules.LayerControl = function(mol) {
                   }
                 );                
                 
-                // Clicking the add button fires a LayerControlEvent:
+                // Clicking the search button fires a LayerControlEvent:
+                widget = display.getSearchButton();
+                widget.click(
+                    function(event) {
+                        bus.fireEvent(new LayerControlEvent('search-click'));
+                        display.toggleShareLink("", false);
+                        $(".mol-LayerControl-Search").find("input").focus();
+                    }
+                );
+                
+                //  Clicking the add button fires a LayerControlEvent:
                 widget = display.getAddButton();
                 widget.click(
                     function(event) {
                         bus.fireEvent(new LayerControlEvent('add-click'));
                         display.toggleShareLink("", false);
-                        $(".mol-LayerControl-Search").find("input").focus();
+//                        $(".mol-LayerControl-Search").find("input").focus();
                     }
                 );
-
+                
                 // Zoom button click
                 widget = display.getZoomButton();
                 widget.click(
@@ -193,7 +203,7 @@ MOL.modules.LayerControl = function(mol) {
                     
                         switch (action) {                                                       
                             
-                        case 'add':
+                        case 'search':
                             if (layerIds[layerId]) {
                                 // Duplicate layer.
                                 return;
@@ -611,6 +621,11 @@ MOL.modules.LayerControl = function(mol) {
                     s = '.add';
                 return x ? x : (this._addButton = this.findChild(s));
             },  
+            getSearchButton: function() {
+                var x = this._searchButton,
+                    s = '.search';
+                return x ? x : (this._searchButton = this.findChild(s));
+            },  
             getDeleteButton: function() {
                 var x = this._deleteButton,
                     s = '.delete';
@@ -709,6 +724,7 @@ MOL.modules.LayerControl = function(mol) {
                         '    <div class="widgetTheme share button">Share</div>' +
                         '    <div class="widgetTheme zoom button">Zoom</div>' +
                         '    <div class="widgetTheme delete button">Delete</div>' +
+                        '    <div class="widgetTheme search button">Search</div>' +
                         '    <div class="widgetTheme add button">Add</div>' +
                         '</div>' +
                         '<div class="mol-LayerControl-Layers">' +
