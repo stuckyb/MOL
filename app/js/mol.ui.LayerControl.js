@@ -280,11 +280,19 @@ MOL.modules.LayerControl = function(mol) {
                                 		config = layer.getConfig(),
                                 		title = r.getTitle(),
                                 		closeButton = r.getCloseButton(),
-                                		columns = ['bibliograp', 'collection', 'contact', 'creator','descriptio', 'layer_coll', 'layer_file', 'layer_sour','provider', 'publisher', 'rights', 'scientific', 'title', 'type'],
-                                		queryUrl = 'https://' + config.user + '.' + config.host + '/api/v1/sql?q=';
-                                	
-                                	query = "SELECT " + columns.join(',') + " FROM " + config.table +  " where scientific = '" + layerName + "'";
-                                	url = queryUrl + query;
+                                		columns = ['bibliograp', 'collection', 
+                                                   'contact', 'creator',
+                                                   'descriptio', 'layer_coll', 
+                                                   'layer_file', 'layer_sour',
+                                                   'provider', 'publisher', 
+                                                   'rights', 'scientific', 
+                                                   'title', 'type'],
+                                		queryUrl = 'https://' + config.user + '.' + config.host + '/api/v1/sql?q=',
+                                  	    query = "SELECT " + columns.join(',') + 
+                                                " FROM " + config.table +  
+                                                " WHERE scientific = '" + layerName + "'",
+                                	    url = queryUrl + query;
+
                                 	console.log("baseurl: " + url);
                                 	
                                 	title._element.html(layerName);
@@ -297,13 +305,12 @@ MOL.modules.LayerControl = function(mol) {
                                 	$.getJSON(
                                 			url, 
                                             function(data) {
-                                				window.hi = data;
-//                                				for (var key in data.rows) {
+                                                // for (var key in data.rows) {
                                 					var row = data.rows[0];
                                 					for (var key in row) {
                                 						r.addDescription(key.charAt(0).toUpperCase() + key.slice(1), row[key]);
                                 					}
-//                                				}
+                                				// }
                         		            }
                                         );
                                 }
@@ -436,7 +443,7 @@ MOL.modules.LayerControl = function(mol) {
     				'</div>';
     		}
     	}
-    )
+    );
     
     /**
      *  
@@ -677,7 +684,7 @@ MOL.modules.LayerControl = function(mol) {
                     x = this.findChild(s);
                     this._toggleLayerImg = x;
                 }
-                if ( ! c ){
+                if (!c) {
                     c = this.findChild(n);
                     this._layerContainer = c;
                 }
