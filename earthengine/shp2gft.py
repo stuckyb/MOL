@@ -49,6 +49,10 @@ from authorization.oauth import OAuth
 from sql.sqlbuilder import SQL
 import ftclient
 
+from authorization.oauth import OAuth
+from sql.sqlbuilder import SQL
+import ftclient
+
 import getpass
 import glob
 import logging
@@ -60,9 +64,6 @@ import shutil
 import subprocess
 import tempfile
 import yaml
-
-WORKSPACE_DIR_NAME = 'workspace'
-MAX_FUSION_TABLE_ROWS = 50000
 
 def _get_creds(email=None):
     """Prompts the user and returns a username and password."""
@@ -103,12 +104,12 @@ def _get_options():
         dest='dir',
         help='Directory containing the Shapefiles.')
 
-    # Option specifying the name of the Google Fusion Table.
+    # Option specifying the base table name for the Google Fusion Table.
     parser.add_option(
         '-t', 
         type='string',
         dest='table',
-        help='An existing Google Fusion Table name to append to.')
+        help='Base table name.')
 
     # Option specifying a GMail address.
     parser.add_option(
@@ -119,17 +120,34 @@ def _get_options():
 
     # Option specifying a config file.
     parser.add_option(
-        '-c', 
+        '-f', 
         type='string',
         dest='config',
         help='The config YAML file.')
 
-    # Option specifying an internal test
+    # Option specifying number of polygons per table.
     parser.add_option(
-        '-x', 
-        type='string',
-        dest='test',
-        help='Flag for testing.')
+        '-n', 
+        type='int',
+        dest='max_rows',
+        default=90000,
+        help='Maximum polygons per table.')
+
+    # Option specifying number of proccesses.
+    parser.add_option(
+        '-p', 
+        type='int',
+        dest='processes',
+        default=100,
+        help='Number of processes.')
+
+    # Option specifying number of chunks per process.
+    parser.add_option(
+        '-c', 
+        type='int',
+        dest='chunks',
+        default=100,
+        help='Number of chunks per process.')
 
     return parser.parse_args()[0]
 
@@ -160,6 +178,13 @@ def _create_fusion_table(name, oauth_client):
     logging.info('Created new Fusion Table: http://www.google.com/fusiontables/DataSource?dsrcid=%s' % tableid)
 
 def upload(name, table, sfd):
+    """Uploads a shapefile to Google Fusion Tables.
+
+    Args:
+        name - The shapefile name.
+        table - The table name.
+        sfd - The directory of shapefiles.
+    """
     os.chdir(sfd)
 
     workspace = tempfile.mkdtemp()
@@ -185,6 +210,7 @@ def upload(name, table, sfd):
     shutil.rmtree(workspace)
 
 def _upload(args):
+    """Helper function that unpacks args for upload()."""
     upload(*args)
 
 def main():
@@ -201,11 +227,6 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
     options = _get_options()
 
-    # Check for test.
-    if options.test:
-        _get_feature_count('/data/puma/puma_concolor.shp')
-        sys.exit(0)
-    
     # Get Fusion Tables client.
     config = yaml.load(open(options.config, 'r'))        
     consumer_key = config['client_id']
@@ -229,7 +250,7 @@ def main():
     os.chdir(sfd)
 
     # Setup the multiprocessing pool.
-    pool = multiprocessing.Pool(processes=200)
+    pool = multiprocessing.Pool(processes=options.processes)
     table_count = 0
     feature_count = 0
     tasks = []
@@ -237,17 +258,19 @@ def main():
     # Upload shapefiles to FT.
     for f in glob.glob('*.shp'):
         table_name = '%s-%s' % (options.table, table_count)
-        if feature_count >= MAX_FUSION_TABLE_ROWS:
+        count = _get_feature_count(os.path.join(sfd, f))
+        if (count + feature_count) >= options.max_rows:
             logging.info('Preparing %s tasks with %s rows' % (len(tasks), feature_count))
             _create_fusion_table(table_name, oauth_client)
-            result = pool.map_async(_upload, tasks, chunksize=10)
+            result = pool.map_async(_upload, tasks, chunksize=options.chunks)
             result.wait()
             feature_count = 0
             table_count += 1
             tasks = []
-        feature_count += _get_feature_count(os.path.join(sfd, f))
+        feature_count += count
         tasks.append((os.path.splitext(f)[0], table_name, sfd))
             
+    # Upload unfinished tasks.
     if len(tasks) > 0:
         logging.info('Preparing %s tasks' % len(tasks))
         result = pool.map_async(_upload, tasks, chunksize=10)
