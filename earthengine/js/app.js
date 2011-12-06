@@ -45,7 +45,8 @@ app._getNormalizedCoord = function(coord, zoom) {
  * @param polygon The google.maps.Polygon object.
  */
 app.calcStats = function(polygon) {    
-    
+    var center = polygon.getBounds().getCenter();
+
     // Listener for when the polygon is edited.
     google.maps.event.addListener(
         polygon.getPath(), 
@@ -74,7 +75,11 @@ app.calcStats = function(polygon) {
     // Request stats asynchronously and display them in an info window when ready.
     $.post(
         '/earthengine/stats',
-        {tableids: app.urlParams['tableids'], coordinates: JSON.stringify(app.coordinates)},
+        {
+            tableids: app.urlParams['tableids'], 
+            coordinates: JSON.stringify(app.coordinates),
+            center: center.toUrlValue()
+        },
         function(data) {  
             var result = JSON.parse(data),
                 request = decodeURI(result['request']),
@@ -114,7 +119,7 @@ app.init = function () {
         app.urlParams[d(e[1])] = d(e[2]);
     }
 
-    // Gets table ids from the URL query string.
+    // Gettable ids from the URL query string.
     tableids = app.urlParams['tableids'].split(',');
 
     // Setup the Google map.
@@ -259,4 +264,30 @@ app.init = function () {
         }
 
     );    
+
+    /**
+     * Pass each point of the polygon to a LatLngBounds object through the 
+     * extend() method, and then finally call the getCenter() method on the 
+     * LatLngBounds object.
+     * 
+     * Modified version of: 
+     *   http://code.google.com/p/google-maps-extensions/source/browse/google.maps.Polygon.getBounds.js
+     */
+    if (!google.maps.Polygon.prototype.getBounds) {
+        google.maps.Polygon.prototype.getBounds = function(latLng) {            
+            var bounds = new google.maps.LatLngBounds(),
+                paths = this.getPaths(),
+                path;
+                
+            for (var p = 0; p < paths.getLength(); p++) {
+                path = paths.getAt(p);
+                for (var i = 0; i < path.getLength(); i++) {
+                    bounds.extend(path.getAt(i));
+                }
+            }
+            
+            return bounds;
+        };
+
+    }
 };

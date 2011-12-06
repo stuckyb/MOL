@@ -124,46 +124,39 @@ class StatsRequest(EarthEngineRequest):
         
     """This class encapsulates a /value request to Earth Engine for stats.
 
-    When executed, this request returns stats for all polygons that intersect
-    within the given coordinates. 
+    When executed, this request returns stats for a single polygon on a single
+    Fusion Table.
     """
 
-    def __init__(self, tableids, coordinates):
+    def __init__(self, tableids, coordinates, lat, lng):
         """Creates a new StatsRequest object.
 
         Args:
             tableids - The list of Fusion Table table ids.
-            coordinates - The list of coordinates.
+            coordinates - The list of coordinates representing the polygon.
+            lat - The center latitude of the polygon.
+            lng - The center longitude of the polygon.
         """
         self.tableids = tableids
-        self.coordinates = coordinates
+        self.coordinates = simplejson.loads(coordinates)
+        self.lat = lat
+        self.lng = lng
 
     def get_url(self):
         """Returns the URL for this request."""
         creators = [self.get_creator(x) for x in self.tableids]
         image = dict(
-           creator='MOL/com.google.earthengine.examples.mol.SumImages',
-           args=[creators, 'intersectionCount', self.get_feature()])
+           creator='MOL/com.google.earthengine.examples.mol.GetSpeciesArea',
+           args=[dict(type='FeatureCollection', table_id=self.tableids[0]),
+                 self.lng,
+                 self.lat,
+                 self.coordinates])
         query = dict(
             image=simplejson.dumps(image),
-            fields='stats')
+            fields='areas')
         url = '/value?%s' % urllib.urlencode(query)
         return url
     
-    def get_feature(self):
-        """Returns a feature dictionary containing a polygon from coordinates."""
-        return {
-            "features":[
-                {
-                    "type":"Feature",
-                    "geometry":{
-                        "type":"Polygon",
-                        "coordinates":self.coordinates
-                        }
-                    }
-                ]
-            }
-
     def get_creator(self, tableid):
         """Returns a creator object for a Fusion Table table id."""
         return dict(
@@ -185,6 +178,7 @@ class StatsHandler(webapp.RequestHandler):
     Params:
         tableids - A CSV string of table ids.
         coordinates - The coordinates string.
+        center - The lat,lng center of the polygon.
 
     Returns the Earth Engine request and response as JSON.
     """    
@@ -192,7 +186,8 @@ class StatsHandler(webapp.RequestHandler):
     def post(self):
         tableids = [int(x) for x in self.request.get('tableids').split(',')]
         coordinates = self.request.get('coordinates')
-        request = StatsRequest(tableids, coordinates)
+        lat, lng = [float(x) for x in self.request.get('center').split(',')]
+        request = StatsRequest(tableids, coordinates, lat, lng)
         response = request.execute()
         payload = dict(request=request.get_url(), response=response)
         self.response.out.write(simplejson.dumps(payload))
