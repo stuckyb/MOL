@@ -5,5 +5,5 @@
     "password": "account password",
     "CONSUMER_KEY": "from https://example.cartodb.com/your_apps/oauth",
     "CONSUMER_SECRET": "from https://example.cartodb.com/your_apps/oauth",
-    "cartodb_domain": "example"
+    "domain": "example.cartodb.com"
 }
