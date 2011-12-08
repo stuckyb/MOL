@@ -123,6 +123,7 @@ def _get_options():
         '-f', 
         type='string',
         dest='config',
+        default='creds.yaml',
         help='The config YAML file.')
 
     # Option specifying number of polygons per table.
@@ -228,16 +229,19 @@ def main():
     options = _get_options()
 
     # Get Fusion Tables client.
-    if options.config is not None:
-        config = yaml.load(open(options.config, 'r'))        
-        consumer_key = config['client_id']
-        consumer_secret = config['client_secret'] 
-        url, token, secret = OAuth().generateAuthorizationURL(consumer_key, consumer_secret, consumer_key)
-        print "Visit this URL in a browser: %s" % url
-        raw_input("Hit enter after authorization")
-        token, secret = OAuth().authorize(consumer_key, consumer_secret, token, secret)
-        oauth_client = ftclient.OAuthFTClient(consumer_key, consumer_secret, token, secret)
-        #oauth_client = ftclient.OAuthFTClient(consumer_key, consumer_secret)   
+    if not os.path.exists(options.config):
+        logging.error("Could not find '%s'. Please create a client application at https://code.google.com/apis/console/, then enter your client id and secret into cred.yaml", options.config)
+        exit()
+
+    config = yaml.load(open(options.config, 'r'))        
+    consumer_key = config['client_id']
+    consumer_secret = config['client_secret'] 
+    url, token, secret = OAuth().generateAuthorizationURL(consumer_key, consumer_secret, consumer_key)
+    print "Visit this URL in a browser: %s" % url
+    raw_input("Hit enter after authorization")
+    token, secret = OAuth().authorize(consumer_key, consumer_secret, token, secret)
+    oauth_client = ftclient.OAuthFTClient(consumer_key, consumer_secret, token, secret)
+    #oauth_client = ftclient.OAuthFTClient(consumer_key, consumer_secret)   
 
     # Get authentication token.
     auth_token = os.getenv('GFT_AUTH')
