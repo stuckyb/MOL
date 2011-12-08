@@ -203,7 +203,7 @@ MOL.modules.LayerControl = function(mol) {
                     
                         switch (action) {                                                       
                             
-                        case 'search':
+                        case 'add':
                             if (layerIds[layerId]) {
                                 // Duplicate layer.
                                 return;
