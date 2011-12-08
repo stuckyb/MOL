@@ -265,7 +265,7 @@ def uploadGeoJSONEntry(entry, table_name):
         cartodb_settings['CONSUMER_SECRET'],
         cartodb_settings['user'],
         cartodb_settings['password'],
-        cartodb_settings['cartodb_domain']
+        cartodb_settings['domain']
     )
 
     # Get the fields and values ready to be turned into an SQL statement
