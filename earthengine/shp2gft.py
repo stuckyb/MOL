@@ -228,15 +228,16 @@ def main():
     options = _get_options()
 
     # Get Fusion Tables client.
-    config = yaml.load(open(options.config, 'r'))        
-    consumer_key = config['client_id']
-    consumer_secret = config['client_secret'] 
-    url, token, secret = OAuth().generateAuthorizationURL(consumer_key, consumer_secret, consumer_key)
-    print "Visit this URL in a browser: %s" % url
-    raw_input("Hit enter after authorization")
-    token, secret = OAuth().authorize(consumer_key, consumer_secret, token, secret)
-    oauth_client = ftclient.OAuthFTClient(consumer_key, consumer_secret, token, secret)
-    #oauth_client = ftclient.OAuthFTClient(consumer_key, consumer_secret)   
+    if options.config is not None:
+        config = yaml.load(open(options.config, 'r'))        
+        consumer_key = config['client_id']
+        consumer_secret = config['client_secret'] 
+        url, token, secret = OAuth().generateAuthorizationURL(consumer_key, consumer_secret, consumer_key)
+        print "Visit this URL in a browser: %s" % url
+        raw_input("Hit enter after authorization")
+        token, secret = OAuth().authorize(consumer_key, consumer_secret, token, secret)
+        oauth_client = ftclient.OAuthFTClient(consumer_key, consumer_secret, token, secret)
+        #oauth_client = ftclient.OAuthFTClient(consumer_key, consumer_secret)   
 
     # Get authentication token.
     auth_token = os.getenv('GFT_AUTH')
