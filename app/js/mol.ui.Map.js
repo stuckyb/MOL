@@ -426,6 +426,7 @@ MOL.modules.Map = function(mol) {
                     layerType = this.getLayer().getType(),
                     layerName = this.getLayer().getName(),
                     config = this.getLayer().getConfig(),
+                    style = config.getStyle().toString(),
                     color = this.getColor();
 
                 if (google.maps.CartoDBLayer) {
@@ -443,7 +444,8 @@ MOL.modules.Map = function(mol) {
         				infowindow : true,
         				layerId: layerId,
         				columns: ['scientific', 'bibliograp', 'collection', 'contact', 'creator','descriptio'],
-        				auto_bound: false
+        				auto_bound: false,
+						style: '#'+config.table+style
         			});
         		}
             },
