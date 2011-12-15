@@ -551,6 +551,9 @@ MOL.modules.location = function(mol) {
                 this._searchEngine = new mol.ui.Search.Engine(this._api, this._bus);
                 this._searchEngine.start(this._container);
                 
+                this._addEngine = new mol.ui.Add.Engine(this._api, this._bus);
+                this._addEngine.start(this._container);
+                
                 this._metadataEngine = new mol.ui.Metadata.Engine(this._api, this._bus);
                 this._metadataEngine.start(this._container);
             },
@@ -1463,16 +1466,26 @@ MOL.modules.LayerControl = function(mol) {
                   }
                 );                
                 
-                // Clicking the add button fires a LayerControlEvent:
+                // Clicking the search button fires a LayerControlEvent:
+                widget = display.getSearchButton();
+                widget.click(
+                    function(event) {
+                        bus.fireEvent(new LayerControlEvent('search-click'));
+                        display.toggleShareLink("", false);
+                        $(".mol-LayerControl-Search").find("input").focus();
+                    }
+                );
+                
+                //  Clicking the add button fires a LayerControlEvent:
                 widget = display.getAddButton();
                 widget.click(
                     function(event) {
                         bus.fireEvent(new LayerControlEvent('add-click'));
                         display.toggleShareLink("", false);
-                        $(".mol-LayerControl-Search").find("input").focus();
+//                        $(".mol-LayerControl-Search").find("input").focus();
                     }
                 );
-
+                
                 // Zoom button click
                 widget = display.getZoomButton();
                 widget.click(
@@ -1598,6 +1611,7 @@ MOL.modules.LayerControl = function(mol) {
                             		
                             		updateButton.click(
                             			function() {
+											r.updateStyleText();
                             				bus.fireEvent(
                             					new LayerEvent(
                             						{
@@ -1642,10 +1656,19 @@ MOL.modules.LayerControl = function(mol) {
                                 		config = layer.getConfig(),
                                 		title = r.getTitle(),
                                 		closeButton = r.getCloseButton(),
-                                		columns = ['bibliograp', 'collection', 'contact', 'creator','descriptio', 'layer_coll', 'layer_file', 'layer_sour','provider', 'publisher', 'rights', 'scientific', 'title', 'type'],
+                                		columns = ['bibliograp', 'collection', 
+                                                   'contact', 'creator',
+                                                   'descriptio', 'layer_coll', 
+                                                   'layer_file', 'layer_sour',
+                                                   'provider', 'publisher', 
+                                                   'rights', 'scientific', 
+                                                   'title', 'type'],
                                 		queryUrl = 'https://' + config.user + '.' + config.host + '/api/v1/sql?q=',
-                                  	    query = "SELECT " + columns.join(',') + " FROM " + config.table +  " where scientific = '" + layerName + "'",
+                                  	    query = "SELECT " + columns.join(',') + 
+                                                " FROM " + config.table +  
+                                                " WHERE scientific = '" + layerName + "'",
                                 	    url = queryUrl + query;
+
                                 	console.log("baseurl: " + url);
                                 	
                                 	title._element.html(layerName);
@@ -1658,12 +1681,12 @@ MOL.modules.LayerControl = function(mol) {
                                 	$.getJSON(
                                 			url, 
                                             function(data) {
-//                                				for (var key in data.rows) {
+                                                // for (var key in data.rows) {
                                 					var row = data.rows[0];
                                 					for (var key in row) {
                                 						r.addDescription(key.charAt(0).toUpperCase() + key.slice(1), row[key]);
                                 					}
-//                                				}
+                                				// }
                         		            }
                                         );
                                 }
@@ -1964,6 +1987,11 @@ MOL.modules.LayerControl = function(mol) {
                     s = '.add';
                 return x ? x : (this._addButton = this.findChild(s));
             },  
+            getSearchButton: function() {
+                var x = this._searchButton,
+                    s = '.search';
+                return x ? x : (this._searchButton = this.findChild(s));
+            },  
             getDeleteButton: function() {
                 var x = this._deleteButton,
                     s = '.delete';
@@ -2037,7 +2065,7 @@ MOL.modules.LayerControl = function(mol) {
                     x = this.findChild(s);
                     this._toggleLayerImg = x;
                 }
-                if ( ! c ){
+                if (!c) {
                     c = this.findChild(n);
                     this._layerContainer = c;
                 }
@@ -2062,6 +2090,7 @@ MOL.modules.LayerControl = function(mol) {
                         '    <div class="widgetTheme share button">Share</div>' +
                         '    <div class="widgetTheme zoom button">Zoom</div>' +
                         '    <div class="widgetTheme delete button">Delete</div>' +
+                        '    <div class="widgetTheme search button">Search</div>' +
                         '    <div class="widgetTheme add button">Add</div>' +
                         '</div>' +
                         '<div class="mol-LayerControl-Layers">' +
@@ -2634,55 +2663,34 @@ MOL.modules.Map = function(mol) {
             refresh: function() {              
                 var self = this,
                 	map = this._map,
+					layer = this.getLayer(),
                     layerId = this.getLayer().getId(),
                     layerSource = this.getLayer().getSource(),
                     layerType = this.getLayer().getType(),
                     layerName = this.getLayer().getName(),
                     config = this.getLayer().getConfig(),
+                    style = config.getStyle().toString(),
+					sql = "select * from " + config.table + " where scientific = '" + layerName + "'&style=" + encodeURIComponent('#'+config.table+style),
                     color = this.getColor();
 
-//                this._mapType = new google.maps.ImageMapType(
-//                    {
-//                        getTileUrl: function(coord, zoom) {
-//                            var normalizedCoord = self._getNormalizedCoord(coord, zoom),
-//                                bound = Math.pow(2, zoom),
-//                                tileParams = '',                                
-//                                backendTileApi = 'https://' + config.user + '.' + config.host + '/tiles/' + config.table + '/',
-//                                geom_column = "the_geom",
-//                		        the_geom = null,
-//                		        style = null,
-//                                tileurl = null;                                
-//
-//                            if (!normalizedCoord) {
-//                                return null;
-//                            }
-//                            style = "#" + config.table + config.getStyle().toString().replace(/[\n|\t|\s]/gi, '');
-//                            style = encodeURIComponent(style);
-//                            
-//                            tileParams += "sql=select " + "*" + " from " + config.table + " where scientific = '" + layerName + "'";
-//                            tileParams += "&style="+style;
-//                            tileurl = backendTileApi + zoom + '/' + normalizedCoord.x + '/' + normalizedCoord.y + '.png?' + tileParams;
-//                            return tileurl;
-//                        },
-//                        tileSize: new google.maps.Size(256, 256),
-//                        isPng: true,
-//                        name: layerId
-//                    });
                 if (google.maps.CartoDBLayer) {
-                	window.map = map;
-                	new google.maps.CartoDBLayer({
-                		map_canvas : 'map',
-        				map : map,
-        				user_name : config.user,
-        				table_name : config.table,
-        				query : "select * from " + config.table + " where scientific = '" + layerName + "'",
-        				map_style : true,
-        				infowindow : true,
-        				auto_bound : true,
-        				layerId: layerId,
-        				columns: ['scientific', 'bibliograp', 'collection', 'contact', 'creator','descriptio'],
-        				auto_bound: false
-        			});
+					if (layer.obj) {
+						layer.obj.update(sql) 
+					} else {
+						layer.obj = new google.maps.CartoDBLayer({
+	                		map_canvas : 'map',
+	        				map : map,
+	        				user_name : config.user,
+	        				table_name : config.table,
+	        				query : sql,
+	        				map_style : true,
+	        				infowindow : true,
+	        				layerId: layerId,
+	        				columns: ['scientific', 'bibliograp', 'collection', 'contact', 'creator','descriptio'],
+	        				auto_bound: false,
+	        			});
+						window.k = layer.obj;
+					}
         		}
             },
 
@@ -4178,6 +4186,7 @@ MOL.modules.Search = function(mol) {
                                 //info: result.info
                             } 
                         );
+                        
                         config.action = 'add';
                         config.layer = layer;
                         bus.fireEvent(new LayerEvent(config));                               
@@ -4475,7 +4484,7 @@ MOL.modules.Search = function(mol) {
                         var action = event.getAction(),
                             displayNotVisible = !display.isVisible();               
                         
-                        if (action === 'add-click' && displayNotVisible) {
+                        if (action === 'search-click' && displayNotVisible) {
                             display.show();
                             display.getSearchBox().focus();
                         }
