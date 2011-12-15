@@ -163,6 +163,44 @@ class StatsRequest(EarthEngineRequest):
             creator="MOL/com.google.earthengine.examples.mol.CountPolygonIntersect",
             args=[dict(type='FeatureCollection', table_id=tableid)])
 
+class SpeciesNamesListRequest(EarthEngineRequest):
+        
+    """This class encapsulates a /value request to Earth Engine for species names.
+
+    When executed, this request returns stats for a single polygon on one or many
+    Google Fusion Tables.
+    """
+
+    def __init__(self, tableids, coordinates):
+        """Creates a new StatsRequest object.
+
+        Args:
+            tableids - The list of Fusion Table table ids.
+            coordinates - The list of coordinates representing the polygon.
+            lat - The center latitude of the polygon.
+            lng - The center longitude of the polygon.
+        """
+        self.tableids = tableids
+        self.coordinates = simplejson.loads(coordinates)
+
+    def get_url(self):
+        """Returns the URL for this request."""
+        image = dict(
+           creator='MOL/com.google.earthengine.examples.mol.SpeciesNamesList',
+           args=[[dict(type='FeatureCollection', table_id=tid) for tid in self.tableids],
+                 self.coordinates])
+        query = dict(
+            image=simplejson.dumps(image),
+            fields='names')
+        url = '/value?%s' % urllib.urlencode(query)
+        return url
+    
+    def get_creator(self, tableid):
+        """Returns a creator object for a Fusion Table table id."""
+        return dict(
+            creator="MOL/com.google.earthengine.examples.mol.CountPolygonIntersect",
+            args=[dict(type='FeatureCollection', table_id=tableid)])
+
 class Home(webapp.RequestHandler):
     
     """Handler that renders the home page from a template."""
@@ -189,6 +227,28 @@ class StatsHandler(webapp.RequestHandler):
         lat, lng = [float(x) for x in self.request.get('center').split(',')]
         request = StatsRequest(tableids, coordinates, lat, lng)
         response = request.execute()
+        payload = dict(request=request.get_url(), response=response)
+        self.response.out.write(simplejson.dumps(payload))
+
+class SpeciesNamesListHandler(webapp.RequestHandler):
+    
+    """Handler for /names requests.
+
+    Params:
+        tableids - A CSV string of table ids.
+        coordinates - The coordinates string.
+
+    Returns the Earth Engine request and response as JSON.
+    """    
+
+    def post(self):
+        tableids = [int(x) for x in self.request.get('tableids').split(',')]
+        coordinates = self.request.get('coordinates')
+        request = SpeciesNamesListRequest(tableids, coordinates)
+        response = request.execute()        
+        uniques = list(set([x.replace('_', ' ') for x in response['data']['properties']['names'][0]]))
+        uniques.sort()
+        response['data']['properties']['names'] = [uniques]
         payload = dict(request=request.get_url(), response=response)
         self.response.out.write(simplejson.dumps(payload))
         
@@ -241,6 +301,7 @@ application = webapp.WSGIApplication([
         ('/earthengine/mapid', MapIdHandler),
         ('/earthengine/intersect', IntersectHandler),
         ('/earthengine/stats', StatsHandler),
+        ('/earthengine/names', SpeciesNamesListHandler),
         ], debug=True)
 
 def main():
