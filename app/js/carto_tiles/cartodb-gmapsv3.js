@@ -56,7 +56,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 		  // Add the cartodb tiles
 	    var cartodb_layer = {
 	      getTileUrl: function(coord, zoom) {
-	        return 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query;
+	        return 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query+'&style='+encodeURIComponent(params.style);
 	      },
 	      tileSize: new google.maps.Size(256, 256),
 	      name: params.layerId
@@ -136,7 +136,8 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 		  // Add the cartodb tiles
 	    var cartodb_layer = {
 	      getTileUrl: function(coord, zoom) {
-	        return 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query;
+			url = 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query+'&style='+encodeURIComponent(params.style);
+	        return url;
 	      },
 	      tileSize: new google.maps.Size(256, 256),
 	      name: params.layerId
