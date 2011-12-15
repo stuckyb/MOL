@@ -179,7 +179,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
   
  
     // Refresh wax interaction
-    function refreshWax(sql) {
+    function refreshWax(sql, name) {
       if (params.infowindow) {
         params.cache_buster++;
         params.query = sql;
@@ -188,18 +188,19 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
         // Remove old wax
 		//params.map.overlayMapTypes.clear();
         params.map.overlayMapTypes.forEach(
-                function(x, i) {
-                    if (x && x.name === params.layerId) {
-                        params.map.overlayMapTypes.removeAt(i);
-                    }
-                }
-            );
+                                function(x, i) {
+                                    if (x && x.name === name) {
+                                        params.map.overlayMapTypes.removeAt(i);
+                                    }
+                                }
+                            );
 
         // Setup new wax
         params.tilejson.grids = wax.util.addUrlData(params.tilejson.grids_base,  'cache_buster=' + params.cache_buster);
 
         // Add map tiles
         var wax_tile = new wax.g.connector(params.tilejson);
+		wax_tile.name = name;
         params.map.overlayMapTypes.insertAt(0,wax_tile);
 
         // Add interaction
@@ -209,18 +210,18 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
     }
 
     // Refresh tiles
-    function refreshTiles(sql) {
+    function refreshTiles(sql, name) {
       // If you are not using interaction on the tiles... let's update your tiles
       if (!params.infowindow) {
         // First remove previous cartodb - tiles.
 		  //params.map.overlayMapTypes.clear();
     	  params.map.overlayMapTypes.forEach(
-                function(x, i) {
-                    if (x && x.name === params.layerId) {
-                        params.map.overlayMapTypes.removeAt(i);
-                    }
-                }
-            );
+    	      	                  function(x, i) {
+    	      	                      if (x && x.name === name) {
+    	      	                          params.map.overlayMapTypes.removeAt(i);
+    	      	                      }
+    	      	                  }
+    	      	              );
 
      	  // Then add the cartodb tiles
      	 	params.query = sql;
@@ -234,6 +235,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
   	    };
   	    
   	    var cartodb_imagemaptype = new google.maps.ImageMapType(cartodb_layer);
+		cartodb_imagemaptype.name = name;
   	    params.map.overlayMapTypes.insertAt(0, cartodb_imagemaptype);
       }
     }
@@ -274,14 +276,14 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
     
   
     // Update tiles & interactivity layer;
-    google.maps.CartoDBLayer.prototype.update = function(sql) {
+    google.maps.CartoDBLayer.prototype.update = function(sql, name) {
       // Hide the infowindow
       if (params.infowindow) 
         params.infowindow.hide();
       // Refresh wax
-      refreshWax(sql);
+      refreshWax(sql, name);
       // Refresh tiles
-      refreshTiles(sql);
+      refreshTiles(sql, name);
     };
   };
 }

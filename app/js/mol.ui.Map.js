@@ -433,7 +433,7 @@ MOL.modules.Map = function(mol) {
 
                 if (google.maps.CartoDBLayer) {
 					if (layer.obj) {
-						layer.obj.update(sql) 
+						layer.obj.update(sql, layerName) 
 					} else {
 						layer.obj = new google.maps.CartoDBLayer({
 	                		map_canvas : 'map',
@@ -443,7 +443,7 @@ MOL.modules.Map = function(mol) {
 	        				query : sql,
 	        				map_style : true,
 	        				infowindow : true,
-	        				layerId: layerId,
+	        				layerId: layerName,
 	        				columns: ['scientific', 'bibliograp', 'collection', 'contact', 'creator','descriptio'],
 	        				auto_bound: false,
 	        			});
