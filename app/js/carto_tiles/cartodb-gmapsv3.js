@@ -56,7 +56,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 		  // Add the cartodb tiles
 	    var cartodb_layer = {
 	      getTileUrl: function(coord, zoom) {
-	        return 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query+'&style='+encodeURIComponent(params.style);
+	        return 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query;
 	      },
 	      tileSize: new google.maps.Size(256, 256),
 	      name: params.layerId
@@ -136,7 +136,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 		  // Add the cartodb tiles
 	    var cartodb_layer = {
 	      getTileUrl: function(coord, zoom) {
-			url = 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query+'&style='+encodeURIComponent(params.style);
+			url = 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query;
 	        return url;
 	      },
 	      tileSize: new google.maps.Size(256, 256),
@@ -186,11 +186,11 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
         params.tilejson = generateTileJson();
 
         // Remove old wax
-//        params.map.overlayMapTypes.clear();
+       // params.map.overlayMapTypes.clear();
         params.map.overlayMapTypes.forEach(
                 function(x, i) {
                     if (x && x.name === params.layerId) {
-                        map.overlayMapTypes.removeAt(i);
+                        params.map.overlayMapTypes.removeAt(i);
                     }
                 }
             );
@@ -213,11 +213,11 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
       // If you are not using interaction on the tiles... let's update your tiles
       if (!params.infowindow) {
         // First remove previous cartodb - tiles.
-//        params.map.overlayMapTypes.clear();
+       // params.map.overlayMapTypes.clear();
     	  params.map.overlayMapTypes.forEach(
                 function(x, i) {
                     if (x && x.name === params.layerId) {
-                        map.overlayMapTypes.removeAt(i);
+                        params.map.overlayMapTypes.removeAt(i);
                     }
                 }
             );
@@ -226,7 +226,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
      	 	params.query = sql;
     		var cartodb_layer = {
     			  getTileUrl: function(coord, zoom) {
-					url = 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query+'&style='+encodeURIComponent(params.style);
+					url = 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query;
 					return url;
     		  },
   			  tileSize: new google.maps.Size(256, 256),
@@ -242,7 +242,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
     function generateTileJson() {
       var core_url = 'http://' + params.user_name + '.cartodb.com';  
       var base_url = core_url + '/tiles/' + params.table_name + '/{z}/{x}/{y}';
-      var tile_url = base_url + '.png?cache_buster=0' + '&style='+encodeURIComponent(params.style);
+      var tile_url = base_url + '.png?cache_buster=0';
       var grid_url = base_url + '.grid.json';
   
       // SQL?

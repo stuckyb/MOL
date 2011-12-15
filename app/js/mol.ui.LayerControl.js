@@ -246,6 +246,7 @@ MOL.modules.LayerControl = function(mol) {
                             		
                             		updateButton.click(
                             			function() {
+											r.updateStyleText();
                             				bus.fireEvent(
                             					new LayerEvent(
                             						{

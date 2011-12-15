@@ -421,32 +421,34 @@ MOL.modules.Map = function(mol) {
             refresh: function() {              
                 var self = this,
                 	map = this._map,
+					layer = this.getLayer(),
                     layerId = this.getLayer().getId(),
                     layerSource = this.getLayer().getSource(),
                     layerType = this.getLayer().getType(),
                     layerName = this.getLayer().getName(),
                     config = this.getLayer().getConfig(),
                     style = config.getStyle().toString(),
+					sql = "select * from " + config.table + " where scientific = '" + layerName + "'&style=" + encodeURIComponent('#'+config.table+style),
                     color = this.getColor();
 
                 if (google.maps.CartoDBLayer) {
-
-                    // TODO: Is this needed?
-                	window.map = map;
-
-                	new google.maps.CartoDBLayer({
-                		map_canvas : 'map',
-        				map : map,
-        				user_name : config.user,
-        				table_name : config.table,
-        				query : "select * from " + config.table + " where scientific = '" + layerName + "'",
-        				map_style : true,
-        				infowindow : true,
-        				layerId: layerId,
-        				columns: ['scientific', 'bibliograp', 'collection', 'contact', 'creator','descriptio'],
-        				auto_bound: false,
-						style: '#'+config.table+style
-        			});
+					if (layer.obj) {
+						layer.obj.update(sql) 
+					} else {
+						layer.obj = new google.maps.CartoDBLayer({
+	                		map_canvas : 'map',
+	        				map : map,
+	        				user_name : config.user,
+	        				table_name : config.table,
+	        				query : sql,
+	        				map_style : true,
+	        				infowindow : true,
+	        				layerId: layerId,
+	        				columns: ['scientific', 'bibliograp', 'collection', 'contact', 'creator','descriptio'],
+	        				auto_bound: false,
+	        			});
+						window.k = layer.obj;
+					}
         		}
             },
 
