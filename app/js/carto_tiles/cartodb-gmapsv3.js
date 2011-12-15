@@ -186,7 +186,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
         params.tilejson = generateTileJson();
 
         // Remove old wax
-       // params.map.overlayMapTypes.clear();
+		params.map.overlayMapTypes.clear();
         params.map.overlayMapTypes.forEach(
                 function(x, i) {
                     if (x && x.name === params.layerId) {
@@ -213,7 +213,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
       // If you are not using interaction on the tiles... let's update your tiles
       if (!params.infowindow) {
         // First remove previous cartodb - tiles.
-       // params.map.overlayMapTypes.clear();
+		  params.map.overlayMapTypes.clear();
     	  params.map.overlayMapTypes.forEach(
                 function(x, i) {
                     if (x && x.name === params.layerId) {
