@@ -177,6 +177,15 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
       params.interaction = wax.g.interaction(params.map, params.tilejson, params.waxOptions);
 	  }
   
+	function removeLayer(name) {
+		params.map.overlayMapTypes.forEach(
+			function(x, i) {
+				if (x && x.name === name) {
+					params.map.overlayMapTypes.removeAt(i);
+				}
+			}
+		);
+	}
  
     // Refresh wax interaction
     function refreshWax(sql, name) {
@@ -187,13 +196,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 
         // Remove old wax
 		//params.map.overlayMapTypes.clear();
-        params.map.overlayMapTypes.forEach(
-                                function(x, i) {
-                                    if (x && x.name === name) {
-                                        params.map.overlayMapTypes.removeAt(i);
-                                    }
-                                }
-                            );
+        removeLayer(name);
 
         // Setup new wax
         params.tilejson.grids = wax.util.addUrlData(params.tilejson.grids_base,  'cache_buster=' + params.cache_buster);
@@ -215,13 +218,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
       if (!params.infowindow) {
         // First remove previous cartodb - tiles.
 		  //params.map.overlayMapTypes.clear();
-    	  params.map.overlayMapTypes.forEach(
-    	      	                  function(x, i) {
-    	      	                      if (x && x.name === name) {
-    	      	                          params.map.overlayMapTypes.removeAt(i);
-    	      	                      }
-    	      	                  }
-    	      	              );
+    	  removeLayer(name);
 
      	  // Then add the cartodb tiles
      	 	params.query = sql;
@@ -285,6 +282,8 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
       // Refresh tiles
       refreshTiles(sql, name);
     };
+
+	google.maps.CartoDBLayer.prototype.removeLayer = removeLayer;
   };
 }
 

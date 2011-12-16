@@ -357,23 +357,7 @@ MOL.modules.Map = function(mol) {
             },
             
             show: function() {
-                var layer = this.getLayer(),
-                    layerInfo = layer.getInfo(),
-                    north = null,
-                    west = null,
-                    south = null,
-                    east = null,
-                    bounds = this.bounds(),
-                    LatLngBounds = google.maps.LatLngBounds,
-                    LatLng = google.maps.LatLng,
-                    map = this.getMap();
-                if (!this.isVisible()) {
-                    if (!this._mapType) {
-                        this.refresh();
-                    }
-                    this.getMap().overlayMapTypes.push(this._mapType);
-                    this._onMap = true;
-                }
+                this.refresh();
             },
 
             /**
@@ -399,18 +383,12 @@ MOL.modules.Map = function(mol) {
             },
 
             hide: function() {
-                var layerId = this.getLayer().getId(),
+                var layer = this.getLayer(),
+					layerName = this.getLayer().getName(),
                     map = this.getMap();
-
-                if (this.isVisible()) {
-                    map.overlayMapTypes.forEach(
-                        function(x, i) {
-                            if (x && x.name === layerId) {
-                                map.overlayMapTypes.removeAt(i);
-                            }
-                        }
-                    );
-                    this._onMap = false;
+                if (layer.obj) {
+                    layer.obj.removeLayer(layerName);
+					layer.obj = null;
                 }
             },
                         
