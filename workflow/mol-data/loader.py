@@ -187,6 +187,9 @@ def convertToJSON(provider_dir):
             # this provider/collection combination.
             deletePreviousEntries(_getoptions().table_name, collection.get_provider(), collection.get_collection())
 
+            # We currently combine three SQL statements into a single statement for transmission to CartoDB.
+            sql_statements = set()
+
             # Step 2.3. For every feature:
             row_count = 0
             for feature in features:
@@ -213,10 +216,18 @@ def convertToJSON(provider_dir):
 
                 # Upload to CartoDB.
                 logging.info("\tUploading feature.");
-                uploadGeoJSONEntry(feature, _getoptions().table_name)
+                sql_statements.add(encodeGeoJSONEntryAsSQL(feature, _getoptions().table_name))
+
+                if(len(sql_statements) >= 3):
+                    sendSQLStatementToCartoDB("; ".join(sql_statements))
+                    sql_statements.clear()
 
                 # Save into all_features.
                 all_features.append(feature)
+
+            if(len(sql_statements) > 0):
+                sendSQLStatementToCartoDB("; ".join(sql_statements))
+                sql_statements.clear()
             
             features_json = []
             for feature in all_features:
@@ -298,7 +309,7 @@ def deletePreviousEntries(table_name, provider, collection):
     print "Sending SQL: [%s]" % sql
     print cdb.sql(sql)
 
-def uploadGeoJSONEntry(entry, table_name):
+def encodeGeoJSONEntryAsSQL(entry, table_name):
     """Uploads a single GeoJSON entry to any URL capable of accepting SQL statements. We 
     convert the GeoJSON into a single INSERT SQL statement and send it.
 
@@ -310,16 +321,7 @@ def uploadGeoJSONEntry(entry, table_name):
 
     Returns: none.
     """
-    global cartodb_settings
-
-    cdb = CartoDB(
-        cartodb_settings['CONSUMER_KEY'],
-        cartodb_settings['CONSUMER_SECRET'],
-        cartodb_settings['user'],
-        cartodb_settings['password'],
-        cartodb_settings['domain']
-    )
-
+    
     # Get the fields and values ready to be turned into an SQL statement
     properties = entry['properties']
     fields = properties.keys()
@@ -363,7 +365,21 @@ def uploadGeoJSONEntry(entry, table_name):
             'st_multi': "ST_Multi" if (entry['geometry']['type'] == 'Polygon') else "",
             'values': tag + (tag + ", " + tag).join(values) + tag
         }
-    print "Sending SQL: [%s]" % sql
+
+    return sql
+
+def sendSQLStatementToCartoDB(sql):
+    global cartodb_settings
+
+    cdb = CartoDB(
+        cartodb_settings['CONSUMER_KEY'],
+        cartodb_settings['CONSUMER_SECRET'],
+        cartodb_settings['user'],
+        cartodb_settings['password'],
+        cartodb_settings['domain']
+    )
+
+    print "Executing SQL[%s]" % sql
     print cdb.sql(sql)
 
 def _getoptions():
