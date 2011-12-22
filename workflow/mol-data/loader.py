@@ -72,6 +72,9 @@ def convertToJSON(provider_dir):
   "type": "FeatureCollection",
   "features": [""")
 
+    # How many SQL statements should we run together?
+    sql_statements_to_send_at_once = _getoptions().simultaneous_sql_statements;
+
     # We wrap this processing in a try-finally so that, no matter what happens,
     # we change back to the original directory before we leave this subroutine.
     try:
@@ -218,7 +221,7 @@ def convertToJSON(provider_dir):
                 logging.info("\tUploading feature.");
                 sql_statements.add(encodeGeoJSONEntryAsSQL(feature, _getoptions().table_name))
 
-                if(len(sql_statements) >= 3):
+                if(len(sql_statements) >= sql_statements_to_send_at_once):
                     sendSQLStatementToCartoDB("; ".join(sql_statements))
                     sql_statements.clear()
 
@@ -401,6 +404,13 @@ def _getoptions():
                       dest="cartodb_json",
                       default="cartodb.json",
                       help="The cartodb.json you wish you read CartoDB settings from.")
+    parser.add_option('-j', '--simultaneous-sql',
+                      type="int",
+                      action="store",
+                      dest="simultaneous_sql_statements",
+                      metavar="N",
+                      default="3",
+                      help="How many SQL statements should we upload at once?")
     parser.add_option('--no-validate', '-V',
                       action="store_true",
                       dest="no_validate",
