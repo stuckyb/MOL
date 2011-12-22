@@ -74,7 +74,7 @@ app.calcStats = function(polygon) {
     
     // Request stats asynchronously and display them in an info window when ready.
     $.post(
-        '/earthengine/stats',
+        '/earthengine/names',
         {
             tableids: app.urlParams['tableids'], 
             coordinates: JSON.stringify(app.coordinates),

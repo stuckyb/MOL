@@ -357,23 +357,7 @@ MOL.modules.Map = function(mol) {
             },
             
             show: function() {
-                var layer = this.getLayer(),
-                    layerInfo = layer.getInfo(),
-                    north = null,
-                    west = null,
-                    south = null,
-                    east = null,
-                    bounds = this.bounds(),
-                    LatLngBounds = google.maps.LatLngBounds,
-                    LatLng = google.maps.LatLng,
-                    map = this.getMap();
-                if (!this.isVisible()) {
-                    if (!this._mapType) {
-                        this.refresh();
-                    }
-                    this.getMap().overlayMapTypes.push(this._mapType);
-                    this._onMap = true;
-                }
+                this.refresh();
             },
 
             /**
@@ -399,18 +383,12 @@ MOL.modules.Map = function(mol) {
             },
 
             hide: function() {
-                var layerId = this.getLayer().getId(),
+                var layer = this.getLayer(),
+					layerName = this.getLayer().getName(),
                     map = this.getMap();
-
-                if (this.isVisible()) {
-                    map.overlayMapTypes.forEach(
-                        function(x, i) {
-                            if (x && x.name === layerId) {
-                                map.overlayMapTypes.removeAt(i);
-                            }
-                        }
-                    );
-                    this._onMap = false;
+                if (layer.obj) {
+                    layer.obj.removeLayer(layerName);
+					layer.obj = null;
                 }
             },
                         
@@ -421,30 +399,34 @@ MOL.modules.Map = function(mol) {
             refresh: function() {              
                 var self = this,
                 	map = this._map,
+					layer = this.getLayer(),
                     layerId = this.getLayer().getId(),
                     layerSource = this.getLayer().getSource(),
                     layerType = this.getLayer().getType(),
                     layerName = this.getLayer().getName(),
                     config = this.getLayer().getConfig(),
+                    style = config.getStyle().toString(),
+					sql = "select * from " + config.table + " where scientific = '" + layerName + "'&style=" + encodeURIComponent('#'+config.table+style),
                     color = this.getColor();
 
                 if (google.maps.CartoDBLayer) {
-
-                    // TODO: Is this needed?
-                	window.map = map;
-
-                	new google.maps.CartoDBLayer({
-                		map_canvas : 'map',
-        				map : map,
-        				user_name : config.user,
-        				table_name : config.table,
-        				query : "select * from " + config.table + " where scientific = '" + layerName + "'",
-        				map_style : true,
-        				infowindow : true,
-        				layerId: layerId,
-        				columns: ['scientific', 'bibliograp', 'collection', 'contact', 'creator','descriptio'],
-        				auto_bound: false
-        			});
+					if (layer.obj) {
+						layer.obj.update(sql, layerName) 
+					} else {
+						layer.obj = new google.maps.CartoDBLayer({
+	                		map_canvas : 'map',
+	        				map : map,
+	        				user_name : config.user,
+	        				table_name : config.table,
+	        				query : sql,
+	        				map_style : true,
+	        				infowindow : true,
+	        				layerId: layerName,
+	        				columns: ['scientific', 'bibliograp', 'collection', 'contact', 'creator','descriptio'],
+	        				auto_bound: false,
+	        			});
+						window.k = layer.obj;
+					}
         		}
             },
 
