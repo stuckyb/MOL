@@ -102,26 +102,32 @@ MOL.modules.model = function(mol) {
 			return result;
 		}
 	});
+	
+	mol.model.Config = Class.extend(
+		{
+			init: function(params) {
+				this.user = (params.user) ? params.user : 'eighty';
+			    this.table = (params.table) ? params.table : 'mol_cody';
+			    this.host = (params.host) ? params.host : 'cartodb.com';
+			    this.columns = (params.columns) ? params.columns : [];
+			    this.debug = false;
+				this.query = params.query;
+			    this.style = new mol.model.Style();
+			},
+			getStyle: function() {
+    			return this.style;
+    		},
+    		setStyle: function(style) {
+    			this.style = style;
+    		}
+		}
+	)
+	
     /**
      * The layer model.
      */
     mol.model.Layer = Class.extend(
         {
-        	Config: function() {
-        		this.user = 'eighty';
-			    this.table = 'mol_cody';
-			    this.host = 'cartodb.com'
-			    this.columns = [];
-			    this.debug = false;
-			    this.style = new mol.model.Style();
-        		this.getStyle = function() {
-        			return this.style;
-        		};
-        		this.setStyle = function(style) {
-        			this.style = style;
-        		};
-        	},
-        	
             init: function(params) {
                 this._id = [params.name, params.source, params.type].join('_');
                 this._type = params.type;
@@ -134,7 +140,7 @@ MOL.modules.model = function(mol) {
                 this._info = params.info;
                 this._color = null;
                 this._icon = null;
-                this._config = params.config || new this.Config();
+                this._config = params.config || new mol.model.Config({});
             },
             
             getExtent: function() {

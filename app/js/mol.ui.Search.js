@@ -940,6 +940,7 @@ MOL.modules.Search = function(mol) {
                             displayNotVisible = !display.isVisible();               
                         
                         if (action === 'search-click' && displayNotVisible) {
+							$("button.cancel").click();
                             display.show();
                             display.getSearchBox().focus();
                         }
@@ -1190,7 +1191,7 @@ MOL.modules.Search = function(mol) {
             _html: function(){
                 return '<div class="mol-LayerControl-Search widgetTheme">' + 
                        '  <div class="title">Search:</div>' + 
-                       '  <input class="value" type="text">' + 
+                       '  <input class="value" type="text" placeholder="Search by name">' + 
                        '  <button class="execute">Go</button>' + 
                        '  <button class="cancel"><img src="/static/maps/search/cancel.png" ></button>' + 
                        '</div>' + 

@@ -29,6 +29,11 @@ MOL.modules.Add = function(mol) {
                 s = '#query';
 				return x ? x : (this.queryInput= this.findChild(s));
 			},
+			getNameInput: function() {
+				var x = this._nameInput,
+                s = '#name';
+				return x ? x : (this.nameInput= this.findChild(s));
+			},
 			getCloseButton: function(){
                 var x = this._closeButton,
                     s = '.cancel';
@@ -44,10 +49,13 @@ MOL.modules.Add = function(mol) {
             	this.getDomainInput().val(new String());
             	this.getTableNameInput().val(new String());
             	this.getQueryInput().val(new String());
+            	this.getNameInput().val(new String());
             },
 			_html: function() {
 				return	'<div class="mol-LayerControl-Add widgetTheme">' + 
 		                '  <div class="title" style="width:100%; display:block; padding-bottom:5px; font-size: 20px;">Add:</div>' + 
+		                '  <div class="key">Name</div>' + 
+		                '  <input id="name" class="value" placeholder="Layer name e.g. Coturnix pectoralis">' +
 		                '  <div class="key">Username</div>' + 
 		                '  <input id="username" class="value" type="text" placeholder="username e.g. eighty">' + 
 		                '  <div class="key">Domain</div>' + 
@@ -55,7 +63,7 @@ MOL.modules.Add = function(mol) {
 		                '  <div class="key">Table</div>' + 
 		                '  <input id="tablename" class="value" placeholder="tablename e.g. mol_cody">' +
 		                '  <div class="key">Query</div>' + 
-		                '  <input id="query" class="value" placeholder="query e.g. select *">' +
+		                '  <input id="query" class="value" placeholder="query e.g. Select * from mol_cody where scientific = Corturnix">' +
 		                '  <button class="execute">Add</button>' +
 		                '  <button class="cancel"><img src="/static/maps/search/cancel.png" ></button>' + 
 		                '</div>';
@@ -191,7 +199,9 @@ MOL.modules.Add = function(mol) {
                             displayNotVisible = !display.isVisible();               
                         
                         if (action === 'add-click' && displayNotVisible) {
+							$('button.cancel').click();
                             display.show();
+							display.getNameInput().focus();
                         }
                     }
                 );
@@ -200,9 +210,33 @@ MOL.modules.Add = function(mol) {
             _onGoButtonClick: function() {
             	var username = this._display.getUserNameInput().val(),
             		tablename = this._display.getTableNameInput().val(),
-            		query = this._display.getQueryInput().val();
+					host = this._display.getDomainInput().val(),
+            		query = this._display.getQueryInput().val(),
+            		name = this._display.getNameInput().val(),
+                    bus = this._bus,
+					Layer = mol.model.Layer,
+                    LayerEvent = mol.events.LayerEvent,
+					config = new mol.model.Config({
+						name: name,
+						user: username,
+						table: tablename,
+						host: host,
+						query: (query) ? query : "select * from "+tablename,
+						action: 'add'
+					}),
+					layer = null;
             	if (username.length > 0 && tablename.length > 0) {
-            		alert(username+'.moldb.io/'+tablename+ '/'+query);
+            		layer = new Layer(
+                        {
+                            type: 'pa',
+                            name: name,
+							config: config
+                        }
+                    );
+					bus.fireEvent(new LayerEvent({
+						layer: layer,
+						action: "add"
+					}));
             	} else {
             		alert('Please fill in both username and tablename');
             	}
