@@ -279,6 +279,7 @@ def deletePreviousEntries(table_name, provider, collection):
 
     Returns: none.
     """
+
     global cartodb_settings
 
     cdb = CartoDB(
@@ -286,7 +287,8 @@ def deletePreviousEntries(table_name, provider, collection):
         cartodb_settings['CONSUMER_SECRET'],
         cartodb_settings['user'],
         cartodb_settings['password'],
-        cartodb_settings['domain']
+        cartodb_settings['user'],
+        host=cartodb_settings['domain']
     )
 
     # Generate a 'tag', by calculating a SHA-1 hash of the concatenation
@@ -325,6 +327,17 @@ def encodeGeoJSONEntryAsSQL(entry, table_name):
     Returns: none.
     """
     
+    global cartodb_settings
+
+    cdb = CartoDB(
+        cartodb_settings['CONSUMER_KEY'],
+        cartodb_settings['CONSUMER_SECRET'],
+        cartodb_settings['user'],
+        cartodb_settings['password'],
+        cartodb_settings['user'],
+        host=cartodb_settings['domain']
+    )
+
     # Get the fields and values ready to be turned into an SQL statement
     properties = entry['properties']
     fields = properties.keys()
@@ -379,7 +392,8 @@ def sendSQLStatementToCartoDB(sql):
         cartodb_settings['CONSUMER_SECRET'],
         cartodb_settings['user'],
         cartodb_settings['password'],
-        cartodb_settings['domain']
+        cartodb_settings['user'],
+        host=cartodb_settings['domain']
     )
 
     print "Executing SQL[%s]" % sql
