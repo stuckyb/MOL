@@ -37,14 +37,14 @@ class EarthEngine( object ):
                 url = self.url + url,
                 headers = { 'Authorization': 'GoogleLogin auth=' + self.auth },
                 payload = params,
-                deadline=60
+                deadline=55
             )
             self.last_request = dict(
                 method = method,
                 url = self.url + url,
                 headers = { 'Authorization': 'GoogleLogin auth=' + self.auth },
                 payload = params,
-                deadline=60)
+                deadline=55)
             self.last_response = dict(code=response.status_code, content=response.content)
             if response.status_code == 200:
                 logging.info('RESPONSE.CONTENT=%s' % response.content)
@@ -57,6 +57,7 @@ class EarthEngine( object ):
             data = { 'error': { 'type':'ResponseTooLargeError' } }
         except:
             data = { 'error': { 'type':'Other' } }
+            logging.error(sys.exc_info())
         finally:
             logging.info("ee <- %s" % data)
             return data
