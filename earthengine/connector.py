@@ -37,14 +37,14 @@ class EarthEngine( object ):
                 url = self.url + url,
                 headers = { 'Authorization': 'GoogleLogin auth=' + self.auth },
                 payload = params,
-                deadline=600
+                deadline=60
             )
             self.last_request = dict(
                 method = method,
                 url = self.url + url,
                 headers = { 'Authorization': 'GoogleLogin auth=' + self.auth },
                 payload = params,
-                deadline=600)
+                deadline=60)
             self.last_response = dict(code=response.status_code, content=response.content)
             if response.status_code == 200:
                 logging.info('RESPONSE.CONTENT=%s' % response.content)
@@ -52,11 +52,11 @@ class EarthEngine( object ):
             else:
                 data = { 'error': { 'type':'http', 'code': response.status_code } }
         except urlfetch.DownloadError:
-            data = { 'error': { 'type':'DownloadError', 'info':sys.exc_info() } }
+            data = { 'error': { 'type':'DownloadError'} }
         except urlfetch.ResponseTooLargeError:
-            data = { 'error': { 'type':'ResponseTooLargeError', 'info':sys.exc_info() } }
+            data = { 'error': { 'type':'ResponseTooLargeError' } }
         except:
-            data = { 'error': { 'type':'Other', 'info':sys.exc_info() } }
+            data = { 'error': { 'type':'Other' } }
         finally:
             logging.info("ee <- %s" % data)
             return data
@@ -69,6 +69,7 @@ class EarthEngine( object ):
         return self._http( 'GET', url )
 
     def post(self, api, params=None ):
+        logging.info('POST to %s with %s' % (api, params))
         return self._http( 'POST', api, params )
 
 

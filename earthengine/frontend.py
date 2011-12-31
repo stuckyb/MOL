@@ -30,6 +30,7 @@ import datetime
 import logging
 import os
 import simplejson
+import sys
 import urllib
 
 # Authenticate for Earth Engine token.
@@ -41,8 +42,10 @@ class EarthEngineRequest(object):
 
     """Base class for Earth Engine requests."""
 
-    def execute(self):
+    def execute(self, post=False):
         """Executes the request and returns the response object."""
+        if post:
+            return proxy.post(self.get_path(), params=self.get_query())
         return proxy.get(self.get_url())
 
 class MapIdRequest(EarthEngineRequest):
@@ -99,8 +102,7 @@ class IntersectRequest(EarthEngineRequest):
         self.lat = lat
         self.lng = lng
 
-    def get_url(self):
-        """Returns the URL for this request."""
+    def get_query(self, urlencode=True):
         creators = [self.get_creator(x) for x in self.tableids]
         image = dict(
             creator='MOL/com.google.earthengine.examples.mol.SumImages',
@@ -110,7 +112,16 @@ class IntersectRequest(EarthEngineRequest):
             bands='intersectionCount',
             points=simplejson.dumps([[self.lng, self.lat]]))
         logging.info(query)
-        url = '/value?%s' % urllib.urlencode(query)
+        if urlencode:
+            return urllib.urlencode(query)
+        return query
+    
+    def get_path(self):
+        return '/value'
+
+    def get_url(self):
+        """Returns the URL for this request."""
+        url = '%s?%s' % (self.get_path(), self.get_query())
         return url
 
     def get_creator(self, tableid):
@@ -245,7 +256,13 @@ class SpeciesNamesListHandler(webapp.RequestHandler):
         tableids = [int(x) for x in self.request.get('tableids').split(',')]
         coordinates = self.request.get('coordinates')
         request = SpeciesNamesListRequest(tableids, coordinates)
-        response = request.execute()        
+        response = request.execute()   
+
+        if response.has_key('error'):
+            self.response.out.write(simplejson.dumps(response))
+            logging.info('ERROR: %s' % response) 
+            return
+        
         uniques = list(set([x.replace('_', ' ') for x in response['data']['properties']['names'][0]]))
         uniques.sort()
         response['data']['properties']['names'] = [uniques]
@@ -268,7 +285,7 @@ class IntersectHandler(webapp.RequestHandler):
         tableids = [int(x) for x in self.request.get('tableids').split(',')]
         lat, lng = [float(x) for x in self.request.get('ll').split(',')]
         request = IntersectRequest(tableids, lat, lng)
-        response = request.execute()
+        response = request.execute(post=True)
         payload = dict(request=request.get_url(), response=response)
         self.response.out.write(simplejson.dumps(payload))
     
