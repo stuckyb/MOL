@@ -114,7 +114,9 @@ class TableSchema(object):
             cartodb_settings['user'],
             cartodb_settings['password'],
             cartodb_settings['user'],
-            host=cartodb_settings['domain']
+            host=cartodb_settings['domain'],
+            protocol=cartodb_settings['protocol'],
+            access_token_url=cartodb_settings['access_token_url']
         )
 
         for field in self.schema.keys():
