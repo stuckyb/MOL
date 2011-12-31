@@ -36,7 +36,8 @@ Collections:
       type: "pointoccurrence"
       dateSubmitted: "2011-11-27"
       rights: "Creative Commons® Attribution 3.0 Unported license. http://creativecommons.org/licenses/by/3.0/"
-      scientificname: "=Scientific name"
+      # scientificname: "=Scientific name"
+      scientificName: "=Scientific name (interpreted)"
       title: "National Whale and Dolphin Sightings and Strandings Database"
       verbatimsrs: "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +units=m +no_defs"
 
@@ -44,5 +45,10 @@ Collections:
     # http://www.google.com/fusiontables/DataSource?dsrcid=1348212
     #
     Optional:
-      # TODO: Add more of that metadata in.
-      visible: true
+      Subject: "Cetaceans"
+      AreaName: "=Region"
+      nameAccordingTo: "=Identifier"
+      SurveyStartDate: "=Date collected"
+      SurveyEndDate: "=Date collected"
+      Publisher: "=Data publisher"
+      # Altitude?

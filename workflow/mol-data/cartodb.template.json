@@ -1,9 +1,9 @@
 # Modify this file with your CartoDB settings, then delete this line
 # and rename this file to 'cartodb.json'.
 {
-    "user": "email address",
+    "user": "example",
     "password": "account password",
     "CONSUMER_KEY": "from https://example.cartodb.com/your_apps/oauth",
     "CONSUMER_SECRET": "from https://example.cartodb.com/your_apps/oauth",
-    "domain": "example.cartodb.com"
+    "domain": "cartodb.com"
 }

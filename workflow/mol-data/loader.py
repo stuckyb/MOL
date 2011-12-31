@@ -72,6 +72,9 @@ def convertToJSON(provider_dir):
   "type": "FeatureCollection",
   "features": [""")
 
+    # How many SQL statements should we run together?
+    sql_statements_to_send_at_once = _getoptions().simultaneous_sql_statements;
+
     # We wrap this processing in a try-finally so that, no matter what happens,
     # we change back to the original directory before we leave this subroutine.
     try:
@@ -187,6 +190,9 @@ def convertToJSON(provider_dir):
             # this provider/collection combination.
             deletePreviousEntries(_getoptions().table_name, collection.get_provider(), collection.get_collection())
 
+            # We currently combine three SQL statements into a single statement for transmission to CartoDB.
+            sql_statements = set()
+
             # Step 2.3. For every feature:
             row_count = 0
             for feature in features:
@@ -213,10 +219,18 @@ def convertToJSON(provider_dir):
 
                 # Upload to CartoDB.
                 logging.info("\tUploading feature.");
-                uploadGeoJSONEntry(feature, _getoptions().table_name)
+                sql_statements.add(encodeGeoJSONEntryAsSQL(feature, _getoptions().table_name))
+
+                if(len(sql_statements) >= sql_statements_to_send_at_once):
+                    sendSQLStatementToCartoDB("; ".join(sql_statements))
+                    sql_statements.clear()
 
                 # Save into all_features.
                 all_features.append(feature)
+
+            if(len(sql_statements) > 0):
+                sendSQLStatementToCartoDB("; ".join(sql_statements))
+                sql_statements.clear()
             
             features_json = []
             for feature in all_features:
@@ -265,6 +279,7 @@ def deletePreviousEntries(table_name, provider, collection):
 
     Returns: none.
     """
+
     global cartodb_settings
 
     cdb = CartoDB(
@@ -272,7 +287,10 @@ def deletePreviousEntries(table_name, provider, collection):
         cartodb_settings['CONSUMER_SECRET'],
         cartodb_settings['user'],
         cartodb_settings['password'],
-        cartodb_settings['domain']
+        cartodb_settings['user'],
+        host=cartodb_settings['domain'],
+        protocol=cartodb_settings['protocol'],
+        access_token_url=cartodb_settings['access_token_url']
     )
 
     # Generate a 'tag', by calculating a SHA-1 hash of the concatenation
@@ -298,7 +316,7 @@ def deletePreviousEntries(table_name, provider, collection):
     print "Sending SQL: [%s]" % sql
     print cdb.sql(sql)
 
-def uploadGeoJSONEntry(entry, table_name):
+def encodeGeoJSONEntryAsSQL(entry, table_name):
     """Uploads a single GeoJSON entry to any URL capable of accepting SQL statements. We 
     convert the GeoJSON into a single INSERT SQL statement and send it.
 
@@ -310,6 +328,7 @@ def uploadGeoJSONEntry(entry, table_name):
 
     Returns: none.
     """
+    
     global cartodb_settings
 
     cdb = CartoDB(
@@ -317,7 +336,10 @@ def uploadGeoJSONEntry(entry, table_name):
         cartodb_settings['CONSUMER_SECRET'],
         cartodb_settings['user'],
         cartodb_settings['password'],
-        cartodb_settings['domain']
+        cartodb_settings['user'],
+        host=cartodb_settings['domain'],
+        protocol=cartodb_settings['protocol'],
+        access_token_url=cartodb_settings['access_token_url']
     )
 
     # Get the fields and values ready to be turned into an SQL statement
@@ -363,7 +385,24 @@ def uploadGeoJSONEntry(entry, table_name):
             'st_multi': "ST_Multi" if (entry['geometry']['type'] == 'Polygon') else "",
             'values': tag + (tag + ", " + tag).join(values) + tag
         }
-    print "Sending SQL: [%s]" % sql
+
+    return sql
+
+def sendSQLStatementToCartoDB(sql):
+    global cartodb_settings
+
+    cdb = CartoDB(
+        cartodb_settings['CONSUMER_KEY'],
+        cartodb_settings['CONSUMER_SECRET'],
+        cartodb_settings['user'],
+        cartodb_settings['password'],
+        cartodb_settings['user'],
+        host=cartodb_settings['domain'],
+        protocol=cartodb_settings['protocol'],
+        access_token_url=cartodb_settings['access_token_url']
+    )
+
+    print "Executing SQL[%s]" % sql
     print cdb.sql(sql)
 
 def _getoptions():
@@ -385,6 +424,13 @@ def _getoptions():
                       dest="cartodb_json",
                       default="cartodb.json",
                       help="The cartodb.json you wish you read CartoDB settings from.")
+    parser.add_option('-j', '--simultaneous-sql',
+                      type="int",
+                      action="store",
+                      dest="simultaneous_sql_statements",
+                      metavar="N",
+                      default="3",
+                      help="How many SQL statements should we upload at once?")
     parser.add_option('--no-validate', '-V',
                       action="store_true",
                       dest="no_validate",
