@@ -288,7 +288,9 @@ def deletePreviousEntries(table_name, provider, collection):
         cartodb_settings['user'],
         cartodb_settings['password'],
         cartodb_settings['user'],
-        host=cartodb_settings['domain']
+        host=cartodb_settings['domain'],
+        protocol=cartodb_settings['protocol'],
+        access_token_url=cartodb_settings['access_token_url']
     )
 
     # Generate a 'tag', by calculating a SHA-1 hash of the concatenation
@@ -312,7 +314,7 @@ def deletePreviousEntries(table_name, provider, collection):
         'collection': tag + collection + tag
     }
     print "Sending SQL: [%s]" % sql
-    print cdb.sql(sql)
+    # print cdb.sql(sql)
 
 def encodeGeoJSONEntryAsSQL(entry, table_name):
     """Uploads a single GeoJSON entry to any URL capable of accepting SQL statements. We 
@@ -335,7 +337,9 @@ def encodeGeoJSONEntryAsSQL(entry, table_name):
         cartodb_settings['user'],
         cartodb_settings['password'],
         cartodb_settings['user'],
-        host=cartodb_settings['domain']
+        host=cartodb_settings['domain'],
+        protocol=cartodb_settings['protocol'],
+        access_token_url=cartodb_settings['access_token_url']
     )
 
     # Get the fields and values ready to be turned into an SQL statement

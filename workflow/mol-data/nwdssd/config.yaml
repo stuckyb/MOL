@@ -44,5 +44,13 @@ Collections:
     # http://www.google.com/fusiontables/DataSource?dsrcid=1348212
     #
     Optional:
-      # TODO: Add more of that metadata in.
-      visible: true
+      CollectionId: "=Collection code"
+      Identifier: =Identifier
+      Subject: "Cetaceans"
+      scientificName: "=Scientific name (interpreted)"
+      AreaName: "=Region"
+      nameAccordingTo: "=Identifier"
+      SurveyStartDate: "=Date collected"
+      SurveyEndDate: "=Date collected"
+      Publisher: "=Data publisher"
+      # Altitude?
