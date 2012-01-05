@@ -426,7 +426,6 @@ MOL.modules.Map = function(mol) {
 	        				auto_bound: false,
 							config: config
 	        			});
-						window.k = layer.obj;
 					}
         		}
             },
