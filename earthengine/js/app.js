@@ -47,6 +47,10 @@ app._getNormalizedCoord = function(coord, zoom) {
 app.calcStats = function(polygon) {    
     var center = polygon.getBounds().getCenter();
 
+    // Count for retries:
+    app.calcStatsCount += 1;
+    console.log('/names retry: ' + app.calcStatsCount);
+
     // Listener for when the polygon is edited.
     google.maps.event.addListener(
         polygon.getPath(), 
@@ -82,12 +86,32 @@ app.calcStats = function(polygon) {
         },
         function(data) {  
             var result = JSON.parse(data),
-                request = decodeURI(result['request']),
-                response = result['response'], 
-                stats = JSON.stringify(response['data'], undefined, 2),            
-                point = app.coordinates[0][0],
-                latlng = new google.maps.LatLng(point[1], point[0]);
-            
+                request = null,
+                response = null,
+                stats = null,
+                point = null,
+                latlng = null;
+
+            if (result.error) {
+                if (result.error.type === 'DownloadError') {
+                    console.log('/names results not ready. Retrying...');
+                    app.calcStats(polygon);
+                } else {
+                    console.log('Other error: ');
+                    console.log(result);
+                    app.loadingImg.hide();
+                }
+                return;
+            };
+
+            app.calcStatsCount = 0;
+
+            request = decodeURI(result['request']),
+            response = result['response'], 
+            stats = JSON.stringify(response['data'], undefined, 2),            
+            point = app.coordinates[0][0],
+            latlng = new google.maps.LatLng(point[1], point[0]);
+
             if (app.logging) {
                 console.log('Request: ' + request);
                 console.log('Response: ' + JSON.stringify(response));                    
@@ -117,8 +141,10 @@ app.init = function () {
     // Parses URL parameters:
     while ((e = r.exec(q))) {
         app.urlParams[d(e[1])] = d(e[2]);
-    }
-
+    };
+                                           
+    app.calcStatsCount = 0;
+                                           
     // Gettable ids from the URL query string.
     tableids = app.urlParams['tableids'].split(',');
 
