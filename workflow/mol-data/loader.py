@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# vim: set fileencoding=utf-8 :
 #
 # Copyright 2011 Aaron Steele, John Wieczorek, Gaurav Vaidya
 #
@@ -42,6 +43,7 @@ from unicodewriter import UnicodeDictReader
 # current directory.
 DEFAULT_DATASETS_DIR = 'datasets'
 
+# TODO: Best just get rid of this and use a global variable?
 class ogr2ogrPathDetection(object):
     """ Determines and returns the path to ogr2ogr. 
     Implemented as a callable object so its return
@@ -62,28 +64,25 @@ class ogr2ogrPathDetection(object):
     def __call__(self):
         return self.cached_path
 
+# Some global variables.
+
+# ogr2ogr_path(): the path used to 
 ogr2ogr_path = ogr2ogrPathDetection()
 
-def uploadToCartoDB(provider_dir):
-    """Converts the given directory into a JSON file (stored in the directory itself as 'all.json').
+# The CartoDB object we use to communicate with the server.
+cartodb = None
 
-    If '$dir/all.json' already exists, it will be overwritten.
+# The CartoDB setting used to login to the server.
+cartodb_settings = None
+
+def uploadToCartoDB(provider_dir):
+    """Uploads the given directory to CartoDB. At the moment, all collection data is
+    deleted on the server during upload (this will be fixed for issue #27).
     """
     
     original_dir = os.path.abspath(os.path.curdir)
     os.chdir(provider_dir)
     logging.info("Now in directory '%s'." % provider_dir)
-
-    # TODO: how?
-    # filename = "mol_source_%s.json" % provider_dir
-    filename = "mol_source_this.json"
-    if os.path.exists(filename):
-        os.remove(filename)
-    # all_json = open(filename, "a")
-    all_json = codecs.open(filename, encoding='utf-8', mode="w")
-    all_json.write("""{
-  "type": "FeatureCollection",
-  "features": [""")
 
     # How many SQL statements should we run together?
     sql_statements_to_send_at_once = _getoptions().simultaneous_sql_statements;
@@ -95,121 +94,19 @@ def uploadToCartoDB(provider_dir):
         config = ProviderConfig("config.yaml", os.path.basename(provider_dir))
         config.validate()
 
-        all_features = []
-
         # Step 2. For each collection, and then each shapefile in that collection:
         for collection in config.collections():
-            name = collection.getname()
+            features = processCollection(collection)
 
-            logging.info("Switching to collection '%s'." % name)
-
-            # This is where we will store all the features.
-            features = []
-
-            if os.path.isdir(name):
-                # A directory of shapefiles.
-                os.chdir(name)
-
-                shapefiles = glob.glob('*.shp')
-                for shapefile in shapefiles:
-                    # Determine the "name" (filename without extension) of this file.
-                    name = shapefile[0:shapefile.index('.shp')]
-
-                    logging.info("Processing shapefile: %s." % name)
-
-                    # Step 2.1. Convert this shapefile into a GeoJSON file, projected to
-                    # EPSG 4326 (WGS 84).
-                    json_filename = '%s.json' % name
-                    
-                    # Delete existing geojson file since we're appending.
-                    if os.path.exists(json_filename):
-                        os.remove(json_filename)
-
-                    command = [ogr2ogr_path(), 
-                        '-f', 'GeoJSON', 
-                        '-t_srs', 'EPSG:4326',
-                        json_filename,
-                        '%s.shp' % name
-                    ]
-
-                    try:
-                        subprocess.call(command)
-                    except Exception as e:
-                        logging.error('Unable to convert %s to GeoJSON: %s (command: %s)' % (name, e, command))
-                        if os.path.exists(json_filename):
-                            os.remove(json_filename)
-                        continue
-
-                    # Step 2.2. Load that GeoJSON file and do the mapping.
-                    #logging.info('Mapping fields from DBF to specification: %s' % json_filename)
-                    geojson = None
-                    try:
-                        geojson = simplejson.loads(
-                            codecs.open(json_filename, encoding='utf-8').read(), 
-                            encoding='utf-8')
-
-                    except:
-                        logging.error('Unable to open or process %s' % json_filename)
-                        continue
-
-                    features = geojson['features']
-                
-                # Return to the provider dir.
-                os.chdir(original_dir)
-                os.chdir(provider_dir)
-
-                os.chdir('..')
-
-            elif os.path.isfile(name) and name.lower().rfind('.csv', len(name) - 4, len(name)) != -1:
-                # This is a .csv file! 
-                csvfile = open(name, "r")
-                reader = UnicodeDictReader(csvfile)
-
-                features = []
-                feature_index = 0
-                for entry in reader:
-                    feature_index += 1
-                    feature = {}
-
-                    # As per the spec at http://geojson.org/geojson-spec.html
-                    feature['type'] = 'Feature'
-                    feature['properties'] = entry
-
-                    lat = entry['Latitude']
-                    if not lat:
-                        logging.warn("Feature %d has no latitude, ignoring." % feature_index)
-                        continue # Ignore features without latitudes.
-                    long = entry['Longitude']
-                    if not long:
-                        logging.warn("Feature %d has no longitude, ignoring." % feature_index)
-                        continue # Ignore features without longitudes.
-
-                    feature['geometry'] = {'type': 'Point', 'coordinates': [
-                            float(entry['Longitude']),
-                            float(entry['Latitude'])
-                        ]}
-                        # TODO: We assume latitude and longitude (in WGS84) are
-                        # present in the columns 'Latitude' and 'Longitude'
-                        # respectively.
-                    
-                        # IMPORTANT TODO: at the moment, we assume the incoming coordinates
-                        # are already in WGS84! THIS MIGHT NOT BE TRUE!
-
-                    features.append(feature)
-
-                csvfile.close()
-
-            # Intermediate step: delete previous entries from
-            # this provider/collection combination.
+            # Delete previous entries from this provider/collection combination.
             deletePreviousEntries(_getoptions().table_name, collection.get_provider(), collection.get_collection())
-
+            
             # We currently combine three SQL statements into a single statement for transmission to CartoDB.
             sql_statements = set()
 
-            # Step 2.3. For every feature:
             row_count = 0
             for feature in features:
-                row_count = row_count + 1
+                row_count += 1
 
                 properties = feature['properties']
                 new_properties = collection.default_fields()
@@ -220,58 +117,27 @@ def uploadToCartoDB(provider_dir):
                     if new_value is not None:
                         new_properties[new_key] = unicode(new_value)
 
-                # Convert field names to dbfnames.
-                dbf_properties = {}
-                for fieldname in new_properties.keys():
-                    dbf_properties[ProviderConfig.fieldname_to_dbfname(fieldname)] = new_properties[fieldname]
-
-                # Replace the existing properties with the new one.
-                # feature['properties'] = dbf_properties
-                # No - let's try uploading to CartoDB without.
                 feature['properties'] = new_properties
 
-                # Upload to CartoDB.
-                logging.info("\tUploading feature.");
+                # Prepare SQL for upload to CartoDB.
+                logging.info("\tPreparing SQL for feature #%d" % row_count);
                 sql_statements.add(encodeGeoJSONEntryAsSQL(feature, _getoptions().table_name))
 
                 if(len(sql_statements) >= sql_statements_to_send_at_once):
+                    logging.info("\tBatch-uploading %d features to CartoDB." % len(sql_statements))
                     sendSQLStatementToCartoDB("; ".join(sql_statements))
                     sql_statements.clear()
 
-                # Save into all_features.
-                all_features.append(feature)
-
+            # Anything still left in sql_statements? Process and upload them now.
             if(len(sql_statements) > 0):
                 sendSQLStatementToCartoDB("; ".join(sql_statements))
                 sql_statements.clear()
             
-            features_json = []
-            for feature in all_features:
-                try:
-                    features_json.append(simplejson.dumps(feature, ensure_ascii=False))
-                except:
-                    logging.info('Unable to convert feature to JSON: %s' % feature)
-
-            all_json.write(','.join(features_json))
-            all_json.write(',')
-            all_json.flush()
-            all_features = []                
-                
             logging.info('%s converted to GeoJSON, %d features processed.' % (name, len(features)))
 
             # Go back to the provider directory.
             os.chdir(original_dir)
             os.chdir(provider_dir)
-
-        # Zip up the GeoJSON document
-        all_json.write("""]}""")
-        all_json.close()
-
-        myzip = ZipFile('%s.zip' % filename, 'w')
-        # The following statement fails because the filename is
-        # not being properly set.
-        # myzip.write(filename) # TODO: Fails for big files (4GB)
-        myzip.close()
 
         logging.info("%s written successfully." % filename)
 
@@ -279,6 +145,108 @@ def uploadToCartoDB(provider_dir):
         os.chdir(original_dir)
 
     logging.info("Processing of directory '%s' completed." % provider_dir)
+
+def processCollection(collection_dir):
+    name = collection_dir.getname()
+
+    logging.info("Switching to collection '%s'." % name)
+
+    if os.path.isdir(name):
+        return processShapefileDir(name)
+    elif os.path.isfile(name) and name.lower().rfind('.csv', len(name) - 4, len(name)) != -1:
+        return processLatLongCsvFile(name)
+
+def processShapefileDir(name):
+    os.chdir(name)
+
+    try:
+        shapefiles = glob.glob('*.shp')
+        for shapefile in shapefiles:
+            # Determine the "name" (filename without extension) of this file.
+            name = shapefile[0:shapefile.index('.shp')]
+
+            logging.info("Processing shapefile: %s." % name)
+
+            # Step 2.1. Convert this shapefile into a GeoJSON file, projected to
+            # EPSG 4326 (WGS 84).
+            json_filename = '%s.json' % name
+            
+            # Delete existing geojson file since we're appending.
+            if os.path.exists(json_filename):
+                os.remove(json_filename)
+
+            command = [ogr2ogr_path(), 
+                '-f', 'GeoJSON', 
+                '-t_srs', 'EPSG:4326',
+                json_filename,
+                '%s.shp' % name
+            ]
+
+            try:
+                subprocess.call(command)
+            except Exception as e:
+                logging.error('Unable to convert %s to GeoJSON: %s (command: %s)' % (name, e, command))
+                if os.path.exists(json_filename):
+                    os.remove(json_filename)
+                continue
+
+            # Step 2.2. Load that GeoJSON file and do the mapping.
+            #logging.info('Mapping fields from DBF to specification: %s' % json_filename)
+            geojson = None
+            try:
+                geojson = simplejson.loads(
+                    codecs.open(json_filename, encoding='utf-8').read(), 
+                    encoding='utf-8')
+
+            except:
+                logging.error('Unable to open or process %s' % json_filename)
+                exit(1)
+
+            for feature in geojson['features']:
+                yield feature
+
+    finally:
+        # Return to the provider dir.
+        os.chdir('..')
+
+def processLatLongCsvFile(name):
+    # This is a .csv file! 
+    csvfile = open(name, "r")
+    reader = UnicodeDictReader(csvfile)
+
+    features = []
+    feature_index = 0
+    for entry in reader:
+        feature_index += 1
+        feature = {}
+
+        # As per the spec at http://geojson.org/geojson-spec.html
+        feature['type'] = 'Feature'
+        feature['properties'] = entry
+
+        lat = entry['Latitude']
+        if not lat:
+            logging.warn("Feature %d has no latitude, ignoring." % feature_index)
+            continue # Ignore features without latitudes.
+        long = entry['Longitude']
+        if not long:
+            logging.warn("Feature %d has no longitude, ignoring." % feature_index)
+            continue # Ignore features without longitudes.
+
+        feature['geometry'] = {'type': 'Point', 'coordinates': [
+                float(entry['Longitude']),
+                float(entry['Latitude'])
+            ]}
+            # TODO: We assume latitude and longitude (in WGS84) are
+            # present in the columns 'Latitude' and 'Longitude'
+            # respectively.
+        
+            # IMPORTANT TODO: at the moment, we assume the incoming coordinates
+            # are already in WGS84! THIS MIGHT NOT BE TRUE!
+
+        features.append(feature)
+
+    csvfile.close()
 
 def deletePreviousEntries(table_name, provider, collection):
     """Delete previous database entries refering to this provider/collection combination.
@@ -292,19 +260,6 @@ def deletePreviousEntries(table_name, provider, collection):
 
     Returns: none.
     """
-
-    global cartodb_settings
-
-    cdb = CartoDB(
-        cartodb_settings['CONSUMER_KEY'],
-        cartodb_settings['CONSUMER_SECRET'],
-        cartodb_settings['user'],
-        cartodb_settings['password'],
-        cartodb_settings['user'],
-        host=cartodb_settings['domain'],
-        protocol=cartodb_settings['protocol'],
-        access_token_url=cartodb_settings['access_token_url']
-    )
 
     # Generate a 'tag', by calculating a SHA-1 hash of the concatenation
     # of the current time (in seconds since the epoch) and the string
@@ -326,35 +281,20 @@ def deletePreviousEntries(table_name, provider, collection):
         'provider': tag + provider + tag,
         'collection': tag + collection + tag
     }
-    print "Sending SQL: [%s]" % sql
-    print cdb.sql(sql)
+
+    sendSQLStatementToCartoDB(sql)
 
 def encodeGeoJSONEntryAsSQL(entry, table_name):
-    """Uploads a single GeoJSON entry to any URL capable of accepting SQL statements. We 
-    convert the GeoJSON into a single INSERT SQL statement and send it.
+    """Encodes a GeoJSON entry (i.e. an object fulfilling the Python 'geo' interface)
+    into a CartoDB statement for upload to CartoDB.
 
     Arguments:
         entry: A GeoJSON row entry containing geometry and field information for upload.
         table_name: The name of the table to add this GeoJSON entry to.
-        query_string: A URL format string containing a '%s', which will be replaced with
-            a uri-encoded SQL string.
 
     Returns: none.
     """
     
-    global cartodb_settings
-
-    cdb = CartoDB(
-        cartodb_settings['CONSUMER_KEY'],
-        cartodb_settings['CONSUMER_SECRET'],
-        cartodb_settings['user'],
-        cartodb_settings['password'],
-        cartodb_settings['user'],
-        host=cartodb_settings['domain'],
-        protocol=cartodb_settings['protocol'],
-        access_token_url=cartodb_settings['access_token_url']
-    )
-
     # Get the fields and values ready to be turned into an SQL statement
     properties = entry['properties']
     fields = properties.keys()
@@ -402,21 +342,28 @@ def encodeGeoJSONEntryAsSQL(entry, table_name):
     return sql
 
 def sendSQLStatementToCartoDB(sql):
+    """ A helper method for sending an SQL statement (or multiple SQL statements in a 
+    single string) to CartoDB. Note that cartodb is only initialized once; it is stored
+    as a global, and reused on subsequent calls.
+    """
+
+    global cartodb
     global cartodb_settings
 
-    cdb = CartoDB(
-        cartodb_settings['CONSUMER_KEY'],
-        cartodb_settings['CONSUMER_SECRET'],
-        cartodb_settings['user'],
-        cartodb_settings['password'],
-        cartodb_settings['user'],
-        host=cartodb_settings['domain'],
-        protocol=cartodb_settings['protocol'],
-        access_token_url=cartodb_settings['access_token_url']
-    )
+    if cartodb is None:
+        cartodb = CartoDB(
+            cartodb_settings['CONSUMER_KEY'],
+            cartodb_settings['CONSUMER_SECRET'],
+            cartodb_settings['user'],
+            cartodb_settings['password'],
+            cartodb_settings['user'],
+            host=cartodb_settings['domain'],
+            protocol=cartodb_settings['protocol'],
+            access_token_url=cartodb_settings['access_token_url']
+        )
 
-    print "Executing SQL[%s]" % sql
-    print cdb.sql(sql)
+    # print "Executing SQL: «%s»" % sql
+    print "Result: %s" % cartodb.sql(sql)
 
 def _getoptions():
     ''' Parses command line options and returns them.'''
@@ -452,9 +399,13 @@ def _getoptions():
 
     return parser.parse_args()[0]
 
-cartodb_settings = None
 
 def main():
+    """ The main() method; code execution begins here unless this
+    file has been imported as a library. This method determines which
+    directories the user has decided should be uploaded, and then calls
+    uploadToCartoDB() on those directories."""
+    
     logging.basicConfig(level=logging.DEBUG)
     options = _getoptions()
 
