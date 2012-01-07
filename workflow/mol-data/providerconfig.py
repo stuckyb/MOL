@@ -100,6 +100,7 @@ class ProviderConfig(object):
                 mapping = self.collection['fields']['required']
             else:
                 mapping = self.collection['fields']['optional']
+
             dd = dict()
             for mol, source in mapping.iteritems():
                 if source is not None and source != '' and unicode(source)[0] == '=':

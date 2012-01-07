@@ -37,21 +37,34 @@ from zipfile import ZipFile
 from providerconfig import ProviderConfig
 from unicodewriter import UnicodeDictReader
 
-def ogr2ogr_path():
-    """ Determines and returns the path to ogr2ogr. """
+# The default directory where datasets may be found. Set this back to
+# '.' for the old loader.py behavior of looking in subfolders of the
+# current directory.
+DEFAULT_DATASETS_DIR = 'datasets'
 
-    # For Macs which have GDAL.framework, we can autodetect it
-    # and use it automatically.
+class ogr2ogrPathDetection(object):
+    """ Determines and returns the path to ogr2ogr. 
+    Implemented as a callable object so its return
+    value can be easily memoized.
+    """
 
-    ogr2ogr_path = '/Library/Frameworks/GDAL.framework/Programs/ogr2ogr'
-    if not os.path.exists(ogr2ogr_path):
-        # We don't have a path to use; let subprocess.call
-        # find it.
-        ogr2ogr_path = 'ogr2ogr'
+    def __init__(self):
+        # For Macs which have GDAL.framework, we can autodetect it
+        # and use it automatically.
+        path = '/Library/Frameworks/GDAL.framework/Programs/ogr2ogr'
+        if not os.path.exists(path):
+            # We don't have a path to use; let subprocess.call
+            # find it.
+            path = 'ogr2ogr'
 
-    return ogr2ogr_path
+        self.cached_path = path
 
-def convertToJSON(provider_dir):
+    def __call__(self):
+        return self.cached_path
+
+ogr2ogr_path = ogr2ogrPathDetection()
+
+def uploadToCartoDB(provider_dir):
     """Converts the given directory into a JSON file (stored in the directory itself as 'all.json').
 
     If '$dir/all.json' already exists, it will be overwritten.
@@ -121,8 +134,8 @@ def convertToJSON(provider_dir):
 
                     try:
                         subprocess.call(command)
-                    except:
-                        logging.error('Unable to convert %s to GeoJSON - %s' % (name, command))
+                    except Exception as e:
+                        logging.error('Unable to convert %s to GeoJSON: %s (command: %s)' % (name, e, command))
                         if os.path.exists(json_filename):
                             os.remove(json_filename)
                         continue
@@ -455,30 +468,33 @@ def main():
         logging.error("Could not load CartoDB setting file 'cartodb.json': %s" % ex)
         exit(1)
 
+    # Has the user provided a source directory? 
+    if options.source_dir is None:
+        # Go to DEFAULT_DATASETS_DIR and process all the subfolders
+        # therein.
 
-    if options.source_dir is not None:
+        source_dirs = [x for x in os.listdir(DEFAULT_DATASETS_DIR) 
+            if os.path.isdir(os.path.join(DEFAULT_DATASETS_DIR, x))]
+
+        logging.info('Processing source directories in %s: %s' % (DEFAULT_DATASETS_DIR, source_dirs))
+        for sd in source_dirs: # For each source dir (e.g., jetz, iucn)
+            if not os.path.exists(os.path.join(DEFAULT_DATASETS_DIR, sd, "config.yaml")):
+                logging.info('Directory "%s": No config.yaml found, ignoring directory.' % sd)
+            else:
+                uploadToCartoDB(os.path.join(DEFAULT_DATASETS_DIR, sd))
+
+    else:
+        # Process the source directory specified.
+
         if os.path.isdir(options.source_dir):
             source_dir = os.path.normpath(options.source_dir)
 
             logging.info('Processing source directory: %s' % source_dir)
-            convertToJSON(source_dir)
+            uploadToCartoDB(source_dir)
             sys.exit(0)
         else:
             logging.info('Unable to locate source directory %s.' % options.source_dir)
             sys.exit(1)
-    else:
-        source_dirs = [x for x in os.listdir('.') if os.path.isdir(x)]
-
-        # Remove some directories used internally.
-        source_dirs.remove('logs')
-        source_dirs.remove('progress')
-
-        logging.info('Processing source directories: %s' % source_dirs)
-        for sd in source_dirs: # For each source dir (e.g., jetz, iucn)
-            if not os.path.exists(sd + "/config.yaml"):
-                logging.info('Directory "%s": No config.yaml found, ignoring directory.' % sd)
-            else:
-                convertToJSON(sd)
 
     logging.info('Processing completed.')
 
