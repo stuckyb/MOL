@@ -96,7 +96,7 @@ def uploadToCartoDB(provider_dir):
 
         # Step 2. For each collection, and then each shapefile in that collection:
         for collection in config.collections():
-            features = processCollection(collection)
+            features = getCollectionIterator(collection)
 
             # Delete previous entries from this provider/collection combination.
             deletePreviousEntries(_getoptions().table_name, collection.get_provider(), collection.get_collection())
@@ -115,8 +115,10 @@ def uploadToCartoDB(provider_dir):
                 for key in properties.keys():
                     (new_key, new_value) = collection.map_field(row_count, key, properties[key])
                     if new_value is not None:
+                        # print "Mapping %s as %s." % (new_key, new_value)
                         new_properties[new_key] = unicode(new_value)
 
+                collection.verify_fields(properties['filename'], new_properties)
                 feature['properties'] = new_properties
 
                 # Prepare SQL for upload to CartoDB.
@@ -146,30 +148,30 @@ def uploadToCartoDB(provider_dir):
 
     logging.info("Processing of directory '%s' completed." % provider_dir)
 
-def processCollection(collection_dir):
-    name = collection_dir.getname()
+def getCollectionIterator(collection):
+    name = collection.get_name()
 
     logging.info("Switching to collection '%s'." % name)
 
     if os.path.isdir(name):
-        return processShapefileDir(name)
+        return getFeaturesFromShapefileDir(collection, name)
     elif os.path.isfile(name) and name.lower().rfind('.csv', len(name) - 4, len(name)) != -1:
-        return processLatLongCsvFile(name)
+        return getFeaturesFromLatLongCsvFile(collection, name)
 
-def processShapefileDir(name):
+def getFeaturesFromShapefileDir(collection, name):
     os.chdir(name)
 
     try:
         shapefiles = glob.glob('*.shp')
         for shapefile in shapefiles:
             # Determine the "name" (filename without extension) of this file.
-            name = shapefile[0:shapefile.index('.shp')]
+            filename = shapefile[0:shapefile.index('.shp')]
 
-            logging.info("Processing shapefile: %s." % name)
+            logging.info("Processing shapefile: %s." % filename)
 
             # Step 2.1. Convert this shapefile into a GeoJSON file, projected to
             # EPSG 4326 (WGS 84).
-            json_filename = '%s.json' % name
+            json_filename = '%s.json' % filename
             
             # Delete existing geojson file since we're appending.
             if os.path.exists(json_filename):
@@ -179,7 +181,7 @@ def processShapefileDir(name):
                 '-f', 'GeoJSON', 
                 '-t_srs', 'EPSG:4326',
                 json_filename,
-                '%s.shp' % name
+                '%s.shp' % filename
             ]
 
             try:
@@ -195,21 +197,28 @@ def processShapefileDir(name):
             geojson = None
             try:
                 geojson = simplejson.loads(
-                    codecs.open(json_filename, encoding='utf-8').read(), 
+                    codecs.open(json_filename, encoding='latin-1').read(), 
                     encoding='utf-8')
 
-            except:
-                logging.error('Unable to open or process %s' % json_filename)
+            except Exception as e:
+                logging.error('Unable to open or process %s: %s' % (json_filename, e.__str__()))
                 exit(1)
 
+            row_count = 0
             for feature in geojson['features']:
+                row_count += 1
+                properties = feature['properties']
+                properties['provider'] = collection.get_provider()
+                properties['collection'] = collection.get_name()
+                properties['filename'] = filename + ".shp"
+                properties['row'] = row_count
                 yield feature
 
     finally:
         # Return to the provider dir.
         os.chdir('..')
 
-def processLatLongCsvFile(name):
+def getFeaturesFromLatLongCsvFile(name):
     # This is a .csv file! 
     csvfile = open(name, "r")
     reader = UnicodeDictReader(csvfile)

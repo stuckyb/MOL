@@ -74,6 +74,8 @@ class ProviderConfig(object):
                 fields['required']['provider'] = provider.lower()
                 fields['required']['collection'] = self.collection['collection'].lower()
 
+            self.mapped_fields = None
+
             # NOTE: No longer being autovalidated! Please call ProviderConfig.validate()
             # to validate.
 
@@ -93,53 +95,57 @@ class ProviderConfig(object):
             cols.extend(self.collection['fields']['optional'].keys())
             return cols
 
-        def get_mapping(self, required=True):
-            """Returns a reverse fields for convenience."""
+        def verify_fields(self, filename, properties):
+            required_fields = self.collection['fields']['required'].keys()
 
-            if required:
-                mapping = self.collection['fields']['required']
-            else:
-                mapping = self.collection['fields']['optional']
+            required_fieldset = set(required_fields)
+            properties_keyset = set(properties.keys())
 
-            dd = dict()
-            for mol, source in mapping.iteritems():
-                if source is not None and source != '' and unicode(source)[0] == '=':
-                    dd[unicode(source).lower()] = mol
-                    # TODO: Restore multiple mappings, as below:
-                    # dd[unicode(source).lower()].append(mol)
-            return dd
-
-            #return dict((source, mol) for mol,source in mapping.iteritems())
+            if len(required_fieldset.difference(properties_keyset)) > 0:
+                logging.error("The following required fields are not defined in file %s: %s" %
+                    (filename, ", ".join(required_fieldset.difference(properties_keyset))))
+                sys.exit(1)
 
         def default_fields(self):
-            """ Returns a dict of every field which already has a value set in config.yaml """
+            """ Returns a dict of every field which already has a value set in config.yaml.
+            """
 
             dict = {}
+            mapping = {}
 
-            for (name, value) in self.collection['fields']['required'].iteritems():
-                if value is not None and value != '' and unicode(value)[0] != '=':
-                    dict[name] = unicode(value)
+            for iteritems in (self.collection['fields']['required'].iteritems(), self.collection['fields']['optional'].iteritems()):
+                for (name, value) in iteritems:
+                    if value is None:
+                        continue
+                    elif isinstance(value, list):
+                        for mapped_field in value:
+                            mapping[unicode(mapped_field).lower()] = unicode(name).lower()
+                    elif value != '':
+                        dict[name] = unicode(value)
             
-            for (name, value) in self.collection['fields']['optional'].iteritems():
-                if value is not None and value != '' and unicode(value)[0] != '=':
-                    dict[name] = unicode(value)
+            self.mapped_fields = mapping
+            # print "Mapped fields: " + mapping.__str__()
 
             return dict
 
         def map_field(self, row_no, name, specified_value):
-            # Is this a mapped field?
-            mapping = self.get_mapping()
+            while self.mapped_fields is None:
+                self.default_fields()
 
             name_lc = unicode(name).lower()
+            mapping = self.mapped_fields
 
-            if ('=' + name_lc) in mapping:
-                field_to_map_to = mapping['=' + name_lc] 
+            if name_lc in mapping:
+                field_to_map_to = mapping[name_lc] 
 
                 # Quick check for 'blank' mappings.
-                # TODO: Reactivate this at some point.
-                # if self.is_required(field_to_map_to) and (specified_value is None or specified_value == ''):
-                #    logging.error("Required field '%s' is mapped from DBF column '%s', but row %d is missing a value in this dataset." % (field_to_map_to, name_lc, row_no))
-                #    exit()
+                if (specified_value is None or specified_value == ''):
+                    if self.is_required(field_to_map_to):
+                        logging.error("Required field '%s' is mapped from DBF column '%s', but row %d is missing a value in this dataset." % (field_to_map_to, name_lc, row_no))
+                        exit(1)
+                    else:
+                        # No point mapping to a blank value.
+                        return (None, None)
                 
                 # Otherwise, go right ahead and map it!
                 return (field_to_map_to, specified_value)
@@ -157,7 +163,7 @@ class ProviderConfig(object):
                 logging.error("is_required('%s') called on a fieldname not in the spec" % fieldname)
                 exit(1)
 
-        def getname(self):
+        def get_name(self):
             return self.collection['collection']
 
         def get(self, key, default=None):
@@ -183,7 +189,7 @@ class ProviderConfig(object):
             ERR_VALIDATION = 3 # Conventionally, 0 = success, 1 = error, 2 = command line incorrect.
             """ Fatal errors because of validation failures will cause an exit(ERR_VALIDATION) """
 
-            config_section_to_validate = "'%s', collection '%s'" % (self.filename, self.getname())
+            config_section_to_validate = "'%s', collection '%s'" % (self.filename, self.get_name())
 
             # Step 1. Check if both required categories are present.
             if not self.collection.has_key('fields') or not self.collection['fields'].has_key('required'):
@@ -309,6 +315,8 @@ query failed to return any results; this should never happen:\n\t%s""", sql)
                 exit(ERR_VALIDATION)
 
             # No errors? Return successfully!
+            logging.info("Validation of %s complete." % config_section_to_validate)
+
             return
 
     def get_provider(self):
@@ -317,7 +325,8 @@ query failed to return any results; this should never happen:\n\t%s""", sql)
     def __init__(self, filename, provider):
         self.filename = filename
         self.provider = provider
-        self.config = ProviderConfig.lower_keys(yaml.load(open(filename, 'r').read()))
+        yaml_content = yaml.load(open(filename, 'r').read())
+        self.config = ProviderConfig.lower_keys(yaml_content)
 
     # Deprecated; if nothing breaks, delete it.
     # def collection_names(self):
