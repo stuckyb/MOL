@@ -700,16 +700,20 @@ MOL.modules.model = function(mol) {
 			this.properties[tag].update(rgb, alpha);
 		},
 		toString: function() {
-			result = "{";
-			for (var property in this.properties) {
+			var result = "{",
+                property = null;
+
+			for (property in this.properties) {
 				result += property+"\:" + this.properties[property] + ";";
 			}
 			result += "}";
 			return result;
 		},
 		toDisplayString: function() {
-			result = "{\n";
-			for (var property in this.properties) {
+			var result = "{\n",
+                property = null;
+
+			for (property in this.properties) {
 				result += "    "+property+"\:" + this.properties[property] + ";\n";
 			}
 			result += "}";
@@ -735,7 +739,7 @@ MOL.modules.model = function(mol) {
     			this.style = style;
     		}
 		}
-	)
+	);
 	
     /**
      * The layer model.
@@ -2659,7 +2663,7 @@ MOL.modules.Map = function(mol) {
 				query += "&style=" + encodeURIComponent('#'+config.table+style);
                 if (google.maps.CartoDBLayer) {
 					if (layer.obj) {
-						layer.obj.update(query, layerName) 
+						layer.obj.update(query, layerName) ;
 					} else {
 						layer.obj = new google.maps.CartoDBLayer({
 	                		map_canvas : 'map',
@@ -3247,11 +3251,11 @@ MOL.modules.Add = function(mol) {
                 s = '#domain';
 				return x ? x : (this.domainInput = this.findChild(s));
 			},
-			// getTableNameInput: function() {
-			// 				var x = this._tablenameInput,
-			//                 s = '#tablename';
-			// 				return x ? x : (this.tablenameInput = this.findChild(s));
-			// 			},
+			getTableNameInput: function() {
+				var x = this._tablenameInput,
+			    s = '#tablename';
+				return x ? x : (this.tablenameInput = this.findChild(s));
+			},
 			getQueryInput: function() {
 				var x = this._queryInput,
                 s = '#query';
@@ -3275,7 +3279,7 @@ MOL.modules.Add = function(mol) {
             clearAll: function() {
             	this.getUserNameInput().val(new String());
             	this.getDomainInput().val(new String());
-            	// this.getTableNameInput().val(new String());
+            	this.getTableNameInput().val(new String());
             	this.getQueryInput().val(new String());
             	this.getNameInput().val(new String());
             },
@@ -3288,8 +3292,8 @@ MOL.modules.Add = function(mol) {
 		                '  <input id="username" class="value" type="text" placeholder="username e.g. eighty">' + 
 		                '  <div class="key">Domain</div>' + 
 		                '  <input id="domain" class="value" placeholder="domain e.g. cartodb.com:80">' +
-		                // '  <div class="key">Table</div>' + 
-		                // 		                '  <input id="tablename" class="value" placeholder="tablename e.g. mol_cody">' +
+		                '  <div class="key">Table</div>' + 
+		                		                '  <input id="tablename" class="value" placeholder="tablename e.g. mol_cody">' +
 		                '  <div class="key">Query</div>' + 
 		                '  <input id="query" class="value" placeholder="query e.g. Select * from mol_cody where scientific = Corturnix">' +
 		                '  <button class="execute">Add</button>' +
@@ -3437,7 +3441,7 @@ MOL.modules.Add = function(mol) {
             
             _onGoButtonClick: function() {
             	var username = this._display.getUserNameInput().val(),
-            		// tablename = this._display.getTableNameInput().val(),
+            	    tablename = this._display.getTableNameInput().val(),
 					host = this._display.getDomainInput().val(),
             		query = this._display.getQueryInput().val(),
             		name = this._display.getNameInput().val(),
@@ -3447,10 +3451,11 @@ MOL.modules.Add = function(mol) {
 					config = new mol.model.Config({
 						name: name,
 						user: username,
-						// table: tablename,
+						table: tablename,
 						host: host,
 						query: query,
-						action: 'add'
+						action: 'add'                        
+                                                      
 					}),
 					layer = null;
             	if (username.length > 0 && query.length > 0) {
@@ -3468,12 +3473,12 @@ MOL.modules.Add = function(mol) {
             	} else {
             		alert('Username, domain and query are mandatory.');
             	}
-            },
+            }
             
             
         }
     );
-}/**
+};/**
  * Search module has a display used as a map control. It allows users to search
  * for layers to add to the map.
  */

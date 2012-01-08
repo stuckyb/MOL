@@ -86,16 +86,20 @@ MOL.modules.model = function(mol) {
 			this.properties[tag].update(rgb, alpha);
 		},
 		toString: function() {
-			result = "{";
-			for (var property in this.properties) {
+			var result = "{",
+                property = null;
+
+			for (property in this.properties) {
 				result += property+"\:" + this.properties[property] + ";";
 			}
 			result += "}";
 			return result;
 		},
 		toDisplayString: function() {
-			result = "{\n";
-			for (var property in this.properties) {
+			var result = "{\n",
+                property = null;
+
+			for (property in this.properties) {
 				result += "    "+property+"\:" + this.properties[property] + ";\n";
 			}
 			result += "}";
@@ -121,7 +125,7 @@ MOL.modules.model = function(mol) {
     			this.style = style;
     		}
 		}
-	)
+	);
 	
     /**
      * The layer model.

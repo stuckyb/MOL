@@ -411,7 +411,7 @@ MOL.modules.Map = function(mol) {
 				query += "&style=" + encodeURIComponent('#'+config.table+style);
                 if (google.maps.CartoDBLayer) {
 					if (layer.obj) {
-						layer.obj.update(query, layerName) 
+						layer.obj.update(query, layerName) ;
 					} else {
 						layer.obj = new google.maps.CartoDBLayer({
 	                		map_canvas : 'map',
