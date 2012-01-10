@@ -372,9 +372,22 @@ def sendSQLStatementToCartoDB(sql):
         )
 
     # print "Executing SQL: «%s»" % sql
-    print "Result: %s" % cartodb.sql(sql)
+    if not _getoptions().dummy_run:
+        print "Result: %s" % cartodb.sql(sql)
+    else:
+        print "Result: none (dummy run in progress)"
 
+cmdline_options = None
 def _getoptions():
+    ''' Returns the parsed command line options.'''
+
+    global cmdline_options
+    while cmdline_options is None:
+        cmdline_options = parse_cmdline()
+
+    return cmdline_options
+
+def parse_cmdline():
     ''' Parses command line options and returns them.'''
     parser = OptionParser()
     parser.add_option('-s', '--source_dir',
@@ -404,6 +417,11 @@ def _getoptions():
                       action="store_true",
                       dest="no_validate",
                       help="Turns off validation of the config.yaml files being processed."
+    )
+    parser.add_option('--dummy', '-d',
+                      action="store_true",
+                      dest="dummy_run",
+                      help="Performs all steps (including generating SQL statements for CartoDB) but without uploading any data."
     )
 
     return parser.parse_args()[0]
