@@ -99,7 +99,7 @@ def uploadToCartoDB(provider_dir):
             features = getCollectionIterator(_getoptions().table_name, collection)
 
             # Delete previous entries from this provider/collection combination.
-            if _getoptions().reset_table:
+            if _getoptions().reset_collection:
                 deletePreviousEntries(_getoptions().table_name, collection.get_provider(), collection.get_collection())
 
             # Check feature hashes, so we don't reupload existing entries.
@@ -487,8 +487,8 @@ def parse_cmdline():
     )
     parser.add_option('--reset', '-D',
                       action="store_true",
-                      dest="reset_table",
-                      help="Resets the table by deleting all records in it before starting the upload."
+                      dest="reset_collection",
+                      help="Resets the table by deleting all records in a collection before uploading that collection."
     )
 
     return parser.parse_args()[0]
