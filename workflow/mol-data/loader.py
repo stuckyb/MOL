@@ -99,7 +99,8 @@ def uploadToCartoDB(provider_dir):
             features = getCollectionIterator(_getoptions().table_name, collection)
 
             # Delete previous entries from this provider/collection combination.
-            # deletePreviousEntries(_getoptions().table_name, collection.get_provider(), collection.get_collection())
+            if _getoptions().reset_table:
+                deletePreviousEntries(_getoptions().table_name, collection.get_provider(), collection.get_collection())
 
             # Check feature hashes, so we don't reupload existing entries.
             uploaded_feature_hashes = getUploadedFeatureHashes(
@@ -207,6 +208,9 @@ def getUploadedFeatureHashes(table_name, provider, collection):
             (table_name, quoted_provider, quoted_collection)
     )
     rows = results['rows']
+
+    # TODO: We should probably check for hash-collision here, just in case.
+
     hashes = dict((row['featurehash'], 1) for row in rows)
     # print "Hashes: " + ", ".join(hashes.keys())
     return hashes
@@ -426,9 +430,9 @@ def sendSQLStatementToCartoDB(sql):
 
     # print "Executing SQL: «%s»" % sql
     if not _getoptions().dummy_run:
-        print "Result: %s" % cartodb.sql(sql)
+        logging.info("\t  Result: %s" % cartodb.sql(sql))
     else:
-        print "Result: none (dummy run in progress)"
+        logging.info("\t  Result: none (dummy run in progress)")
 
 cmdline_options = None
 def _getoptions():
@@ -481,6 +485,11 @@ def parse_cmdline():
                       dest="replace",
                       help="Replace existing records, even if their hashes match existing records on the database."
     )
+    parser.add_option('--reset', '-D',
+                      action="store_true",
+                      dest="reset_table",
+                      help="Resets the table by deleting all records in it before starting the upload."
+    )
 
     return parser.parse_args()[0]
 
@@ -491,7 +500,7 @@ def main():
     directories the user has decided should be uploaded, and then calls
     uploadToCartoDB() on those directories."""
     
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG, format="%(levelname)s:%(module)s:%(relativeCreated)d:%(message)s")
     options = _getoptions()
 
     # Load up the cartodb settings: we'll need them later.
