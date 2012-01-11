@@ -130,8 +130,18 @@ def uploadToCartoDB(provider_dir):
 
                 feature_hash = hashlib.sha1(feature.__str__()).hexdigest().upper()
                 if feature_hash in uploaded_feature_hashes:
-                    logging.info("\tFeature #%d has already been uploaded (hash matches)" % row_count)
-                    continue
+                    if not _getoptions().replace:
+                        logging.info("\tFeature #%d has already been uploaded (hash matches)" % row_count)
+                        continue
+                    else:
+                        tag = random.randint(100000, 99999999).__str__()
+                        sql_statements.add("DELETE FROM %s WHERE provider=%s AND collection=%s AND featurehash=%s" %
+                            (_getoptions().table_name, 
+                            '$tag_' + tag + '$' + collection.get_provider() + '$tag_' + tag + '$',
+                            '$tag_' + tag + '$' + collection.get_name() + '$tag_' + tag + '$',
+                            '$tag_' + tag + '$' + feature_hash + '$tag_' + tag + '$'
+                            )
+                        )
                 feature['properties']['FeatureHash'] = feature_hash
 
                 # Prepare SQL for upload to CartoDB.
@@ -139,12 +149,13 @@ def uploadToCartoDB(provider_dir):
                 sql_statements.add(encodeGeoJSONEntryAsSQL(feature, _getoptions().table_name))
 
                 if(len(sql_statements) >= sql_statements_to_send_at_once):
-                    logging.info("\tBatch-uploading %d features to CartoDB." % len(sql_statements))
+                    logging.info("\tBatch-transmitting %d SQL statements to CartoDB." % len(sql_statements))
                     sendSQLStatementToCartoDB("; ".join(sql_statements))
                     sql_statements.clear()
 
             # Anything still left in sql_statements? Process and upload them now.
             if(len(sql_statements) > 0):
+                logging.info("\tBatch-transmitting %d SQL statements to CartoDB." % len(sql_statements))
                 sendSQLStatementToCartoDB("; ".join(sql_statements))
                 sql_statements.clear()
             
@@ -464,6 +475,11 @@ def parse_cmdline():
                       action="store_true",
                       dest="dummy_run",
                       help="Performs all steps (including generating SQL statements for CartoDB) but without uploading any data."
+    )
+    parser.add_option('--replace', '-R',
+                      action="store_true",
+                      dest="replace",
+                      help="Replace existing records, even if their hashes match existing records on the database."
     )
 
     return parser.parse_args()[0]
