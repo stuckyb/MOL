@@ -96,10 +96,17 @@ def uploadToCartoDB(provider_dir):
 
         # Step 2. For each collection, and then each shapefile in that collection:
         for collection in config.collections():
-            features = getCollectionIterator(collection)
+            features = getCollectionIterator(_getoptions().table_name, collection)
 
             # Delete previous entries from this provider/collection combination.
-            deletePreviousEntries(_getoptions().table_name, collection.get_provider(), collection.get_collection())
+            # deletePreviousEntries(_getoptions().table_name, collection.get_provider(), collection.get_collection())
+
+            # Check feature hashes, so we don't reupload existing entries.
+            uploaded_feature_hashes = getUploadedFeatureHashes(
+                _getoptions().table_name, 
+                collection.get_provider(), 
+                collection.get_name()
+            )
             
             # We currently combine three SQL statements into a single statement for transmission to CartoDB.
             sql_statements = set()
@@ -120,6 +127,12 @@ def uploadToCartoDB(provider_dir):
 
                 collection.verify_fields(properties['filename'], new_properties)
                 feature['properties'] = new_properties
+
+                feature_hash = hashlib.sha1(feature.__str__()).hexdigest().upper()
+                if feature_hash in uploaded_feature_hashes:
+                    logging.info("\tFeature #%d has already been uploaded (hash matches)" % row_count)
+                    continue
+                feature['properties']['FeatureHash'] = feature_hash
 
                 # Prepare SQL for upload to CartoDB.
                 logging.info("\tPreparing SQL for feature #%d" % row_count);
@@ -148,7 +161,7 @@ def uploadToCartoDB(provider_dir):
 
     logging.info("Processing of directory '%s' completed." % provider_dir)
 
-def getCollectionIterator(collection):
+def getCollectionIterator(table_name, collection):
     name = collection.get_name()
 
     logging.info("Switching to collection '%s'." % name)
@@ -157,6 +170,35 @@ def getCollectionIterator(collection):
         return getFeaturesFromShapefileDir(collection, name)
     elif os.path.isfile(name) and name.lower().rfind('.csv', len(name) - 4, len(name)) != -1:
         return getFeaturesFromLatLongCsvFile(collection, name)
+
+def getUploadedFeatureHashes(table_name, provider, collection):
+    global cartodb
+    global cartodb_settings
+
+    if cartodb is None:
+        cartodb = CartoDB(
+            cartodb_settings['CONSUMER_KEY'],
+            cartodb_settings['CONSUMER_SECRET'],
+            cartodb_settings['user'],
+            cartodb_settings['password'],
+            cartodb_settings['user'],
+            host=cartodb_settings['domain'],
+            protocol=cartodb_settings['protocol'],
+            access_token_url=cartodb_settings['access_token_url']
+        )
+
+    # print "Executing SQL: «%s»" % sql
+    quoted_provider = "$a_complicated_tag_here$%s$a_complicated_tag_here$" % provider
+    quoted_collection = "$another_complicated_tag_here$%s$another_complicated_tag_here$" % collection
+
+    results = cartodb.sql(
+        "SELECT FeatureHash FROM %s WHERE provider=%s AND collection=%s" % 
+            (table_name, quoted_provider, quoted_collection)
+    )
+    rows = results['rows']
+    hashes = dict((row['featurehash'], 1) for row in rows)
+    # print "Hashes: " + ", ".join(hashes.keys())
+    return hashes
 
 def getFeaturesFromShapefileDir(collection, name):
     os.chdir(name)
