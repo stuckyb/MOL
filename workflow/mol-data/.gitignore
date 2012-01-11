@@ -2,5 +2,4 @@
 *.json
 *.zip
 jetz2
-logs/
 datasets/
