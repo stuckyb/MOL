@@ -57,9 +57,9 @@ mol.modules.map = function(mol) {
     mol.map.MapDisplay = mol.mvp.Display.extend(
         {
             init: function(element, parent) {
-                var mapOptions = null;
-
                 this._super(element, parent);
+
+                var mapOptions = null;
 
                 mapOptions = { 
                     zoom: 2,
@@ -68,12 +68,28 @@ mol.modules.map = function(mol) {
                     center: new google.maps.LatLng(0,0),
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     styles: [
-                        {"featureType":"all",
-                         "elementType":"all",
-                         "stylers":[{"lightness":43},{"visibility":"simplified"},{"saturation":-59}]
+                        {
+                            "featureType":"all",
+                            "elementType":"all",
+                            "stylers":[
+                                {
+                                    "lightness":43
+                                },
+                                {
+                                    "visibility":"simplified"
+                                },
+                                {
+                                    "saturation":-59
+                                }
+                            ]
                         },
                         {
-                            "elementType":"labels","stylers":[{"visibility":"on"}]
+                            "elementType":"labels",
+                            "stylers":[
+                                {
+                                    "visibility":"on"
+                                }
+                            ]
                         }
                         
                     ]
