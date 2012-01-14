@@ -41,7 +41,8 @@ mol.modules.map.controls = function(mol) {
 
             /**
              * Adds a handler for the 'search-display-toggle' event which 
-             * controls display visibility.
+             * controls display visibility. Also adds UI event handlers for the
+             * display.
              */
             addEventHandlers: function() {
                 var self = this;
@@ -59,6 +60,15 @@ mol.modules.map.controls = function(mol) {
                     
                     function(event) {                        
                         self.display.toggle(event.visible);
+                    }
+                );
+
+                /**
+                 * Callback 
+                 */
+                this.display.goButton.click(
+                    function(event) {
+                        console.log('click');
                     }
                 );
             }
@@ -92,6 +102,7 @@ mol.modules.map.controls = function(mol) {
                     '</div>';
 
                 this._super(html);
+                this.goButton = new mol.mvp.View(this.find('.execute'));
             },
 
             toggle: function(visibility) {
