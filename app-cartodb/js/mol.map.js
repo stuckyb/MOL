@@ -2,6 +2,8 @@ mol.modules.map = function(mol) {
     
     mol.map = {};
 
+    mol.map.submodules = ['controls'];
+
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
             init: function(api, bus) {

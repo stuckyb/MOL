@@ -1,15 +1,14 @@
 function mol() {
     var args = Array.prototype.slice.call(arguments),
         callback = args.pop(),
-        submodules = (args[0] && typeof args[0] === "string") ? args : args[0],
-        modules = null,
+        modules = (args[0] && typeof args[0] === "string") ? args : args[0],        
         i,
         m,
         mod,
         submod;
 
     if (!(this instanceof mol)) {
-        return new mol(submodules, callback);
+        return new mol(modules, callback);
     }
    
     if (!modules || modules === '*') {
@@ -20,26 +19,17 @@ function mol() {
             }
         }
     }
-    
-    // Support for submodules like map.controls. Requires calling
-    // mol() with submodules: mol('map.controls', function(env){})
-    // TODO: Design better API for this.
-    if (submodules) {
-        for (i in submodules) {
-            modules.push(submodules[i]);
-        }
-    }
 
     for (i = 0; i < modules.length; i += 1) {
         m = modules[i];
-        if (m.indexOf('.') != -1) {
-            mod = m.split('.')[0];
-            submod = m.split('.')[1];
-            mol.modules[mod][submod](this);
-        } else {
-            mol.modules[modules[i]](this);            
-        }
+        mol.modules[m](this);            
+        if (this[m].hasOwnProperty('submodules')) {
+             for (submod in this[m].submodules) {
+                 mol.modules[m][this[m]['submodules'][submod]](this);
+             }
+         }
     }
+
     callback(this);
     return this;
 };
