@@ -58,9 +58,7 @@ mol.modules.map.controls = function(mol) {
                     'search-display-toggle',
                     
                     function(event) {                        
-                        if (!self.display.visible()) {
-                            self.display.toggle(event.visible);
-                        }
+                        self.display.toggle(event.visible);
                     }
                 );
             }
