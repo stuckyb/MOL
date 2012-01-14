@@ -4,9 +4,8 @@ mol.modules.bus = function(mol) {
     
     mol.bus.Event = Class.extend(
         {
-            init: function(type, action, config) {
+            init: function(type, config) {
                 this.type = type;
-                this.action = action;
                 this.config = config;
             }
         }
@@ -20,7 +19,7 @@ mol.modules.bus = function(mol) {
         _.extend(this, Backbone.Events);
 
         this.fireEvent = function(event) {
-            this.trigger(event.getType(), event);
+            this.trigger(event.type, event);
         };
 
         this.addHandler = function(type, handler) {

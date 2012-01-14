@@ -16,6 +16,7 @@ mol.modules.map = function(mol) {
                 this.display = new mol.map.MapDisplay(null, container);
                 this.display.engine(this);
                 this.addControls();
+                this.addControlHandlers();
             },
 
             go: function(place) {
@@ -32,24 +33,59 @@ mol.modules.map = function(mol) {
                     ControlDisplay = mol.map.ControlDisplay;
                 
                 // Add top right map control.
-                c = new ControlDisplay('RightControl').element;
+                this.ctlRight = new ControlDisplay('RightControl');
                 controls[ControlPosition.TOP_RIGHT].clear();
-                controls[ControlPosition.TOP_RIGHT].push(c);
+                controls[ControlPosition.TOP_RIGHT].push(this.ctlRight.element);
                                 
                 // Add top center map control.
-                c = new ControlDisplay('CenterTopControl').element;
+                this.ctlTop = new ControlDisplay('CenterTopControl');
                 controls[ControlPosition.TOP_CENTER].clear();
-                controls[ControlPosition.TOP_CENTER].push(c);
+                controls[ControlPosition.TOP_CENTER].push(this.ctlTop.element);
 
                 // Add top left map control.
-                c = new ControlDisplay('TopLeftControl').element;
+                this.ctlLeft = new ControlDisplay('TopLeftControl');
                 controls[ControlPosition.TOP_LEFT].clear();
-                controls[ControlPosition.TOP_LEFT].push(c);
+                controls[ControlPosition.TOP_LEFT].push(this.ctlLeft.element);
                 
                 // Add bottom left map control.
-                c = new ControlDisplay('LeftBottomControl').element;
+                this.ctlBottom = new ControlDisplay('LeftBottomControl');
                 controls[ControlPosition.BOTTOM_LEFT].clear();
-                controls[ControlPosition.BOTTOM_LEFT].push(c);
+                controls[ControlPosition.BOTTOM_LEFT].push(this.ctlBottom.element);
+            },
+            
+            addControlHandlers: function() {
+                var self = this;
+
+                this.bus.addHandler(
+                    'add-map-control', 
+                    function(event) {
+                        var display = event.config.display,
+                            slot = event.config.slot,
+                            position = event.config.position,
+                            controls = self.display.map.controls,
+                            control = null,
+                            ControlPosition = google.maps.ControlPosition;
+                        
+                        switch (position) {
+                            case ControlPosition.TOP_RIGHT:
+                            control = self.ctlRight;
+                            break;
+                            
+                            case ControlPosition.TOP_CENTER:
+                            control = self.ctlTop;
+                            break;
+
+                            case ControlPosition.TOP_LEFT:
+                            control = self.ctlLeft;
+                            break;
+
+                            case ControlPosition.BOTTOM_LEFT:
+                            control = self.ctlBottom;
+                            break;
+                        }
+                        control.slot(display, slot);
+                    }
+                );
             }
         }
     );
@@ -129,10 +165,10 @@ mol.modules.map = function(mol) {
                     div = this.find(slot);
 
                 switch (slot) {             
-                case Slot.FIRST:
+                case 'FIRST':
                     this.prepend(display);
                     break;
-                case Slot.LAST:
+                case 'LAST':
                     this.append(display);
                     break;
                 default:            
