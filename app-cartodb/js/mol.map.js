@@ -16,7 +16,7 @@ mol.modules.map = function(mol) {
                 this.display = new mol.map.MapDisplay(null, container);
                 this.display.engine(this);
                 this.addControls();
-                this.addControlHandlers();
+                this.addEventHandlers();
             },
 
             go: function(place) {
@@ -81,21 +81,22 @@ mol.modules.map = function(mol) {
                 return control;
             },
 
-            addControlHandlers: function() {
+            addEventHandlers: function() {
                 var self = this;
 
                 this.bus.addHandler(
                     'add-map-control', 
                     
                     /**
-                     * Adds a map control display in a specified slot. The event
-                     * is expected to have the following properties:
+                     * Callback that adds a map control display in a specified 
+                     * slot. The event is expected to have the following 
+                     * properties:
                      * 
-                     * display - mol.map.ControlDisplay
-                     * slot - mol.map.ControlDisplay.Slot
-                     * position - google.maps.ControlPosition
+                     *   event.display - mol.map.ControlDisplay
+                     *   event.slot - mol.map.ControlDisplay.Slot
+                     *   event.position - google.maps.ControlPosition
                      * 
-                     * @param event The event 
+                     * @param event mol.bus.Event
                      */
                     function(event) {
                         var display = event.display,
@@ -170,11 +171,12 @@ mol.modules.map = function(mol) {
             init: function(name) {
                 var Slot = mol.map.ControlDisplay.Slot,
                     className = 'mol-Map-' + name,
-                    html = '<div class="' + className + '">' +
-                           '    <div class="TOP"></div>' +
-                           '    <div class="MIDDLE"></div>' +
-                           '    <div class="BOTTOM"></div>' +
-                           '</div>';
+                    html = '' + 
+                    '<div class="' + className + '">' +
+                    '    <div class="TOP"></div>' +
+                    '    <div class="MIDDLE"></div>' +
+                    '    <div class="BOTTOM"></div>' +
+                    '</div>';
 
                 this._super(html);
                 this.selectable({disabled: true});
