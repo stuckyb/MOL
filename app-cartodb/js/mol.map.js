@@ -53,36 +53,56 @@ mol.modules.map = function(mol) {
                 controls[ControlPosition.BOTTOM_LEFT].push(this.ctlBottom.element);
             },
             
+            /**
+             * Gets the control display at a Google Map control position.
+             * 
+             * @param position google.maps.ControlPosition
+             * @return mol.map.ControlDisplay
+             */
+            getControl: function(position) {
+                var ControlPosition = google.maps.ControlPosition,
+                    control = null;
+
+                switch (position) {
+                case ControlPosition.TOP_RIGHT:
+                    control = this.ctlRight;
+                    break;                    
+                case ControlPosition.TOP_CENTER:
+                    control = this.ctlTop;
+                    break;                    
+                case ControlPosition.TOP_LEFT:
+                    control = this.ctlLeft;
+                    break;                    
+                case ControlPosition.BOTTOM_LEFT:
+                    control = this.ctlBottom;
+                    break;
+                }                
+                
+                return control;
+            },
+
             addControlHandlers: function() {
                 var self = this;
 
                 this.bus.addHandler(
                     'add-map-control', 
+                    
+                    /**
+                     * Adds a map control display in a specified slot. The event
+                     * is expected to have the following properties:
+                     * 
+                     * display - mol.map.ControlDisplay
+                     * slot - mol.map.ControlDisplay.Slot
+                     * position - google.maps.ControlPosition
+                     * 
+                     * @param event The event 
+                     */
                     function(event) {
-                        var display = event.config.display,
-                            slot = event.config.slot,
-                            position = event.config.position,
-                            controls = self.display.map.controls,
-                            control = null,
-                            ControlPosition = google.maps.ControlPosition;
+                        var display = event.display,
+                            slot = event.slot,
+                            position = event.position,
+                            control = self.getControl(position);
                         
-                        switch (position) {
-                            case ControlPosition.TOP_RIGHT:
-                            control = self.ctlRight;
-                            break;
-                            
-                            case ControlPosition.TOP_CENTER:
-                            control = self.ctlTop;
-                            break;
-
-                            case ControlPosition.TOP_LEFT:
-                            control = self.ctlLeft;
-                            break;
-
-                            case ControlPosition.BOTTOM_LEFT:
-                            control = self.ctlBottom;
-                            break;
-                        }
                         control.slot(display, slot);
                     }
                 );
@@ -97,6 +117,7 @@ mol.modules.map = function(mol) {
 
                 var mapOptions = null;
 
+                // TODO: Move this into mol.config.js?
                 mapOptions = { 
                     zoom: 2,
                     maxZoom: 15,
@@ -143,36 +164,44 @@ mol.modules.map = function(mol) {
      */
     mol.map.ControlDisplay = mol.mvp.Display.extend(
         {
+            /**
+             * @param name css class name for the display 
+             */
             init: function(name) {
                 var Slot = mol.map.ControlDisplay.Slot,
                     className = 'mol-Map-' + name,
-                    html = '<div>' +
+                    html = '<div class="' + className + '">' +
                            '    <div class="TOP"></div>' +
                            '    <div class="MIDDLE"></div>' +
                            '    <div class="BOTTOM"></div>' +
                            '</div>';
 
                 this._super(html);
-                this.attr('class', className);                
                 this.selectable({disabled: true});
-                this.find(Slot.TOP).attr('class', 'TOP');
-                this.find(Slot.MIDDLE).attr('class', 'MIDDLE');
-                this.find(Slot.BOTTOM).attr('class', 'BOTTOM');
+                this.find(Slot.TOP).removeClass('ui-selectee');
+                this.find(Slot.MIDDLE).removeClass('ui-selectee');
+                this.find(Slot.BOTTOM).removeClass('ui-selectee');
             },
 
+            /**
+             * Puts a display in a slot.
+             * 
+             * @param dislay mol.map.ControlDisplay
+             * @param slot mol.map.ControlDisplay.Slot
+             */
             slot: function(display, slot) {
                 var Slot = mol.map.ControlDisplay.Slot,
-                    div = this.find(slot);
+                    slotDisplay = this.find(slot);
 
                 switch (slot) {             
-                case 'FIRST':
+                case Slot.FIRST :
                     this.prepend(display);
                     break;
-                case 'LAST':
+                case Slot.LAST:
                     this.append(display);
                     break;
                 default:            
-                    div.append(display);
+                    slotDisplay.append(display);
                 }
             }  
         }

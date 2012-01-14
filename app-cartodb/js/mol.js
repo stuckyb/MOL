@@ -1,8 +1,3 @@
-/**
- * This is the global MOL constructor for creating a sandbox environment composed
- * of modules. Everything that happens within this constructor is protected from
- * leaking into the global scope.
- */
 function mol() {
     var args = Array.prototype.slice.call(arguments),
         callback = args.pop(),
@@ -28,3 +23,37 @@ function mol() {
 };
 
 mol.modules = {};
+
+mol.modules.common = function(mol) {
+
+    mol.common = {};
+    
+    mol.common.assert = function(pred, msg) {
+        if (!pred) {
+            throw("Assertion failed: {0}".format(msg));
+        }
+    };
+};
+
+/**
+ * https://gist.github.com/1049426
+ * 
+ * Usage: 
+ * 
+ *   "{0} is a {1}".format("Tim", "programmer");
+ * 
+ */
+String.prototype.format = function(i, safe, arg) {
+  function format() {
+      var str = this, 
+          len = arguments.length+1;
+      
+      for (i=0; i < len; arg = arguments[i++]) {
+          safe = typeof arg === 'object' ? JSON.stringify(arg) : arg;
+          str = str.replace(RegExp('\\{'+(i-1)+'\\}', 'g'), safe);
+      }
+      return str;
+  }
+  format.native = String.prototype.format;
+  return format;
+}();

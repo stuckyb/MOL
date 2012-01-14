@@ -4,9 +4,12 @@ mol.modules.bus = function(mol) {
     
     mol.bus.Event = Class.extend(
         {
-            init: function(type, config) {
+            init: function(type, params) {
+                mol.common.assert(type);
                 this.type = type;
-                this.config = config;
+                if (params) {
+                    _.extend(this, params);   
+                }
             }
         }
     );
