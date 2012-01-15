@@ -12,11 +12,13 @@ mol.modules.map.controls = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'SELECT ' + 
-                    'p.provider as source, p.scientificname as name, p.type as type ' +
+                    'p.provider as source, p.scientificname as name, p.type as type, ' +
+                    'ST_AsText(ST_SetSRID(ST_Box2D(p.the_geom), 4326)) as extent ' +
                     'FROM mol_rangemaps as p ' +
                     'WHERE st_isvalid(p.the_geom) AND p.scientificname @@ to_tsquery(\'{0}\') ' +
                     'UNION SELECT ' +
-                    't.provider as source, t.scientificname as name, t.type as type ' +
+                    't.provider as source, t.scientificname as name, t.type as type, ' +
+                    'ST_AsText(ST_SetSRID(ST_Box2D(t.the_geom), 4326)) as extent ' +
                     'FROM eafr as t ' +
                     'WHERE st_isvalid(t.the_geom) AND t.scientificname @@ to_tsquery(\'{1}\') ';
             },
@@ -29,7 +31,7 @@ mol.modules.map.controls = function(mol) {
                 this.display = new mol.map.controls.SearchDisplay();
                 this.display.engine(this);
                 this.display.toggle(false);
-                this.display.results.toggle(false);
+                this.display.resultPanel.toggle(false);
                 this.addEventHandlers();
                 this.fireEvents();
             },
@@ -81,8 +83,8 @@ mol.modules.map.controls = function(mol) {
             },
 
             /**
-             * Searches CartoDB using a term. If successful, the callback 
-             * dispatches to the results() function.
+             * Searches CartoDB using a term from the search box. If successful, 
+             * the callback dispatches to the results() function.
              * 
              * @param term the search term (scientific name)
              */
@@ -104,15 +106,28 @@ mol.modules.map.controls = function(mol) {
             },
 
             /**
-             * Converts CartoDB sql response into a search profile and updates 
+             * Converts the CartoDB sql response into a search profile and updates 
              * the results display.
              * 
              * @param response the CartoDB sql response
              */
             results: function(response) {
-                var converted = mol.services.cartodb.convert(response); 
+                var searchProfile = mol.services.cartodb.convert(response),
+                    resultList = this.display.resultList,
+                    layer = null,
+                    srd = null,
+                    i = null;
 
-                this.profile = new mol.map.control.SearchProfile(converted);                
+                this.profile = new mol.map.controls.SearchProfile(searchProfile); 
+
+                resultList.html(''); // Clears results.
+                for (i in searchProfile.layers) {
+                    layer = searchProfile.layers[i];
+                    srd = new mol.map.controls.SearchResultDisplay(resultList);                    
+                    srd.name.text(layer.name);
+                }
+
+                this.display.resultPanel.toggle(true);
             }
         }
     );
@@ -149,15 +164,49 @@ mol.modules.map.controls = function(mol) {
                 this.goButton = new mol.mvp.View(this.find('.execute'));
                 this.results = new mol.mvp.View(this.find('.mol-LayerControl-Results'));
                 this.searchBox = new mol.mvp.View(this.find('.value'));
-            },
+                this.resultPanel = new mol.mvp.View(this.find('.mol-LayerControl-Results'));
+                this.resultList = new mol.mvp.View(this.find('.resultList'));
+            }            
+        }
+    );
 
-            toggle: function(visibility) {
-                this.toggle(visibility);
+    /**
+     * A display for a single search result.
+     * 
+     * @param parent the .resultList element in search display
+     */
+    mol.map.controls.SearchResultDisplay = mol.mvp.Display.extend(
+        {
+            init: function(parent) {
+                var html = '' +
+                    '<div>' +
+                    '<ul class="result">' + 
+                    '<div class="resultSource"><button><img class="source" src=""></button></div>' + 
+                    '<div class="resultType" ><button ><img class="type" src=""></button></div>' +
+                    '<div class="resultName">' + 
+                    '  <div class="resultNomial" ></div>' + 
+                    '  <div class="resultAuthor"></div>' + 
+                    '</div>' + 
+                    '<div class="resultLink"><a href="#" class="info">more info</a></div>' + 
+                    '<div class="buttonContainer"> ' + 
+                    '  <input type="checkbox" class="checkbox" /> ' + 
+                    '  <span class="customCheck"></span> ' + 
+                    '</div> ' + 
+                    '</ul>' + 
+                    '<div class="break"></div>' +
+                    '</div>';
+
+                this._super(html, parent);
+                this.typePng = new mol.mvp.View(this.find('.type'));
+                this.sourcePng = new mol.mvp.View(this.find('.source'));
+                this.name = new mol.mvp.View(this.find('.resultName'));
+                this.author = new mol.mvp.View(this.find('.resultAuthor'));
+                this.infoLink = new mol.mvp.View(this.find('.info'));
             }
         }
     );
 
-    mol.map.controls.SearchProfile  = Class.extend(
+    mol.map.controls.SearchProfile = Class.extend(
         {
             init: function(response) {
                 this.response = response;

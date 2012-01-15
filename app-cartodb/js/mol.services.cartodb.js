@@ -221,13 +221,32 @@ mol.modules.services.cartodb = function(mol) {
                     row = rows[i];
                     key = i + '';
                     layers[key] = {
-                        'name': row.name,
-                        'source': row.source,
-                        'type': row.type
+                        name: row.name,
+                        source: row.source,
+                        type: row.type
+                        //extent: this.getExtent(row.extent)
                     };
                 }
                 return layers;
-            }            
+            },
+
+            /**
+             * Returns an array of coordinate arrays:
+             * [[1, 2], ...]
+             *  
+             * @param polygon POLYGON((34.073597 36.393648,34.073597 36.467531,
+             *                         34.140662 36.467531,34.140662 36.393648,
+             *                         34.073597 36.393648))
+             */
+            getExtent: function(polygon) {
+                return _.map(
+                    polygon.split('POLYGON((')[1].split('))')[0].split(','), 
+                    function(x) {
+                        var pair = x.split(' '); 
+                        return [parseFloat(pair[0]), parseFloat(pair[1])];
+                    }
+                );                
+            }
         }
     );
 
