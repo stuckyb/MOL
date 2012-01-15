@@ -27,7 +27,8 @@ mol.modules.services.cartodb = function(mol) {
             }
         }
     );
-
+    
+    // TODO: Put params in mol.config.js
     mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi('layers', 'moldb.io:8080');
     
     mol.services.cartodb.query = function(sql, callback) {

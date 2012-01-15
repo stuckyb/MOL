@@ -7,9 +7,18 @@ mol.modules.map.controls = function(mol) {
             /**
              * @param bus mol.bus.Bus
              */
-            init: function(api, bus) {
-                this.api = api;
+            init: function(proxy, bus) {
+                this.proxy = proxy;
                 this.bus = bus;
+                this.sql = '' +
+                    'SELECT ' + 
+                    'p.provider as source, p.scientificname as name, p.type as type ' +
+                    'FROM mol_rangemaps as p ' +
+                    'WHERE p.scientificname @@ to_tsquery(\'{0}\') ' +
+                    'UNION SELECT ' +
+                    't.provider as source, t.scientificname as name, t.type as type ' +
+                    'FROM eafr as t ' +
+                    'WHERE t.scientificname @@ to_tsquery(\'{1}\')';
             },
             
             /**
@@ -20,6 +29,7 @@ mol.modules.map.controls = function(mol) {
                 this.display = new mol.map.controls.SearchDisplay();
                 this.display.engine(this);
                 this.display.toggle(false);
+                this.display.results.toggle(false);
                 this.addEventHandlers();
                 this.fireEvents();
             },
@@ -68,9 +78,27 @@ mol.modules.map.controls = function(mol) {
                  */
                 this.display.goButton.click(
                     function(event) {
-                        console.log('click');
+                        self.search(self.display.searchBox.val());
                     }
                 );
+            },
+
+            search: function(term) {
+                var sql = this.sql.format(term, term),
+                    params = {sql:sql},
+                    action = null,
+                    callback = null;
+
+                action = new env.services.Action('cartodb-sql-query', params);
+                callback = new env.services.Callback(
+                    function(action, response) { 
+                        console.log(action.type + ': ' + JSON.stringify(response));
+                    }, 
+                    function(action, response) {
+                        console.log(action.type + ': ' + response);
+                    });
+
+                this.proxy.execute(action, callback);
             }
         }
     );
@@ -79,6 +107,7 @@ mol.modules.map.controls = function(mol) {
         {
             init: function() {
                 var html = '' +
+                    '<div>' +
                     '<div class="mol-LayerControl-Search widgetTheme">' + 
                     '  <div class="title">Search:</div>' + 
                     '  <input class="value" type="text" placeholder="Search by name">' + 
@@ -99,10 +128,13 @@ mol.modules.map.controls = function(mol) {
                     '       <button class="addAll">Map Selected Layers</button>' + 
                     '    </div>' + 
                     '  </div>' + 
+                    '</div>' +
                     '</div>';
 
                 this._super(html);
                 this.goButton = new mol.mvp.View(this.find('.execute'));
+                this.results = new mol.mvp.View(this.find('.mol-LayerControl-Results'));
+                this.searchBox = new mol.mvp.View(this.find('.value'));
             },
 
             toggle: function(visibility) {

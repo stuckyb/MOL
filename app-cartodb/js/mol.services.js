@@ -45,7 +45,7 @@ mol.modules.services = function(mol) {
             },
             
             /**
-             * The callback passes in the action and the response as parameters.
+             * The callback here takes the action and the response as parameters.
              * 
              * @param action the mol.services.Action
              * @param callback the mol.services.Callback
@@ -61,10 +61,10 @@ mol.modules.services = function(mol) {
             },
 
             /**
-             * Returns a callback clousure around the clients action and 
-             * callback. This gets executed by the service. The service
-             * is expected to pass the response to the callback as a 
-             * single parameter.
+             * Returns a proxy callback clousure around the clients action and 
+             * the clients callback. This gets executed by the service. The 
+             * services are expected to pass the service response to the callback 
+             * as a single parameter.
              * 
              * @param action the client mol.services.Action
              * @param callback the client mol.services.Callback
