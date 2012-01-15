@@ -14,11 +14,11 @@ mol.modules.map.controls = function(mol) {
                     'SELECT ' + 
                     'p.provider as source, p.scientificname as name, p.type as type ' +
                     'FROM mol_rangemaps as p ' +
-                    'WHERE p.scientificname @@ to_tsquery(\'{0}\') ' +
+                    'WHERE st_isvalid(p.the_geom) AND p.scientificname @@ to_tsquery(\'{0}\') ' +
                     'UNION SELECT ' +
                     't.provider as source, t.scientificname as name, t.type as type ' +
                     'FROM eafr as t ' +
-                    'WHERE t.scientificname @@ to_tsquery(\'{1}\')';
+                    'WHERE st_isvalid(t.the_geom) AND t.scientificname @@ to_tsquery(\'{1}\') ';
             },
             
             /**
@@ -73,9 +73,6 @@ mol.modules.map.controls = function(mol) {
                     }
                 );
 
-                /**
-                 * Callback 
-                 */
                 this.display.goButton.click(
                     function(event) {
                         self.search(self.display.searchBox.val());
@@ -83,22 +80,39 @@ mol.modules.map.controls = function(mol) {
                 );
             },
 
+            /**
+             * Searches CartoDB using a term. If successful, the callback 
+             * dispatches to the results() function.
+             * 
+             * @param term the search term (scientific name)
+             */
             search: function(term) {
-                var sql = this.sql.format(term, term),
-                    params = {sql:sql},
-                    action = null,
-                    callback = null;
-
-                action = new env.services.Action('cartodb-sql-query', params);
-                callback = new env.services.Callback(
-                    function(action, response) { 
-                        console.log(action.type + ': ' + JSON.stringify(response));
-                    }, 
-                    function(action, response) {
-                        console.log(action.type + ': ' + response);
-                    });
-
+                var self = this,
+                    sql = this.sql.format(term, term),
+                    params = {sql:sql, term: term},
+                    action = new env.services.Action('cartodb-sql-query', params),
+                    callback = new env.services.Callback(
+                        function(action, response) { // Success.
+                            console.log(action.type + ' success: ' + JSON.stringify(response));
+                            self.results(response);
+                        }, 
+                        function(action, response) { // Failure.
+                            console.log(action.type + ' failure: ' + response);
+                        });
+                
                 this.proxy.execute(action, callback);
+            },
+
+            /**
+             * Converts CartoDB sql response into a search profile and updates 
+             * the results display.
+             * 
+             * @param response the CartoDB sql response
+             */
+            results: function(response) {
+                var converted = mol.services.cartodb.convert(response); 
+
+                this.profile = new mol.map.control.SearchProfile(converted);                
             }
         }
     );
@@ -139,6 +153,199 @@ mol.modules.map.controls = function(mol) {
 
             toggle: function(visibility) {
                 this.toggle(visibility);
+            }
+        }
+    );
+
+    mol.map.controls.SearchProfile  = Class.extend(
+        {
+            init: function(response) {
+                this.response = response;
+            },
+
+            /**
+             * Gets layer names that satisfy a name, source, and type combined 
+             * constraint. 
+             *
+             * @param name the layer name
+             * @param source the layer source
+             * @param type the layer type
+             * @param profile the profile to test  
+             * 
+             */
+            getLayers: function(name, source, type, profile) {
+                var response = this.response,
+                    currentProfile = profile ? profile : 'nameProfile',
+                    nameProfile = name ? response.names[name] : null,
+                    sourceProfile = source ? response.sources[source] : null,
+                    typeProfile = type ? response.types[type] : null,
+                    profileSatisfied = false;
+                
+                if (!name && !type && !source){
+                    var keys = new Array();
+                    for (i in response.layers) {
+                        keys.push(i);
+                    };
+                    return keys;
+                }
+                
+                switch (currentProfile) {
+                    
+                case 'nameProfile':
+                    if (!name) {
+                        return this.getLayers(name, source, type, 'sourceProfile');
+                    }
+
+                    if (nameProfile) {                                                
+                        if (!source && !type) {
+                            return nameProfile.layers;
+                        }                         
+                        if (source && type) {
+                            if (this.exists(source, nameProfile.sources) &&
+                                this.exists(type, nameProfile.types)) {
+                                return _.intersect(
+                                    nameProfile.layers, 
+                                    this.getLayers(name, source, type, 'sourceProfile'));
+                            }
+                        } 
+                        if (source && !type) {
+                            mol.log.info('source no type');
+                            if (this.exists(source, nameProfile.sources)) {
+                                mol.log.info('return intersect(name.layers, sourceprofile');
+                                return _.intersect(
+                                   nameProfile.layers, 
+                                   this.getLayers(name, source, type, 'sourceProfile'));
+                            }
+                        } 
+                        if (!source && type) {
+                            if (this.exists(type, nameProfile.types)) {
+                                return _.intersect(
+                                    nameProfile.layers, 
+                                    this.getLayers(name, source, type, 'typeProfile'));
+                            }
+                        }                            
+                    } 
+                    return [];                        
+                    
+                case 'sourceProfile':
+                    if (!source) {
+                        return this.getLayers(name, source, type, 'typeProfile');
+                    }
+                    
+                    if (sourceProfile) {                        
+                        if (!name && !type) {
+                            return sourceProfile.layers;
+                        }                         
+                        if (name && type) {
+                            if (this.exists(name, sourceProfile.names) &&
+                                this.exists(type, sourceProfile.types)) {
+                                return _.intersect(
+                                    sourceProfile.layers, 
+                                    this.getLayers(name, source, type, 'typeProfile'));                                
+                            }    
+                        }                        
+                        if (name && !type) {
+                            if (this.exists(name, sourceProfile.names)) {
+                                mol.log.info('returning source layers');
+                                return sourceProfile.layers;
+                            }
+                        }                         
+                        if (!name && type) {
+                            if (this.exists(type, sourceProfile.types)) {
+                                return _.intersect(
+                                    sourceProfile.layers, 
+                                    this.getLayers(name, source, type, 'typeProfile'));                                
+                            }
+                        }                        
+                    } 
+                    return [];
+
+                case 'typeProfile':
+                    if (!type) {
+                        return [];
+                    }
+                    
+                    if (typeProfile) {
+                        if (!name && !source) {
+                            return typeProfile.layers;
+                        }
+                        if (name && source) {
+                            if ( this.exists(name, typeProfile.names) &&
+                                 this.exists(source, typeProfile.sources)) {
+                                return typeProfile.layers;
+                            }                            
+                        }                         
+                        if (name && !source) {
+                            if (this.exists(name, typeProfile.names)) {
+                                return typeProfile.layers;
+                            }                            
+                        }                         
+                        if (!name && source) {
+                            if (this.exists(source, typeProfile.sources)) {
+                                return typeProfile.layers;
+                            }                            
+                        }                        
+                    }                    
+                    return [];
+                } 
+                return [];
+            },
+
+            getLayer: function(layer) {
+                return this.response.layers[layer];
+            },
+
+            getKeys: function(id) {
+                var res;
+                switch(id.toLowerCase()){
+                    case "types":
+                        res = this.response.types;
+                        break;
+                    case "sources":
+                        res = this.response.sources;
+                        break;
+                    case "names":
+                        res = this.response.names;
+                        break;
+                    }
+                return _.keys(res);   
+            },
+            
+            getTypeKeys: function() {
+                var x = this.typeKeys,
+                    types = this.response.types;
+                return x ? x : (this.typeKeys = _.keys(types));                
+            },
+
+            getType: function(type) {
+                return this.response.types[type];
+            },
+
+            getSourceKeys: function() {
+                var x = this.sourceKeys,
+                    sources = this.response.sources;
+                return x ? x : (this.sourceKeys = _.keys(sources));
+            },
+            
+            getSource: function(source) {
+                return this.response.sources[source];
+            },
+            
+            getNameKeys: function() {
+                var x = this.nameKeys,
+                    names = this.response.names;
+                return x ? x : (this.nameKeys = _.keys(names));
+            },
+
+            getName: function(name) {
+                return this.response.names[name];
+            },
+
+            /**
+             * Returns true if the name exists in the array, false otherwise.
+             */
+            exists: function(name, array) {
+                return _.indexOf(array, name) != -1;
             }
         }
     );
