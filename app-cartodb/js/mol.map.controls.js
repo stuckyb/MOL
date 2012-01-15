@@ -12,13 +12,13 @@ mol.modules.map.controls = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'SELECT ' + 
-                    'p.provider as source, p.scientificname as name, p.type as type, ' +
-                    'ST_AsText(ST_SetSRID(ST_Box2D(p.the_geom), 4326)) as extent ' +
+                    'p.provider as source, p.scientificname as name, p.type as type ' +
+                    //', ST_AsText(ST_SetSRID(ST_Box2D(p.the_geom), 4326)) as extent ' +
                     'FROM mol_rangemaps as p ' +
                     'WHERE st_isvalid(p.the_geom) AND p.scientificname @@ to_tsquery(\'{0}\') ' +
                     'UNION SELECT ' +
-                    't.provider as source, t.scientificname as name, t.type as type, ' +
-                    'ST_AsText(ST_SetSRID(ST_Box2D(t.the_geom), 4326)) as extent ' +
+                    't.provider as source, t.scientificname as name, t.type as type ' +
+                    //', ST_AsText(ST_SetSRID(ST_Box2D(t.the_geom), 4326)) as extent ' +
                     'FROM eafr as t ' +
                     'WHERE st_isvalid(t.the_geom) AND t.scientificname @@ to_tsquery(\'{1}\') ';
             },
@@ -80,6 +80,15 @@ mol.modules.map.controls = function(mol) {
                         self.search(self.display.searchBox.val());
                     }
                 );
+
+                this.display.searchBox.keyup(
+                    function(event) {
+                      if (event.keyCode === 13) {
+                        self.display.goButton.click();
+                      }
+                    }
+                );
+
             },
 
             /**
@@ -114,18 +123,28 @@ mol.modules.map.controls = function(mol) {
             results: function(response) {
                 var searchProfile = mol.services.cartodb.convert(response),
                     resultList = this.display.resultList,
+                    filters = this.display.filters,
                     layer = null,
                     srd = null,
                     i = null;
 
                 this.profile = new mol.map.controls.SearchProfile(searchProfile); 
 
-                resultList.html(''); // Clears results.
-                for (i in searchProfile.layers) {
-                    layer = searchProfile.layers[i];
-                    srd = new mol.map.controls.SearchResultDisplay(resultList);                    
-                    srd.name.text(layer.name);
-                }
+                resultList.html(''); 
+                _.each(
+                    searchProfile.layers,
+                    function (layer) {
+                        srd = new mol.map.controls.SearchResultDisplay(resultList);
+                        srd.name.text(layer.name);                        
+                    }
+                );
+
+                filters.html(''); 
+                _.each(
+                    ['Names','Sources','Types'],
+                    function(name) {
+                    }
+                );
 
                 this.display.resultPanel.toggle(true);
             }
@@ -166,6 +185,7 @@ mol.modules.map.controls = function(mol) {
                 this.searchBox = new mol.mvp.View(this.find('.value'));
                 this.resultPanel = new mol.mvp.View(this.find('.mol-LayerControl-Results'));
                 this.resultList = new mol.mvp.View(this.find('.resultList'));
+                this.filters = new mol.mvp.View(this.find('.filters'));
             }            
         }
     );
