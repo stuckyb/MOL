@@ -68,8 +68,7 @@ mol.modules.map.controls = function(mol) {
                  * @param event mol.bus.Event
                  */
                 this.bus.addHandler(
-                    'search-display-toggle',
-                    
+                    'search-display-toggle',                    
                     function(event) {                        
                         self.display.toggle(event.visible);
                     }
@@ -101,56 +100,136 @@ mol.modules.map.controls = function(mol) {
                 var self = this,
                     sql = this.sql.format(term, term),
                     params = {sql:sql, term: term},
-                    action = new env.services.Action('cartodb-sql-query', params),
-                    callback = new env.services.Callback(
-                        function(action, response) { // Success.
-                            console.log(action.type + ' success: ' + JSON.stringify(response));
-                            self.results(response);
-                        }, 
-                        function(action, response) { // Failure.
-                            console.log(action.type + ' failure: ' + response);
-                        });
+                    action = new mol.services.Action('cartodb-sql-query', params),
+                    success = function(action, response) {
+                        self.results = mol.services.cartodb.convert(response);
+                        self.profile = new mol.map.controls.SearchProfile(self.results);
+                        console.log(self.results);
+                        self.showFilters(self.profile);
+                        self.showLayers(self.results.layers);
+                    }, 
+                    failure = function(action, response) {
+                    };
                 
-                this.proxy.execute(action, callback);
+                this.proxy.execute(action, new mol.services.Callback(success, failure));
             },
 
             /**
-             * Converts the CartoDB sql response into a search profile and updates 
-             * the results display.
+             * Handles layers (results) to display by updating the result list 
+             * and filters.
              * 
-             * @param response the CartoDB sql response
+             * layers: 
+             *    0: 
+             *      name: "Coturnix delegorguei"
+             *      source: "eafr"
+             *      type: "points"
+             * 
+             * @param layers an array of layers
              */
-            results: function(response) {
-                var searchProfile = mol.services.cartodb.convert(response),
-                    resultList = this.display.resultList,
-                    filters = this.display.filters,
-                    layer = null,
-                    srd = null,
-                    i = null;
+            showLayers: function(layers) {
+                var display = this.display,
+                    layerNames = _.map(
+                        layers,
+                        function(layer) {
+                            return layer.name;
+                        }
+                    );
+                
+                display.clearResults();
 
-                this.profile = new mol.map.controls.SearchProfile(searchProfile); 
-
-                resultList.html(''); 
+                // Set layer results in display.
                 _.each(
-                    searchProfile.layers,
-                    function (layer) {
-                        srd = new mol.map.controls.SearchResultDisplay(resultList);
-                        srd.name.text(layer.name);                        
-                    }
-                );
-
-                filters.html(''); 
-                _.each(
-                    ['Names','Sources','Types'],
-                    function(name) {
+                    this.display.setResults(layerNames),
+                    function(result) {
+                        // TODO: Wire event listeners to result.
                     }
                 );
 
                 this.display.resultPanel.toggle(true);
+            },
+
+            showFilters: function(profile) {
+                var display = this.display,
+                    layerNames = profile.getKeys('names'),
+                    sourceNames = profile.getKeys('sources'),
+                    typeNames = profile.getKeys('types');
+
+                display.clearFilters();
+                
+                // Set name options in display.
+                _.each( 
+                    display.setOptions('Names', layerNames),
+                    function (option) {
+                        option.click(this.optionClickCallback(option, 'Names'));
+                    },
+                    this
+                );
+
+                // Set source options in display.
+                _.each( 
+                    display.setOptions('Sources', sourceNames),
+                    function (option) {
+                        option.click(this.optionClickCallback(option, 'Sources'));
+                    },
+                    this
+                );
+
+                // Set type options in display.
+                _.each( 
+                    display.setOptions('Types', typeNames),
+                    function (option) {
+                       option.click(this.optionClickCallback(option, 'Types'));
+                    },
+                    this
+                );                
+
+            },
+
+            /**
+             * Returns a function that styles the option as selected and removes
+             * the selected styles from all other items. This is what gets fired
+             * when a filter option is clicked.
+             * 
+             * @param filter mol.map.controls.FilterDisplay
+             * @param option the filter option display
+             */
+            optionClickCallback: function(option, filterName) {
+                var self = this;
+
+                return function(event) {
+                    self.display.clearOptionSelections(filterName);
+                    option.addClass('selected');
+                    self.updateDisplay();
+                };
+            },
+
+            /**
+             * When a filter is clicked, the search display results are
+             * dynamically updated to match name, source, and type. This
+             * is the function that makes that happen. It calculates the
+             * new layers (results) that are viewable and calls the
+             * handleResults() function.
+             * 
+             */
+            updateDisplay: function() {
+                var name = this.display.getOptions('Names', true)[0],
+                    source = this.display.getOptions('Sources', true)[0],
+                    type = this.display.getOptions('Types', true)[0],
+                    layers = this.profile.getNewLayers(
+                        name ? name.attr('id') : name, 
+                        source ? source.attr('id') : source,
+                        type ? type.attr('id') : type);
+
+                this.showLayers(layers);                
             }
         }
     );
 
+    /**
+     * The main display for search results. Contains a search box, a search 
+     * results list, and search result filters. This is the thing that gets
+     * added to the map as a control.
+     */
     mol.map.controls.SearchDisplay = mol.mvp.Display.extend(
         {
             init: function() {
@@ -163,8 +242,7 @@ mol.modules.map.controls = function(mol) {
                     '  <button class="cancel"><img src="/static/maps/search/cancel.png"></button>' + 
                     '</div>' + 
                     '<div class="mol-LayerControl-Results">' + 
-                    '  <div class="filters">' + 
-                    '  </div>' + 
+                    '  <div class="filters"></div>' + 
                     '  <div class="searchResults widgetTheme">' + 
                     '    <div class="resultHeader">' +
                     '       Results' +
@@ -180,30 +258,122 @@ mol.modules.map.controls = function(mol) {
                     '</div>';
 
                 this._super(html);
-                this.goButton = new mol.mvp.View(this.find('.execute'));
-                this.results = new mol.mvp.View(this.find('.mol-LayerControl-Results'));
-                this.searchBox = new mol.mvp.View(this.find('.value'));
-                this.resultPanel = new mol.mvp.View(this.find('.mol-LayerControl-Results'));
-                this.resultList = new mol.mvp.View(this.find('.resultList'));
-                this.filters = new mol.mvp.View(this.find('.filters'));
-            }            
+
+                this.goButton = $(this.find('.execute'));
+                this.results = $(this.find('.mol-LayerControl-Results'));
+                this.searchBox = $(this.find('.value'));
+                this.resultPanel = $(this.find('.mol-LayerControl-Results'));
+                this.resultList = $(this.find('.resultList'));
+                this.filters = $(this.find('.filters'));
+            },
+            
+            /**
+             * 
+             */
+            clearResults: function() {
+                this.resultList.html('');
+            },
+
+            clearFilters: function() {
+                this.filters.html('');
+            },
+
+            /**
+             * Makes all options for a filter unselected.
+             */
+            clearOptionSelections: function(filterName) {
+                _.each(
+                    this.getOptions(filterName),
+                    function(option) {
+                        option.removeClass('selected').addClass('option');
+                    }
+                );
+            },
+
+            /**
+             * Sets the results and returns them as an arrya of JQuery objects.
+             * 
+             * @param names the result names              
+             */
+            setResults: function(names) {
+                var self = this;
+                
+                return _.map(
+                    names,
+                    function(name) {
+                        var result = new mol.map.controls.ResultDisplay(name);
+                        self.resultList.append(result);
+                        return result;
+                    }
+                );                
+            },
+
+            /**
+             * Sets the options for a filter and returns the options as an array
+             * of JQuery objects.
+             */
+            setOptions: function(filterName, optionNames) {
+                var self = this,
+                    filter = new mol.map.controls.FilterDisplay(filterName),
+                    options =  _.map(
+                        optionNames,
+                        function(name) {
+                            var option = new mol.map.controls.OptionDisplay(name);
+                            filter.options.append(option);
+                            return option;
+                        }                        
+                    );
+                
+                filter.attr('id', filterName);
+                this.filters.append(filter);
+                return options;
+            },
+
+            /**
+             * Returns an array of filter options as JQuery objects. If 
+             * selected is true, only returns options that are selected.
+             */
+            getOptions: function(filterName, selected) {
+                var filter = this.filters.find('#{0}'.format(filterName)),
+                    options =  _.filter(
+                        filter.find('.option'),
+                        function(option) {
+                            var opt = $(option);                                                    
+                            
+                            if (!selected) {
+                                return true;
+                            } else if (opt.hasClass('selected')) {
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        }
+                    );
+                
+                return _.map(
+                    options,
+                    function(option) {
+                        return $(option);
+                    }
+                );
+            }
         }
     );
 
     /**
-     * A display for a single search result.
+     * The display for a single search result that lives in the result list.
      * 
      * @param parent the .resultList element in search display
      */
-    mol.map.controls.SearchResultDisplay = mol.mvp.Display.extend(
+    mol.map.controls.ResultDisplay = mol.mvp.Display.extend(
         {
-            init: function(parent) {
+            init: function(name) {
                 var html = '' +
                     '<div>' +
                     '<ul class="result">' + 
                     '<div class="resultSource"><button><img class="source" src=""></button></div>' + 
                     '<div class="resultType" ><button ><img class="type" src=""></button></div>' +
-                    '<div class="resultName">' + 
+                    '<div class="resultName">{0}' + 
                     '  <div class="resultNomial" ></div>' + 
                     '  <div class="resultAuthor"></div>' + 
                     '</div>' + 
@@ -216,16 +386,54 @@ mol.modules.map.controls = function(mol) {
                     '<div class="break"></div>' +
                     '</div>';
 
-                this._super(html, parent);
-                this.typePng = new mol.mvp.View(this.find('.type'));
-                this.sourcePng = new mol.mvp.View(this.find('.source'));
-                this.name = new mol.mvp.View(this.find('.resultName'));
-                this.author = new mol.mvp.View(this.find('.resultAuthor'));
-                this.infoLink = new mol.mvp.View(this.find('.info'));
+                this._super(html.format(name));
+
+                this.infoLink = $(this.find('.info'));
+                this.nameBox = $(this.find('.resultName'));
+                this.sourcePng = $(this.find('.source'));
+                this.typePng = $(this.find('.type'));
             }
         }
     );
 
+    /**
+     * The display for a single search result filter. Allows you to select a name,
+     * source, or type and see only matching search results.
+     */
+    mol.map.controls.FilterDisplay = mol.mvp.Display.extend(
+        {
+            init: function(name) {
+                var html = '' +
+                    '<div class="filter widgetTheme">' + 
+                    '    <div class="filterName">{0}</div>' + 
+                    '    <div class="options"></div>' + 
+                    '</div>';
+
+                this._super(html.format(name));
+
+                this.name = $(this.find('.filterName'));
+                this.options = $(this.find('.options'));
+            }
+        }
+    );
+      
+    mol.map.controls.OptionDisplay = mol.mvp.Display.extend(
+        {
+            init: function(name) {
+                this._super('<div id="{0}" class="option">{0}</div>'.format(name, name));
+            }             
+        }
+    );
+    
+
+    /**
+     * This class supports dynamic search result filtering. You give it a name,
+     * source, type, and search profile, and you get back all matching results
+     * that satisfy those constraints. This is the thing that allows you to
+     * click on a name, source, or type and only see those results.
+     * 
+     * TODO: This could use a refactor. Lot's of duplicate code.
+     */
     mol.map.controls.SearchProfile = Class.extend(
         {
             init: function(response) {
@@ -242,6 +450,18 @@ mol.modules.map.controls = function(mol) {
              * @param profile the profile to test  
              * 
              */
+            getNewLayers: function(name, source, type, profile) {
+                var layers = this.getLayers(name, source, type, profile);
+
+                return _.map(
+                    layers,
+                    function(layer) {
+                        return this.getLayer(parseInt(layer));
+                    },
+                    this
+                );                
+            },
+            
             getLayers: function(name, source, type, profile) {
                 var response = this.response,
                     currentProfile = profile ? profile : 'nameProfile',
@@ -278,9 +498,7 @@ mol.modules.map.controls = function(mol) {
                             }
                         } 
                         if (source && !type) {
-                            mol.log.info('source no type');
                             if (this.exists(source, nameProfile.sources)) {
-                                mol.log.info('return intersect(name.layers, sourceprofile');
                                 return _.intersect(
                                    nameProfile.layers, 
                                    this.getLayers(name, source, type, 'sourceProfile'));
@@ -310,12 +528,11 @@ mol.modules.map.controls = function(mol) {
                                 this.exists(type, sourceProfile.types)) {
                                 return _.intersect(
                                     sourceProfile.layers, 
-                                    this.getLayers(name, source, type, 'typeProfile'));                                
+                                    this.getLayers(name, source, type, 'typeProfile'));
                             }    
                         }                        
                         if (name && !type) {
                             if (this.exists(name, sourceProfile.names)) {
-                                mol.log.info('returning source layers');
                                 return sourceProfile.layers;
                             }
                         }                         
@@ -323,7 +540,7 @@ mol.modules.map.controls = function(mol) {
                             if (this.exists(type, sourceProfile.types)) {
                                 return _.intersect(
                                     sourceProfile.layers, 
-                                    this.getLayers(name, source, type, 'typeProfile'));                                
+                                    this.getLayers(name, source, type, 'typeProfile'));
                             }
                         }                        
                     } 
