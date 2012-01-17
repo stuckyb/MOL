@@ -268,7 +268,8 @@ def getFeaturesFromShapefileDir(collection, name):
                 '-f', 'GeoJSON', 
                 '-t_srs', 'EPSG:4326',
                 json_filename,
-                '%s.shp' % filename
+                '%s.shp' % filename,
+                '-lco', 'COORDINATE_PRECISION=6'
             ]
 
             try:
