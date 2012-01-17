@@ -111,7 +111,15 @@ class ProviderConfig(object):
             """
 
             dict = {}
-            mapping = {}
+
+            # Some default, optional mappings. Note that all of these
+            # can be overridden by the config file if necessary.
+            mapping = {
+                'filename': 'filename',
+                'provider': 'provider',
+                'collection': 'collection',
+                'row': 'row' 
+            }
 
             for iteritems in (self.collection['fields']['required'].iteritems(), self.collection['fields']['optional'].iteritems()):
                 for (name, value) in iteritems:
