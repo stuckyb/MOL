@@ -128,7 +128,7 @@ def uploadToCartoDB(provider_dir):
                 collection.get_provider(), 
                 collection.get_name()
             )
-            logging.info("%n feature hashes downloaded." % len(uploaded_feature_hashes))
+            logging.info("%d feature hashes downloaded.", len(uploaded_feature_hashes))
             
             # We currently combine three SQL statements into a single statement for transmission to CartoDB.
             sql_statements = set()
