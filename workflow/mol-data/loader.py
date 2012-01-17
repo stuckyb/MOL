@@ -103,11 +103,17 @@ def uploadToCartoDB(provider_dir):
                 deletePreviousEntries(_getoptions().table_name, collection.get_provider(), collection.get_collection())
 
             # Check feature hashes, so we don't reupload existing entries.
+            logging.info("Downloading feature hashes for table '%s', provider '%s', collection '%s' to prevent duplicate uploads.",
+                _getoptions().table_name, 
+                collection.get_provider(), 
+                collection.get_name()
+            )
             uploaded_feature_hashes = getUploadedFeatureHashes(
                 _getoptions().table_name, 
                 collection.get_provider(), 
                 collection.get_name()
             )
+            logging.info("%n feature hashes downloaded.", len(uploaded_feature_hashes))
             
             # We currently combine three SQL statements into a single statement for transmission to CartoDB.
             sql_statements = set()
@@ -198,6 +204,9 @@ def getUploadedFeatureHashes(table_name, provider, collection):
             protocol=cartodb_settings['protocol'],
             access_token_url=cartodb_settings['access_token_url']
         )
+
+    # This seems like a tempting place to cache results, but actually
+    # isn't, since this function should only run once for any collection.
 
     # print "Executing SQL: «%s»" % sql
     quoted_provider = "$a_complicated_tag_here$%s$a_complicated_tag_here$" % provider
