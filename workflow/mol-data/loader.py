@@ -55,7 +55,7 @@ def generate_feature_hash(feature):
 
     str = pprint.pformat(feature)
     hash = hashlib.sha1(str).hexdigest().upper()
-    # print "Hash [%s] generated from «%s»." % (hash, str)
+    print "Hash [%s] generated from «%s»." % (hash, str)
     return hash
 
 # TODO: Best just get rid of this and use a global variable?
@@ -244,6 +244,12 @@ def getFeaturesFromShapefileDir(collection, name):
 
     try:
         shapefiles = glob.glob('*.shp')
+
+        # Makes testing easier: for systems which have the files with the same names,
+        # we'll upload files in the same order. Won't work where filenames are different.
+        # Filenames are stored case-sensitively when uploaded to CartoDB.
+        shapefiles.sort()
+
         for shapefile in shapefiles:
             # Determine the "name" (filename without extension) of this file.
             filename = shapefile[0:shapefile.index('.shp')]
