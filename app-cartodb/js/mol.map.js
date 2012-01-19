@@ -2,7 +2,7 @@ mol.modules.map = function(mol) {
     
     mol.map = {};
 
-    mol.map.submodules = ['search', 'results'];
+    mol.map.submodules = ['search', 'results', 'layers'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
@@ -175,7 +175,7 @@ mol.modules.map = function(mol) {
                     '</div>';
 
                 this._super(html);
-                this.selectable({disabled: true});
+                //this.selectable({disabled: true});
                 this.find(Slot.TOP).removeClass('ui-selectee');
                 this.find(Slot.MIDDLE).removeClass('ui-selectee');
                 this.find(Slot.BOTTOM).removeClass('ui-selectee');

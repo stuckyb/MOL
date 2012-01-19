@@ -41,6 +41,34 @@ mol.modules.map.results = function(mol) {
                 );
                 
                 /**
+                 * Clicking the 'map selected layers' button fires an 'add-layers'
+                 * event on the bus.                                  
+                 */
+                this.display.addAllButton.click(
+                    function(event) {
+                        var checkedResults = self.display.getChecked(),
+                            layers = _.map(
+                                checkedResults,
+                                function(result) {
+                                    return {
+                                        name: result.find('.resultName').text(),
+                                        type: 'points' // TODO
+                                    };
+                                }                        
+                            );                        
+                        
+                        self.bus.fireEvent(
+                            new mol.bus.Event(
+                                'add-layers', 
+                                {
+                                    layers: layers
+                                }
+                            )
+                        );
+                    }
+                );
+                
+                /**
                  * Clicking the "select none" link unchecks all results.
                  */
                 this.display.selectNoneLink.click(
@@ -130,14 +158,15 @@ mol.modules.map.results = function(mol) {
                 // Set layer results in display.
                 _.each(
                     this.display.setResults(layerNames),
-                    function(result) {
-                        // TODO: Wire event listeners to result.
-                    }
+                    function(result) {                        
+                        // TODO
+                    },
+                    this
                 );
 
                 this.display.toggle(true);
             },
-
+                        
             showFilters: function(profile) {
                 var display = this.display,
                     layerNames = profile.getKeys('names'),
@@ -229,8 +258,8 @@ mol.modules.map.results = function(mol) {
                     '  <div class="searchResults widgetTheme">' + 
                     '    <div class="resultHeader">' +
                     '       Results' +
-                    '       <a href="" class="selectNone">none</a>' +
-                    '       <a href="" class="selectAll">all</a>' +
+                    '       <a href="#" class="selectNone">none</a>' +
+                    '       <a href="#" class="selectAll">all</a>' +
                     '    </div>' + 
                     '    <ol class="resultList"></ol>' + 
                     '    <div class="pageNavigation">' + 
@@ -244,6 +273,7 @@ mol.modules.map.results = function(mol) {
                 this.filters = $(this.find('.filters'));
                 this.selectAllLink = $(this.find('.selectAll'));
                 this.selectNoneLink = $(this.find('.selectNone'));
+                this.addAllButton = $(this.find('.addAll'));
             },
             
             clearResults: function() {
@@ -272,6 +302,30 @@ mol.modules.map.results = function(mol) {
                         $(this).attr('checked', showOrHide);
                     }
                 );                
+            },
+            
+            /**
+             * Returns an array of jquery result objects that are checked.
+             */
+            getChecked: function() {
+               var checked = _.filter(
+                   this.resultList.children(),
+                   function(result) {
+                       if ($(result).find('.checkbox').attr('checked')) {
+                           return true;
+                       } else {
+                           return false;
+                       }
+                   },
+                   this
+               ); 
+                               
+                return _.map(
+                    checked,
+                    function(result) {
+                        return $(result);
+                    }
+                );
             },
             
             /**
