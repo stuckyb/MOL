@@ -2,21 +2,17 @@ mol.modules.map = function(mol) {
     
     mol.map = {};
 
-    mol.map.submodules = ['controls'];
+    mol.map.submodules = ['controls', 'search', 'results'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
             init: function(api, bus) {
                 this.api = api;
                 this.bus = bus;
-                this.controlDisplays = {};
-                this.controlDivs = {};
-                this.mapLayers = {};
             },            
             
             start: function(container) {
-                this.display = new mol.map.MapDisplay(null, container);
-                this.display.engine(this);
+                this.display = new mol.map.MapDisplay('.map_container');
                 this.addControls();
                 this.addEventHandlers();
             },
@@ -112,15 +108,14 @@ mol.modules.map = function(mol) {
             }
         }
     );
-
-    mol.map.MapDisplay = mol.mvp.Display.extend(
+    
+    mol.map.MapDisplay = mol.mvp.View.extend(
         {
-            init: function(element, parent) {
-                this._super(element, parent);
-
+            init: function(element) {
                 var mapOptions = null;
+                
+                this._super(element);
 
-                // TODO: Move this into mol.config.js?
                 mapOptions = { 
                     zoom: 2,
                     maxZoom: 15,
@@ -154,7 +149,6 @@ mol.modules.map = function(mol) {
                         
                     ]
                 }; 
-                this.attr('id', 'map');
                 this.map = new google.maps.Map(this.element, mapOptions);
             }
         }
@@ -165,7 +159,7 @@ mol.modules.map = function(mol) {
      * a top, middle, and bottom slot. It gets attached to a map control positions.
      * 
      */
-    mol.map.ControlDisplay = mol.mvp.Display.extend(
+    mol.map.ControlDisplay = mol.mvp.View.extend(
         {
             /**
              * @param name css class name for the display 
@@ -217,5 +211,5 @@ mol.modules.map = function(mol) {
         MIDDLE: '.MIDDLE',
         BOTTOM: '.BOTTOM',
         LAST: '.LAST'
-    };
+    };    
 };

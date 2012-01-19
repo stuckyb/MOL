@@ -22,16 +22,19 @@
     <script src="../../../js/mol.mvp.js"></script>
     <script src="../../../js/mol.map.js"></script>
     <script src="../../../js/mol.map.controls.js"></script>
+    <script src="../../../js/mol.map.search.js"></script>
+    <script src="../../../js/mol.map.results.js"></script>
     {% endif %}
 
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
     <meta name="description" content="Map of Life - Range Map." />
     <meta name="keywords" content="map of life" />
-	      
+
   </head>
   <body>
-	<script type="text/javascript">
+    <div class="map_container"></div>
+	 <script type="text/javascript">
       $(document).ready(function() {
           {% if prod %}
           <!-- Production, so load app without logging and run it. -->
