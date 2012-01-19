@@ -18,7 +18,7 @@ mol.modules.map.results = function(mol) {
              */
             start: function(container) {
                 this.display = new mol.map.results.ResultsDisplay();
-                this.display.toggle(false);
+                this.display.toggle(false);                
                 this.addEventHandlers();
                 this.fireEvents();
             },
@@ -30,7 +30,25 @@ mol.modules.map.results = function(mol) {
              */
             addEventHandlers: function() {
                 var self = this;
-
+                
+                /**
+                 * Clicking the "select all" link checks all results.
+                 */
+                this.display.selectAllLink.click(
+                    function(event) {
+                        self.display.toggleSelections(true);
+                    }
+                );
+                
+                /**
+                 * Clicking the "select none" link unchecks all results.
+                 */
+                this.display.selectNoneLink.click(
+                    function(event) {
+                        self.display.toggleSelections(false);
+                    }
+                );
+                
                 /**
                  * Callback that toggles the search display visibility. The 
                  * event is expected to have the following properties:
@@ -46,6 +64,9 @@ mol.modules.map.results = function(mol) {
                     }
                 );
                 
+                /**
+                 * Callback that displays search results.
+                 */
                 this.bus.addHandler(
                     'search-results',
                     function(event) {
@@ -211,6 +232,8 @@ mol.modules.map.results = function(mol) {
                 this._super(html);
                 this.resultList = $(this.find('.resultList'));
                 this.filters = $(this.find('.filters'));
+                this.selectAllLink = $(this.find('.selectAll'));
+                this.selectNoneLink = $(this.find('.selectNone'));
             },
             
             clearResults: function() {
@@ -232,7 +255,15 @@ mol.modules.map.results = function(mol) {
                     }
                 );
             },
-
+            
+            toggleSelections: function(showOrHide) {
+                $('.checkbox').each(
+                    function() {
+                        $(this).attr('checked', showOrHide);
+                    }
+                );                
+            },
+            
             /**
              * Sets the results and returns them as an arrya of JQuery objects.
              * 
