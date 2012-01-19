@@ -56,13 +56,30 @@ mol.modules.map.search = function(mol) {
                         self.display.toggle(event.visible);
                     }
                 );
-
+                
+                /**
+                 * Clicking the go button executes a search.
+                 */
                 this.display.goButton.click(
                     function(event) {
                         self.search(self.display.searchBox.val());
                     }
                 );
-
+                
+                /**
+                 * Clicking the cancel button hides the search display and fires
+                 * a cancel-search event on the bus.
+                 */
+                this.display.cancelButton.click(
+                    function(event) {
+                        self.display.toggle(false);
+                        self.bus.fireEvent(new mol.bus.Event('cancel-search'));
+                    }
+                );
+                
+                /**
+                 * Pressing the return button clicks the go button.
+                 */
                 this.display.searchBox.keyup(
                     function(event) {
                       if (event.keyCode === 13) {
@@ -88,8 +105,9 @@ mol.modules.map.search = function(mol) {
             },            
 
             /**
-             * Searches CartoDB using a term from the search box. If successful, 
-             * the callback dispatches to the results() function.
+             * Searches CartoDB via proxy using a term from the search box. Fires 
+             * a search event on the bus. The success callback fires a search-results
+             * event on the bus.
              * 
              * @param term the search term (scientific name)
              */
@@ -107,6 +125,7 @@ mol.modules.map.search = function(mol) {
                     };
                 
                 this.proxy.execute(action, new mol.services.Callback(success, failure));
+                this.bus.fireEvent('search', new mol.bus.Event('search', term));
             }
         }
     );
@@ -126,6 +145,7 @@ mol.modules.map.search = function(mol) {
 
                 this._super(html);
                 this.goButton = $(this.find('.execute'));
+                this.cancelButton = $(this.find('.cancel'));
                 this.searchBox = $(this.find('.value'));
             },
             

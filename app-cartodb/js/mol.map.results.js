@@ -50,6 +50,16 @@ mol.modules.map.results = function(mol) {
                 );
                 
                 /**
+                 * Callback that hides the display on a cancel-search event.
+                 */
+                this.bus.addHandler(
+                    'cancel-search',
+                    function(event) {
+                        self.display.toggle(false);
+                    }
+                );
+                
+                /**
                  * Callback that toggles the search display visibility. The 
                  * event is expected to have the following properties:
                  * 
