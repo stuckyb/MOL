@@ -2,7 +2,7 @@ mol.modules.map = function(mol) {
     
     mol.map = {};
 
-    mol.map.submodules = ['controls', 'search', 'results'];
+    mol.map.submodules = ['search', 'results'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {

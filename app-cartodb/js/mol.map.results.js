@@ -171,13 +171,13 @@ mol.modules.map.results = function(mol) {
              * 
              */
             updateDisplay: function() {
-                var name = this.display.getOptions('Names', true)[0],
-                    source = this.display.getOptions('Sources', true)[0],
-                    type = this.display.getOptions('Types', true)[0],
+                var name = this.display.getOptions('Names', true)[0].attr('id'),
+                    source = this.display.getOptions('Sources', true)[0].attr('id'),
+                    type = this.display.getOptions('Types', true)[0].attr('id'),
                     layers = this.profile.getNewLayers(
-                        name ? name.attr('id') : name, 
-                        source ? source.attr('id') : source,
-                        type ? type.attr('id') : type);
+                        name !== 'All' ? name : null, 
+                        source !== 'All' ? source : null,
+                        type !== 'All'? type : null);
 
                 this.showLayers(layers);                
             }
@@ -189,7 +189,7 @@ mol.modules.map.results = function(mol) {
      * results list, and search result filters. This is the thing that gets
      * added to the map as a control.
      */
-    mol.map.results.ResultsDisplay = mol.mvp.Display.extend(
+    mol.map.results.ResultsDisplay = mol.mvp.View.extend(
         {
             init: function() {
                 var html = '' +
@@ -250,7 +250,8 @@ mol.modules.map.results = function(mol) {
                     }
                 );                
             },
-
+            
+            
             /**
              * Sets the options for a filter and returns the options as an array
              * of JQuery objects.
@@ -269,7 +270,7 @@ mol.modules.map.results = function(mol) {
                 
                 filter.attr('id', filterName);
                 this.filters.append(filter);
-                return options;
+                return _.union([filter.allOption], options);
             },
 
             /**
@@ -291,8 +292,8 @@ mol.modules.map.results = function(mol) {
                                 return false;
                             }
                         }
-                    );
-                
+                    );               
+
                 return _.map(
                     options,
                     function(option) {
@@ -308,7 +309,7 @@ mol.modules.map.results = function(mol) {
      * 
      * @param parent the .resultList element in search display
      */
-    mol.map.results.ResultDisplay = mol.mvp.Display.extend(
+    mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
             init: function(name) {
                 var html = '' +
@@ -343,7 +344,7 @@ mol.modules.map.results = function(mol) {
      * The display for a single search result filter. Allows you to select a name,
      * source, or type and see only matching search results.
      */
-    mol.map.results.FilterDisplay = mol.mvp.Display.extend(
+    mol.map.results.FilterDisplay = mol.mvp.View.extend(
         {
             init: function(name) {
                 var html = '' +
@@ -351,16 +352,18 @@ mol.modules.map.results = function(mol) {
                     '    <div class="filterName">{0}</div>' + 
                     '    <div class="options"></div>' + 
                     '</div>';
-
+                    
                 this._super(html.format(name));
-
                 this.name = $(this.find('.filterName'));
                 this.options = $(this.find('.options'));
+                this.allOption = new mol.map.results.OptionDisplay('All');
+                this.allOption.addClass('selected');
+                this.options.append(this.allOption);
             }
         }
     );
       
-    mol.map.results.OptionDisplay = mol.mvp.Display.extend(
+    mol.map.results.OptionDisplay = mol.mvp.View.extend(
         {
             init: function(name) {
                 this._super('<div id="{0}" class="option">{0}</div>'.format(name, name));

@@ -111,7 +111,7 @@ mol.modules.map.search = function(mol) {
         }
     );
     
-    mol.map.search.SearchDisplay = mol.mvp.Display.extend(
+    mol.map.search.SearchDisplay = mol.mvp.View.extend(
         {
             init: function() {
                 var html = '' +
