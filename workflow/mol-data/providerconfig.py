@@ -111,7 +111,15 @@ class ProviderConfig(object):
             """
 
             dict = {}
-            mapping = {}
+
+            # Some default, optional mappings. Note that all of these
+            # can be overridden by the config file if necessary.
+            mapping = {
+                'filename': 'filename',
+                'provider': 'provider',
+                'collection': 'collection',
+                'row': 'row' 
+            }
 
             for iteritems in (self.collection['fields']['required'].iteritems(), self.collection['fields']['optional'].iteritems()):
                 for (name, value) in iteritems:
@@ -119,7 +127,7 @@ class ProviderConfig(object):
                         continue
                     elif isinstance(value, list):
                         for mapped_field in value:
-                            mapping[unicode(mapped_field).lower()] = unicode(name).lower()
+                            mapping[str(mapped_field.lower())] = name.lower()
                     elif value != '':
                         dict[name] = unicode(value)
             
@@ -132,7 +140,7 @@ class ProviderConfig(object):
             while self.mapped_fields is None:
                 self.default_fields()
 
-            name_lc = unicode(name).lower()
+            name_lc = str(name.lower())
             mapping = self.mapped_fields
 
             if name_lc in mapping:

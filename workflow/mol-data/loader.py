@@ -21,18 +21,21 @@
 """
 
 import codecs
+import decimal
 import glob
 import hashlib
 import logging
-from optparse import OptionParser
 import os
+import pprint
 import random
-import simplejson
 import shapely.geometry
+import simplejson
 import subprocess
 import sys
 import time
+
 from cartodb import CartoDB
+from optparse import OptionParser
 from zipfile import ZipFile
 
 from providerconfig import ProviderConfig
@@ -42,6 +45,25 @@ from unicodewriter import UnicodeDictReader
 # '.' for the old loader.py behavior of looking in subfolders of the
 # current directory.
 DEFAULT_DATASETS_DIR = 'datasets'
+
+# Some global functions.
+
+def generate_feature_hash(feature):
+    """ Generates a hash for a 'geo' feature. The challenge here is to
+    ensure that this hash will look the same for ever 'geo' object,
+    on every computer, ever. Good luck.
+    """
+
+    # We need pformat only because it sorts dictionary keys alphabetically,
+    # and will not trip up if we ever have dictionaries-inside-dictionaries,
+    # etc.
+    str = pprint.pformat(feature)
+    
+    # We use SHA-1 hashes, rendered as uppercase hexadecimal digits.
+    hash = hashlib.sha1(str).hexdigest().upper()
+
+    # print "Hash [%s] generated from «%s»." % (hash, str)
+    return hash
 
 # TODO: Best just get rid of this and use a global variable?
 class ogr2ogrPathDetection(object):
@@ -103,11 +125,17 @@ def uploadToCartoDB(provider_dir):
                 deletePreviousEntries(_getoptions().table_name, collection.get_provider(), collection.get_collection())
 
             # Check feature hashes, so we don't reupload existing entries.
+            logging.info("Downloading feature hashes for table '%s', provider '%s', collection '%s' to prevent duplicate uploads.",
+                _getoptions().table_name, 
+                collection.get_provider(), 
+                collection.get_name()
+            )
             uploaded_feature_hashes = getUploadedFeatureHashes(
                 _getoptions().table_name, 
                 collection.get_provider(), 
                 collection.get_name()
             )
+            logging.info("%d feature hashes downloaded.", len(uploaded_feature_hashes))
             
             # We currently combine three SQL statements into a single statement for transmission to CartoDB.
             sql_statements = set()
@@ -129,7 +157,7 @@ def uploadToCartoDB(provider_dir):
                 collection.verify_fields(properties['filename'], new_properties)
                 feature['properties'] = new_properties
 
-                feature_hash = hashlib.sha1(feature.__str__()).hexdigest().upper()
+                feature_hash = generate_feature_hash(feature) 
                 if feature_hash in uploaded_feature_hashes:
                     if not _getoptions().replace:
                         logging.info("\tFeature #%d has already been uploaded (hash matches)" % row_count)
@@ -199,6 +227,9 @@ def getUploadedFeatureHashes(table_name, provider, collection):
             access_token_url=cartodb_settings['access_token_url']
         )
 
+    # This seems like a tempting place to cache results, but actually
+    # isn't, since this function should only run once for any collection.
+
     # print "Executing SQL: «%s»" % sql
     quoted_provider = "$a_complicated_tag_here$%s$a_complicated_tag_here$" % provider
     quoted_collection = "$another_complicated_tag_here$%s$another_complicated_tag_here$" % collection
@@ -220,6 +251,12 @@ def getFeaturesFromShapefileDir(collection, name):
 
     try:
         shapefiles = glob.glob('*.shp')
+
+        # Makes testing easier: for systems which have the files with the same names,
+        # we'll upload files in the same order. Won't work where filenames are different.
+        # Filenames are stored case-sensitively when uploaded to CartoDB.
+        shapefiles.sort()
+
         for shapefile in shapefiles:
             # Determine the "name" (filename without extension) of this file.
             filename = shapefile[0:shapefile.index('.shp')]
@@ -255,6 +292,7 @@ def getFeaturesFromShapefileDir(collection, name):
             try:
                 geojson = simplejson.loads(
                     codecs.open(json_filename, encoding='latin-1').read(), 
+                    parse_float=lambda x: decimal.Decimal("%.6f" % round(float(x), 6)),
                     encoding='utf-8')
 
             except Exception as e:
@@ -490,6 +528,11 @@ def parse_cmdline():
                       dest="reset_collection",
                       help="Resets the table by deleting all records in a collection before uploading that collection."
     )
+    parser.add_option('--marktime',
+                      action="store_true",
+                      dest="mark_time",
+                      help="Turns on millisecond timing in the output, so that the time between messages can be tracked."
+    )
 
     return parser.parse_args()[0]
 
@@ -500,8 +543,11 @@ def main():
     directories the user has decided should be uploaded, and then calls
     uploadToCartoDB() on those directories."""
     
-    logging.basicConfig(level=logging.DEBUG, format="%(levelname)s:%(module)s:%(relativeCreated)d:%(message)s")
     options = _getoptions()
+    if options.mark_time:
+        logging.basicConfig(level=logging.DEBUG, format="%(levelname)s:%(module)s:%(relativeCreated)d:%(message)s")
+    else:
+        logging.basicConfig(level=logging.DEBUG)
 
     # Load up the cartodb settings: we'll need them later.
     global cartodb_settings
