@@ -21,6 +21,7 @@
 """
 
 import codecs
+import decimal
 import glob
 import hashlib
 import logging
@@ -268,8 +269,7 @@ def getFeaturesFromShapefileDir(collection, name):
                 '-f', 'GeoJSON', 
                 '-t_srs', 'EPSG:4326',
                 json_filename,
-                '%s.shp' % filename,
-                '-lco', 'COORDINATE_PRECISION=6'
+                '%s.shp' % filename
             ]
 
             try:
@@ -286,6 +286,7 @@ def getFeaturesFromShapefileDir(collection, name):
             try:
                 geojson = simplejson.loads(
                     codecs.open(json_filename, encoding='latin-1').read(), 
+                    parse_float=lambda x: decimal.Decimal("%.6f" % round(float(x), 6)),
                     encoding='utf-8')
 
             except Exception as e:
