@@ -208,14 +208,15 @@ MOL.modules.Add = function(mol) {
             },
             
             _onGoButtonClick: function() {
-            	var username = this._display.getUserNameInput().val(),
-            	    tablename = this._display.getTableNameInput().val(),
+            	var display = this._display,
+					username = this._display.getUserNameInput().val(),
+					tablename = this._display.getTableNameInput().val(),
 					host = this._display.getDomainInput().val(),
-            		query = this._display.getQueryInput().val(),
-            		name = this._display.getNameInput().val(),
-                    bus = this._bus,
+					query = this._display.getQueryInput().val(),
+					name = this._display.getNameInput().val(),
+					bus = this._bus,
 					Layer = mol.model.Layer,
-                    LayerEvent = mol.events.LayerEvent,
+					LayerEvent = mol.events.LayerEvent,
 					config = new mol.model.Config({
 						name: name,
 						user: username,
@@ -238,6 +239,7 @@ MOL.modules.Add = function(mol) {
 						layer: layer,
 						action: "add"
 					}));
+					display.clearAll();
             	} else {
             		alert('Username, domain and query are mandatory.');
             	}

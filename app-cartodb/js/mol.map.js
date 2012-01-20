@@ -2,21 +2,17 @@ mol.modules.map = function(mol) {
     
     mol.map = {};
 
-    mol.map.submodules = ['controls'];
+    mol.map.submodules = ['search', 'results', 'layers', 'tiles'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
             init: function(api, bus) {
                 this.api = api;
                 this.bus = bus;
-                this.controlDisplays = {};
-                this.controlDivs = {};
-                this.mapLayers = {};
             },            
             
             start: function(container) {
-                this.display = new mol.map.MapDisplay(null, container);
-                this.display.engine(this);
+                this.display = new mol.map.MapDisplay('.map_container');
                 this.addControls();
                 this.addEventHandlers();
             },
@@ -85,7 +81,24 @@ mol.modules.map = function(mol) {
 
             addEventHandlers: function() {
                 var self = this;
-
+                
+                /**
+                 * The event.overlays contains an array of overlays for the map.
+                 */              
+                this.bus.addHandler(
+                    'add-map-overlays',
+                    function(event) {
+                        _.each(
+                            event.overlays,
+                            function(overlay) {
+                                this.display.map.overlayMapTypes.push(overlay);
+                            },
+                            self
+                        );
+                    }
+                );
+              
+              
                 this.bus.addHandler(
                     'add-map-control', 
                     
@@ -112,15 +125,14 @@ mol.modules.map = function(mol) {
             }
         }
     );
-
-    mol.map.MapDisplay = mol.mvp.Display.extend(
+    
+    mol.map.MapDisplay = mol.mvp.View.extend(
         {
-            init: function(element, parent) {
-                this._super(element, parent);
-
+            init: function(element) {
                 var mapOptions = null;
+                
+                this._super(element);
 
-                // TODO: Move this into mol.config.js?
                 mapOptions = { 
                     zoom: 2,
                     maxZoom: 15,
@@ -154,7 +166,6 @@ mol.modules.map = function(mol) {
                         
                     ]
                 }; 
-                this.attr('id', 'map');
                 this.map = new google.maps.Map(this.element, mapOptions);
             }
         }
@@ -165,7 +176,7 @@ mol.modules.map = function(mol) {
      * a top, middle, and bottom slot. It gets attached to a map control positions.
      * 
      */
-    mol.map.ControlDisplay = mol.mvp.Display.extend(
+    mol.map.ControlDisplay = mol.mvp.View.extend(
         {
             /**
              * @param name css class name for the display 
@@ -181,7 +192,7 @@ mol.modules.map = function(mol) {
                     '</div>';
 
                 this._super(html);
-                this.selectable({disabled: true});
+                //this.selectable({disabled: true});
                 this.find(Slot.TOP).removeClass('ui-selectee');
                 this.find(Slot.MIDDLE).removeClass('ui-selectee');
                 this.find(Slot.BOTTOM).removeClass('ui-selectee');
@@ -217,5 +228,5 @@ mol.modules.map = function(mol) {
         MIDDLE: '.MIDDLE',
         BOTTOM: '.BOTTOM',
         LAST: '.LAST'
-    };
+    };    
 };

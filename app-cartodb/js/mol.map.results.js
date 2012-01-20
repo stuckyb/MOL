@@ -1,8 +1,8 @@
-mol.modules.map.controls = function(mol) { 
+mol.modules.map.results = function(mol) { 
     
-    mol.map.controls = {};
+    mol.map.results = {};
 
-    mol.map.controls.SearchEngine = mol.mvp.Engine.extend(
+    mol.map.results.ResultsEngine = mol.mvp.Engine.extend(
         {
             /**
              * @param bus mol.bus.Bus
@@ -10,17 +10,6 @@ mol.modules.map.controls = function(mol) {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
-                this.sql = '' +
-                    'SELECT ' + 
-                    'p.provider as source, p.scientificname as name, p.type as type ' +
-                    //', ST_AsText(ST_SetSRID(ST_Box2D(p.the_geom), 4326)) as extent ' +
-                    'FROM mol_rangemaps as p ' +
-                    'WHERE st_isvalid(p.the_geom) AND p.scientificname @@ to_tsquery(\'{0}\') ' +
-                    'UNION SELECT ' +
-                    't.provider as source, t.scientificname as name, t.type as type ' +
-                    //', ST_AsText(ST_SetSRID(ST_Box2D(t.the_geom), 4326)) as extent ' +
-                    'FROM eafr as t ' +
-                    'WHERE st_isvalid(t.the_geom) AND t.scientificname @@ to_tsquery(\'{1}\') ';
             },
             
             /**
@@ -28,27 +17,10 @@ mol.modules.map.controls = function(mol) {
              * ignored.
              */
             start: function(container) {
-                this.display = new mol.map.controls.SearchDisplay();
-                this.display.engine(this);
-                this.display.toggle(false);
-                this.display.resultPanel.toggle(false);
+                this.display = new mol.map.results.ResultsDisplay();
+                this.display.toggle(false);                
                 this.addEventHandlers();
                 this.fireEvents();
-            },
-
-            /**
-             * Fires the 'add-map-control' event. The mol.map.MapEngine handles 
-             * this event and adds the display to the map.
-             */
-            fireEvents: function() {
-                var params = {
-                        display: this.display,    
-                        slot: mol.map.ControlDisplay.Slot.TOP,
-                        position: google.maps.ControlPosition.TOP_LEFT
-                    },
-                    event = new mol.bus.Event('add-map-control', params);
-
-                this.bus.fireEvent(event);
             },
 
             /**
@@ -58,7 +30,63 @@ mol.modules.map.controls = function(mol) {
              */
             addEventHandlers: function() {
                 var self = this;
-
+                
+                /**
+                 * Clicking the "select all" link checks all results.
+                 */
+                this.display.selectAllLink.click(
+                    function(event) {
+                        self.display.toggleSelections(true);
+                    }
+                );
+                
+                /**
+                 * Clicking the 'map selected layers' button fires an 'add-layers'
+                 * event on the bus.                                  
+                 */
+                this.display.addAllButton.click(
+                    function(event) {
+                        var checkedResults = self.display.getChecked(),
+                            layers = _.map(
+                                checkedResults,
+                                function(result) {
+                                    return {
+                                        name: result.find('.resultName').text(),
+                                        type: 'points' // TODO
+                                    };
+                                }                        
+                            );                        
+                        
+                        self.bus.fireEvent(
+                            new mol.bus.Event(
+                                'add-layers', 
+                                {
+                                    layers: layers
+                                }
+                            )
+                        );
+                    }
+                );
+                
+                /**
+                 * Clicking the "select none" link unchecks all results.
+                 */
+                this.display.selectNoneLink.click(
+                    function(event) {
+                        self.display.toggleSelections(false);
+                    }
+                );
+                
+                /**
+                 * Callback that hides the display on a cancel-search event.
+                 */
+                this.bus.addHandler(
+                    'cancel-search',
+                    function(event) {
+                        self.display.toggle(false);
+                    }
+                );
+                
                 /**
                  * Callback that toggles the search display visibility. The 
                  * event is expected to have the following properties:
@@ -68,50 +96,40 @@ mol.modules.map.controls = function(mol) {
                  * @param event mol.bus.Event
                  */
                 this.bus.addHandler(
-                    'search-display-toggle',                    
+                    'results-display-toggle',                    
                     function(event) {                        
                         self.display.toggle(event.visible);
                     }
                 );
-
-                this.display.goButton.click(
+                
+                /**
+                 * Callback that displays search results.
+                 */
+                this.bus.addHandler(
+                    'search-results',
                     function(event) {
-                        self.search(self.display.searchBox.val());
-                    }
-                );
-
-                this.display.searchBox.keyup(
-                    function(event) {
-                      if (event.keyCode === 13) {
-                        self.display.goButton.click();
-                      }
-                    }
-                );
-
-            },
-
-            /**
-             * Searches CartoDB using a term from the search box. If successful, 
-             * the callback dispatches to the results() function.
-             * 
-             * @param term the search term (scientific name)
-             */
-            search: function(term) {
-                var self = this,
-                    sql = this.sql.format(term, term),
-                    params = {sql:sql, term: term},
-                    action = new mol.services.Action('cartodb-sql-query', params),
-                    success = function(action, response) {
-                        self.results = mol.services.cartodb.convert(response);
-                        self.profile = new mol.map.controls.SearchProfile(self.results);
+                        self.results = mol.services.cartodb.convert(event.response);
+                        self.profile = new mol.map.results.SearchProfile(self.results);
                         console.log(self.results);
                         self.showFilters(self.profile);
                         self.showLayers(self.results.layers);
-                    }, 
-                    failure = function(action, response) {
-                    };
-                
-                this.proxy.execute(action, new mol.services.Callback(success, failure));
+                    }
+                );
+            },
+
+            /**
+             * Fires the 'add-map-control' event. The mol.map.MapEngine handles 
+             * this event and adds the display to the map.
+             */
+            fireEvents: function() {
+                var params = {
+                        display: this.display,    
+                        slot: mol.map.ControlDisplay.Slot.BOTTOM,
+                        position: google.maps.ControlPosition.TOP_LEFT
+                    },
+                    event = new mol.bus.Event('add-map-control', params);
+
+                this.bus.fireEvent(event);
             },
 
             /**
@@ -140,14 +158,15 @@ mol.modules.map.controls = function(mol) {
                 // Set layer results in display.
                 _.each(
                     this.display.setResults(layerNames),
-                    function(result) {
-                        // TODO: Wire event listeners to result.
-                    }
+                    function(result) {                        
+                        // TODO
+                    },
+                    this
                 );
 
-                this.display.resultPanel.toggle(true);
+                this.display.toggle(true);
             },
-
+                        
             showFilters: function(profile) {
                 var display = this.display,
                     layerNames = profile.getKeys('names'),
@@ -190,7 +209,7 @@ mol.modules.map.controls = function(mol) {
              * the selected styles from all other items. This is what gets fired
              * when a filter option is clicked.
              * 
-             * @param filter mol.map.controls.FilterDisplay
+             * @param filter mol.map.results.FilterDisplay
              * @param option the filter option display
              */
             optionClickCallback: function(option, filterName) {
@@ -212,13 +231,13 @@ mol.modules.map.controls = function(mol) {
              * 
              */
             updateDisplay: function() {
-                var name = this.display.getOptions('Names', true)[0],
-                    source = this.display.getOptions('Sources', true)[0],
-                    type = this.display.getOptions('Types', true)[0],
+                var name = this.display.getOptions('Names', true)[0].attr('id'),
+                    source = this.display.getOptions('Sources', true)[0].attr('id'),
+                    type = this.display.getOptions('Types', true)[0].attr('id'),
                     layers = this.profile.getNewLayers(
-                        name ? name.attr('id') : name, 
-                        source ? source.attr('id') : source,
-                        type ? type.attr('id') : type);
+                        name !== 'All' ? name : null, 
+                        source !== 'All' ? source : null,
+                        type !== 'All'? type : null);
 
                 this.showLayers(layers);                
             }
@@ -230,46 +249,33 @@ mol.modules.map.controls = function(mol) {
      * results list, and search result filters. This is the thing that gets
      * added to the map as a control.
      */
-    mol.map.controls.SearchDisplay = mol.mvp.Display.extend(
+    mol.map.results.ResultsDisplay = mol.mvp.View.extend(
         {
             init: function() {
                 var html = '' +
-                    '<div>' +
-                    '<div class="mol-LayerControl-Search widgetTheme">' + 
-                    '  <div class="title">Search:</div>' + 
-                    '  <input class="value" type="text" placeholder="Search by name">' + 
-                    '  <button class="execute">Go</button>' + 
-                    '  <button class="cancel"><img src="/static/maps/search/cancel.png"></button>' + 
-                    '</div>' + 
                     '<div class="mol-LayerControl-Results">' + 
                     '  <div class="filters"></div>' + 
                     '  <div class="searchResults widgetTheme">' + 
                     '    <div class="resultHeader">' +
                     '       Results' +
-                    '       <a href="" class="selectNone">none</a>' +
-                    '       <a href="" class="selectAll">all</a>' +
+                    '       <a href="#" class="selectNone">none</a>' +
+                    '       <a href="#" class="selectAll">all</a>' +
                     '    </div>' + 
                     '    <ol class="resultList"></ol>' + 
                     '    <div class="pageNavigation">' + 
                     '       <button class="addAll">Map Selected Layers</button>' + 
                     '    </div>' + 
                     '  </div>' + 
-                    '</div>' +
                     '</div>';
 
                 this._super(html);
-
-                this.goButton = $(this.find('.execute'));
-                this.results = $(this.find('.mol-LayerControl-Results'));
-                this.searchBox = $(this.find('.value'));
-                this.resultPanel = $(this.find('.mol-LayerControl-Results'));
                 this.resultList = $(this.find('.resultList'));
                 this.filters = $(this.find('.filters'));
+                this.selectAllLink = $(this.find('.selectAll'));
+                this.selectNoneLink = $(this.find('.selectNone'));
+                this.addAllButton = $(this.find('.addAll'));
             },
             
-            /**
-             * 
-             */
             clearResults: function() {
                 this.resultList.html('');
             },
@@ -289,7 +295,39 @@ mol.modules.map.controls = function(mol) {
                     }
                 );
             },
-
+            
+            toggleSelections: function(showOrHide) {
+                $('.checkbox').each(
+                    function() {
+                        $(this).attr('checked', showOrHide);
+                    }
+                );                
+            },
+            
+            /**
+             * Returns an array of jquery result objects that are checked.
+             */
+            getChecked: function() {
+               var checked = _.filter(
+                   this.resultList.children(),
+                   function(result) {
+                       if ($(result).find('.checkbox').attr('checked')) {
+                           return true;
+                       } else {
+                           return false;
+                       }
+                   },
+                   this
+               ); 
+                               
+                return _.map(
+                    checked,
+                    function(result) {
+                        return $(result);
+                    }
+                );
+            },
+            
             /**
              * Sets the results and returns them as an arrya of JQuery objects.
              * 
@@ -301,24 +339,25 @@ mol.modules.map.controls = function(mol) {
                 return _.map(
                     names,
                     function(name) {
-                        var result = new mol.map.controls.ResultDisplay(name);
+                        var result = new mol.map.results.ResultDisplay(name);
                         self.resultList.append(result);
                         return result;
                     }
                 );                
             },
-
+            
+            
             /**
              * Sets the options for a filter and returns the options as an array
              * of JQuery objects.
              */
             setOptions: function(filterName, optionNames) {
                 var self = this,
-                    filter = new mol.map.controls.FilterDisplay(filterName),
+                    filter = new mol.map.results.FilterDisplay(filterName),
                     options =  _.map(
                         optionNames,
                         function(name) {
-                            var option = new mol.map.controls.OptionDisplay(name);
+                            var option = new mol.map.results.OptionDisplay(name);
                             filter.options.append(option);
                             return option;
                         }                        
@@ -326,7 +365,7 @@ mol.modules.map.controls = function(mol) {
                 
                 filter.attr('id', filterName);
                 this.filters.append(filter);
-                return options;
+                return _.union([filter.allOption], options);
             },
 
             /**
@@ -348,8 +387,8 @@ mol.modules.map.controls = function(mol) {
                                 return false;
                             }
                         }
-                    );
-                
+                    );               
+
                 return _.map(
                     options,
                     function(option) {
@@ -365,7 +404,7 @@ mol.modules.map.controls = function(mol) {
      * 
      * @param parent the .resultList element in search display
      */
-    mol.map.controls.ResultDisplay = mol.mvp.Display.extend(
+    mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
             init: function(name) {
                 var html = '' +
@@ -400,7 +439,7 @@ mol.modules.map.controls = function(mol) {
      * The display for a single search result filter. Allows you to select a name,
      * source, or type and see only matching search results.
      */
-    mol.map.controls.FilterDisplay = mol.mvp.Display.extend(
+    mol.map.results.FilterDisplay = mol.mvp.View.extend(
         {
             init: function(name) {
                 var html = '' +
@@ -408,16 +447,18 @@ mol.modules.map.controls = function(mol) {
                     '    <div class="filterName">{0}</div>' + 
                     '    <div class="options"></div>' + 
                     '</div>';
-
+                    
                 this._super(html.format(name));
-
                 this.name = $(this.find('.filterName'));
                 this.options = $(this.find('.options'));
+                this.allOption = new mol.map.results.OptionDisplay('All');
+                this.allOption.addClass('selected');
+                this.options.append(this.allOption);
             }
         }
     );
       
-    mol.map.controls.OptionDisplay = mol.mvp.Display.extend(
+    mol.map.results.OptionDisplay = mol.mvp.View.extend(
         {
             init: function(name) {
                 this._super('<div id="{0}" class="option">{0}</div>'.format(name, name));
@@ -434,7 +475,7 @@ mol.modules.map.controls = function(mol) {
      * 
      * TODO: This could use a refactor. Lot's of duplicate code.
      */
-    mol.map.controls.SearchProfile = Class.extend(
+    mol.map.results.SearchProfile = Class.extend(
         {
             init: function(response) {
                 this.response = response;
