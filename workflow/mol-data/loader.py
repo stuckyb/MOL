@@ -54,9 +54,15 @@ def generate_feature_hash(feature):
     on every computer, ever. Good luck.
     """
 
+    # We need pformat only because it sorts dictionary keys alphabetically,
+    # and will not trip up if we ever have dictionaries-inside-dictionaries,
+    # etc.
     str = pprint.pformat(feature)
+    
+    # We use SHA-1 hashes, rendered as uppercase hexadecimal digits.
     hash = hashlib.sha1(str).hexdigest().upper()
-    print "Hash [%s] generated from «%s»." % (hash, str)
+
+    # print "Hash [%s] generated from «%s»." % (hash, str)
     return hash
 
 # TODO: Best just get rid of this and use a global variable?
