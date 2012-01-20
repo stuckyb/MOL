@@ -416,9 +416,15 @@ def encodeGeoJSONEntryAsSQL(entry, table_name):
     # Determine the geometry for this object, by converting the GeoJSON
     # geometry representation into WKT.
     # geometry = "SRID=4326;" + shapely.geometry.asShape(entry['geometry']).wkb
-    geometry = shapely.geometry.asShape(entry['geometry']).wkb.encode('hex')
-        # We can use SRID=4326 because we loaded it in that SRID from
-        # ogr2ogr.
+    try:
+	    geometry = shapely.geometry.asShape(entry['geometry']).wkb.encode('hex')
+		# We can use SRID=4326 because we loaded it in that SRID from
+		# ogr2ogr.
+    except ValueError as e:
+	logging.error("Error parsing '%s' as geometry: %s" % (entry['geometry'], e))
+	# So we continue, skipping only this feature.
+	# Run the upload again to catch these "missing features".
+	return ""
 
     # Generate a 'tag', by calculating a SHA-1 hash of the concatenation
     # of the current time (in seconds since the epoch) and the string
