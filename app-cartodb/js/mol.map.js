@@ -97,8 +97,31 @@ mol.modules.map = function(mol) {
                         );
                     }
                 );
-              
-              
+                
+                                
+                /**
+                 * Handles the layer-toggle event. The event.layer is a layer 
+                 * object {name, type} and event.showing is true if the layer
+                 * is showing, false otherwise.
+                 */
+                this.bus.addHandler(
+                    'layer-toggle',
+                    function(event) {   
+                        var name = event.layer.name,
+                            type = event.layer.type,
+                            id = 'layer-{0}-{1}'.format(name, type),
+                            overlayMapTypes = self.display.map.overlayMapTypes;
+                        
+                        overlayMapTypes.forEach(
+                            function(layer, index) {
+                                if (layer.name === id) {
+                                    overlayMapTypes.removeAt(index);
+                                }
+                            }
+                        );
+                    }
+                );
+
                 this.bus.addHandler(
                     'add-map-control', 
                     

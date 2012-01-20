@@ -29,7 +29,6 @@ mol.modules.map.layers = function(mol) {
                         self.addLayers(event.layers);                        
                     }                    
                 );
-                
             },
             
             /**
@@ -50,8 +49,24 @@ mol.modules.map.layers = function(mol) {
             addLayers: function(layers) {
                 _.each(
                     layers,
-                    function(layer) {
-                        this.display.addLayer(layer.name, layer.type);                        
+                    function(layer) {                        
+                        var l = this.display.addLayer(layer.name, layer.type);                        
+                            self = this;
+                        
+                        l.toggleButton.attr('checked', true);
+                            
+                        l.click(
+                            function(event) {
+                                var showing = $(event.currentTarget).find('.toggle').is(':checked'),
+                                    params = {
+                                        layer: layer,
+                                        showing: showing
+                                    },
+                                    e = new mol.bus.Event('layer-toggle', params);
+
+                                self.bus.fireEvent(e);                                
+                            }
+                        );
                     },
                     this
                 );
@@ -77,6 +92,8 @@ mol.modules.map.layers = function(mol) {
                     '</div>';
                 
                 this._super(html.format(type, name));
+                this.attr('id', 'layer-{0}-{1}'.format(name, type));
+                this.toggleButton = $(this.find('.toggle'));
             }
         }
     );
@@ -102,6 +119,10 @@ mol.modules.map.layers = function(mol) {
                 this.views = {};
                 this.layers = [];
                 this.render();
+            },
+            
+            getLayer: function(name, type) {
+                return $(this.find('#layer-{0}-{1}'.format(name, type)));
             },
             
             addLayer: function(name, type) {
