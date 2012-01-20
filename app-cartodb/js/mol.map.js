@@ -2,7 +2,7 @@ mol.modules.map = function(mol) {
     
     mol.map = {};
 
-    mol.map.submodules = ['search', 'results', 'layers'];
+    mol.map.submodules = ['search', 'results', 'layers', 'tiles'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
@@ -81,7 +81,24 @@ mol.modules.map = function(mol) {
 
             addEventHandlers: function() {
                 var self = this;
-
+                
+                /**
+                 * The event.overlays contains an array of overlays for the map.
+                 */              
+                this.bus.addHandler(
+                    'add-map-overlays',
+                    function(event) {
+                        _.each(
+                            event.overlays,
+                            function(overlay) {
+                                this.display.map.overlayMapTypes.push(overlay);
+                            },
+                            self
+                        );
+                    }
+                );
+              
+              
                 this.bus.addHandler(
                     'add-map-control', 
                     
