@@ -188,18 +188,18 @@ def uploadToCartoDB(provider_dir):
                 sendSQLStatementToCartoDB("; ".join(sql_statements))
                 sql_statements.clear()
             
-            logging.info('%s converted to GeoJSON, %d features processed.' % (name, len(features)))
+            logging.info("Uploaded %d features from collection '%s' (provider '%s').", row_count, collection.get_name(), collection.get_provider());
 
             # Go back to the provider directory.
             os.chdir(original_dir)
             os.chdir(provider_dir)
 
-        logging.info("%s written successfully." % filename)
+        logging.info("Processing of directory '%s' completed." % provider_dir)
 
     finally:
         os.chdir(original_dir)
 
-    logging.info("Processing of directory '%s' completed." % provider_dir)
+    logging.info("Leaving directory '%s'." % provider_dir)
 
 def getCollectionIterator(table_name, collection):
     name = collection.get_name()
