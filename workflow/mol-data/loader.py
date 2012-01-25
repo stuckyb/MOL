@@ -313,9 +313,9 @@ def getFeaturesFromShapefileDir(collection, name):
         # Return to the provider dir.
         os.chdir('..')
 
-def getFeaturesFromLatLongCsvFile(name):
+def getFeaturesFromLatLongCsvFile(collection, filename):
     # This is a .csv file! 
-    csvfile = open(name, "r")
+    csvfile = open(filename, "r")
     reader = UnicodeDictReader(csvfile)
 
     features = []
@@ -348,7 +348,13 @@ def getFeaturesFromLatLongCsvFile(name):
             # IMPORTANT TODO: at the moment, we assume the incoming coordinates
             # are already in WGS84! THIS MIGHT NOT BE TRUE!
 
-        features.append(feature)
+        properties = feature['properties']
+        properties['provider'] = collection.get_provider()
+        properties['collection'] = collection.get_name()
+        properties['filename'] = filename
+        properties['row'] = feature_index
+                
+        yield(feature)
 
     csvfile.close()
 
