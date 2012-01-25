@@ -2,4 +2,9 @@
 
 TODO
 
+# Code example
+
+```javascript
+var mol = new function(callback) {};
+```
 
