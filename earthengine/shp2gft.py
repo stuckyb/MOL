@@ -157,7 +157,8 @@ def _get_feature_count(pathname):
     p = subprocess.Popen(
         shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = p.communicate()
-    count = int(output.split('\n')[5].split('Feature Count:')[1].strip())
+    count = int(output.split('\n')[6].split('Feature Count:')[1].strip())
+    logging.info('shapefile: %s, polygon count: %s' % (pathname, count))
     return count
 
 def _create_fusion_table(name, oauth_client):

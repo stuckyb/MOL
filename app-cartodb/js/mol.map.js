@@ -2,7 +2,7 @@ mol.modules.map = function(mol) {
     
     mol.map = {};
 
-    mol.map.submodules = ['search', 'results', 'layers'];
+    mol.map.submodules = ['search', 'results', 'layers', 'tiles'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
@@ -81,6 +81,46 @@ mol.modules.map = function(mol) {
 
             addEventHandlers: function() {
                 var self = this;
+                
+                /**
+                 * The event.overlays contains an array of overlays for the map.
+                 */              
+                this.bus.addHandler(
+                    'add-map-overlays',
+                    function(event) {
+                        _.each(
+                            event.overlays,
+                            function(overlay) {
+                                this.display.map.overlayMapTypes.push(overlay);
+                            },
+                            self
+                        );
+                    }
+                );
+                
+                                
+                /**
+                 * Handles the layer-toggle event. The event.layer is a layer 
+                 * object {name, type} and event.showing is true if the layer
+                 * is showing, false otherwise.
+                 */
+                this.bus.addHandler(
+                    'layer-toggle',
+                    function(event) {   
+                        var name = event.layer.name,
+                            type = event.layer.type,
+                            id = 'layer-{0}-{1}'.format(name, type),
+                            overlayMapTypes = self.display.map.overlayMapTypes;
+                        
+                        overlayMapTypes.forEach(
+                            function(layer, index) {
+                                if (layer.name === id) {
+                                    overlayMapTypes.removeAt(index);
+                                }
+                            }
+                        );
+                    }
+                );
 
                 this.bus.addHandler(
                     'add-map-control', 
