@@ -59,6 +59,7 @@ import logging
 import multiprocessing
 import optparse
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -88,9 +89,12 @@ def _get_auth_token(email, passwd):
     error, output = p.communicate()
 
     try:
-        return output.split('\n')[2].split('GFT: Auth key : ')[1]
-    except:
-        logging.error('Invalid credentials. Hint: Are you using Google 2-step authentication?')
+        m = re.search("^GFT: Auth key : (.*)\s*$", output, flags=re.MULTILINE);
+        if m is None:
+            raise Exception('Invalid credentials. Hint: are you using Google 2-step authentication?')
+        return m.group(0);
+    except Exception as e:
+        logging.error(e)
         sys.exit(0)
     
 def _get_options():
