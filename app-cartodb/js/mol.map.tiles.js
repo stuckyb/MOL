@@ -10,9 +10,11 @@ mol.modules.map.tiles = function(mol) {
      */
     mol.map.tiles.TileEngine = mol.mvp.Engine.extend(
         {
-            init: function(proxy, bus) {
+            init: function(proxy, bus, map) {
                 this.proxy = proxy;
                 this.bus = bus;
+                this.map = map;
+                this.layerCache = new  mol.map.tiles.LayerCache();
                 this.addEventHandlers();
             },
             
@@ -55,31 +57,109 @@ mol.modules.map.tiles = function(mol) {
              * @param layers the array of layer objects {name, type}
              */
             renderTiles: function(layers) {
-                var overlays = [];
+                var tiles = [];
                 
                 _.each(
                     layers,
                     function(layer) {
-                        overlays.push(this.getTile(layer));
+                        tiles.push(this.getCartoDbTileLayer(layer, this.map));
                     },
                     this
                 );
                 
-                this.bus.fireEvent(new mol.bus.Event('add-map-overlays', {overlays: overlays}));
+                this.cache.setMulti(tiles);
+                //this.bus.fireEvent(new mol.bus.Event('add-map-overlays', {overlays: overlays}));
             },
             
             /**
-             * Closure around the tile. TODO: Is this needed?
+             * Returns a CartoDBLayer.
+             */
+            getCartoDbTileLayer: function(layer, map) {
+                var name = layer.name.trim(),
+                    type = layer.type.trim(),
+                    id = 'layer-{0}-{1}'.format(name, type);
+                    
+                return new google.maps.CartoDBLayer(
+                    {
+                        id: id,
+                        tile_host: 'cartodb.com',
+                        sql_host: 'cartodb.com',
+                        map_canvas: 'map_canvas',
+                        map: map,
+                        user_name: 'eighty',
+                        table_name: type,
+                        query: "SELECT * FROM mol_cody where scientific = '{0}'".format(name),
+                        map_style: true,
+                        infowindow: true,
+                        auto_bound: true
+                    }
+                );                        
+            },
+            
+            /**
+             * Closure around the layer that returns the ImageMapType for the tile.
              */
             getTile: function(layer) {
                 var name = layer.name.trim(),
                     type = layer.type.trim(),
+                    tile = null;
+
+                switch (type) {
+                case 'points':
                     tile = new mol.map.tiles.PointDensityTile(name, type);
+                    break;
+                case 'polygon':
+                    tile = new mol.map.tiles.PolygonTile(name, type, this.map);
+                    break;
+                }
     
-                return tile.getImageMapType();
+                return tile; //.getImageMapType();
             }
         }
     );    
+    
+    mol.map.tiles.TileCache = Class.extend(
+        {
+            init: function() {
+                this.tiles = {};
+            },
+            
+            set: function(tile) {
+                this.tiles[tile.id] = tile;
+            },
+            
+            get: function(name, type) {
+                return this.tiles['layer-{0}-{1}'.format(name, type)];
+            },
+            
+            setMulti: function(tiles) {
+                _.each(tiles, this.set, this);
+            }
+        }
+    );
+    
+    mol.map.tiles.PolygonTile = Class.extend(
+        {            
+            init: function(name, type, map) {
+                this.id = 'layer-{0}-{1}'.format(name, type),
+                this.layer = new google.maps.CartoDBLayer(
+                    {
+                        id: id,
+                        tile_host: 'cartodb.com',
+                        sql_host: 'cartodb.com',
+                        map_canvas: 'map_canvas',
+                        map: this.map,
+                        user_name: 'eighty',
+                        table_name: 'mol_cody',
+                        query: "SELECT * FROM mol_cody where scientific = '{0}'".format(name),
+                        map_style: true,
+                        infowindow: true,
+                        auto_bound: true
+                    }
+                );               
+            }
+        }        
+    );
     
     mol.map.tiles.PointDensityTile = Class.extend(
         {
@@ -95,7 +175,6 @@ mol.modules.map.tiles = function(mol) {
                 this.topZ = null;
                 this.style = null;
                 this.createCalls(8);                
-                console.log(this.statements);
                 //carto_map.overlayMapTypes.insertAt(0, cartodb_imagemaptype);
             },
             
