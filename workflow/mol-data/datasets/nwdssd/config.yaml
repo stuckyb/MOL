@@ -28,16 +28,19 @@ Collections:
     Required:
       areaid: 1
       polygonid: 1
-      identifier: =Identifier
+      identifier: 
+        - "Catalogue No"
       bibliographiccitation: "National Whale and Dolphin Sightings and Strandings Database, published by the Australian Antarctic Data Centre, Australia, made available under the Creative Commons Attribution 3.0 unported license. Accessed through the GBIF data portal, http://data.gbif.org/datasets/resource/79"
-      collectionid: "=Collection Code"
+      collectionid: 
+        - "Collection Code"
       contact: "Dave John Watts <dave.watts at aad.gov.au>"
       creator: "Australian Antarctic Data Centre, Australia"
       type: "pointoccurrence"
       dateSubmitted: "2011-11-27"
       rights: "Creative Commons® Attribution 3.0 Unported license. http://creativecommons.org/licenses/by/3.0/"
       # scientificname: "=Scientific name"
-      scientificName: "=Scientific name (interpreted)"
+      scientificName: 
+        - "Scientific name (interpreted)"
       title: "National Whale and Dolphin Sightings and Strandings Database"
       verbatimsrs: "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +units=m +no_defs"
 
@@ -46,9 +49,14 @@ Collections:
     #
     Optional:
       Subject: "Cetaceans"
-      AreaName: "=Region"
-      nameAccordingTo: "=Identifier"
-      SurveyStartDate: "=Date collected"
-      SurveyEndDate: "=Date collected"
-      Publisher: "=Data publisher"
+      AreaName: 
+        - "Region"
+      nameAccordingTo: 
+        - "Identifier"
+      SurveyStartDate: 
+        - "Date collected"
+      SurveyEndDate: 
+        - "Date collected"
+      Publisher: 
+        - "Data publisher"
       # Altitude?
