@@ -188,18 +188,18 @@ def uploadToCartoDB(provider_dir):
                 sendSQLStatementToCartoDB("; ".join(sql_statements))
                 sql_statements.clear()
             
-            logging.info('%s converted to GeoJSON, %d features processed.' % (name, len(features)))
+            logging.info("Uploaded %d features from collection '%s' (provider '%s').", row_count, collection.get_name(), collection.get_provider());
 
             # Go back to the provider directory.
             os.chdir(original_dir)
             os.chdir(provider_dir)
 
-        logging.info("%s written successfully." % filename)
+        logging.info("Processing of directory '%s' completed." % provider_dir)
 
     finally:
         os.chdir(original_dir)
 
-    logging.info("Processing of directory '%s' completed." % provider_dir)
+    logging.info("Leaving directory '%s'." % provider_dir)
 
 def getCollectionIterator(table_name, collection):
     name = collection.get_name()
@@ -313,9 +313,9 @@ def getFeaturesFromShapefileDir(collection, name):
         # Return to the provider dir.
         os.chdir('..')
 
-def getFeaturesFromLatLongCsvFile(name):
+def getFeaturesFromLatLongCsvFile(collection, filename):
     # This is a .csv file! 
-    csvfile = open(name, "r")
+    csvfile = open(filename, "r")
     reader = UnicodeDictReader(csvfile)
 
     features = []
@@ -348,7 +348,13 @@ def getFeaturesFromLatLongCsvFile(name):
             # IMPORTANT TODO: at the moment, we assume the incoming coordinates
             # are already in WGS84! THIS MIGHT NOT BE TRUE!
 
-        features.append(feature)
+        properties = feature['properties']
+        properties['provider'] = collection.get_provider()
+        properties['collection'] = collection.get_name()
+        properties['filename'] = filename
+        properties['row'] = feature_index
+                
+        yield(feature)
 
     csvfile.close()
 
@@ -416,9 +422,15 @@ def encodeGeoJSONEntryAsSQL(entry, table_name):
     # Determine the geometry for this object, by converting the GeoJSON
     # geometry representation into WKT.
     # geometry = "SRID=4326;" + shapely.geometry.asShape(entry['geometry']).wkb
-    geometry = shapely.geometry.asShape(entry['geometry']).wkb.encode('hex')
-        # We can use SRID=4326 because we loaded it in that SRID from
-        # ogr2ogr.
+    try:
+	    geometry = shapely.geometry.asShape(entry['geometry']).wkb.encode('hex')
+		# We can use SRID=4326 because we loaded it in that SRID from
+		# ogr2ogr.
+    except ValueError as e:
+	logging.error("Error parsing '%s' as geometry: %s" % (entry['geometry'], e))
+	# So we continue, skipping only this feature.
+	# Run the upload again to catch these "missing features".
+	return ""
 
     # Generate a 'tag', by calculating a SHA-1 hash of the concatenation
     # of the current time (in seconds since the epoch) and the string
