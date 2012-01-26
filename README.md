@@ -1,6 +1,6 @@
 # What is the Map of Life?
 
-The Map of Life is an web application that's currently being developed through a collaboration between Yale and the University of Colorado at Boulder. It integraties species distribution knowledge in an effort to support global understanding of the world's biodiversity. The resulting product will provide a knowledge-bases platform for species distribution maps, along with a set of tools for querying, accessing, downloading, and summarizing them. 
+The Map of Life is a web application that's currently being developed through a collaboration between Yale and the University of Colorado at Boulder. It integraties species distribution knowledge in an effort to support global understanding of the world's biodiversity. The resulting product will provide a knowledge-bases platform for species distribution maps, along with a set of tools for querying, accessing, downloading, and summarizing them. 
 
 # Implementation
 
