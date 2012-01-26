@@ -1,2 +1,0 @@
-= DESCRIPTION: Installs the GDAL packages for Ubuntu
-
