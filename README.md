@@ -14,6 +14,6 @@ The application rides on the following projects:
 2. [Google Earth Engine](http://earthengine.google.org) - A platform for detecting changes, mapping trends, and quantifying differences on the earth's surface.
 3. [Google App Engine](http://code.google.com/appengine) - A scalable application hosting service.
 
+# Contributors
 
-
-
+Here's [the list](https://github.com/MapofLife/MOL/contributors) of contributors.
