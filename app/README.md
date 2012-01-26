@@ -35,7 +35,7 @@ Finally, get into the `/app` directory, and let's fire up the development server
 
 ```bash
 $ cd MOL/app
-$ dev_appserver.py
+$ dev_appserver.py ./
 ```
 
 BOOM! You should be able to access the app at [http://localhost:8080](http://localhost:8080).
