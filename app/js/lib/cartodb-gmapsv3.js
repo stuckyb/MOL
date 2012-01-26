@@ -110,7 +110,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 	     // Set the map styles of your cartodb table/map
 	     function setCartoDBMapStyle(params) {
 		      $.ajax({
-		                 url:'http://' + params.user_name + '.' + this.params.tile_host + '/tiles/' + params.table_name + '/map_metadata?'+ 'map_key=' + (params.map_key || '') + '&callback=?',
+		                 url:'http://' + params.user_name + '.' + params.tile_host + '/tiles/' + params.table_name + '/map_metadata?'+ 'map_key=' + (params.map_key || '') + '&callback=?',
 		                 dataType: 'jsonp',
 		                 success:function(result){
 		                     var map_style = $.parseJSON(result.map_metadata);
@@ -233,7 +233,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
         
         
         function generateTileJson(params) {
-            var core_url = 'http://' + params.user_name + '.' + this.params.tile_host + '';  
+            var core_url = 'http://' + params.user_name + '.' + params.tile_host + '';  
             var base_url = core_url + '/tiles/' + params.table_name + '/{z}/{x}/{y}';
             var tile_url = base_url + '.png?cache_buster=0';
             var grid_url = base_url + '.grid.json';
@@ -371,7 +371,7 @@ CartoDBInfowindow.prototype = new google.maps.OverlayView();
 CartoDBInfowindow.prototype.getActiveColumns = function(params) {
     var that = this;
     $.ajax({
-	            url:'http://' + params.user_name + '.' + this.params.tile_host + '/tiles/' + params.table_name + '/infowindow?'+ 'map_key=' + (params.map_key || '')+'&callback=?',
+	            url:'http://' + params.user_name + '.' + params.tile_host + '/tiles/' + params.table_name + '/infowindow?'+ 'map_key=' + (params.map_key || '')+'&callback=?',
 	            dataType: 'jsonp',
 	            success:function(result){
 	                var columns = $.parseJSON(result.infowindow);
@@ -381,7 +381,7 @@ CartoDBInfowindow.prototype.getActiveColumns = function(params) {
 	                    $.ajax({
 		                            // If the table is private, you can't run any api methods without being
       	                         method:'get',
-      	                         url: 'http://'+ that.params_.user_name +'.' + this.params.sql_host + '/api/v1/sql/?q='+escape('select * from '+ that.params_.table_name + ' LIMIT 1'),
+      	                         url: 'http://'+ that.params_.user_name +'.' + that.params.sql_host + '/api/v1/sql/?q='+escape('select * from '+ that.params_.table_name + ' LIMIT 1'),
       	                         dataType: 'jsonp',
       	                         success: function(columns) {
       	                             that.columns_ = parseColumns(columns.rows[0]);
@@ -474,7 +474,7 @@ CartoDBInfowindow.prototype.open = function(feature,latlng){
     // If the table is private, you can't run any api methods without being
     $.ajax({
 	            method:'get',
-	            url: 'http://'+ this.params_.user_name +'.' + this.params.sql_host + '/api/v1/sql/?q='+escape('select '+that.columns_+' from '+ this.params_.table_name + ' where cartodb_id=' + feature)+'&callback=?',
+	            url: 'http://'+ that.params_.user_name +'.' + that.params_.sql_host + '/api/v1/sql/?q='+escape('select '+that.columns_+' from '+ that.params_.table_name + ' where cartodb_id=' + feature)+'&callback=?',
 	            dataType: 'jsonp',
 	            success: function(result) {
 	                positionateInfowindow(result.rows[0],latlng);

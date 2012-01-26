@@ -5,12 +5,14 @@ mol.modules.services.cartodb = function(mol) {
   mol.services.cartodb.SqlApi = Class.extend(
     {
       init: function(user, host) {
-        this.url = 'http://{0}.{1}/api/v1/sql?q='.format(user, host);
+        this.user = user;
+        this.host = host;
+        this.url = 'https://{0}.{1}/api/v1/sql?q={2}';        
       },
 
       query: function(sql, callback) {
         var encodedSql = encodeURI(sql),
-        request = '{0}{1}'.format(this.url, encodedSql),
+        request = this.url.format(this.user, this.host, encodedSql);
         xhr = $.getJSON(request); 
         
         xhr.success(
@@ -31,7 +33,7 @@ mol.modules.services.cartodb = function(mol) {
   // TODO: Put params in mol.config.js
   //mol.services.cartodb.sqlApi = new
   //mol.services.cartodb.SqlApi('layers', 'moldb.io:8080');
-  mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi('eighty', 'cartodb.com');
+  mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi('mol', 'cartodb.com');
   
   mol.services.cartodb.query = function(sql, callback) {
     mol.services.cartodb.sqlApi.query(sql, callback);
@@ -49,6 +51,7 @@ mol.modules.services.cartodb = function(mol) {
       convert: function(response) {
         this.response = response;
         return {
+
           "layers": this.getLayers(this.response), 
           "names": this.genNames(this.response), 
           "sources": this.genSources(this.response), 

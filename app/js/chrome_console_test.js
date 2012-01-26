@@ -3,19 +3,11 @@ bus = env.bus.Bus()
 proxy = new env.services.Proxy(bus)
 me = new env.map.MapEngine(proxy, bus)
 me.start('body');
-slot = '.FIRST'
-position = 3
-display = $('<div>"hi"</div>');
-config = {display: display, slot: slot, position: position}
-event = new env.bus.Event('add-map-control', config)
-bus.fireEvent(event)
-
-se = new env.map.controls.SearchEngine(proxy, bus)
+se = new env.map.search.SearchEngine(proxy, bus)
 se.start(null)
-event = new env.bus.Event('search-display-toggle', {visible:true})
-bus.fireEvent(event)
-
-proxy = new env.services.Proxy(bus)
-action = new env.services.Action('cartodb-sql-query', {sql:'select count(*) from eafr'})
-callback = new env.services.Callback(function(action, response){console.log(action.type + ': ' + JSON.stringify(response))}, function(action, response){console.log(action.type + ': ' + response)})
-proxy.execute(action, callback)
+te = new env.map.tiles.TileEngine(proxy, bus, me.display.map)
+te.start()
+le = new env.map.layers.LayerEngine(proxy, bus)
+le.start()
+re = new env.map.results.ResultsEngine(proxy, bus)
+re.start()

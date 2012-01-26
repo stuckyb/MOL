@@ -52,7 +52,7 @@ mol.modules.map.results = function(mol) {
                                 function(result) {
                                     return {
                                         name: result.find('.resultName').text().trim(),
-                                        type: 'points' // TODO
+                                        type: 'rangemap' // TODO
                                     };
                                 }                        
                             );                        

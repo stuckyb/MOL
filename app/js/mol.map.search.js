@@ -14,12 +14,12 @@ mol.modules.map.search = function(mol) {
                     'SELECT ' + 
                     'p.provider as source, p.scientificname as name, p.type as type ' +
                     //', ST_AsText(ST_SetSRID(ST_Box2D(p.the_geom), 4326)) as extent ' +
-                    'FROM mol_rangemaps as p ' +
+                    'FROM polygons as p ' +
                     'WHERE st_isvalid(p.the_geom) AND p.scientificname @@ to_tsquery(\'{0}\') ' +
                     'UNION SELECT ' +
                     't.provider as source, t.scientificname as name, t.type as type ' +
                     //', ST_AsText(ST_SetSRID(ST_Box2D(t.the_geom), 4326)) as extent ' +
-                    'FROM eafr as t ' +
+                    'FROM points as t ' +
                     'WHERE st_isvalid(t.the_geom) AND t.scientificname @@ to_tsquery(\'{1}\') ';
             },
             
