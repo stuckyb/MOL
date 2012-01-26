@@ -192,26 +192,27 @@ class SpeciesNamesListRequest(EarthEngineRequest):
             lng - The center longitude of the polygon.
         """
         self.tableids = tableids
-        self.coordinates = simplejson.loads(coordinates)
+        self.coordinates = simplejson.loads(coordinates)[0]
+        logging.info(self.coordinates)
 
     def get_url(self):
-        """Returns the URL for this request."""
-        image = dict(
-           creator='MOL/com.google.earthengine.examples.mol.SpeciesNamesList',
-           args=[[dict(type='FeatureCollection', table_id=tid) for tid in self.tableids],
-                 self.coordinates])
-        query = dict(
-            image=simplejson.dumps(image),
-            fields='names')
-        url = '/value?%s' % urllib.urlencode(query)
-        return url
-    
-    def get_creator(self, tableid):
-        """Returns a creator object for a Fusion Table table id."""
-        return dict(
-            creator="MOL/com.google.earthengine.examples.mol.CountPolygonIntersect",
-            args=[dict(type='FeatureCollection', table_id=tableid)])
+        """
+        table={"algorithm":"FilterFeatureCollection","collection":{"table_id":2378062},"filters":[{"boundary":[[6.35,47.5],[6.35,46.2],[30.0,46.2],[30.0,47.5]]}]}&selectors=Latin
+        """
+        table = dict(
+            algorithm = "FilterFeatureCollection",
+            collection = dict(table_id = self.tableids[0]),
+            filters = [dict(boundary = self.coordinates)])
+        
+        logging.info(table)
 
+        query = dict(
+            table = simplejson.dumps(table),
+            selectors = "Latin")
+        
+        url = '/table?%s' % urllib.urlencode(query)
+        return url
+           
 class Home(webapp.RequestHandler):
     
     """Handler that renders the home page from a template."""
@@ -263,9 +264,9 @@ class SpeciesNamesListHandler(webapp.RequestHandler):
             logging.info('ERROR: %s' % response) 
             return
         
-        uniques = list(set([x.replace('_', ' ') for x in response['data']['properties']['names'][0]]))
+        uniques = list(set([name[0] for name in response['data']['rows']]))
         uniques.sort()
-        response['data']['properties']['names'] = [uniques]
+        response['data']['names'] = dict(count = len(uniques), names = uniques)
         payload = dict(request=request.get_url(), response=response)
         self.response.out.write(simplejson.dumps(payload))
         
