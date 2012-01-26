@@ -2,6 +2,10 @@
 
 The Map of Life is a web application that integraties information about species distributions in an effort to support global understanding of the world's biodiversity. The resulting product will provide access to species distribution maps and a a set of tools for querying, accessing, downloading, and summarizing them. 
 
+![](http://i.imgur.com/R4WEC.jpg)
+
+![](http://i.imgur.com/Qx869.jpg)
+
 # Implementation
 
 The application rides on the following projects:
