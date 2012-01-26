@@ -92,7 +92,7 @@ def _get_auth_token(email, passwd):
         m = re.search("^GFT: Auth key : (.*)\s*$", output, flags=re.MULTILINE);
         if m is None:
             raise Exception('Invalid credentials. Hint: are you using Google 2-step authentication?')
-        return m.group(0);
+        return m.group(1);
     except Exception as e:
         logging.error(e)
         sys.exit(0)
@@ -161,7 +161,12 @@ def _get_feature_count(pathname):
     p = subprocess.Popen(
         shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = p.communicate()
-    count = int(output.split('\n')[6].split('Feature Count:')[1].strip())
+
+    m = re.search("^Feature Count: (\d+)\s*$", output, flags=re.MULTILINE)
+    if m is None:
+        raise Exception("Could not get feature count: ogr2ogr produced the following output - <<%s>>" % output);
+    count = int(m.group(1))
+
     logging.info('shapefile: %s, polygon count: %s' % (pathname, count))
     return count
 
