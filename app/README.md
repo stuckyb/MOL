@@ -1,6 +1,6 @@
 # Developing the app
 
-This is Map of Life web app. It's built using HTML5, CSS, and JavaScript. It rides on the Google App Engine platform for hosting, and leverages a hosted instance of [CartoDB](https://github.com/vizzuality/cartodb) by sending it CORS requests to the [Maps API](http://developers.cartodb.com/api/maps.html) and [SQL API](http://developers.cartodb.com/api/sql.html).
+This is the Map of Life web app. It's built using HTML5, CSS, and JavaScript. It rides on the Google App Engine platform for hosting, and leverages a hosted instance of [CartoDB](https://github.com/vizzuality/cartodb) by sending it CORS requests to the [Maps API](http://developers.cartodb.com/api/maps.html) and [SQL API](http://developers.cartodb.com/api/sql.html).
 
 # Ubuntu environment
 
