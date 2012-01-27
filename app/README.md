@@ -114,6 +114,7 @@ If you tried testing the `getLayerId` function, the REPL would complain that `mo
 ```bash
 js> mol = {};
 js> mol.modules = {};
+js> mol.modules.core(mol)
 ```
 
 Then you can send the entire module buffer to the REPL via `C-cb`, and then you can test the `getLayerId` function like this:
