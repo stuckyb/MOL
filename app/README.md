@@ -46,7 +46,11 @@ BOOM! You should be able to access the app at [http://localhost:8080](http://loc
 
 You can setup Emacs with a JavaScript REPL which is really nice for hacking on MOL code since it's mainly written in JavaScript.
 
+## Initial setup
+
 If you need to install Emacs, it's easy, and here's a [great starting point](https://github.com/whizbangsystems/emacs-starter-kit). Just follow the instructions in the README.
+
+## Install Rhino
 
 Next, install [Rhino](http://www.mozilla.org/rhino) which is a command line interface for JavaScript. On Ubuntu:
 
@@ -54,7 +58,11 @@ Next, install [Rhino](http://www.mozilla.org/rhino) which is a command line inte
 $ sudo apt-get install rhino
 ```
 
-Almost there! Next, to get the JavaScript REPL going in Emacs, let's install the `js2-mode` and `js-comint` packages using the Emacs package manager. It's easy. From within Emacs, type `M-x package-list-packages` and then hit enter. Find the packages in the list, press the `i` key next to each one, and then press the `x` key to install. 
+## Configure the REPL
+
+Almost there! 
+
+Next, to get the JavaScript REPL going in Emacs, let's install the `js2-mode` and `js-comint` packages using the Emacs package manager. It's easy. From within Emacs, type `M-x package-list-packages` and then hit enter. Find the packages in the list, press the `i` key next to each one, and then press the `x` key which installs all selected packages. 
 
 The last step is adding the following to the end of your `~/.emacs.d/init.el` configuration file:
 
@@ -66,11 +74,60 @@ The last step is adding the following to the end of your `~/.emacs.d/init.el` co
 			    (local-set-key "\C-\M-x" 'js-send-last-sexp-and-go)
 			    (local-set-key "\C-cb" 'js-send-buffer)
 			    (local-set-key "\C-c\C-b" 'js-send-buffer-and-go)
-			    (local-set-key "\C-cl" 'js-load-file-and-go)
-			    ))
+			    (local-set-key "\C-cl" 'js-load-file-and-go)))
 ```
 
-That's it! Restart Emacs, and then type `M-x run-js` and you are SET!
+That's it! Restart Emacs, and then type `M-x run-js` and you are SET! You'll get a JavaScript REPL in a buffer where you can evaluate code. 
 
+## Running MOL code
 
+I find it helpful to redefine the `print` function so that it prints out object properties:
+
+```bash
+js> print = function(x){return JSON.stringify(x)};
+```
+
+Next, MOL code is sandboxed using the [Sandbox Pattern](http://my.safaribooksonline.com/book/programming/javascript/9781449399115/object-creation-patterns/sandbox_pattern), and if you're not familiar with it, [check out this file](https://github.com/MapofLife/MOL/blob/develop/app/js/mol.js) so see it in action.
+
+To test functions within a sandboxed module, you need a little workaround. Let's look at an example module:
+
+```javascript
+**
+ * This module provides support for rendering search results.
+ */
+mol.modules.core = function(mol) { 
+    
+    mol.core = {};
+    
+    mol.core.getLayerId = function(name, type) {
+        return 'layer-{0}-{1}'.format(name.trim(), type.trim());
+    };
+    
+    mol.core.getLayerFromId = function(id) {
+        var tokens = id.split('-'),
+            name = tokens[1],
+            type = tokens[2];
+        
+        return {
+            id: id,
+            name: name,
+            type: type            
+        };
+    };
+};
+```
+
+If you tried testing the `getLayerId` function, the REPL would complain that `mol` isn't defined. So let's define it! Here's the pattern to workaround the sandbox pattern in the REPL:
+
+```bash
+js> mol = {};
+js> mol.modules = {};
+```
+
+Then you can send the entire module buffer to the REPL via `C-cb` like this:
+
+```bash
+js> print(mol.core.getLayerFromId('layer-aaron-dude'))
+{"id":"layer-aaron-dude","name":"aaron","type":"dude"}
+```
 
