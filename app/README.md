@@ -42,9 +42,35 @@ BOOM! You should be able to access the app at [http://localhost:8080](http://loc
 
 # Development workflow
 
-TODO...
+# Emacs
 
+You can setup Emacs with a JavaScript REPL which is really nice for hacking on MOL code since it's mainly written in JavaScript.
 
+If you need to install Emacs, it's easy, and here's a [great starting point](https://github.com/whizbangsystems/emacs-starter-kit). Just follow the instructions in the README.
+
+Next, install [Rhino](http://www.mozilla.org/rhino) which is a command line interface for JavaScript. On Ubuntu:
+
+```bash
+$ sudo apt-get install rhino
+```
+
+Almost there! Next, to get the JavaScript REPL going in Emacs, let's install the `js2-mode` and `js-comint` packages using the Emacs package manager. It's easy. From within Emacs, type `M-x package-list-packages` and then hit enter. Find the packages in the list, press the `i` key next to each one, and then press the `x` key to install. 
+
+The last step is adding the following to the end of your `~/.emacs.d/init.el` configuration file:
+
+```clojure
+(require 'js-comint)
+(setq inferior-js-program-command "/usr/bin/js")
+(add-hook 'js2-mode-hook '(lambda () 
+        		    (local-set-key "\C-x\C-e" 'js-send-last-sexp)
+			    (local-set-key "\C-\M-x" 'js-send-last-sexp-and-go)
+			    (local-set-key "\C-cb" 'js-send-buffer)
+			    (local-set-key "\C-c\C-b" 'js-send-buffer-and-go)
+			    (local-set-key "\C-cl" 'js-load-file-and-go)
+			    ))
+```
+
+That's it! Restart Emacs, and then type `M-x run-js` and you are SET!
 
 
 
