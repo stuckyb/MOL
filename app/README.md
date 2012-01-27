@@ -15,7 +15,7 @@ Next, let's go ahead and clone the project to our computer:
 ```bash
 $ git clone git@github.com:MapofLife/MOL.git
 ```
-
+        
 To run the app locally for development, we need to install Python 2.7 and the latest Google App Engine Python SDK.
 
 ```bash
