@@ -67,7 +67,9 @@ The last step is adding the following to the end of your `~/.emacs.d/init.el` co
 			    (local-set-key "\C-cl" 'js-load-file-and-go)))
 ```
 
-That's it! Restart Emacs, and then type `M-x run-js` and you are SET! You'll get a JavaScript REPL in a buffer where you can evaluate code. 
+That's it! 
+
+Restart Emacs, get into `js2-mode` by typing `M-x js2-mode` and hitting enter, and then type `M-x run-js` and you are SET! You'll get a JavaScript REPL in a buffer where you can evaluate code. 
 
 ## Running MOL code
 
