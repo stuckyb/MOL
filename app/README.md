@@ -82,7 +82,7 @@ Next, MOL code is sandboxed using the [Sandbox Pattern](http://my.safaribooksonl
 To test functions within a sandboxed module, you need a little workaround. Let's look at an example module:
 
 ```javascript
-**
+/**
  * This module provides support for rendering search results.
  */
 mol.modules.core = function(mol) { 
