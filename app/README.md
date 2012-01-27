@@ -114,7 +114,7 @@ js> mol = {};
 js> mol.modules = {};
 ```
 
-Then you can send the entire module buffer to the REPL via `C-cb` like this:
+Then you can send the entire module buffer to the REPL via `C-cb`, and then you can test the `getLayerId` function like this:
 
 ```bash
 js> print(mol.core.getLayerFromId('layer-aaron-dude'))
