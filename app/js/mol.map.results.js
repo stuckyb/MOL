@@ -1,3 +1,6 @@
+/**
+ * This module provides support for rendering search results.
+ */
 mol.modules.map.results = function(mol) { 
     
     mol.map.results = {};
@@ -47,15 +50,13 @@ mol.modules.map.results = function(mol) {
                 this.display.addAllButton.click(
                     function(event) {
                         var checkedResults = self.display.getChecked(),
-                            layers = _.map(
-                                checkedResults,
-                                function(result) {
-                                    return {
-                                        name: result.find('.resultName').text().trim(),
-                                        type: 'rangemap' // TODO
-                                    };
-                                }                        
-                            );                        
+                        layers = _.map(
+                            checkedResults,
+                            function(result) {
+                                var id = result.find('.result').attr('id');
+                                return mol.core.getLayerFromId(id);
+                            }                        
+                        );                        
                         
                         self.bus.fireEvent(
                             new mol.bus.Event(
@@ -110,7 +111,6 @@ mol.modules.map.results = function(mol) {
                     function(event) {
                         self.results = mol.services.cartodb.convert(event.response);
                         self.profile = new mol.map.results.SearchProfile(self.results);
-                        console.log(self.results);
                         self.showFilters(self.profile);
                         self.showLayers(self.results.layers);
                     }
@@ -123,11 +123,11 @@ mol.modules.map.results = function(mol) {
              */
             fireEvents: function() {
                 var params = {
-                        display: this.display,    
-                        slot: mol.map.ControlDisplay.Slot.BOTTOM,
-                        position: google.maps.ControlPosition.TOP_LEFT
-                    },
-                    event = new mol.bus.Event('add-map-control', params);
+                    display: this.display,    
+                    slot: mol.map.ControlDisplay.Slot.BOTTOM,
+                    position: google.maps.ControlPosition.TOP_LEFT
+                },
+                event = new mol.bus.Event('add-map-control', params);
 
                 this.bus.fireEvent(event);
             },
@@ -145,33 +145,41 @@ mol.modules.map.results = function(mol) {
              * @param layers an array of layers
              */
             showLayers: function(layers) {
-                var display = this.display,
-                    layerNames = _.map(
-                        layers,
-                        function(layer) {
-                            return layer.name;
-                        }
-                    );
+                var display = this.display;
                 
                 display.clearResults();
 
                 // Set layer results in display.
                 _.each(
-                    this.display.setResults(layerNames),
+                    this.display.setResults(this.getLayersWithIds(layers)),
                     function(result) {                        
-                        // TODO
+                        // TODO: Wire up results.
                     },
                     this
                 );
 
                 this.display.toggle(true);
             },
-                        
+            
+            /**
+             * Returns an array of layer objects {id, name, type, source} 
+             * with their id set given an array of layer objects 
+             * {name, type, source}.
+             */
+            getLayersWithIds: function(layers) {
+                return  _.map(
+                    layers,
+                    function(layer) {
+                        return _.extend(layer, {id: mol.core.getLayerId(layer)});
+                    }
+                );
+            },
+            
             showFilters: function(profile) {
                 var display = this.display,
-                    layerNames = profile.getKeys('names'),
-                    sourceNames = profile.getKeys('sources'),
-                    typeNames = profile.getKeys('types');
+                layerNames = profile.getKeys('names'),
+                sourceNames = profile.getKeys('sources'),
+                typeNames = profile.getKeys('types');
 
                 display.clearFilters();
                 
@@ -197,7 +205,7 @@ mol.modules.map.results = function(mol) {
                 _.each( 
                     display.setOptions('Types', typeNames),
                     function (option) {
-                       option.click(this.optionClickCallback(option, 'Types'));
+                        option.click(this.optionClickCallback(option, 'Types'));
                     },
                     this
                 );                
@@ -232,12 +240,12 @@ mol.modules.map.results = function(mol) {
              */
             updateDisplay: function() {
                 var name = this.display.getOptions('Names', true)[0].attr('id'),
-                    source = this.display.getOptions('Sources', true)[0].attr('id'),
-                    type = this.display.getOptions('Types', true)[0].attr('id'),
-                    layers = this.profile.getNewLayers(
-                        name !== 'All' ? name : null, 
-                        source !== 'All' ? source : null,
-                        type !== 'All'? type : null);
+                source = this.display.getOptions('Sources', true)[0].attr('id'),
+                type = this.display.getOptions('Types', true)[0].attr('id'),
+                layers = this.profile.getNewLayers(
+                    name !== 'All' ? name : null, 
+                    source !== 'All' ? source : null,
+                    type !== 'All'? type : null);
 
                 this.showLayers(layers);                
             }
@@ -308,18 +316,18 @@ mol.modules.map.results = function(mol) {
              * Returns an array of jquery result objects that are checked.
              */
             getChecked: function() {
-               var checked = _.filter(
-                   this.resultList.children(),
-                   function(result) {
-                       if ($(result).find('.checkbox').attr('checked')) {
-                           return true;
-                       } else {
-                           return false;
-                       }
-                   },
-                   this
-               ); 
-                               
+                var checked = _.filter(
+                    this.resultList.children(),
+                    function(result) {
+                        if ($(result).find('.checkbox').attr('checked')) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    },
+                    this
+                ); 
+                
                 return _.map(
                     checked,
                     function(result) {
@@ -331,21 +339,22 @@ mol.modules.map.results = function(mol) {
             /**
              * Sets the results and returns them as an arrya of JQuery objects.
              * 
-             * @param names the result names              
+             * @param layers An array of layer objects {id, name, type, source}
              */
-            setResults: function(names) {
-                var self = this;
-                
+            setResults: function(layers) {
                 return _.map(
-                    names,
-                    function(name) {
-                        var result = new mol.map.results.ResultDisplay(name);
-                        self.resultList.append(result);
+                    layers,
+                    function(layer) {
+                        var id = layer.id,
+                            name = layer.name,
+                            result = new mol.map.results.ResultDisplay(name, id);
+
+                        this.resultList.append(result);
                         return result;
-                    }
+                    },
+                    this
                 );                
             },
-            
             
             /**
              * Sets the options for a filter and returns the options as an array
@@ -353,15 +362,15 @@ mol.modules.map.results = function(mol) {
              */
             setOptions: function(filterName, optionNames) {
                 var self = this,
-                    filter = new mol.map.results.FilterDisplay(filterName),
-                    options =  _.map(
-                        optionNames,
-                        function(name) {
-                            var option = new mol.map.results.OptionDisplay(name);
-                            filter.options.append(option);
-                            return option;
-                        }                        
-                    );
+                filter = new mol.map.results.FilterDisplay(filterName),
+                options =  _.map(
+                    optionNames,
+                    function(name) {
+                        var option = new mol.map.results.OptionDisplay(name);
+                        filter.options.append(option);
+                        return option;
+                    }                        
+                );
                 
                 filter.attr('id', filterName);
                 this.filters.append(filter);
@@ -374,20 +383,20 @@ mol.modules.map.results = function(mol) {
              */
             getOptions: function(filterName, selected) {
                 var filter = this.filters.find('#{0}'.format(filterName)),
-                    options =  _.filter(
-                        filter.find('.option'),
-                        function(option) {
-                            var opt = $(option);                                                    
-                            
-                            if (!selected) {
-                                return true;
-                            } else if (opt.hasClass('selected')) {
-                                return true;
-                            } else {
-                                return false;
-                            }
+                options =  _.filter(
+                    filter.find('.option'),
+                    function(option) {
+                        var opt = $(option);                                                    
+                        
+                        if (!selected) {
+                            return true;
+                        } else if (opt.hasClass('selected')) {
+                            return true;
+                        } else {
+                            return false;
                         }
-                    );               
+                    }
+                );               
 
                 return _.map(
                     options,
@@ -406,13 +415,13 @@ mol.modules.map.results = function(mol) {
      */
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
-            init: function(name) {
+            init: function(name, id) {
                 var html = '' +
                     '<div>' +
-                    '<ul class="result">' + 
+                    '<ul id="{0}" class="result">' + 
                     '<div class="resultSource"><button><img class="source" src=""></button></div>' + 
                     '<div class="resultType" ><button ><img class="type" src=""></button></div>' +
-                    '<div class="resultName">{0}' + 
+                    '<div class="resultName">{1}' + 
                     '  <div class="resultNomial" ></div>' + 
                     '  <div class="resultAuthor"></div>' + 
                     '</div>' + 
@@ -425,7 +434,7 @@ mol.modules.map.results = function(mol) {
                     '<div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(name));
+                this._super(html.format(id, name));
 
                 this.infoLink = $(this.find('.info'));
                 this.nameBox = $(this.find('.resultName'));
@@ -447,7 +456,7 @@ mol.modules.map.results = function(mol) {
                     '    <div class="filterName">{0}</div>' + 
                     '    <div class="options"></div>' + 
                     '</div>';
-                    
+                
                 this._super(html.format(name));
                 this.name = $(this.find('.filterName'));
                 this.options = $(this.find('.options'));
@@ -457,7 +466,7 @@ mol.modules.map.results = function(mol) {
             }
         }
     );
-      
+    
     mol.map.results.OptionDisplay = mol.mvp.View.extend(
         {
             init: function(name) {
@@ -505,11 +514,11 @@ mol.modules.map.results = function(mol) {
             
             getLayers: function(name, source, type, profile) {
                 var response = this.response,
-                    currentProfile = profile ? profile : 'nameProfile',
-                    nameProfile = name ? response.names[name] : null,
-                    sourceProfile = source ? response.sources[source] : null,
-                    typeProfile = type ? response.types[type] : null,
-                    profileSatisfied = false;
+                currentProfile = profile ? profile : 'nameProfile',
+                nameProfile = name ? response.names[name] : null,
+                sourceProfile = source ? response.sources[source] : null,
+                typeProfile = type ? response.types[type] : null,
+                profileSatisfied = false;
                 
                 if (!name && !type && !source){
                     var keys = new Array();
@@ -541,8 +550,8 @@ mol.modules.map.results = function(mol) {
                         if (source && !type) {
                             if (this.exists(source, nameProfile.sources)) {
                                 return _.intersect(
-                                   nameProfile.layers, 
-                                   this.getLayers(name, source, type, 'sourceProfile'));
+                                    nameProfile.layers, 
+                                    this.getLayers(name, source, type, 'sourceProfile'));
                             }
                         } 
                         if (!source && type) {
@@ -625,22 +634,22 @@ mol.modules.map.results = function(mol) {
             getKeys: function(id) {
                 var res;
                 switch(id.toLowerCase()){
-                    case "types":
-                        res = this.response.types;
-                        break;
-                    case "sources":
-                        res = this.response.sources;
-                        break;
-                    case "names":
-                        res = this.response.names;
-                        break;
-                    }
+                case "types":
+                    res = this.response.types;
+                    break;
+                case "sources":
+                    res = this.response.sources;
+                    break;
+                case "names":
+                    res = this.response.names;
+                    break;
+                }
                 return _.keys(res);   
             },
             
             getTypeKeys: function() {
                 var x = this.typeKeys,
-                    types = this.response.types;
+                types = this.response.types;
                 return x ? x : (this.typeKeys = _.keys(types));                
             },
 
@@ -650,7 +659,7 @@ mol.modules.map.results = function(mol) {
 
             getSourceKeys: function() {
                 var x = this.sourceKeys,
-                    sources = this.response.sources;
+                sources = this.response.sources;
                 return x ? x : (this.sourceKeys = _.keys(sources));
             },
             
@@ -660,7 +669,7 @@ mol.modules.map.results = function(mol) {
             
             getNameKeys: function() {
                 var x = this.nameKeys,
-                    names = this.response.names;
+                names = this.response.names;
                 return x ? x : (this.nameKeys = _.keys(names));
             },
 

@@ -6,9 +6,13 @@ mol.modules.core = function(mol) {
     mol.core = {};
     
     /**
-     * Retunrs a layer id string given a layer name, type, and source.
+     * Retunrs a layer id string given a layer {name, type, source}.
      */
-    mol.core.getLayerId = function(name, type, source) {
+    mol.core.getLayerId = function(layer) {
+        var name = layer.name.trim(),
+            type = layer.type.trim(),
+            source = layer.source.trim();
+        
         return 'layer-{0}-{1}-{2}'.format(name, type, source);
     };
     
