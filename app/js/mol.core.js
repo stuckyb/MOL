@@ -1,5 +1,5 @@
 /**
- * This module provides support for rendering search results.
+ * This module provides core functions. 
  */
 mol.modules.core = function(mol) { 
     
