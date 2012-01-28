@@ -124,3 +124,4 @@ js> print(mol.core.getLayerFromId('layer-aaron-dude'))
 {"id":"layer-aaron-dude","name":"aaron","type":"dude"}
 ```
 
+Note: If you modify the module, you have to send the entire module buffer to the REPL and re-run `mol.modules.core(mol)` for the changes to take effect. 
