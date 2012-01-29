@@ -77,29 +77,24 @@ mol.modules.map.results = function(mol) {
                         self.display.toggleSelections(false);
                     }
                 );
-                
-                /**
-                 * Callback that hides the display on a cancel-search event.
-                 */
-                this.bus.addHandler(
-                    'cancel-search',
-                    function(event) {
-                        self.display.toggle(false);
-                    }
-                );
-                
+                                
                 /**
                  * Callback that toggles the search display visibility. The 
                  * event is expected to have the following properties:
                  * 
-                 *   event.visible - true to show the display, false to hide it.
+                 *   event.visible - true to show the display, false to hide it, 
+                 *                   undefined to toggle. 
                  * 
                  * @param event mol.bus.Event
                  */
                 this.bus.addHandler(
                     'results-display-toggle',                    
-                    function(event) {                        
-                        self.display.toggle(event.visible);
+                    function(event) {      
+                        if (event.visible === undefined) {
+                            self.display.toggle();
+                        } else {
+                            self.display.toggle(event.visible);                            
+                        }
                     }
                 );
                 

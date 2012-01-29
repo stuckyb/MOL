@@ -52,8 +52,19 @@ mol.modules.map.search = function(mol) {
                  */
                 this.bus.addHandler(
                     'search-display-toggle',                    
-                    function(event) {                        
-                        self.display.toggle(event.visible);
+                    function(event) {                 
+                        var params = null,
+                            e = null;
+                                           
+                        if (event.visible === undefined) {
+                            self.display.toggle();
+                            params = {visible: self.display.is(':visible')};
+                        } else {
+                            self.display.toggle(event.visible);              
+                        }
+                        
+                        e = new mol.bus.Event('results-display-toggle', params);
+                        self.bus.fireEvent(e);
                     }
                 );
                 
@@ -72,8 +83,13 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.cancelButton.click(
                     function(event) {
+                        var params = {
+                            visible: false
+                        };
+                        
                         self.display.toggle(false);
-                        self.bus.fireEvent(new mol.bus.Event('cancel-search'));
+                        self.bus.fireEvent(
+                            new mol.bus.Event('results-display-toggle', params));
                     }
                 );
                 
