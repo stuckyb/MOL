@@ -37,6 +37,7 @@
     <script src="../../../js/mol.map.results.js"></script>
     <script src="../../../js/mol.map.layers.js"></script>
     <script src="../../../js/mol.map.tiles.js"></script>
+    <script src="../../../js/mol.map.menu.js"></script>
     {% endif %}
 
     <meta charset="utf-8" />
@@ -71,6 +72,9 @@
 	  le.start()
 	  re = new env.map.results.ResultsEngine(proxy, bus)
 	  re.start()          
+	  ne = new env.map.menu.MenuEngine(proxy, bus)
+	  ne.start()          
+
 	  //mol(function(env) {
               //mol.app = new env.app.Instance({logging: true});
               //mol.app.run();
