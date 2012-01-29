@@ -35,7 +35,7 @@ import subprocess
 import sys
 import time
 
-from cartodb import CartoDB
+from cartodb import CartoDB,CartoDBException
 from optparse import OptionParser
 from zipfile import ZipFile
 
@@ -486,7 +486,27 @@ def sendSQLStatementToCartoDB(sql):
 
     # print "Executing SQL: «%s»" % sql
     if not _getoptions().dummy_run:
-        logging.info("\t  Result: %s" % cartodb.sql(sql))
+        tries = 50
+
+        while (tries > 0):
+            try:
+                result = cartodb.sql(sql)
+            except CartoDBException as e:
+                if str(e) == 'internal server error':
+                    logging.info("\t  Server returned internal error (HTTP 500), retrying ...")
+                    result = None
+                    tries = tries - 1 
+                    continue
+                else:
+                    raise e
+
+            tries = 0
+
+        if result is None:
+            logging.error("\t  ERROR! Unable to execute SQL statement <<%s>>; continuing.")
+            return
+
+        logging.info("\t  Result: %s" % result)
     else:
         logging.info("\t  SQL statement to execute: %s" % sql)
         logging.info("\t  Result: none (dummy run in progress)")
