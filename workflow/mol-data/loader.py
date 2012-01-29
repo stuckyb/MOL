@@ -484,6 +484,9 @@ def sendSQLStatementToCartoDB(sql):
             protocol=cartodb_settings['protocol'],
             access_token_url=cartodb_settings['access_token_url']
         )
+        
+    # Do these changes as a single transaction:
+    sql = "BEGIN TRANSACTION; " + sql + "; COMMIT TRANSACTION;"
 
     # print "Executing SQL: «%s»" % sql
     if not _getoptions().dummy_run:
