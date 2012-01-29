@@ -28,15 +28,18 @@ Collections:
     Required:
       areaid: 1
       polygonid: 1
-      identifier: =Identifier
+      identifier: 
+        - Identifier
       bibliographiccitation: "APIS - Antarctic Pack Ice Seals 1994-1999, plus historical data from the 1980's, published by the Australian Antarctic Data Centre (accessed through GBIF data portal, APIS - Antarctic Pack Ice Seals 1994-1999, plus historical data from the 1980's, http://data.gbif.org/datasets/resource/83)"
-      collectionid: "=Collection Code"
+      collectionid: 
+        - "Collection Code"
       contact: "Colin Southwell <colin.southwell at aad.gov.au>"
       creator: "Australian Antarctic Data Centre, Australia"
       type: "pointoccurrence"
       dateSubmitted: "2011-12-22"
       rights: "Creative Commons® Attribution 3.0 Unported license. http://creativecommons.org/licenses/by/3.0/"
-      scientificname: "=Scientific name"
+      scientificname: 
+        - "Scientific name"
       title: "APIS - Antarctic Pack Ice Seals 1994-1999, plus historical data from the 1980's"
       verbatimsrs: "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +units=m +no_defs"
 
