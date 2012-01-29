@@ -29,7 +29,7 @@ Collections:
       areaid: 1
       polygonid: 1
       identifier: 
-        - Identifier
+        - "Catalogue No"
       bibliographiccitation: "APIS - Antarctic Pack Ice Seals 1994-1999, plus historical data from the 1980's, published by the Australian Antarctic Data Centre (accessed through GBIF data portal, APIS - Antarctic Pack Ice Seals 1994-1999, plus historical data from the 1980's, http://data.gbif.org/datasets/resource/83)"
       collectionid: 
         - "Collection Code"

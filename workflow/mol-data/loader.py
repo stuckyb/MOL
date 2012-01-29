@@ -320,9 +320,10 @@ def getFeaturesFromShapefileDir(collection, name):
 def getFeaturesFromLatLongCsvFile(collection, filename):
     # This is a .csv file! 
     csvfile = open(filename, "r")
-    dialect = csv.Sniffer().sniff(csvfile.read(2048))
-    csvfile.seek(0)
-    reader = UnicodeDictReader(csvfile, dialect=dialect)
+    if filename[-3:] == 'csv':
+        reader = UnicodeDictReader(csvfile)
+    if filename[-3:] == 'txt':
+        reader = UnicodeDictReader(csvfile, dialect=csv.excel_tab)
 
     features = []
     feature_index = 0
