@@ -21,6 +21,7 @@
 """
 
 import codecs
+import csv
 import decimal
 import glob
 import hashlib
