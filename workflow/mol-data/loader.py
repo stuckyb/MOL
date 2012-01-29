@@ -21,6 +21,7 @@
 """
 
 import codecs
+import csv
 import decimal
 import glob
 import hashlib
@@ -208,7 +209,10 @@ def getCollectionIterator(table_name, collection):
 
     if os.path.isdir(name):
         return getFeaturesFromShapefileDir(collection, name)
-    elif os.path.isfile(name) and name.lower().rfind('.csv', len(name) - 4, len(name)) != -1:
+    elif os.path.isfile(name) and (
+        (name.lower().rfind('.csv', len(name) - 4, len(name)) != -1)
+        or
+        (name.lower().rfind('.txt', len(name) - 4, len(name)) != -1)):
         return getFeaturesFromLatLongCsvFile(collection, name)
 
 def getUploadedFeatureHashes(table_name, provider, collection):
@@ -316,7 +320,9 @@ def getFeaturesFromShapefileDir(collection, name):
 def getFeaturesFromLatLongCsvFile(collection, filename):
     # This is a .csv file! 
     csvfile = open(filename, "r")
-    reader = UnicodeDictReader(csvfile)
+    dialect = csv.Sniffer().sniff(csvfile.read(2048))
+    csvfile.seek(0)
+    reader = UnicodeDictReader(csvfile, dialect=dialect)
 
     features = []
     feature_index = 0
@@ -482,6 +488,7 @@ def sendSQLStatementToCartoDB(sql):
     if not _getoptions().dummy_run:
         logging.info("\t  Result: %s" % cartodb.sql(sql))
     else:
+        logging.info("\t  SQL statement to execute: %s" % sql)
         logging.info("\t  Result: none (dummy run in progress)")
 
 cmdline_options = None
