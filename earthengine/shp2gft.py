@@ -56,7 +56,6 @@ import ftclient
 import getpass
 import glob
 import logging
-import multiprocessing
 import optparse
 import os
 import re
