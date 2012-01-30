@@ -325,22 +325,6 @@ def _get_options():
         default=90000,
         help='Maximum polygons per table.')
 
-    # Option specifying number of proccesses.
-    parser.add_option(
-        '-p', 
-        type='int',
-        dest='processes',
-        default=100,
-        help='Number of processes.')
-
-    # Option specifying number of chunks per process.
-    parser.add_option(
-        '-c', 
-        type='int',
-        dest='chunks',
-        default=100,
-        help='Number of chunks per process.')
-
     return parser.parse_args()[0]
 
 if __name__ == '__main__':
