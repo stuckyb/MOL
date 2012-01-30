@@ -210,10 +210,14 @@ def upload(name, table, sfd):
     command = 'ogr2ogr -append -f GFT "GFT:" %s.shp' % table
     p = subprocess.Popen(
         shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    error, output = p.communicate()
+    p.wait()
+    output, error = p.communicate()
     
+    if output:
+	logging.info("OUTPUT: %s" % error)
+
     if error:
-        logging.info("ERROR: %s" % error)
+        logging.error("ERROR: %s" % error)
 
     logging.info('Appended %s polygons to the %s Fusion Table' \
                      % (name, table))
@@ -242,14 +246,22 @@ def main():
     if not os.path.exists(options.config):
         logging.error("Could not find '%s'. Please create a client application at https://code.google.com/apis/console/, then enter your client id and secret into cred.yaml", options.config)
         exit()
-
+	
     config = yaml.load(open(options.config, 'r'))        
     consumer_key = config['client_id']
     consumer_secret = config['client_secret'] 
-    url, token, secret = OAuth().generateAuthorizationURL(consumer_key, consumer_secret, consumer_key)
-    print "Visit this URL in a browser: %s" % url
-    raw_input("Hit enter after authorization")
-    token, secret = OAuth().authorize(consumer_key, consumer_secret, token, secret)
+
+    if not os.getenv('GFT_TOKEN'):
+	url, token, secret = OAuth().generateAuthorizationURL(consumer_key, consumer_secret, consumer_key)
+	print "Visit this URL in a browser: %s" % url
+	raw_input("Hit enter after authorization")
+	token, secret = OAuth().authorize(consumer_key, consumer_secret, token, secret)
+	logging.info("export GFT_TOKEN=%s", token)
+	logging.info("export GFT_SECRET=%s", secret)
+    else:
+	token = os.getenv('GFT_TOKEN')
+	secret = os.getenv('GFT_SECRET')
+
     oauth_client = ftclient.OAuthFTClient(consumer_key, consumer_secret, token, secret)
     #oauth_client = ftclient.OAuthFTClient(consumer_key, consumer_secret)   
 
@@ -271,25 +283,21 @@ def main():
     tasks = []
 
     # Upload shapefiles to FT.
-    for f in glob.glob('*.shp'):
-        table_name = '%s-%s' % (options.table, table_count)
+    table_name = '%s-%s' % (options.table, table_count)
+    _create_fusion_table(table_name, oauth_client)
+    filenames = glob.glob('*.shp')
+    filenames.sort()
+    for f in filenames:
         count = _get_feature_count(os.path.join(sfd, f))
-        if (count + feature_count) >= options.max_rows:
-            logging.info('Preparing %s tasks with %s rows' % (len(tasks), feature_count))
-            _create_fusion_table(table_name, oauth_client)
-            result = pool.map_async(_upload, tasks, chunksize=options.chunks)
-            result.wait()
-            feature_count = 0
-            table_count += 1
-            tasks = []
+        # result = pool.map_async(_upload, tasks, chunksize=options.chunks)
+        # result.wait()
+        upload(os.path.splitext(f)[0], table_name, sfd)
         feature_count += count
-        tasks.append((os.path.splitext(f)[0], table_name, sfd))
+	logging.info("%d features uploaded so far.", feature_count)
             
-    # Upload unfinished tasks.
-    if len(tasks) > 0:
-        logging.info('Preparing %s tasks' % len(tasks))
-        result = pool.map_async(_upload, tasks, chunksize=10)
-        result.wait()
+    #global polygon_count
+    # logging.info("%d polygons uploaded to %s.", polygon_count, table_name)
+    logging.info("Finished, %d features from %d files uploaded.", feature_count, len(filenames))
 
 if __name__ == '__main__':
     main()
