@@ -96,9 +96,13 @@ def main():
     fieldname_lc = options.fieldname.lower()
     rows = results['rows']
     print options.fieldname + ", count"
+    
+    total_count = 0
     for row in rows:
         print "\"" + row[fieldname_lc] + "\", " + str(row['count']) 
+        total_count += row['count']
 
+    logging.info("Total count: %d", total_count)
     logging.info("Download complete, %d rows written out.", len(rows))
 
 if __name__ == '__main__':
