@@ -80,14 +80,17 @@ def _load_cache():
     logging.info("Loading cache from '%s'.", CACHE_FILE)
 
     f = open(CACHE_FILE, "r")
-    cache = simplejson.load(f)
+    try:
+        cache = simplejson.load(f)
+    except:
+        cache = {}
     f.close()
 
 def _save_cache():
     global CACHE_FILE, cache
 
     f = open(CACHE_FILE, "w")
-    simplejson.dump(cache, f, indent="    ")
+    simplejson.dump(cache, f, indent=4)
     f.close()
 
     logging.info("Saving cache to '%s'.", CACHE_FILE)
@@ -144,7 +147,7 @@ def _get_feature_count(pathname):
         raise Exception("Could not get feature count: ogr2ogr produced the following output - <<%s>>" % output);
     count = int(m.group(1))
 
-    logging.info('shapefile: %s, polygon count: %s' % (pathname, count))
+    logging.info('Shapefile: %s, polygon count: %s', pathname, count)
     return count
 
 def _create_fusion_table(name, oauth_client):
@@ -180,30 +183,37 @@ def upload(name, table, sfd):
     # Copy and rename the shapefile into the workspace.
     for x in glob.glob('%s.*' % name):
         dst = os.path.join(workspace, table)
-        shutil.copy(x, x.replace(name, dst))
+        dest = x.replace(name, dst)
+        shutil.copy(x, dest)
+        # logging.debug("Copying '%s' to '%s'", x, dest)
 
     # Upload shapefile to the Google Fusion table.
     os.chdir(workspace)
-    command = 'ogr2ogr -append -f GFT "GFT:" %s.shp' % table
+    command = [
+        'ogr2ogr',
+        '-append',
+        '-f', 'GFT', 
+        'GFT:',
+        '%s.shp' % table
+    ]
     p = subprocess.Popen(
-        shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     p.wait()
     output, error = p.communicate()
+
+    shutil.rmtree(workspace)
     
     if output:
 	logging.info("ogr2ogr on stdout: %s" % output)
 
     if error:
         logging.error("ogr2ogr on stderr: %s" % error)
+        return False
 
-    logging.info('Appended %s polygons to the %s Fusion Table' \
-                     % (name, table))
-
-    shutil.rmtree(workspace)
-
-def _upload(args):
-    """Helper function that unpacks args for upload()."""
-    upload(*args)
+    else:     
+        logging.info('Appended %s polygons to the %s Fusion Table' \
+             % (name, table))
+        return True
 
 def main():
     """Bulkloads shapefiles to an existing Google Fusion Table.
@@ -259,6 +269,7 @@ def main():
         email, passwd = _get_creds(options.email)
         auth_token = _get_auth_token(email, passwd)
         os.putenv('GFT_AUTH', auth_token)
+        # logging.debug("GFT_AUTH set to '%s'", auth_token)
 
     # The Shapefile directory.
     sfd = os.path.abspath(options.dir)
@@ -266,20 +277,39 @@ def main():
 
     # Setup the multiprocessing pool.
     table_count = 0
+    max_features_per_table = options.max_rows
+    potential_feature_count = 0
     feature_count = 0
-    tasks = []
+    features_in_table = 0
 
     # Upload shapefiles to FT.
     table_name = '%s-%s' % (options.table, table_count)
+    logging.info("Beginning upload to table '%s', with %d rows in each table.", table_name, max_features_per_table)
     _create_fusion_table(table_name, oauth_client)
     filenames = glob.glob('*.shp')
     filenames.sort()
     for f in filenames:
+        logging.info("Beginning upload of '%s'.", f)
         count = _get_feature_count(os.path.join(sfd, f))
-        upload(os.path.splitext(f)[0], table_name, sfd)
-        feature_count += count
-	logging.info("%d features uploaded so far.", feature_count)
-            
+
+        if (features_in_table + count) > max_features_per_table:
+            logging.info("Stopping upload to table '%s', %d features uploaded.\n", table_name, features_in_table)
+            features_in_table = 0
+            table_count += 1
+            table_name = '%s-%s' % (options.table, table_count)
+            logging.info("Switching upload to table '%s', with %d rows in each table.", table_name, max_features_per_table)
+            _create_fusion_table(table_name, oauth_client)
+ 
+        success = upload(os.path.splitext(f)[0], table_name, sfd)
+        potential_feature_count += count
+        if success:
+            feature_count += count
+            features_in_table += count
+
+	logging.info("\tFeatures uploaded so far: %d (out of a potential %d), with %d to the current table.", feature_count, potential_feature_count, features_in_table)
+
+    logging.info("Stopping upload to table '%s', %d features uploaded.\n", table_name, features_in_table)
+           
     #global polygon_count
     # logging.info("%d polygons uploaded to %s.", polygon_count, table_name)
     logging.info("Finished, %d features from %d files uploaded.", feature_count, len(filenames))
@@ -328,6 +358,5 @@ def _get_options():
     return parser.parse_args()[0]
 
 if __name__ == '__main__':
-    _load_cache()
     main()
     _save_cache()
