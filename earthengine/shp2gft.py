@@ -67,6 +67,7 @@ import tempfile
 import yaml
 
 CACHE_FILE = os.path.expanduser("~/shp2gft_cache.json")
+SUBDIR_COMPLETED = "probably_uploaded"
 cache = None
 
 def _load_cache():
@@ -209,13 +210,25 @@ def upload(name, table, sfd):
 	logging.info("ogr2ogr on stdout: %s" % output)
 
     if error:
-        logging.error("ogr2ogr on stderr: %s" % error)
+        logging.error("ogr2ogr on stderr: %s" % error)       
         return False
 
-    else:     
-        logging.info('Appended %s polygons to the %s Fusion Table' \
-             % (name, table))
-        return True
+     
+    logging.info('Appended %s polygons to the %s Fusion Table' \
+        % (name, table))
+
+    # Move the successfully uploaded files elsewhere.
+    global SUBDIR_COMPLETED
+
+    if not os.path.isdir(SUBDIR_COMPLETED):
+        os.mkdir(SUBDIR_COMPLETED)
+
+    for x in glob.glob('%s.*' % name):
+        shutil.move(x, SUBDIR_COMPLETED)
+        
+    logging.info("Moved successfully uploaded files to dir '%s'.", SUBDIR_COMPLETED)
+
+    return True
 
 def main():
     """Bulkloads shapefiles to an existing Google Fusion Table.
