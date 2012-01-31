@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="../../../css/mol.css">
     <link rel="stylesheet" href="../../../css/widgets.css">
     <!--<link rel="stylesheet" href="../../../css/metadata.css">-->
-    <link rel="stylesheet" href="../../../css/carto_tiles/cartodb.css">
+    <link rel="stylesheet" href="../../../css/cartodb.css">
     <!-- <link rel="stylesheet" href="../../../css/wri-style.css"> -->
 
     <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
@@ -53,34 +53,38 @@
           {% if prod %}
           <!-- Production, so load app without logging and run it. -->
           mol(function(env) {
-              //mol.app = new env.app.Instance({logging: false});
-              //mol.app.run();
-              //mol.env = env;
+            bus = env.bus.Bus()
+	         proxy = new env.services.Proxy(bus)
+	         me = new env.map.MapEngine(proxy, bus)
+	         me.start('body');
+	         se = new env.map.search.SearchEngine(proxy, bus)
+	         se.start(null)
+	         te = new env.map.tiles.TileEngine(proxy, bus, me.display.map)
+	         te.start()
+	         le = new env.map.layers.LayerEngine(proxy, bus)
+	         le.start()
+	         re = new env.map.results.ResultsEngine(proxy, bus)
+	         re.start()          
+	         ne = new env.map.menu.MenuEngine(proxy, bus)
+	         ne.start()          
           });           
           {% else %}   
-          <!-- Not production, so load app with logging and run it. -->
-	  env = mol(function(env){return env});
-	  bus = env.bus.Bus()
-	  proxy = new env.services.Proxy(bus)
-	  me = new env.map.MapEngine(proxy, bus)
-	  me.start('body');
-	  se = new env.map.search.SearchEngine(proxy, bus)
-	  se.start(null)
-	  te = new env.map.tiles.TileEngine(proxy, bus, me.display.map)
-	  te.start()
-	  le = new env.map.layers.LayerEngine(proxy, bus)
-	  le.start()
-	  re = new env.map.results.ResultsEngine(proxy, bus)
-	  re.start()          
-	  ne = new env.map.menu.MenuEngine(proxy, bus)
-	  ne.start()          
-
-	  //mol(function(env) {
-              //mol.app = new env.app.Instance({logging: true});
-              //mol.app.run();
-              //mol.env = env;
-         // });     
-	        
+          mol(function(env) {
+            bus = env.bus.Bus()
+	         proxy = new env.services.Proxy(bus)
+	         me = new env.map.MapEngine(proxy, bus)
+	         me.start('body');
+	         se = new env.map.search.SearchEngine(proxy, bus)
+	         se.start(null)
+	         te = new env.map.tiles.TileEngine(proxy, bus, me.display.map)
+	         te.start()
+	         le = new env.map.layers.LayerEngine(proxy, bus)
+	         le.start()
+	         re = new env.map.results.ResultsEngine(proxy, bus)
+	         re.start()          
+	         ne = new env.map.menu.MenuEngine(proxy, bus)
+	         ne.start()          
+          });           
           {% endif %}
       });
     </script>
