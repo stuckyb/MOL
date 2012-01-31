@@ -289,12 +289,12 @@ def main():
         table_name = options.table
     else:
         table_name = '%s-%s' % (options.table, table_count)
+        _create_fusion_table(table_name, oauth_client)
 
     # If in append mode, do NOT split by features.
     split_by_max_features = not options.append
 
     logging.info("Beginning upload to table '%s', with %d rows in each table.", table_name, max_features_per_table)
-    _create_fusion_table(table_name, oauth_client)
     filenames = glob.glob('*.shp')
     filenames.sort()
     for f in filenames:
