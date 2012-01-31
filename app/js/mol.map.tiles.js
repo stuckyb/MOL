@@ -118,6 +118,7 @@ mol.modules.map.tiles = function(mol) {
                     break;
                 case 'polygon':
                 case 'range':
+                case 'expert opinion range map':
                     new mol.map.tiles.CartoDbTile(layer, 'polygons', this.map);
                     break;
                 }        
@@ -158,7 +159,7 @@ mol.modules.map.tiles = function(mol) {
                         query: "SELECT * FROM {0} where scientificname = '{1}'".format(table, layer.name),
                         map_style: true,
                         infowindow: true,
-                        auto_bound: true
+                        auto_bound: false
                     }
                 );               
             }

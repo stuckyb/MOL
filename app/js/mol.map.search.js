@@ -15,11 +15,11 @@ mol.modules.map.search = function(mol) {
                     'SELECT ' + 
                     'p.provider as source, p.scientificname as name, p.type as type ' +
                     'FROM polygons as p ' +
-                    'WHERE p.scientificname @@ to_tsquery(\'{0}\') ' +
+                    'WHERE p.scientificname = \'{0}\' ' +
                     'UNION SELECT ' +
                     't.provider as source, t.scientificname as name, t.type as type ' +
                     'FROM points as t ' +
-                    'WHERE t.scientificname @@ to_tsquery(\'{1}\')';
+                    'WHERE t.scientificname = \'{1}\'';
             },
             
             /**
