@@ -283,7 +283,14 @@ def main():
     features_in_table = 0
 
     # Upload shapefiles to FT.
-    table_name = '%s-%s' % (options.table, table_count)
+    if options.append:
+        table_name = options.table
+    else:
+        table_name = '%s-%s' % (options.table, table_count)
+
+    # If in append mode, do NOT split by features.
+    split_by_max_features = not options.append
+
     logging.info("Beginning upload to table '%s', with %d rows in each table.", table_name, max_features_per_table)
     _create_fusion_table(table_name, oauth_client)
     filenames = glob.glob('*.shp')
@@ -292,7 +299,7 @@ def main():
         logging.info("Beginning upload of '%s'.", f)
         count = _get_feature_count(os.path.join(sfd, f))
 
-        if (features_in_table + count) > max_features_per_table:
+        if split_by_max_features and (features_in_table + count) > max_features_per_table:
             logging.info("Stopping upload to table '%s', %d features uploaded.\n", table_name, features_in_table)
             features_in_table = 0
             table_count += 1
@@ -346,6 +353,15 @@ def _get_options():
         dest='config',
         default='creds.yaml',
         help='The config YAML file.')
+
+    # If the '--append' option is used, new tables are not
+    # created (this also turns off -n)
+    parser.add_option(
+        '--append',
+        action='store_true',
+        dest='append',
+        default=False,
+        help="Turns off creating new tables, thus appending to existing tables. Please use the full table name (i.e. 'name-0')!")
 
     # Option specifying number of polygons per table.
     parser.add_option(
