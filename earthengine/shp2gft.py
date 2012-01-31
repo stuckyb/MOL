@@ -165,7 +165,9 @@ def _create_fusion_table(name, oauth_client):
             'geometry': 'LOCATION'
             }
         }
-    tableid = int(oauth_client.query(SQL().createTable(table)).split("\n")[1])
+    result = oauth_client.query(SQL().createTable(table))
+    logging.debug("OAuth client returned: %s.", result)
+    tableid = int(result.split("\n")[1])
     logging.info('Created new Fusion Table: http://www.google.com/fusiontables/DataSource?dsrcid=%s' % tableid)
 
 def upload(name, table, sfd):
