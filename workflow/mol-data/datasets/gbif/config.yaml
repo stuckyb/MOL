@@ -15,7 +15,7 @@ Collections:
 
 # Required directory name of the collection.
 # 
-- Collection: mol_export_chordata_10k.txt
+- Collection: mol.txt
    
   Fields:
 

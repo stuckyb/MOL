@@ -495,14 +495,12 @@ def sendSQLStatementToCartoDB(sql):
         while (tries > 0):
             try:
                 result = cartodb.sql(sql)
+            	tries = 0
             except CartoDBException as e:
                 #if str(e) == 'internal server error' or str(e) == 'current transaction is aborted, commands ignored until end of transaction block':
                 logging.info("\t  CartoDB exception caught ('%s'), retrying ...", e)
                 result = None
                 tries = tries - 1 
-                continue
-
-            tries = 0
 
         if result is None:
             logging.error("\t  ERROR! Unable to execute SQL statement <<%s>>; continuing.")
