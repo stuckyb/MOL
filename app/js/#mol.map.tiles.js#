@@ -174,7 +174,7 @@ mol.modules.map.tiles = function(mol) {
                 this.name = layer.name;
                 this.id = layer.id;
                 this.statements = {};
-                this.bottomZ = 4;
+.                 this.bottomZ = 4;
                 this.topZ = null;
                 this.style = null;
                 this.createCalls(8);                
