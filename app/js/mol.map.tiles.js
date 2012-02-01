@@ -44,18 +44,6 @@ mol.modules.map.tiles = function(mol) {
                 this.bus.addHandler(
                     'add-layers',
                     function(event) {
-                    	self.map.overlayMapTypes.forEach(
-                    		function (curLayer, index) {
-                    			_.each(
-                    			     event.layers,
-                    			     function(newLayer){
-                    			                 if(newLayer.id==curLayer.name) {
-                    			                     event.layers= _without(event.layers, newLayer);
-                    			             }
-                    			         }
-                    			 )
-                    		}
-                    	)
                         self.renderTiles(event.layers);
                     }
                 );
