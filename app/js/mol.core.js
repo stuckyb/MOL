@@ -5,9 +5,6 @@ mol.modules.core = function(mol) {
     
     mol.core = {};
 
-
-    //'layer-{0}-{1}'.format(name.replace(/ /g,"_"), type.replace(/ /g,"_")));
-
     /**
      * Retunrs a layer id string given a layer {name, type, source}.
      */
