@@ -74,6 +74,7 @@ app.calcStats = function(polygon) {
     // Add polygon to the list of polygons visible on map.
     app.polygons.push(polygon);
     
+    // Enfore 2 or 3 tableids.
     if (tableidCount < 2 || tableidCount > 3) {
         alert('Right now we can only pass in 2 or 3 table ids, not ' + tableidCount);
         app.clearButton.click();
