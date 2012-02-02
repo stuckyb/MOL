@@ -331,6 +331,9 @@ button:hover{
     background-color: white;
 }
 
+.mol-LayerControl-Results .noresults {
+    text-align: center;
+}
 
 .mol-LayerControl-Results .filters{
     float: left;
