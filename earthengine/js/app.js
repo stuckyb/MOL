@@ -48,11 +48,6 @@ app.calcStats = function(polygon) {
     var center = polygon.getBounds().getCenter(),
         tableidCount = app.urlParams['tableids'].split(',').length;
     
-    if (tableidCount < 2 || tableidCount > 3) {
-        alert('Right now we can only pass in 2 or 3 table ids, not ' + tableidCount);
-        return;
-    }
-
     // Count for retries:
     app.calcStatsCount += 1;
     console.log('/names retry: ' + app.calcStatsCount);
@@ -78,7 +73,14 @@ app.calcStats = function(polygon) {
     
     // Add polygon to the list of polygons visible on map.
     app.polygons.push(polygon);
-
+    
+    if (tableidCount < 2 || tableidCount > 3) {
+        alert('Right now we can only pass in 2 or 3 table ids, not ' + tableidCount);
+        app.clearButton.click();
+        app.loadingImg.hide();
+        return;
+    }
+    
     app.loadingImg.show();
     app.infowin.close();
     
