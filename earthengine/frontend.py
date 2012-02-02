@@ -212,6 +212,60 @@ class SpeciesNamesListRequest(EarthEngineRequest):
         
         url = '/table?%s' % urllib.urlencode(query)
         return url
+
+class MergeFeatureCollection(EarthEngineRequest):
+        
+    """This class encapsulates a /table request to Earth Engine for species names.
+
+    When executed, this request returns species names for a single polygon on one 
+    or many Google Fusion Tables. There are duplicates so we need to find uniques.
+    """
+
+    def __init__(self, tableids, coordinates):
+        """Constructor.
+
+        Args:
+            tableids - The list of Fusion Table table ids.
+            coordinates - The list of coordinates representing the polygon.
+        """
+        self.tableids = tableids
+        self.coordinates = simplejson.loads(coordinates)[0]
+
+    def get_url(self):
+        table = dict(
+            algorithm = "FilterFeatureCollection",
+            filters = [dict(boundary = self.coordinates)])
+        
+        # Throttled to 3 tables max for now:
+        count = len(self.tableids)
+        if count > 0:
+            tableid = self.tableids.pop()
+            if tableid:
+                table['collection'] = self.get_collection(tableid)        
+                
+        if count > 1:
+            tableid = self.tableids.pop()
+            if tableid:
+                table['collection']['collection2'] = self.get_collection(tableid)
+
+        if count > 2:
+            tableid = self.tableids.pop()
+            if tableid:
+                table['collection']['collection2']['collection2'] = dict(table_id= tableid)
+
+        query = dict(
+            table = simplejson.dumps(table),
+            selectors = "Latin")
+        
+        logging.info('query: %s' % query)
+
+        url = '/table?%s' % urllib.urlencode(query)
+        return url
+
+    def get_collection(self, tableid):
+        return dict(
+            algorithm = "MOL/com.google.earthengine.examples.mol.MergeFeatureCollection",
+            collection1 = dict(table_id = tableid))
            
 class Home(webapp.RequestHandler):
     
@@ -254,9 +308,10 @@ class SpeciesNamesListHandler(webapp.RequestHandler):
     """    
 
     def post(self):
+        logging.info("HIII?")
         tableids = [int(x) for x in self.request.get('tableids').split(',')]
         coordinates = self.request.get('coordinates')
-        request = SpeciesNamesListRequest(tableids, coordinates)
+        request = MergeFeatureCollection(tableids, coordinates)
         response = request.execute()   
 
         if response.has_key('error'):
