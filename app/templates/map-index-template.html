@@ -69,7 +69,7 @@
 	         ne.start()          
           });           
           {% else %}   
-          mol(function(env) {
+          env = mol(function(env) {
             bus = env.bus.Bus()
 	         proxy = new env.services.Proxy(bus)
 	         me = new env.map.MapEngine(proxy, bus)
