@@ -308,7 +308,7 @@ mol.modules.mvp = function(mol) {
       init: function(user, host) {
         this.user = user;
         this.host = host;
-        this.url = 'https://{0}.{1}/api/v1/sql?q={2}';        
+        this.url = 'https://{0}.{1}/api/v2/sql?q={2}';        
       },
 
       query: function(sql, callback) {
@@ -1856,14 +1856,12 @@ mol.modules.map.search = function(mol) {
                     'SET STATEMENT_TIMEOUT TO 0; ' + // Secret konami workaround for 40 second timeout.
                     'SELECT ' + 
                     'p.provider as source, p.scientificname as name, p.type as type ' +
-                    //', ST_AsText(ST_SetSRID(ST_Box2D(p.the_geom), 4326)) as extent ' +
                     'FROM polygons as p ' +
-                    'WHERE st_isvalid(p.the_geom) AND p.scientificname @@ to_tsquery(\'{0}\') ' +
+                    'WHERE p.scientificname = \'{0}\' ' +
                     'UNION SELECT ' +
                     't.provider as source, t.scientificname as name, t.type as type ' +
-                    //', ST_AsText(ST_SetSRID(ST_Box2D(t.the_geom), 4326)) as extent ' +
                     'FROM points as t ' +
-                    'WHERE st_isvalid(t.the_geom) AND t.scientificname @@ to_tsquery(\'{1}\')';
+                    'WHERE t.scientificname = \'{1}\'';
             },
             
             /**
@@ -2134,6 +2132,7 @@ mol.modules.map.tiles = function(mol) {
                     break;
                 case 'polygon':
                 case 'range':
+                case 'expert opinion range map':
                     new mol.map.tiles.CartoDbTile(layer, 'polygons', this.map);
                     break;
                 }        
@@ -2174,7 +2173,7 @@ mol.modules.map.tiles = function(mol) {
                         query: "SELECT * FROM {0} where scientificname = '{1}'".format(table, layer.name),
                         map_style: true,
                         infowindow: true,
-                        auto_bound: true
+                        auto_bound: false
                     }
                 );               
             }
