@@ -29,10 +29,11 @@ mol.modules.map.layers = function(mol) {
                         _.each(
                             event.layers,
                             function(layer) {
-                                if(self.display.getLayer(layer.name,layer.type).length > 0)
-                                    event.layers=_.without(event.layers,layer);
+                                if (self.display.getLayer(layer).length > 0) {
+                                    event.layers = _.without(event.layers, layer);
+                                }
                             }
-                        )
+                        );
                         self.addLayers(event.layers);
                     }
                 );
@@ -57,7 +58,7 @@ mol.modules.map.layers = function(mol) {
                 _.each(
                     layers,
                     function(layer) {
-                        var l = this.display.addLayer(layer.name, layer.type);
+                        var l = this.display.addLayer(layer);
                             self = this;
 
                         l.toggleButton.attr('checked', true);
@@ -84,7 +85,7 @@ mol.modules.map.layers = function(mol) {
 
     mol.map.layers.LayerDisplay = mol.mvp.View.extend(
         {
-            init: function(name, type) {
+            init: function(layer) {
                 var html = '' +
                     '<div class="layer widgetTheme">' +
                     '    <button><img class="type" src="/static/maps/search/{0}.png"></button>' +
@@ -98,13 +99,13 @@ mol.modules.map.layers = function(mol) {
                     '    <button class="info">i</button>' +
                     '</div>';
 
-                this._super(html.format(type, name));
-                this.attr('id', 'layer-{0}-{1}'.format(name.replace(/ /g,"_"), type.replace(/ /g,"_")));
-                this.toggleButton = $(this.find('.toggle'));
+                this._super(html.format(layer.type, layer.name));
+                this.attr('id', layer.id); 
+                this.toggleButton = $(this.find('.toggle'));            
             }
         }
     );
-
+    
     mol.map.layers.LayerListDisplay = mol.mvp.View.extend(
         {
             init: function() {
@@ -128,15 +129,15 @@ mol.modules.map.layers = function(mol) {
                 this.render();
             },
 
-            getLayer: function(name, type) {
-                return $(this.find('#layer-{0}-{1}'.format(name.replace(/ /g,"_"), type.replace(/ /g,"_"))));
+            getLayer: function(layer) {
+                return $(this.find('#{0}'.format(layer.id)));
             },
 
-            addLayer: function(name, type) {
-                var layer = new mol.map.layers.LayerDisplay(name, type);
+            addLayer: function(layer) {
+                var ld = new mol.map.layers.LayerDisplay(layer);
 
-                $(this.find('#sortable')).append(layer);
-                return layer;
+                $(this.find('#sortable')).append(ld);
+                return ld;
             },
 
             render: function(howmany, order) {
