@@ -217,6 +217,10 @@ mol.modules.map = function(mol) {
 
 
             },
+            /*
+             *  Google map event handler to show layer loading gifs when the zoom level changes.
+             */
+
             mapZoomChanged : function (event) {
 
                 this.map.overlayMapTypes.forEach(
@@ -227,7 +231,7 @@ mol.modules.map = function(mol) {
                 this.checkBounds().bind(this,event);
             },
             /*
-             * Google map event handler to hide layer loading gifs.
+             * Google map event handler to hide layer loading gifs after tiles are finished loading..
              */
             mapTilesLoaded : function(event) {
                 this.map.overlayMapTypes.forEach(
