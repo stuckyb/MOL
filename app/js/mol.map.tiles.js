@@ -66,7 +66,6 @@ mol.modules.map.tiles = function(mol) {
                     newLayers,
                     function(layer) {
                         tiles.push(this.getTile(layer, this.map));
-                        $('img',tiles).imagesLoaded(this.layerLoaded.bind(layer));
                     },
                     this
                 );
@@ -74,11 +73,6 @@ mol.modules.map.tiles = function(mol) {
                 //this.layerCache.setMulti(tiles);
                 //this.bus.fireEvent(new mol.bus.Event('add-map-overlays', {overlays: overlays}));
             },
-            layerLoaded : function(images, proper, broken) {
-                //alert("Loaded " + proper.length + ' tiles from ' + this.id + '. ' + broken.length + ' tiles broken');
-                $('.mol-LayerControl-Layers #'+this.id+' .loading')[0].style.visibility = 'hidden';
-            },
-
             /**
              * Returns an array of layer objects that are not already on the map.
              *
@@ -161,7 +155,7 @@ mol.modules.map.tiles = function(mol) {
                         map: map,
                         user_name: 'mol',
                         table_name: table,
-                        query: "SELECT * FROM {0} where scientificname = '{1}'".format(table, layer.name),
+                        query: "SELECT * FROM {0} where scientificname = '{1}'&cache_buster=1".format(table, layer.name),
                         map_style: true,
                         infowindow: true,
                         auto_bound: false

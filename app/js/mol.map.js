@@ -200,83 +200,32 @@ mol.modules.map = function(mol) {
                 );
                 google.maps.event.addListener(
                         this.map,
-                        'tilesloaded',
-                        this.mapTilesLoaded.bind(this)
+                        'idle',
+                        this.mapIdle.bind(this)
                 );
-                google.maps.event.addListener(
-                        this.map,
-                        'drag',
-                        this.checkBounds.bind(this, event)
-                );
-                google.maps.event.addListener(
-                        this.map,
-                        'center_changed',
-                        this.checkBounds.bind(this, event)
-                );
-
-
-
             },
             /*
              *  Google map event handler to show layer loading gifs when the zoom level changes.
              */
 
             mapZoomChanged : function (event) {
-
                 this.map.overlayMapTypes.forEach(
                       function(layer) {
                          $('.mol-LayerControl-Layers #'+layer.name+' .loading')[0].style.visibility = 'visible';
-                     }
+                     }.bind(this)
                 );
-                this.checkBounds().bind(this,event);
             },
             /*
-             * Google map event handler to hide layer loading gifs after tiles are finished loading..
+             * Google map event handler to hide layer loading gifs after the map is finished loading..
              */
-            mapTilesLoaded : function(event) {
+            mapIdle : function(event) {
+
                 this.map.overlayMapTypes.forEach(
                       function(layer) {
                          $('.mol-LayerControl-Layers #'+layer.name+' .loading')[0].style.visibility = 'hidden';
-                  }
+                       }
                 );
             },
-            /*
-             * Google map event handler to keep within valid latitudes.
-             * Crazy latitudes result in CartoDB tile errors, until we can handle these better,
-             * keep the map within normal values.
-             */
-            checkBounds : function (event) {
-/*
-                    var enforce=false, dx, dy, x, y, miny, maxy;
-
-                    x = this.map.getCenter().lng();
-                    y = this.map.getCenter().lat();
-
-                    miny = this.map.getBounds().getSouthWest().lat();
-                    maxy = this.map.getBounds().getNorthEast().lat();
-                    dy = maxy-miny;
-
-                    if(this.map.minLat!=undefined) {
-                        if (miny < this.map.minLat) {
-                               miny = this.map.minLat;
-                               maxy = miny + dy;
-                               enforce=true;
-                        }
-                    }
-                    if(this.map.maxLat!=undefined) {
-                        if (maxy > this.map.maxLat) {
-                            maxy = this.map.maxLat;
-                            miny = maxy - dy;
-                            enforce=true;
-                        }
-                    }
-                    if(enforce==true) {
-                           try {
-                               this.map.setCenter(new google.maps.LatLng(x,(miny+maxy)/2));
-                           } catch (e) {}
-                    }*/
-
-            }
         }
     );
 
