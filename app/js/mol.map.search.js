@@ -152,7 +152,7 @@ mol.modules.map.search = function(mol) {
             init: function() {
                 var html = '' +
                     '<div class="mol-LayerControl-Search">' +
-                    '  <div class="container widgetTheme">' +
+                    '  <div class="searchContainer widgetTheme">' +
                     '    <div class="title">Search:</div>' +
                     '    <input class="value" type="text" placeholder="Search by name">' +
                     '    <button class="execute">Go</button>' +

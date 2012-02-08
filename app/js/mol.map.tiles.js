@@ -66,12 +66,17 @@ mol.modules.map.tiles = function(mol) {
                     newLayers,
                     function(layer) {
                         tiles.push(this.getTile(layer, this.map));
+                        $('img',tiles).imagesLoaded(this.layerLoaded.bind(layer));
                     },
                     this
                 );
 
                 //this.layerCache.setMulti(tiles);
                 //this.bus.fireEvent(new mol.bus.Event('add-map-overlays', {overlays: overlays}));
+            },
+            layerLoaded : function(images, proper, broken) {
+                //alert("Loaded " + proper.length + ' tiles from ' + this.id + '. ' + broken.length + ' tiles broken');
+                $('.mol-LayerControl-Layers #'+this.id+' .loading')[0].style.visibility = 'hidden';
             },
 
             /**

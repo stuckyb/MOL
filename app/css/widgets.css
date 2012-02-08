@@ -137,9 +137,8 @@ button:hover{
 }
 
 .mol-LayerControl-Layers .layer, .staticLink{
-    position: relative;
-    width: 96%;
-    float: left;
+    display: table-cell;
+    width: 405px;
     margin-top: 3px;
     padding: 2px;
     -moz-border-radius: 3px;
@@ -244,14 +243,20 @@ button:hover{
     font-size: 1.2em;
     height: 24px;
 }
-
+.mol-LayerControl-Layers .layerContainer {
+    display: table-row;
+}
+.mol-LayerControl-Layers .loading {
+    display: table-cell;
+    float: left;
+}
 
 
 /* BEGIN SEARCH UI
  * search, results
  */
 
-.mol-LayerControl-Search .container, .mol-LayerControl-Add {
+.mol-LayerControl-Search .searchContainer, .mol-LayerControl-Add {
     float: left;
     position: relative;
     height: 28px;

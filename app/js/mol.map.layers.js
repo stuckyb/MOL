@@ -87,7 +87,10 @@ mol.modules.map.layers = function(mol) {
         {
             init: function(layer) {
                 var html = '' +
-                    '<div class="layer widgetTheme">' +
+
+                    '<div class="layerContainer">' +
+                    '  <img class="loading" src="/static/loading.gif">' +
+                    '  <div class="layer widgetTheme">' +
                     '    <button><img class="type" src="/static/maps/search/{0}.png"></button>' +
                     '    <div class="layerName">' +
                     '        <div class="layerNomial">{1}</div>' +
@@ -97,15 +100,16 @@ mol.modules.map.layers = function(mol) {
                     '        <span class="customCheck"></span> ' +
                     '    </div>' +
                     '    <button class="info">i</button>' +
+                    '  </div>' +
                     '</div>';
 
                 this._super(html.format(layer.type, layer.name));
-                this.attr('id', layer.id); 
-                this.toggleButton = $(this.find('.toggle'));            
+                this.attr('id', layer.id);
+                this.toggleButton = $(this.find('.toggle'));
             }
         }
     );
-    
+
     mol.map.layers.LayerListDisplay = mol.mvp.View.extend(
         {
             init: function() {
