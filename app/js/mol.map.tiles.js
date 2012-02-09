@@ -66,12 +66,23 @@ mol.modules.map.tiles = function(mol) {
                     newLayers,
                     function(layer) {
                         tiles.push(this.getTile(layer, this.map));
+                        $(this.map.loading).show();
+                        $("img",this.map.overlayMapTypes).imagesLoaded(this.tilesLoaded.bind(this));
                     },
                     this
                 );
 
                 //this.layerCache.setMulti(tiles);
                 //this.bus.fireEvent(new mol.bus.Event('add-map-overlays', {overlays: overlays}));
+            },
+            /*
+             *  Jquery imagesLoaded callback to turn off the loading indicator once the overlays have finished
+             *  @param images array of img tile elements.
+             *  @param proper array of img elements properly loaded.
+             *  @param broken array of broken img elements..
+             */
+            tilesLoaded: function(images, proper, broken) {
+                $(this.map.loading).hide();
             },
             /**
              * Returns an array of layer objects that are not already on the map.
@@ -155,7 +166,7 @@ mol.modules.map.tiles = function(mol) {
                         map: map,
                         user_name: 'mol',
                         table_name: table,
-                        query: "SELECT * FROM {0} where scientificname = '{1}'&cache_buster=1".format(table, layer.name),
+                        query: "SELECT * FROM {0} where scientificname = '{1}'".format(table, layer.name),
                         map_style: true,
                         infowindow: true,
                         auto_bound: false

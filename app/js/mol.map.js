@@ -192,7 +192,14 @@ mol.modules.map = function(mol) {
 
                     ]
                 };
+
+                //create the loading widget
                 this.map = new google.maps.Map(this.element, mapOptions);
+                this.map.loading = document.createElement("IMG");
+                this.map.loading.className="mol-LoadingWidget";
+                this.map.loading.src="static/loading.gif"
+                document.body.appendChild(this.map.loading);
+
                 google.maps.event.addListener(
                         this.map,
                         'zoom_changed',
@@ -205,26 +212,17 @@ mol.modules.map = function(mol) {
                 );
             },
             /*
-             *  Google map event handler to show layer loading gifs when the zoom level changes.
+             *  Map event handler to show layer loading gifs when the zoom level changes.
              */
 
-            mapZoomChanged : function (event) {
-                this.map.overlayMapTypes.forEach(
-                      function(layer) {
-                         $('.mol-LayerControl-Layers #'+layer.name+' .loading')[0].style.visibility = 'visible';
-                     }.bind(this)
-                );
+            mapZoomChanged : function () {
+                $(this.map.loading).show();
             },
             /*
-             * Google map event handler to hide layer loading gifs after the map is finished loading..
+             * Map event handler to hide layer loading gifs after the map is finished loading.
              */
-            mapIdle : function(event) {
-
-                this.map.overlayMapTypes.forEach(
-                      function(layer) {
-                         $('.mol-LayerControl-Layers #'+layer.name+' .loading')[0].style.visibility = 'hidden';
-                       }
-                );
+            mapIdle : function() {
+                $(this.map.loading).hide();
             },
         }
     );

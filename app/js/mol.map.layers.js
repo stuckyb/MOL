@@ -89,7 +89,6 @@ mol.modules.map.layers = function(mol) {
                 var html = '' +
 
                     '<div class="layerContainer">' +
-                    '  <img class="loading" src="/static/loading.gif">' +
                     '  <div class="layer widgetTheme">' +
                     '    <button><img class="type" src="/static/maps/search/{0}.png"></button>' +
                     '    <div class="layerName">' +
