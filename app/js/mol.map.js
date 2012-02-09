@@ -214,16 +214,29 @@ mol.modules.map = function(mol) {
             /*
              *  Map event handler to show layer loading gifs when the zoom level changes.
              */
-
-            mapZoomChanged : function () {
+            mapZoomChanged: function() {
                 $(this.map.loading).show();
             },
             /*
-             * Map event handler to hide layer loading gifs after the map is finished loading.
+             * Map event handler to hide loading gifs after the map is finished loading.
+             * Sets a callback on the overlays if they exist.
              */
-            mapIdle : function() {
-                $(this.map.loading).hide();
+            mapIdle: function() {
+                if (this.map.overlayMapTypes.length>0) {
+                    $("img",this.map.overlayMapTypes).imagesLoaded(this.overlaysLoaded.bind(this));
+                } else {
+                    $(this.map.loading).hide();
+                }
             },
+            /*
+             * Event handler to turn off loading gif when map overlays have finished loading.
+             * @param images an array of img elements within the overlayMapType
+             * @param proper an array of img elemets that successfully loaded
+             * @param broken and array of img elements that are broken
+             */
+            overlaysLoaded: function(images, proper, broken) {
+                $(this.map.loading).hide();
+            }
         }
     );
 
