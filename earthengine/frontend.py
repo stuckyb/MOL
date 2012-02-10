@@ -221,7 +221,7 @@ class MergeFeatureCollection(EarthEngineRequest):
     or many Google Fusion Tables. There are duplicates so we need to find uniques.
     """
 
-    def __init__(self, tableids, coordinates):
+    def __init__(self, tableids, coordinates, limit):
         """Constructor.
 
         Args:
@@ -230,6 +230,7 @@ class MergeFeatureCollection(EarthEngineRequest):
         """
         self.tableids = tableids
         self.coordinates = simplejson.loads(coordinates)[0]
+        self.limit = limit
 
     def get_url(self):
         table = dict(
@@ -256,25 +257,10 @@ class MergeFeatureCollection(EarthEngineRequest):
             logging.error("We can only pass in 2 or 3 tableids: %s" % self.tableids)
             return
 
-
-        # if count > 0:
-        #     tableid = self.tableids.pop()
-        #     if tableid:
-        #         table['collection'] = self.get_collection(tableid)        
-                
-        # if count > 1:
-        #     tableid = self.tableids.pop()
-        #     if tableid:
-        #         table['collection']['collection2'] = self.get_collection(tableid)
-
-        # if count > 2:
-        #     tableid = self.tableids.pop()
-        #     if tableid:
-        #         table['collection']['collection2']['collection2'] = dict(table_id= tableid)
-
         query = dict(
             table = simplejson.dumps(table),
-            selectors = "Latin")
+            selectors = "Latin",
+            limit = self.limit)
         
         logging.info('query: %s' % query)
 
@@ -329,7 +315,8 @@ class SpeciesNamesListHandler(webapp.RequestHandler):
     def post(self):
         tableids = [int(x) for x in self.request.get('tableids').split(',')]
         coordinates = self.request.get('coordinates')
-        request = MergeFeatureCollection(tableids, coordinates)
+        limit = self.request.get_range('limit', default=100)
+        request = MergeFeatureCollection(tableids, coordinates, limit)
         response = request.execute()   
         
         logging.info("RESPONSE: %s" % response)

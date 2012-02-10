@@ -46,6 +46,7 @@ app._getNormalizedCoord = function(coord, zoom) {
  */
 app.calcStats = function(polygon) {    
     var center = polygon.getBounds().getCenter(),
+        limit = app.urlParams['limit'],
         tableidCount = app.urlParams['tableids'].split(',').length;
     
     // Count for retries:
@@ -91,6 +92,7 @@ app.calcStats = function(polygon) {
         {
             tableids: app.urlParams['tableids'], 
             coordinates: JSON.stringify(app.coordinates),
+            limit: limit,
             center: center.toUrlValue()
         },
         function(data) {  
