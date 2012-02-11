@@ -25,12 +25,12 @@ Where `id` is the layer id, `name` is the scientific name, `source` is the layer
 <tr>
 <td>layer-toggle</td>
 <td>Fired when a map layer visibility is turned on or off.</td>
-<td>showing | layer</td>
+<td>showing (boolean) | layer</td>
 </tr>
 <tr>
 <td>layer-zoom-extent</td>
 <td>Fired when a map layer should be zoomed to its full extent.</td>
-<td>layer object {id, name, type, source}</td>
+<td>layer</td>
 </tr></table>
 
 ## Engine
