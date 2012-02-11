@@ -17,8 +17,7 @@ In the UI, application-level events all happen asynchronously using the [event b
 <tr>
 <td>layer-toggle</td>
 <td>Fired when a map layer visibility is turned on or off.</td>
-<td>* showing (true or false)
-* layer object {id, name, type, source}</td>
+<td>showing (true or false) | layer object {id, name, type, source}</td>
 </tr>
 <tr>
 <td>layer-zoom-extent</td>
