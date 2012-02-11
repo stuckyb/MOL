@@ -1,3 +1,8 @@
+/**
+ * This module handles add-layers events and layer-toggle events. tI basically 
+ * proxies the CartoDB JavaScript API for adding and removing CartoDB layers
+ * to and from the map.
+ */
 mol.modules.map.tiles = function(mol) {
 
     mol.map.tiles = {};
@@ -148,6 +153,8 @@ mol.modules.map.tiles = function(mol) {
     mol.map.tiles.CartoDbTile = Class.extend(
         {
             init: function(layer, table, map) {
+                var sql =  "SELECT * FROM {0} where scientificname = '{1}'";
+                
                 this.layer = new google.maps.CartoDBLayer(
                     {
                         tile_name: layer.id,
@@ -155,84 +162,12 @@ mol.modules.map.tiles = function(mol) {
                         map: map,
                         user_name: 'mol',
                         table_name: table,
-                        query: "SELECT * FROM {0} where scientificname = '{1}'".format(table, layer.name),
+                        query: sql.format(table, layer.name),
                         map_style: true,
                         infowindow: true,
                         auto_bound: false
                     }
                 );
-            }
-        }
-    );
-
-    mol.map.tiles.PointDensityTile = Class.extend(
-        {
-            /**
-             * @name the scientific name used in the query
-             */
-            init: function(layer) {
-                this.name = layer.name;
-                this.id = layer.id;
-                this.statements = {};
-                this.bottomZ = 4;
-                this.topZ = null;
-                this.style = null;
-                this.createCalls(8);
-                //carto_map.overlayMapTypes.insertAt(0, cartodb_imagemaptype);
-            },
-
-            getImageMapType: function() {
-                return new google.maps.ImageMapType(this.getTile());
-            },
-
-            getTile: function() {
-                var self = this;
-
-                return {
-                    getTileUrl: function(coord, zoom) {
-                        var statement;
-
-                        if (zoom < self.bottomZ) {
-                            statement = self.statements[0];
-                        }
-                        else if (zoom >= self.topZ) {
-                            statement = self.statements[self.topZ];
-                        }
-                        else {
-                            statement = self.statements[zoom];
-                        }
-                        return "http://mol.cartodb.com/tiles/points/" + zoom + "/" + coord.x + "/" + coord.y + ".png?" + statement;
-                    },
-                    tileSize: new google.maps.Size(256, 256),
-                    name: self.id
-                };
-            },
-
-            createCalls: function(seed) {
-                var z = this.bottomZ;
-                this.topZ = this.bottomZ + 6;
-                /* Define our base grid style */
-                var baseStyle = "%23points{ polygon-fill:%23EFF3FF; polygon-opacity:0.6; line-opacity:1; line-color:%23FFFFFF;  ";
-                /* Add grid colors based on count (cnt) in clusters */
-                baseStyle += "[cnt>160]{ polygon-fill:%2308519C; polygon-opacity:0.7;} [cnt<160]{polygon-fill:%233182BD; polygon-opacity:0.65;} [cnt<80]{ polygon-fill:%236BAED6; polygon-opacity:0.6;} [cnt<40]{ polygon-fill:%239ECAE1; polygon-opacity:0.6;} [cnt<20]{polygon-fill:%23C6DBEF; polygon-opacity:0.6;} [cnt<2]{ polygon-fill:%23EFF3FF; polygon-opacity:0.4; }} ";
-
-                /* Get the first level (lowest zoom) set of points clustered */
-                var sql = "SELECT cnt, ST_Transform(ST_Envelope(GEOMETRYFROMTEXT('LINESTRING('||(st_xmax(the_geom)-" + (seed / 2) + ")||' '||(st_ymax(the_geom)-" + (seed / 2) + ")||', '||(st_xmax(the_geom)%2B" + (seed / 2) + ")||' '||(st_ymax(the_geom)%2B" + (seed / 2) + ")||')',4326)),3857) as the_geom_webmercator FROM (SELECT count(*) as cnt, scientificname, ST_SnapToGrid(the_geom, 0%2B" + (seed / 2) + ", 75%2B" + (seed / 2) + ", " + seed + ", " + seed + ") as the_geom FROM points GROUP By points.scientificname, ST_SnapToGrid(the_geom, 0%2B" + (seed / 2) + ", 75%2B" + (seed / 2) + ", " + seed + ", " + seed + ")) points WHERE points.scientificname='" + this.name + "' AND ST_Intersects(the_geom, GEOMETRYFROMTEXT('MULTIPOLYGON(((-180 75, -180 -75, 180 -75, 180 75, -180 75)))',4326))";
-                seed = seed / 2;
-                this.style = baseStyle;
-                this.statements[0] = "sql=" + sql + "&style=" + this.style;
-                /* Create a clustering SQL statement and a style for each zoom < topZ */
-                while (z < this.topZ) {
-                    sql = "SELECT cnt, scientificname, ST_Transform(ST_Envelope(GEOMETRYFROMTEXT('LINESTRING('||(st_xmax(the_geom)-" + (seed / 2) + ")||' '||(st_ymax(the_geom)-" + (seed / 2) + ")||', '||(st_xmax(the_geom)%2B" + (seed / 2) + ")||' '||(st_ymax(the_geom)%2B" + (seed / 2) + ")||')',4326)),3857) as the_geom_webmercator FROM (SELECT count(*) as cnt, scientificname, ST_SnapToGrid(the_geom, 0%2B" + (seed / 2) + ", 75%2B" + (seed / 2) + ", " + seed + ", " + seed + ") as the_geom FROM points GROUP By points.scientificname, ST_SnapToGrid(the_geom, 0%2B" + (seed / 2) + ", 75%2B" + (seed / 2) + ", " + seed + ", " + seed + ")) points WHERE points.scientificname='" + this.name + "' AND ST_Intersects(the_geom, GEOMETRYFROMTEXT('MULTIPOLYGON(((-180 75, -180 -75, 180 -75, 180 75, -180 75)))',4326))";
-                    this.statements[z] = "sql=" + sql + "&style=" + this.style;
-                    z++;
-                    seed = seed / 2;
-                }
-                z = z - 1;
-                /* Create a statement for all points and a style for those points at zoom>=10 */
-                sql = "SELECT 1 as cnt, the_geom_webmercator FROM points WHERE scientificname = '" + this.name + "'";
-                this.style = "%23points { marker-fill:%23E25B5B; marker-opacity:0.9; marker-width:5; marker-line-color:white; marker-line-width:1; marker-line-opacity:0.8; marker-placement:point;	marker-type:ellipse; marker-allow-overlap:true; } ";
-                this.statements[this.topZ] = "sql=" + sql + "&style=" + this.style;
             }
         }
     );
