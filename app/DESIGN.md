@@ -2,6 +2,23 @@
 
 ## Events
 
+We love events! They allow us to decouple many application components in a structured way.
+
+In the UI, application-level events all happen asynchronously using the [event bus](https://github.com/MapofLife/MOL/blob/develop/app/js/mol.bus.js). You can add handler functions to the bus for specific event types, and you can fire events. 
+
+### Types
+
+<table>
+<tr>
+<td><b>Event type</b></td>
+<td><b>Description</b></td>
+</tr>
+<tr>
+<td>layer-toggle</td>
+<td>Fired when a map layer visibility is turned on or off.</td>
+</tr>
+</table>
+
 ## Engine
 
 ## Display
