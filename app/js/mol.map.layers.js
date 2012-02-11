@@ -18,7 +18,9 @@ mol.modules.map.layers = function(mol) {
             /**
              * Handles an 'add-layers' event by adding them to the layer list.
              * The event is expected to have a property named 'layers' which
-             * is an arry of layer objects, each with a 'name' and 'type' property.
+             * is an arry of layer objects, each with a 'name' and 'type' property. 
+             * This function ignores layers that are already represented
+             * as widgets.
              */
             addEventHandlers: function() {
                 var self = this;
@@ -28,7 +30,7 @@ mol.modules.map.layers = function(mol) {
                     function(event) {
                         _.each(
                             event.layers,
-                            function(layer) {
+                            function(layer) { // Removes duplicate layers.
                                 if (self.display.getLayer(layer).length > 0) {
                                     event.layers = _.without(event.layers, layer);
                                 }
@@ -53,16 +55,24 @@ mol.modules.map.layers = function(mol) {
 
                 this.bus.fireEvent(event);
             },
-
+            
+            /**
+             * Adds layer widgets to the map. The layers parameter is an array
+             * of layer objects {id, name, type, source}.
+             */
             addLayers: function(layers) {
                 _.each(
                     layers,
                     function(layer) {
                         var l = this.display.addLayer(layer);
                             self = this;
-
-                        l.toggleButton.attr('checked', true);
-
+                        
+                        l.toggle.click(
+                            function(event) {
+                                
+                            }
+                        );
+                    
                         l.click(
                             function(event) {
                                 var showing = $(event.currentTarget).find('.toggle').is(':checked'),
@@ -94,16 +104,22 @@ mol.modules.map.layers = function(mol) {
                     '    <div class="layerName">' +
                     '        <div class="layerNomial">{1}</div>' +
                     '    </div>' +
+                    '    <div class="buttonContainer">' +
+                    '        <input class="toggle" type="checkbox">' +
+                    '        <span class="customCheck"></span> ' +
+                    '    </div>' +                    
                     '    <button class="info">i</button>' +
                     '    <button class="zoom">z</button>' +
-                    '    <button class="info">t</button>' +   
                     '    <input type="range" class="opacity" min="0" max="1.0" step=".10" />' +
                     '  </div>' +
                     '</div>';
 
                 this._super(html.format(layer.type, layer.name));
                 this.attr('id', layer.id);
-                this.toggleButton = $(this.find('.toggle'));
+                this.opacity = $(this.find('.opacity'));
+                this.toggle = $(this.find('.toggle'));
+                this.zoom = $(this.find('.zoom'));
+                this.info = $(this.find('.info'));
             }
         }
     );
