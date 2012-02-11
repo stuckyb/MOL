@@ -173,7 +173,7 @@ button:hover{
 }
 .mol-LayerControl-Layers .layer .layerName{
     float: left;
-    width: 60%;
+    #width: 60%;
     margin-left: 5px;
     margin-right: 5px;
     pointer-events: none;
@@ -238,11 +238,39 @@ button:hover{
 .mol-LayerControl-Layers .layer .info{
     float: right;
     position: relative;
-    width: 10%;
+    width: 7%;
     font-style: italic;
     font-size: 1.2em;
     height: 24px;
 }
+
+.mol-LayerControl-Layers .layer .opacity {
+    float: right;
+    position: relative;
+    width: 75px;
+    font-style: italic;
+    font-size: 1.2em;
+    height: 24px;
+}
+
+.mol-LayerControl-Layers .layer .zoom {
+    float: right;
+    position: relative;
+    width: 7%;
+    font-style: italic;
+    font-size: 1.2em;
+    height: 24px;
+}
+
+.mol-LayerControl-Layers .layer .toggle {
+    float: right;
+    position: relative;
+    width: 7%;
+    font-style: italic;
+    font-size: 1.2em;
+    height: 24px;
+}
+
 .mol-LayerControl-Layers .layerContainer {
     display: table-row;
 }

@@ -94,11 +94,10 @@ mol.modules.map.layers = function(mol) {
                     '    <div class="layerName">' +
                     '        <div class="layerNomial">{1}</div>' +
                     '    </div>' +
-                    '    <div class="buttonContainer">' +
-                    '        <input class="toggle" type="checkbox">' +
-                    '        <span class="customCheck"></span> ' +
-                    '    </div>' +
                     '    <button class="info">i</button>' +
+                    '    <button class="zoom">z</button>' +
+                    '    <button class="info">t</button>' +   
+                    '    <input type="range" class="opacity" min="0" max="1.0" step=".10" />' +
                     '  </div>' +
                     '</div>';
 
