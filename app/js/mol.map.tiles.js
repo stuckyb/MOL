@@ -61,7 +61,6 @@ mol.modules.map.tiles = function(mol) {
                     overlays = this.map.overlayMapTypes.getArray(),
                     newLayers = this.filterLayers(layers, overlays);
 
-
                 _.each(
                     newLayers,
                     function(layer) {
@@ -71,10 +70,8 @@ mol.modules.map.tiles = function(mol) {
                     },
                     this
                 );
-
-                //this.layerCache.setMulti(tiles);
-                //this.bus.fireEvent(new mol.bus.Event('add-map-overlays', {overlays: overlays}));
             },
+
             /*
              *  Jquery imagesLoaded callback to turn off the loading indicator once the overlays have finished
              *  @param images array of img tile elements.

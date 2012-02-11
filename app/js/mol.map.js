@@ -196,8 +196,8 @@ mol.modules.map = function(mol) {
                 //create the loading widget
                 this.map = new google.maps.Map(this.element, mapOptions);
                 this.map.loading = document.createElement("IMG");
-                this.map.loading.className="mol-LoadingWidget";
-                this.map.loading.src="static/loading.gif"
+                this.map.loading.className = "mol-LoadingWidget";
+                this.map.loading.src = "static/loading.gif";
                 document.body.appendChild(this.map.loading);
 
                 google.maps.event.addListener(
@@ -211,23 +211,26 @@ mol.modules.map = function(mol) {
                         this.mapIdle.bind(this)
                 );
             },
+            
             /*
              *  Map event handler to show layer loading gifs when the zoom level changes.
              */
             mapZoomChanged: function() {
                 $(this.map.loading).show();
             },
+            
             /*
              * Map event handler to hide loading gifs after the map is finished loading.
              * Sets a callback on the overlays if they exist.
              */
             mapIdle: function() {
                 if (this.map.overlayMapTypes.length>0) {
-                    $("img",this.map.overlayMapTypes).imagesLoaded(this.overlaysLoaded.bind(this));
+                    $("img", this.map.overlayMapTypes).imagesLoaded(this.overlaysLoaded.bind(this));
                 } else {
                     $(this.map.loading).hide();
                 }
             },
+            
             /*
              * Event handler to turn off loading gif when map overlays have finished loading.
              * @param images an array of img elements within the overlayMapType
@@ -261,7 +264,6 @@ mol.modules.map = function(mol) {
                     '</div>';
 
                 this._super(html);
-                //this.selectable({disabled: true});
                 this.find(Slot.TOP).removeClass('ui-selectee');
                 this.find(Slot.MIDDLE).removeClass('ui-selectee');
                 this.find(Slot.BOTTOM).removeClass('ui-selectee');
