@@ -14,7 +14,6 @@ mol.modules.map.tiles = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.map = map;
-                this.layerCache = new  mol.map.tiles.TileCache();
                 this.addEventHandlers();
             },
 
@@ -22,22 +21,33 @@ mol.modules.map.tiles = function(mol) {
                 var self = this;
 
                 /**
-                 * Handler for when the add-layers event is fired. This renders
-                 * the layer on the map by firing a add-map-layer event. The
-                 * event.layer is a layer object {name:, type:}. event.showing
+                 * Handler for when the layer-toggle event is fired. This renders
+                 * the layer on the map if visible, and removes it if not visible.
+                 *  The event.layer is a layer object {id, name, type, source}. event.showing
                  * is true if visible, false otherwise.
                  */
                 this.bus.addHandler(
                     'layer-toggle',
                     function(event) {
-                        if (event.showing) {
-                            self.renderTiles([event.layer]);
+                        var showing = event.showing,
+                            layer = event.layer;
+                        
+                        if (showing) {
+                            self.renderTiles([layer]);
+                        } else { // Remove layer from map.
+                            self.map.overlayMapTypes.forEach(
+                                function(maptype, index) {
+                                    if (maptype.name === layer.id) {
+                                        self.map.overlayMapTypes.removeAt(index);
+                                    }
+                                }
+                            );
                         }
                     }
                 );
 
                 /**
-                 * Handler for when the layer-toggle event is fired. This renders
+                 * Handler for when the add-layers event is fired. This renders
                  * the layers on the map by firing a add-map-layer event. The
                  * event.layers is an array of layer objects {name:, type:}.
                  */
@@ -73,7 +83,8 @@ mol.modules.map.tiles = function(mol) {
             },
 
             /*
-             *  Jquery imagesLoaded callback to turn off the loading indicator once the overlays have finished
+             *  Jquery imagesLoaded callback to turn off the loading indicator 
+             *  once the overlays have finished.
              *  @param images array of img tile elements.
              *  @param proper array of img elements properly loaded.
              *  @param broken array of broken img elements..
@@ -81,6 +92,7 @@ mol.modules.map.tiles = function(mol) {
             tilesLoaded: function(images, proper, broken) {
                 $(this.map.loading).hide();
             },
+            
             /**
              * Returns an array of layer objects that are not already on the map.
              *
@@ -129,26 +141,6 @@ mol.modules.map.tiles = function(mol) {
                     new mol.map.tiles.CartoDbTile(layer, 'polygons', this.map);
                     break;
                 }
-            }
-        }
-    );
-
-    mol.map.tiles.TileCache = Class.extend(
-        {
-            init: function() {
-                this.tiles = {};
-            },
-
-            set: function(tile) {
-                this.tiles[tile.id] = tile;
-            },
-
-            get: function(name, type) {
-                return this.tiles['layer-{0}-{1}'.format(name, type)];
-            },
-
-            setMulti: function(tiles) {
-                _.each(tiles, this.set, this);
             }
         }
     );

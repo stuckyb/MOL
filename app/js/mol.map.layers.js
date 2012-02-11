@@ -67,15 +67,12 @@ mol.modules.map.layers = function(mol) {
                         var l = this.display.addLayer(layer);
                             self = this;
                         
+                        l.toggle.attr('checked', true);
+                        
+                        // Click handler for the toggle button.
                         l.toggle.click(
                             function(event) {
-                                
-                            }
-                        );
-                    
-                        l.click(
-                            function(event) {
-                                var showing = $(event.currentTarget).find('.toggle').is(':checked'),
+                                var showing = $(event.currentTarget).is(':checked'),
                                     params = {
                                         layer: layer,
                                         showing: showing
@@ -88,7 +85,6 @@ mol.modules.map.layers = function(mol) {
                     },
                     this
                 );
-
             }
         }
     );
@@ -97,7 +93,6 @@ mol.modules.map.layers = function(mol) {
         {
             init: function(layer) {
                 var html = '' +
-
                     '<div class="layerContainer">' +
                     '  <div class="layer widgetTheme">' +
                     '    <button><img class="type" src="/static/maps/search/{0}.png"></button>' +
@@ -255,16 +250,23 @@ mol.modules.map.layers = function(mol) {
             },
 
             hiding: function(e) {
-                if(!this.open) return;
+                var layers = null;
+                
+                if (!this.open) {
+                    return;
+                }
+                
                 // put first what are showing
-                this.layers.sort(function(a, b) {
-                                     if(a.enabled && !b.enabled) {
-                                         return -1;
-                                     } else if(!a.enabled && b.enabled) {
-                                         return 1;
-                                     }
-                                     return 0;
-                                 });
+                this.layers.sort(
+                    function(a, b) {
+                        if (a.enabled && !b.enabled) {
+                            return -1;
+                        } else if (!a.enabled && b.enabled) {
+                            return 1;
+                        }
+                        return 0;
+                    }
+                );
                 layers = _(this.layers).pluck('name');
                 this.bus.emit("map:reorder_layers", layers);
                 this.order = layers;
