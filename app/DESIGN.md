@@ -6,6 +6,14 @@ We love events! They allow us to decouple many application components in a struc
 
 In the UI, application-level events all happen asynchronously using the [event bus](https://github.com/MapofLife/MOL/blob/develop/app/js/mol.bus.js). You can add handler functions to the bus for specific event types, and you can fire events. 
 
+Many events have a layer parameter object, which looks like this:
+
+```javascript
+{id, name, source, type}
+```
+
+Where `id` is the layer id, `name` is the scientific name, `source` is the layer source, and `type` is the layer type.
+
 ### Types
 
 <table>
@@ -17,7 +25,7 @@ In the UI, application-level events all happen asynchronously using the [event b
 <tr>
 <td>layer-toggle</td>
 <td>Fired when a map layer visibility is turned on or off.</td>
-<td>showing (true or false) | layer object {id, name, type, source}</td>
+<td>showing | layer</td>
 </tr>
 <tr>
 <td>layer-zoom-extent</td>
