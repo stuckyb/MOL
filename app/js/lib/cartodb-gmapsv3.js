@@ -71,7 +71,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 			// Zoom to your geometries
 		  $.ajax({
 			  method:'get',
-		    url: 'http://'+params.user_name+'.cartodb.com/api/v1/sql/?q='+escape('select ST_Extent(the_geom) from '+ params.table_name)+'&callback=?',
+		    url: 'http://'+params.user_name+'.cartodb.com/api/v2/sql?q='+escape('select ST_Extent(the_geom) from '+ params.table_name)+'&callback=?',
 		    dataType: 'jsonp',
 		    success: function(result) {
 		      if (result.rows[0].st_extent!=null) {
@@ -79,7 +79,9 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 		  
 		        var coor1 = coordinates[0].split(' ');
 		        var coor2 = coordinates[1].split(' ');
-		        var bounds = new google.maps.LatLngBounds();
+              var sw = null;
+              var ne = null;
+		        var bounds = null;
 		  
 		        // Check bounds
 		        if (coor1[0] >  180 || coor1[0] < -180 || coor1[1] >  90 || coor1[1] < -90 
@@ -90,10 +92,11 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 		          coor2[1] =  '80'; 
 		        }
 		  
-		        bounds.extend(new google.maps.LatLng(coor1[1],coor1[0]));
-		        bounds.extend(new google.maps.LatLng(coor2[1],coor2[0]));
-		  
+              sw = new google.maps.LatLng(coor1[1],coor1[0]);
+              ne = new google.maps.LatLng(coor2[1],coor2[0]);
+              bounds = new google.maps.LatLngBounds(sw, ne);
 		        params.map.fitBounds(bounds);
+		        params.map.panToBounds(bounds);
 		      }
 		  
 		    },
@@ -305,7 +308,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 	      } else {
 	        $.ajax({
       		  method:'get',
-      	    url: 'http://'+ that.params_.user_name +'.cartodb.com/api/v1/sql/?q='+escape('select * from '+ that.params_.table_name + ' LIMIT 1'),
+      	    url: 'http://'+ that.params_.user_name +'.cartodb.com/api/v2/sql?q='+escape('select * from '+ that.params_.table_name + ' LIMIT 1'),
       	    dataType: 'jsonp',
       	    success: function(columns) {
       	      that.columns_ = parseColumns(columns.rows[0]);
@@ -397,7 +400,7 @@ if (typeof(google.maps.CartoDBLayer) === "undefined") {
 
     $.ajax({
 		  method:'get',
-	    url: 'http://'+ this.params_.user_name +'.cartodb.com/api/v1/sql/?q='+escape('select '+that.columns_+',ST_AsGeoJSON(ST_PointOnSurface(the_geom),6) as cdb_centre from '+ this.params_.table_name + ' where cartodb_id=' + feature)+'&callback=?',
+	    url: 'http://'+ this.params_.user_name +'.cartodb.com/api/v2/sql?q='+escape('select '+that.columns_+',ST_AsGeoJSON(ST_PointOnSurface(the_geom),6) as cdb_centre from '+ this.params_.table_name + ' where cartodb_id=' + feature)+'&callback=?',
 	    dataType: 'jsonp',
 	    success: function(result) {
 	      positionateInfowindow(result.rows[0]);

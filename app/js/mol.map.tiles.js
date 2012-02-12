@@ -50,6 +50,14 @@ mol.modules.map.tiles = function(mol) {
                         }
                     }
                 );
+                
+                this.bus.addHandler(
+                    'layer-zoom-extent',
+                    function(event) {
+                        var layer = event.layer;
+                        self.zoomToExtent(layer);
+                    }
+                );
 
                 /**
                  * Handler for when the add-layers event is fired. This renders
@@ -146,14 +154,49 @@ mol.modules.map.tiles = function(mol) {
                     new mol.map.tiles.CartoDbTile(layer, 'polygons', this.map);
                     break;
                 }
-            }
+            },
+            
+            /**
+             * Zooms and pans the map to the full extent of the layer. The layer is an 
+             * object {id, name, source, type}.
+             */
+	         zoomToExtent: function(layer) {
+                var self = this,
+                    sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE scientificname='{1}'",
+                    table = layer.type === 'points' ? 'points' : 'polygons',
+                    query = sql.format(table, layer.name),
+                    params = {
+                        sql: query
+                    },
+                    action = new mol.services.Action('cartodb-sql-query', params),
+                    success = function(action, response) {
+                        var extent = response.rows[0].st_extent,
+                            c = extent.replace('BOX(','').replace(')','').split(','),
+                            coor1 = c[0].split(' '),
+                            coor2 = c[1].split(' '),
+                            sw = null,
+                            ne = null,
+                            bounds = null;
+		    	        
+                        sw = new google.maps.LatLng(coor1[1],coor1[0]);
+                        ne = new google.maps.LatLng(coor2[1],coor2[0]);
+                        bounds = new google.maps.LatLngBounds(sw, ne);
+		                  self.map.fitBounds(bounds);
+		                  self.map.panToBounds(bounds);
+		              },
+		              failure = function(action, response) {
+                        console.log('Error: {0}'.format(response));
+                    };
+                this.proxy.execute(action, new mol.services.Callback(success, failure));            
+		      }	    
         }
-    );
+	 );
 
     mol.map.tiles.CartoDbTile = Class.extend(
         {
             init: function(layer, table, map) {
-                var sql =  "SELECT * FROM {0} where scientificname = '{1}'";
+                var sql =  "SELECT * FROM {0} where scientificname = '{1}'",
+                auto_bound = layer.auto_bound ? true : false;
                 
                 this.layer = new google.maps.CartoDBLayer(
                     {
@@ -165,7 +208,7 @@ mol.modules.map.tiles = function(mol) {
                         query: sql.format(table, layer.name),
                         map_style: true,
                         infowindow: true,
-                        auto_bound: false
+                        auto_bound: auto_bound
                     }
                 );
             }

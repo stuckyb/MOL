@@ -65,7 +65,20 @@ mol.modules.map.layers = function(mol) {
                     layers,
                     function(layer) {
                         var l = this.display.addLayer(layer);
-                            self = this;
+                        self = this;
+                        
+                        // Click handler for zoom button.
+                        l.zoom.click(
+                            function(event) {
+                                var params = {
+                                    layer: layer,
+                                    auto_bound: true
+                                },
+                                e = new mol.bus.Event('layer-zoom-extent', params);
+                                
+                                self.bus.fireEvent(e);
+                            }
+                        );
                         
                         l.toggle.attr('checked', true);
                         
