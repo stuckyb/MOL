@@ -66,15 +66,28 @@ mol.modules.map.layers = function(mol) {
                     function(layer) {
                         var l = this.display.addLayer(layer);
                         self = this;
+               
+                        // Opacity slider change handler.
+                        l.opacity.change(
+                            function(event) {
+                                var params = {
+                                        layer: layer,
+                                        opacity: parseFloat(l.opacity.val())
+                                    },
+                                    e = new mol.bus.Event('layer-opacity', params);
+                                
+                                self.bus.fireEvent(e);                                
+                            }
+                        );
                         
                         // Click handler for zoom button.
                         l.zoom.click(
                             function(event) {
                                 var params = {
-                                    layer: layer,
-                                    auto_bound: true
-                                },
-                                e = new mol.bus.Event('layer-zoom-extent', params);
+                                        layer: layer,
+                                        auto_bound: true
+                                    },
+                                    e = new mol.bus.Event('layer-zoom-extent', params);
                                 
                                 self.bus.fireEvent(e);
                             }
@@ -118,7 +131,7 @@ mol.modules.map.layers = function(mol) {
                     '    </div>' +                    
                     '    <button class="info">i</button>' +
                     '    <button class="zoom">z</button>' +
-                    '    <input type="range" class="opacity" min="0" max="1.0" step=".10" />' +
+                    '    <input type="range" class="opacity" min=".25" max="1.0" step=".25" />' +
                     '  </div>' +
                     '</div>';
 

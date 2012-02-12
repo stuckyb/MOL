@@ -51,11 +51,39 @@ mol.modules.map.tiles = function(mol) {
                     }
                 );
                 
+                /**
+                 * Handler for zoom to extent events. The event has a layer 
+                 * object {id, name, source, type}.
+                 */
                 this.bus.addHandler(
                     'layer-zoom-extent',
                     function(event) {
                         var layer = event.layer;
                         self.zoomToExtent(layer);
+                    }
+                );
+
+                /**
+                 * Hanlder for changing layer opacity. Note that this only works 
+                 * for polygon layers since point layers are rendered using image
+                 * sprites for performance. The event.opacity is a number between 
+                 * 0 and 1.0 and the event.layer is an object {id, name, source, type}.
+                 */
+                this.bus.addHandler(                    
+                    'layer-opacity',
+                    function(event) {
+                        var layer = event.layer,
+                            opacity = event.opacity;
+    
+                        self.map.overlayMapTypes.forEach(
+                            function(maptype, index) {
+                                if (maptype.name === layer.id) {
+                                    self.map.overlayMapTypes.removeAt(index);
+                                    layer.opacity = opacity;
+                                    self.renderTiles([layer]);
+                                }
+                            }
+                        );                        
                     }
                 );
 
@@ -196,7 +224,8 @@ mol.modules.map.tiles = function(mol) {
         {
             init: function(layer, table, map) {
                 var sql =  "SELECT * FROM {0} where scientificname = '{1}'",
-                auto_bound = layer.auto_bound ? true : false;
+                    opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
+                    tile_style = opacity ? "#{0}{polygon-fill:#99cc00;polygon-opacity:{1};}".format(table, opacity) : null;
                 
                 this.layer = new google.maps.CartoDBLayer(
                     {
@@ -206,9 +235,10 @@ mol.modules.map.tiles = function(mol) {
                         user_name: 'mol',
                         table_name: table,
                         query: sql.format(table, layer.name),
+                        tile_style: tile_style,
                         map_style: true,
                         infowindow: true,
-                        auto_bound: auto_bound
+                        opacity: opacity
                     }
                 );
             }
