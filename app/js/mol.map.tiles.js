@@ -1,5 +1,5 @@
 /**
- * This module handles add-layers events and layer-toggle events. tI basically 
+ * This module handles add-layers events and layer-toggle events. tI basically
  * proxies the CartoDB JavaScript API for adding and removing CartoDB layers
  * to and from the map.
  */
@@ -36,7 +36,7 @@ mol.modules.map.tiles = function(mol) {
                     function(event) {
                         var showing = event.showing,
                             layer = event.layer;
-                        
+
                         if (showing) {
                             self.renderTiles([layer]);
                         } else { // Remove layer from map.
@@ -50,9 +50,9 @@ mol.modules.map.tiles = function(mol) {
                         }
                     }
                 );
-                
+
                 /**
-                 * Handler for zoom to extent events. The event has a layer 
+                 * Handler for zoom to extent events. The event has a layer
                  * object {id, name, source, type}.
                  */
                 this.bus.addHandler(
@@ -64,17 +64,17 @@ mol.modules.map.tiles = function(mol) {
                 );
 
                 /**
-                 * Hanlder for changing layer opacity. Note that this only works 
+                 * Hanlder for changing layer opacity. Note that this only works
                  * for polygon layers since point layers are rendered using image
-                 * sprites for performance. The event.opacity is a number between 
+                 * sprites for performance. The event.opacity is a number between
                  * 0 and 1.0 and the event.layer is an object {id, name, source, type}.
                  */
-                this.bus.addHandler(                    
+                this.bus.addHandler(
                     'layer-opacity',
                     function(event) {
                         var layer = event.layer,
                             opacity = event.opacity;
-    
+
                         self.map.overlayMapTypes.forEach(
                             function(maptype, index) {
                                 if (maptype.name === layer.id) {
@@ -83,7 +83,7 @@ mol.modules.map.tiles = function(mol) {
                                     self.renderTiles([layer]);
                                 }
                             }
-                        );                        
+                        );
                     }
                 );
 
@@ -116,24 +116,16 @@ mol.modules.map.tiles = function(mol) {
                     newLayers,
                     function(layer) {
                         tiles.push(this.getTile(layer, this.map));
-                        $(this.map.loading).show();
-                        $("img",this.map.overlayMapTypes).imagesLoaded(this.tilesLoaded.bind(this));
+                        this.bus.fireEvent(new mol.bus.Event("show-loading-indicator"));
+                        $("img",this.map.overlayMapTypes).imagesLoaded(
+                            function(images,proper,broken) {
+                                this.bus.fireEvent(new mol.bus.Event("hide-loading-indicator"));
+                            }.bind(this)
+                         );
                     },
                     this
                 );
             },
-
-            /*
-             *  Jquery imagesLoaded callback to turn off the loading indicator 
-             *  once the overlays have finished.
-             *  @param images array of img tile elements.
-             *  @param proper array of img elements properly loaded.
-             *  @param broken array of broken img elements..
-             */
-            tilesLoaded: function(images, proper, broken) {
-                $(this.map.loading).hide();
-            },
-            
             /**
              * Returns an array of layer objects that are not already on the map.
              *
@@ -183,9 +175,9 @@ mol.modules.map.tiles = function(mol) {
                     break;
                 }
             },
-            
+
             /**
-             * Zooms and pans the map to the full extent of the layer. The layer is an 
+             * Zooms and pans the map to the full extent of the layer. The layer is an
              * object {id, name, source, type}.
              */
 	         zoomToExtent: function(layer) {
@@ -205,7 +197,7 @@ mol.modules.map.tiles = function(mol) {
                             sw = null,
                             ne = null,
                             bounds = null;
-		    	        
+
                         sw = new google.maps.LatLng(coor1[1],coor1[0]);
                         ne = new google.maps.LatLng(coor2[1],coor2[0]);
                         bounds = new google.maps.LatLngBounds(sw, ne);
@@ -215,8 +207,8 @@ mol.modules.map.tiles = function(mol) {
 		              failure = function(action, response) {
                         console.log('Error: {0}'.format(response));
                     };
-                this.proxy.execute(action, new mol.services.Callback(success, failure));            
-		      }	    
+                this.proxy.execute(action, new mol.services.Callback(success, failure));
+		      }
         }
 	 );
 
@@ -226,7 +218,7 @@ mol.modules.map.tiles = function(mol) {
                 var sql =  "SELECT * FROM {0} where scientificname = '{1}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
                     tile_style = opacity ? "#{0}{polygon-fill:#99cc00;polygon-opacity:{1};}".format(table, opacity) : null;
-                
+
                 this.layer = new google.maps.CartoDBLayer(
                     {
                         tile_name: layer.id,
