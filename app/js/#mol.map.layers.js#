@@ -66,8 +66,8 @@ mol.modules.map.layers = function(mol) {
                     function(layer) {
                         var l = this.display.addLayer(layer);
                         self = this;
-               
-                        // Opacity slider change handler.
+                
+                       // Opacity slider change handler.
                         l.opacity.change(
                             function(event) {
                                 var params = {
