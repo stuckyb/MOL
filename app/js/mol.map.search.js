@@ -50,17 +50,31 @@ mol.modules.map.search = function(mol) {
                     'ORDER BY scientificname ASC',
                     params = {sql:sql},
                     action = new mol.services.Action('cartodb-sql-query', params),
-                    success = function(action, response) {
-                        var results = {response:response, },
-                            event = new mol.bus.Event('populate-autocomplete', results);
-                        self.bus.fireEvent(event);
-                    },
+                    success = this.populateAutocomplete.bind(this),
                     failure = function(action, response) {
 
                     };
 
                 this.proxy.execute(action, new mol.services.Callback(success, failure));
 
+            },
+            /*
+             * Populate autocomplete results list
+             */
+            populateAutocomplete : function(action, response) {
+                this.scientificnames = [];
+                _.each(
+                    response.rows,
+                    function (row) {
+                        this.scientificnames.push(row.scientificname);
+                    }.bind(this)
+                  );
+                $(this.display.searchBox).autocomplete({
+                        minLength : 3,
+                        delay : 0,
+                        source : this.scientificnames
+
+                 });
             },
             addEventHandlers: function() {
                 var self = this;
@@ -88,27 +102,6 @@ mol.modules.map.search = function(mol) {
 
                         e = new mol.bus.Event('results-display-toggle', params);
                         self.bus.fireEvent(e);
-                    }
-                );
-                this.bus.addHandler(
-                    'populate-autocomplete',
-                    function(event) {
-                        if (event.response) {
-                            this.scientificnames = [];
-                            _.each(
-                                 event.response.rows,
-                                 function (row) {
-                                     this.scientificnames.push(row.scientificname);
-                                 }.bind(this)
-                            );
-
-
-                            $(self.display.searchBox).autocomplete({source : this.scientificnames});
-                            $(self.display.searchBox).autocomplete("option","minLength", 2);
-                            $(self.display.searchBox).autocomplete("option","delay", 0);
-
-
-                        }
                     }
                 );
                 /**
