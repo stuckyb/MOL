@@ -1,10 +1,6 @@
 /*
- * jQuery UI Autocomplete Accent Folding Extension
+ * jQuery UI Autocomplete RegExp Extension
  *
- * Copyright 2010, Scott González (http://scottgonzalez.com)
- * Dual licensed under the MIT or GPL Version 2 licenses.
- *
- * http://github.com/scottgonzalez/jquery-ui-extensions
  */
 (function( $ ) {
 
@@ -15,7 +11,9 @@ autocomplete.prototype._initSource = function() {
     var source = this.options.source;
     if ( $.isArray(source) ) {
         this.source = function( request, response ) {
-            var matcher = new RegExp( '\\b'+autocomplete.escapeRegex( request.term ), "i" );
+            var leftRegExp = this.options.leftRegExp == undefined ? '' : this.options.leftRegExp;
+            var rightRegExp = this.options.rightRegExp == undefined ? '' : this.options.rightRegExp;
+            var matcher = new RegExp( leftRegExp + autocomplete.escapeRegex( request.term ) + rightRegExp, "i" );
             response( $.grep( source, function( value ) {
                 value = value.label || value.value || value;
                 return matcher.test( value );

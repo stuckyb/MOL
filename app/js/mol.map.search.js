@@ -70,7 +70,9 @@ mol.modules.map.search = function(mol) {
                     }.bind(this)
                   );
                 $(this.display.searchBox).autocomplete({
-                        minLength : 3,
+                        leftRegExp : '\\b',
+                        rightRegExp : '[^\\b]*?\\b',
+                        minLength : 2,
                         delay : 0,
                         source : this.scientificnames
 
