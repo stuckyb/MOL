@@ -2431,6 +2431,7 @@ wax.g.bwdetect = function(map, options) {
             minzoom: mb.minZoom,
             maxzoom: mb.maxZoom,
             name: mb.name,
+            opacity: mb.opacity,
             description: mb.description
         };
         for (var i = 0; i < mb.options.tiles.length; i++) {
@@ -2713,6 +2714,7 @@ wax.g.connector = function(options) {
     this.maxZoom = options.maxzoom || 22;
 
     this.name = options.name || '';
+    this.opacity = options.opacity || .5;
     this.description = options.description || '';
 
     // non-configurable options

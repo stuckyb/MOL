@@ -137,9 +137,8 @@ button:hover{
 }
 
 .mol-LayerControl-Layers .layer, .staticLink{
-    position: relative;
-    width: 96%;
-    float: left;
+    display: table-cell;
+    width: 405px;
     margin-top: 3px;
     padding: 2px;
     -moz-border-radius: 3px;
@@ -174,7 +173,7 @@ button:hover{
 }
 .mol-LayerControl-Layers .layer .layerName{
     float: left;
-    width: 60%;
+    #width: 60%;
     margin-left: 5px;
     margin-right: 5px;
     pointer-events: none;
@@ -198,8 +197,8 @@ button:hover{
     width: 18px;
 }
 .mol-LayerControl-Layers .layer .buttonContainer {
-    width: 10%;
-    float: left;
+    width: 23%;
+    float: right;
     position: relative;
     margin-right: 5px;
 }
@@ -239,19 +238,45 @@ button:hover{
 .mol-LayerControl-Layers .layer .info{
     float: right;
     position: relative;
-    width: 10%;
+    width: 7%;
     font-style: italic;
     font-size: 1.2em;
     height: 24px;
 }
 
+.mol-LayerControl-Layers .layer .opacity {
+    float: right;
+    position: absolute;
+    #width: 75px;
+    font-style: italic;
+    font-size: 1.2em;
+    height: 24px;
+    #margin-left: 220px;
+}
+
+.mol-LayerControl-Layers .layer .zoom {
+    float: right;
+    position: relative;
+    width: 7%;
+    font-style: italic;
+    font-size: 1.2em;
+    height: 24px;
+}
+
+.mol-LayerControl-Layers .layerContainer {
+    display: table-row;
+}
+.mol-LayerControl-Layers .loading {
+    display: table-cell;
+    float: left;
+}
 
 
 /* BEGIN SEARCH UI
  * search, results
  */
 
-.mol-LayerControl-Search .container, .mol-LayerControl-Add {
+.mol-LayerControl-Search .searchContainer, .mol-LayerControl-Add {
     float: left;
     position: relative;
     height: 28px;
@@ -272,7 +297,18 @@ button:hover{
     float: left;
     margin-right: 5px;
     width: 55%;
+
 }
+
+.ui-autocomplete {
+        max-height: 500px;
+        overflow-y: auto;
+        /* prevent horizontal scrollbar */
+        overflow-x: hidden;
+        /* add padding to account for vertical scrollbar */
+        padding-right: 20px;
+    }
+
 .mol-LayerControl-Search .loading {
     display: none;
     padding-top: 5px;
@@ -331,6 +367,9 @@ button:hover{
     background-color: white;
 }
 
+.mol-LayerControl-Results .noresults {
+    text-align: center;
+}
 
 .mol-LayerControl-Results .filters{
     float: left;
@@ -449,12 +488,14 @@ button:hover{
 .mol-LayerControl-Results .result a{
     color: rgb(230, 250, 230);
 }
+
 .mol-LayerControl-Results .result .buttonContainer {
 	width:24px;
 	height:24px;
-    position: relative;
-    float: left;
+   position: relative;
+   float: left;
 }
+
 .mol-LayerControl-Results .result .checkbox {
     opacity: 0.0;
 	position:absolute;
