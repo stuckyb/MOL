@@ -18,7 +18,7 @@ mol.modules.map.layers = function(mol) {
             /**
              * Handles an 'add-layers' event by adding them to the layer list.
              * The event is expected to have a property named 'layers' which
-             * is an arry of layer objects, each with a 'name' and 'type' property. 
+             * is an arry of layer objects, each with a 'name' and 'type' property.
              * This function ignores layers that are already represented
              * as widgets.
              */
@@ -55,7 +55,7 @@ mol.modules.map.layers = function(mol) {
 
                 this.bus.fireEvent(event);
             },
-            
+
             /**
              * Adds layer widgets to the map. The layers parameter is an array
              * of layer objects {id, name, type, source}.
@@ -66,7 +66,7 @@ mol.modules.map.layers = function(mol) {
                     function(layer) {
                         var l = this.display.addLayer(layer);
                         self = this;
-               
+
                         // Opacity slider change handler.
                         l.opacity.change(
                             function(event) {
@@ -75,11 +75,11 @@ mol.modules.map.layers = function(mol) {
                                         opacity: parseFloat(l.opacity.val())
                                     },
                                     e = new mol.bus.Event('layer-opacity', params);
-                                
-                                self.bus.fireEvent(e);                                
+
+                                self.bus.fireEvent(e);
                             }
                         );
-                        
+
                         // Click handler for zoom button.
                         l.zoom.click(
                             function(event) {
@@ -88,13 +88,13 @@ mol.modules.map.layers = function(mol) {
                                         auto_bound: true
                                     },
                                     e = new mol.bus.Event('layer-zoom-extent', params);
-                                
+
                                 self.bus.fireEvent(e);
                             }
                         );
-                        
+
                         l.toggle.attr('checked', true);
-                        
+
                         // Click handler for the toggle button.
                         l.toggle.click(
                             function(event) {
@@ -121,6 +121,7 @@ mol.modules.map.layers = function(mol) {
                 var html = '' +
                     '<div class="layerContainer">' +
                     '  <div class="layer widgetTheme">' +
+                    '    <button><img class="source" src="/static/maps/search/{0}.png"></button>' +
                     '    <button><img class="type" src="/static/maps/search/{0}.png"></button>' +
                     '    <div class="layerName">' +
                     '        <div class="layerNomial">{1}</div>' +
@@ -128,7 +129,7 @@ mol.modules.map.layers = function(mol) {
                     '    <div class="buttonContainer">' +
                     '        <input class="toggle" type="checkbox">' +
                     '        <span class="customCheck"></span> ' +
-                    '    </div>' +                    
+                    '    </div>' +
                     '    <button class="info">i</button>' +
                     '    <button class="zoom">z</button>' +
                     '    <input type="range" class="opacity" min=".25" max="1.0" step=".25" />' +
@@ -141,6 +142,9 @@ mol.modules.map.layers = function(mol) {
                 this.toggle = $(this.find('.toggle'));
                 this.zoom = $(this.find('.zoom'));
                 this.info = $(this.find('.info'));
+                this.typePng = $(this.find('.type'));
+                this.sourcePng = $(this.find('.source'));
+
             }
         }
     );
@@ -174,6 +178,9 @@ mol.modules.map.layers = function(mol) {
 
             addLayer: function(layer) {
                 var ld = new mol.map.layers.LayerDisplay(layer);
+
+                ld.sourcePng[0].src ='static/maps/search/'+layer.source+'.png';
+                ld.typePng[0].src = 'static/maps/search/'+layer.type+'.png';
 
                 $(this.find('#sortable')).append(ld);
                 return ld;
@@ -277,11 +284,11 @@ mol.modules.map.layers = function(mol) {
 
             hiding: function(e) {
                 var layers = null;
-                
+
                 if (!this.open) {
                     return;
                 }
-                
+
                 // put first what are showing
                 this.layers.sort(
                     function(a, b) {
