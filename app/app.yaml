@@ -15,12 +15,17 @@ handlers:
 
 - url: /js
   static_dir: js
-  
+
 - url: /css
   static_dir: css
 
 - url: /static
   static_dir: static
-  
+
+- url: /(.*\.(gif|png|jpg))
+  static_files: static/\1
+  upload: static/(.*\.(gif|png|jpg))
+
+
 - url: /.*
   script: app.py
