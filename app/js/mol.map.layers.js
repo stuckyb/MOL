@@ -115,27 +115,27 @@ mol.modules.map.layers = function(mol) {
             },
 
 			   /**
-			    * Add sorting capability to LayerListDisplay, when a result is 
-             * drag-n-drop, and the order of the result list is changed, 
+			    * Add sorting capability to LayerListDisplay, when a result is
+             * drag-n-drop, and the order of the result list is changed,
              * then the map will re-render according to the result list's order.
 			    **/
 			   initSortable: function() {
 				    var self = this,
 					     display = this.display;
-				    
+
 				    display.list.sortable(
                     {
 					         update: function(event, ui) {
 						          var layers = [],
 						          params = {},
                             e = null;
-                            
+
 						          $(display.list).find('li').each(
                                 function(i, el) {
 							               layers.push($(el).attr('id'));
 						              }
                             );
-						          
+
                             params.layers = layers;
 						          e = new mol.bus.Event('reorder-layers', params);
 						          self.bus.fireEvent(e);
@@ -211,8 +211,8 @@ mol.modules.map.layers = function(mol) {
             addLayer: function(layer) {
                 var ld = new mol.map.layers.LayerDisplay(layer);
 
-                ld.sourcePng[0].src ='static/maps/search/'+layer.source+'.png';
-                ld.typePng[0].src = 'static/maps/search/'+layer.type+'.png';
+                ld.sourcePng[0].src ='static/maps/search/'+layer.source.replace(/ /g,"_")+'.png';
+                ld.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
 
                 this.list.append(ld);
 				    this.layers.push(layer);
