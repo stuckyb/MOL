@@ -122,21 +122,14 @@ mol.modules.map.layers = function(mol) {
 				var self = this,
 					display = this.display;
 				
-				window.l =display;
 				display.list.sortable({
 					update: function(event, ui) {
-						var layers = [];
+						var layers = [],
+							params = {};
 						 $(display.list).find('li').each(function(i, el) {
-							var layer = display.getLayerById($(el).attr('id'));
-							layer.showing = $(el).find("input.toggle").is(':checked');
-							console.log(layer);
-							layers.push(layer);
-							
-							// self.toggleLayer(layer, layer.showing);
+							layers.push($(el).attr('id'));
 						});
-						var params = {
-							layers: layers
-						},
+						params.layers = layers;
 						e = new mol.bus.Event('reorder-layers', params);
 
 						self.bus.fireEvent(e);

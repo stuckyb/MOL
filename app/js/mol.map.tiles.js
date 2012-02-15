@@ -109,12 +109,12 @@ mol.modules.map.tiles = function(mol) {
 						var layers = event.layers;
 						_.each(
 							layers,
-							function(layer) {
+							function(layerId) {
 								self.map.overlayMapTypes.forEach(
 									function(maptype, index) {
-										if (maptype !=undefined && maptype.name === layer.id) {
+										if (maptype !=undefined && maptype.name === layerId) {
 											self.map.overlayMapTypes.removeAt(index);
-											self.map.overlayMapTypes.insertAt(0, maptype)
+											self.map.overlayMapTypes.insertAt(0, maptype);
 										}
 									}
 								)
