@@ -90,6 +90,13 @@ mol.modules.map = function(mol) {
                 );
                 google.maps.event.addListener(
                     self.display.map,
+                    "center_changed",
+                    function() {
+                        self.bus.fireEvent(new mol.bus.Event('map-center-changed'));
+                    }.bind(self)
+                );
+                google.maps.event.addListener(
+                    self.display.map,
                     "idle",
                     function () {
                         self.bus.fireEvent(new mol.bus.Event('map-idle'));
@@ -116,6 +123,15 @@ mol.modules.map = function(mol) {
                  */
                 this.bus.addHandler(
                         'map-zoom-changed',
+                        function() {
+                           self.bus.fireEvent(new mol.bus.Event('show-loading-indicator'));
+                        }
+                );
+                 /*
+                 *  Turn on the loading indicator display when zooming
+                 */
+                this.bus.addHandler(
+                        'map-center-changed',
                         function() {
                            self.bus.fireEvent(new mol.bus.Event('show-loading-indicator'));
                         }

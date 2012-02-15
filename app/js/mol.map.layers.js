@@ -91,6 +91,7 @@ mol.modules.map.layers = function(mol) {
                                     e = new mol.bus.Event('layer-zoom-extent', params);
 
                                 self.bus.fireEvent(e);
+                                e =  new mol.bus.Event('show-loading-indicator');
                             }
                         );
 
