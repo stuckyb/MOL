@@ -13,6 +13,7 @@ mol.modules.map.layers = function(mol) {
                 this.display = new mol.map.layers.LayerListDisplay('.map_container');
                 this.fireEvents();
                 this.addEventHandlers();
+				this.initSortable();
             },
 
             /**
@@ -111,7 +112,37 @@ mol.modules.map.layers = function(mol) {
                     },
                     this
                 );
-            }
+            },
+
+			/**
+			* Add sorting capability to LayerListDisplay, when a result is drag-n-drop, and the order 
+			* of the result list is changed, then the map will re-render according to the result list's order
+			**/
+			initSortable: function() {
+				var self = this,
+					display = this.display;
+				
+				window.l =display;
+				display.list.sortable({
+					update: function(event, ui) {
+						var layers = [];
+						 $(display.list).find('li').each(function(i, el) {
+							var layer = display.getLayerById($(el).attr('id'));
+							layer.showing = $(el).find("input.toggle").is(':checked');
+							console.log(layer);
+							layers.push(layer);
+							
+							// self.toggleLayer(layer, layer.showing);
+						});
+						var params = {
+							layers: layers
+						},
+						e = new mol.bus.Event('reorder-layers', params);
+
+						self.bus.fireEvent(e);
+					}
+				});
+			}
         }
     );
 
@@ -119,7 +150,7 @@ mol.modules.map.layers = function(mol) {
         {
             init: function(layer) {
                 var html = '' +
-                    '<div class="layerContainer">' +
+                    '<li class="layerContainer">' +
                     '  <div class="layer widgetTheme">' +
                     '    <button><img class="source" src="/static/maps/search/{0}.png"></button>' +
                     '    <button><img class="type" src="/static/maps/search/{0}.png"></button>' +
@@ -134,7 +165,7 @@ mol.modules.map.layers = function(mol) {
                     '    <button class="zoom">z</button>' +
                     '    <input type="range" class="opacity" min=".25" max="1.0" step=".25" />' +
                     '  </div>' +
-                    '</div>';
+                    '</li>';
 
                 this._super(html.format(layer.type, layer.name));
                 this.attr('id', layer.id);
@@ -144,8 +175,7 @@ mol.modules.map.layers = function(mol) {
                 this.info = $(this.find('.info'));
                 this.typePng = $(this.find('.type'));
                 this.sourcePng = $(this.find('.source'));
-
-            }
+            },
         }
     );
 
@@ -162,10 +192,8 @@ mol.modules.map.layers = function(mol) {
                     '    </ul>' +
                     '  </div>' +
                     '</div>';
-
                 this._super(html);
-                $(this.find("#sortable")).sortable();
-		          $(this.find("#sortable")).disableSelection();
+				this.list = $(this.find("#sortable"));
                 this.open = false;
                 this.views = {};
                 this.layers = [];
@@ -176,70 +204,23 @@ mol.modules.map.layers = function(mol) {
                 return $(this.find('#{0}'.format(layer.id)));
             },
 
+			getLayerById: function(id) {
+				return _.find(this.layers, function(layer){ return layer.id === id; });
+			},
+
             addLayer: function(layer) {
                 var ld = new mol.map.layers.LayerDisplay(layer);
 
                 ld.sourcePng[0].src ='static/maps/search/'+layer.source+'.png';
                 ld.typePng[0].src = 'static/maps/search/'+layer.type+'.png';
 
-                $(this.find('#sortable')).append(ld);
+                this.list.append(ld);
+				this.layers.push(layer);
                 return ld;
             },
 
             render: function(howmany, order) {
-                var self = this,
-                    el = $(this.find('.dropdown'));
-
-                el.find('li').each(
-                    function(i ,el) {
-                        $(el).remove();
-                    }
-                );
-
-                _(this.layers.slice(0, howmany)).each(
-                    function(layer) {
-                        var v = self.views[layer.name];
-
-                        if (v) {
-                            delete self.views[layer.name];
-                        }
-
-                        v = new Layer(
-                            {
-                                layer: layer,
-                                bus: self.bus
-                            }
-                        );
-
-                        self.views[layer.name] = v;
-                        el.find('a.expand').before(v.render().el);
-                        //el.append(v.render().el);
-                    }
-                );
-
-                if (howmany === self.layers.length) {
-                    $(this.find('a.expand')).hide();
-                } else {
-                    $(this.find('a.expand')).show();
-                }
-
-                el.sortable(
-                    {
-                        revert: false,
-                        items: '.sortable',
-                        axis: 'y',
-                        cursor: 'pointer',
-                        stop: function(event,ui) {
-                            $(ui.item).removeClass('moving');
-                            //DONT CALL THIS FUNCTION ON beforeStop event, it will crash
-                            self.sortLayers();
-                        },
-                        start:function(event,ui) {
-                            $(ui.item).addClass('moving');
-                        }
-                    }
-                );
-
+				var self = this;
                 this.updateLayerNumber();
                 return this;
             },
@@ -247,16 +228,16 @@ mol.modules.map.layers = function(mol) {
             updateLayerNumber: function() {
                 var t = 0;
                 _(this.layers).each(function(a) {
-                                        if(a.enabled) t++;
-                                    });
+					if(a.enabled) t++;
+				});
                 $(this.find('.layer_number')).html(t + " LAYER"+ (t>1?'S':''));
             },
 
             sortLayers: function() {
                 var order = [];
                 $(this.find('li')).each(function(i, el) {
-                                      order.push($(el).attr('id'));
-                                  });
+					order.push($(el).attr('id'));
+				});
                 this.bus.emit("map:reorder_layers", order);
             },
 
