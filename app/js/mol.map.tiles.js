@@ -42,7 +42,7 @@ mol.modules.map.tiles = function(mol) {
                         } else { // Remove layer from map.
                             self.map.overlayMapTypes.forEach(
                                 function(maptype, index) {
-                                    if (maptype.name === layer.id) {
+                                    if (maptype !=undefined && maptype.name === layer.id) {
                                         self.map.overlayMapTypes.removeAt(index);
                                     }
                                 }
@@ -98,6 +98,30 @@ mol.modules.map.tiles = function(mol) {
                         self.renderTiles(event.layers);
                     }
                 );
+				
+				/**
+				* Handler for when the reorder-layers event is fired. This renders
+				* the layers according to the list of layers provided
+				*/
+				this.bus.addHandler(
+					'reorder-layers',
+					function(event) {
+						var layers = event.layers;
+						_.each(
+							layers,
+							function(layer) {
+								self.map.overlayMapTypes.forEach(
+									function(maptype, index) {
+										if (maptype !=undefined && maptype.name === layer.id) {
+											self.map.overlayMapTypes.removeAt(index);
+											self.map.overlayMapTypes.insertAt(0, maptype)
+										}
+									}
+								)
+							}
+						)
+					}
+				);
 
             },
 
