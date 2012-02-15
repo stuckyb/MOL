@@ -2,7 +2,7 @@ mol.modules.map = function(mol) {
 
     mol.map = {};
 
-    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu'];
+    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
@@ -15,27 +15,12 @@ mol.modules.map = function(mol) {
                 this.display = new mol.map.MapDisplay('.map_container');
                 this.addControls();
                 this.addEventHandlers();
-                this.addLoadingDisplay();
             },
 
             go: function(place) {
             },
 
             place: function() {
-            },
-            /*
-             * Add a loading indicator in the top center control position
-             */
-            addLoadingDisplay : function() {
-                 var params = {
-                   display: null, // The loader gif display
-                   slot: mol.map.ControlDisplay.Slot.TOP,
-                   position: google.maps.ControlPosition.TOP_CENTER
-                };
-                this.loading = new mol.map.LoadingDisplay();
-                params.display = this.loading;
-                event = new mol.bus.Event('add-map-control', params);
-                this.bus.fireEvent(event);
             },
             addControls: function() {
                 var map = this.display.map,
@@ -125,24 +110,7 @@ mol.modules.map = function(mol) {
                         );
                     }
                 );
-                /*
-                 *  Turn off the loading indicator display
-                 */
-                this.bus.addHandler(
-                        'hide-loading-indicator',
-                        function() {
-                               self.loading.hide();
-                        }
-                );
-                /*
-                 *  Turn on the loading indicator display
-                 */
-                this.bus.addHandler(
-                        'show-loading-indicator',
-                        function() {
-                               self.loading.show();
-                        }
-                );
+
                 /*
                  *  Turn on the loading indicator display when zooming
                  */
@@ -153,7 +121,7 @@ mol.modules.map = function(mol) {
                         }
                 );
                 /*
-                 *  Turn off the loading indicator display if there are no overlays, otherwise tie handlers to map tiles.
+                 *  Turn off the loading indicator display if there are no overlays, otherwise tie handlers to map tile img elements.
                  */
                 this.bus.addHandler(
                         'map-idle',
@@ -273,22 +241,7 @@ mol.modules.map = function(mol) {
             },
         }
     );
-    /*
-     *  Display for a loading indicator.
-     *  Use jQuery hide() and show() to turn it off and on.
-     */
-    mol.map.LoadingDisplay = mol.mvp.View.extend(
-        {
-             init : function() {
-                var className = 'mol-Map-LoadingWidget',
-                    html = '' +
-                        '<div class="' + className + '">' +
-                        '   <img src="static/loading.gif">' +
-                        '</div>';
-                this._super(html);
-             }
-        }
-    );
+
     /**
      * This display is a container with support for adding composite displays in
      * a top, middle, and bottom slot. It gets attached to a map control positions.

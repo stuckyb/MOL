@@ -19,6 +19,7 @@
     <script src="../../../js/lib/jquery.ui.sortable.js"></script>
     <script src="../../../js/lib/jquery.ui.position.js"></script>
     <script src="../../../js/lib/jquery.ui.autocomplete.js"></script>
+    <script src="../../../js/lib/jquery.ui.autocomplete.regexp.js"></script>
     <script src="../../../js/lib/jquery.imagesloaded.js"></script>
     <!-- <script src="../../../js/lib/jquery-ui-1.8.10.custom.min.js"></script> -->
     <!-- <script src="../../../js/lib/jquery-ui.min.js"></script> -->
@@ -44,6 +45,7 @@
     <script src="../../../js/mol.map.layers.js"></script>
     <script src="../../../js/mol.map.tiles.js"></script>
     <script src="../../../js/mol.map.menu.js"></script>
+    <script src="../../../js/mol.map.loading.js"></script>
     {% endif %}
 
     <meta charset="utf-8" />
@@ -73,6 +75,8 @@
 	         re.start()
 	         ne = new env.map.menu.MenuEngine(proxy, bus)
 	         ne.start()
+	         le = new env.map.menu.LoadingEngine(proxy, bus)
+             le.start()
           });
           {% else %}
           env = mol(function(env) {
@@ -90,6 +94,8 @@
 	         re.start()
 	         ne = new env.map.menu.MenuEngine(proxy, bus)
 	         ne.start()
+	         le = new env.map.loading.LoadingEngine(proxy, bus)
+             le.start()
           });
           {% endif %}
       });
