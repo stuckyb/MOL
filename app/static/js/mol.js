@@ -651,6 +651,13 @@ mol.modules.map = function(mol) {
                 );
                 google.maps.event.addListener(
                     self.display.map,
+                    "center_changed",
+                    function() {
+                        self.bus.fireEvent(new mol.bus.Event('map-center-changed'));
+                    }.bind(self)
+                );
+                google.maps.event.addListener(
+                    self.display.map,
                     "idle",
                     function () {
                         self.bus.fireEvent(new mol.bus.Event('map-idle'));
@@ -677,6 +684,15 @@ mol.modules.map = function(mol) {
                  */
                 this.bus.addHandler(
                         'map-zoom-changed',
+                        function() {
+                           self.bus.fireEvent(new mol.bus.Event('show-loading-indicator'));
+                        }
+                );
+                 /*
+                 *  Turn on the loading indicator display when moving the map
+                 */
+                this.bus.addHandler(
+                        'map-center-changed',
                         function() {
                            self.bus.fireEvent(new mol.bus.Event('show-loading-indicator'));
                         }
@@ -861,7 +877,76 @@ mol.modules.map = function(mol) {
         BOTTOM: '.BOTTOM',
         LAST: '.LAST'
     };
-};mol.modules.map.layers = function(mol) {
+};mol.modules.map.loading = function(mol) {
+
+    mol.map.loading = {};
+
+    mol.map.loading.LoadingEngine = mol.mvp.Engine.extend(
+    {
+        init : function(proxy, bus) {
+                this.proxy = proxy;
+                this.bus = bus;
+        },
+        start : function() {
+            this.addLoadingDisplay();
+            this.addEventHandlers();
+        },
+        /*
+         *  Build the loading display and add it as a control to the top center of the map display.
+         */
+        addLoadingDisplay : function() {
+                 var params = {
+                   display: null, // The loader gif display
+                   slot: mol.map.ControlDisplay.Slot.TOP,
+                   position: google.maps.ControlPosition.TOP_CENTER
+                };
+                this.loading = new mol.map.LoadingDisplay();
+                params.display = this.loading;
+                event = new mol.bus.Event('add-map-control', params);
+                this.bus.fireEvent(event);
+        },
+        addEventHandlers : function () {
+            var self = this;
+           /*
+            *  Turn off the loading indicator display
+            */
+            this.bus.addHandler(
+                'hide-loading-indicator',
+                function() {
+                    self.loading.hide();
+                }
+            );
+           /*
+            *  Turn on the loading indicator display
+            */
+            this.bus.addHandler(
+                'show-loading-indicator',
+                function() {
+                    self.loading.show();
+                }
+            );
+        }
+    }
+    );
+
+    /*
+     *  Display for a loading indicator.
+     *  Use jQuery hide() and show() to turn it off and on.
+     */
+    mol.map.LoadingDisplay = mol.mvp.View.extend(
+    {
+        init : function() {
+            var className = 'mol-Map-LoadingWidget',
+                html = '' +
+                        '<div class="' + className + '">' +
+                        '   <img src="static/loading.gif">' +
+                        '</div>';
+            this._super(html);
+        },
+    }
+    );
+}
+mol.modules.map.layers = function(mol) {
 
     mol.map.layers = {};
 
@@ -951,9 +1036,11 @@ mol.modules.map = function(mol) {
                                         layer: layer,
                                         auto_bound: true
                                     },
-                                    e = new mol.bus.Event('layer-zoom-extent', params);
+                                    e = new mol.bus.Event('layer-zoom-extent', params),
+                                    le = new mol.bus.Event('show-loading-indicator');
 
                                 self.bus.fireEvent(e);
+                                self.bus.fireEvent(le);
                             }
                         );
 
@@ -978,27 +1065,27 @@ mol.modules.map = function(mol) {
             },
 
 			   /**
-			    * Add sorting capability to LayerListDisplay, when a result is 
-             * drag-n-drop, and the order of the result list is changed, 
+			    * Add sorting capability to LayerListDisplay, when a result is
+             * drag-n-drop, and the order of the result list is changed,
              * then the map will re-render according to the result list's order.
 			    **/
 			   initSortable: function() {
 				    var self = this,
 					     display = this.display;
-				    
+
 				    display.list.sortable(
                     {
 					         update: function(event, ui) {
 						          var layers = [],
 						          params = {},
                             e = null;
-                            
+
 						          $(display.list).find('li').each(
                                 function(i, el) {
 							               layers.push($(el).attr('id'));
 						              }
                             );
-						          
+
                             params.layers = layers;
 						          e = new mol.bus.Event('reorder-layers', params);
 						          self.bus.fireEvent(e);
@@ -1074,8 +1161,11 @@ mol.modules.map = function(mol) {
             addLayer: function(layer) {
                 var ld = new mol.map.layers.LayerDisplay(layer);
 
-                ld.sourcePng[0].src ='static/maps/search/'+layer.source+'.png';
-                ld.typePng[0].src = 'static/maps/search/'+layer.type+'.png';
+                ld.sourcePng[0].src ='static/maps/search/'+layer.source.replace(/ /g,"_")+'.png';
+                ld.sourcePng[0].title ='Layer Source: '+layer.source;
+                ld.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
+                ld.typePng[0].title = 'Layer Type: '+layer.type;
+
 
                 this.list.append(ld);
 				    this.layers.push(layer);
@@ -1607,8 +1697,10 @@ mol.modules.map.results = function(mol) {
                         var id = layer.id,
                             name = layer.name,
                             result = new mol.map.results.ResultDisplay(name, id);
-                            result.sourcePng[0].src = 'static/maps/search/'+layer.source+'.png';
-                            result.typePng[0].src = 'static/maps/search/'+layer.type+'.png';
+                            result.sourcePng[0].src = 'static/maps/search/'+layer.source.replace(/ /g,"_")+'.png';
+                            result.sourcePng[0].title = 'Layer Source: ' + layer.source;
+                            result.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
+                            result.typePng[0].title = 'Layer Type: ' + layer.type;
                         this.resultList.append(result);
                         return result;
                     },

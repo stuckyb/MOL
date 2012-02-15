@@ -75,8 +75,8 @@
 	         re.start()
 	         ne = new env.map.menu.MenuEngine(proxy, bus)
 	         ne.start()
-	         le = new env.map.menu.LoadingEngine(proxy, bus)
-             le.start()
+	         le = new env.map.loading.LoadingEngine(proxy, bus)
+            le.start()
           });
           {% else %}
           env = mol(function(env) {
@@ -95,7 +95,7 @@
 	         ne = new env.map.menu.MenuEngine(proxy, bus)
 	         ne.start()
 	         le = new env.map.loading.LoadingEngine(proxy, bus)
-             le.start()
+            le.start()
           });
           {% endif %}
       });
