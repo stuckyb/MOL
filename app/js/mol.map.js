@@ -128,7 +128,7 @@ mol.modules.map = function(mol) {
                         }
                 );
                  /*
-                 *  Turn on the loading indicator display when zooming
+                 *  Turn on the loading indicator display when moving the map
                  */
                 this.bus.addHandler(
                         'map-center-changed',

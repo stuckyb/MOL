@@ -88,10 +88,11 @@ mol.modules.map.layers = function(mol) {
                                         layer: layer,
                                         auto_bound: true
                                     },
-                                    e = new mol.bus.Event('layer-zoom-extent', params);
+                                    e = new mol.bus.Event('layer-zoom-extent', params),
+                                    le = new mol.bus.Event('show-loading-indicator');
 
                                 self.bus.fireEvent(e);
-                                e =  new mol.bus.Event('show-loading-indicator');
+                                self.bus.fireEvent(le);
                             }
                         );
 
