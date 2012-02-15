@@ -212,7 +212,10 @@ mol.modules.map.layers = function(mol) {
                 var ld = new mol.map.layers.LayerDisplay(layer);
 
                 ld.sourcePng[0].src ='static/maps/search/'+layer.source.replace(/ /g,"_")+'.png';
+                ld.sourcePng[0].title ='Layer Source: '+layer.source;
                 ld.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
+                ld.typePng[0].title = 'Layer Type: '+layer.type;
+
 
                 this.list.append(ld);
 				    this.layers.push(layer);
