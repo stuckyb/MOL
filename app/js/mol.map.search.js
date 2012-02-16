@@ -100,7 +100,7 @@ mol.modules.map.search = function(mol) {
                         } else {
                             self.display.toggle(event.visible);
                         }
-
+						params.visible = false;
                         e = new mol.bus.Event('results-display-toggle', params);
                         self.bus.fireEvent(e);
                     }
@@ -110,7 +110,7 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.goButton.click(
                     function(event) {
-                        self.search(self.display.searchBox.val());
+                        self.process($.trim(self.display.searchBox.val()));
                     }
                 );
 
@@ -164,9 +164,9 @@ mol.modules.map.search = function(mol) {
              *
              * @param term the search term (scientific name)
              */
-            search: function(term) {
+            search: function(term, sql) {
                 var self = this,
-                    sql = this.sql.format(term, term),
+                    // sql = this.sql.format(term, term),
                     params = {sql:sql, term: term},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
@@ -182,7 +182,33 @@ mol.modules.map.search = function(mol) {
 
                 this.proxy.execute(action, new mol.services.Callback(success, failure));
                 this.bus.fireEvent('search', new mol.bus.Event('search', term));
-            }
+            },
+
+			/**
+			* Processes search phase and convert the search phase to a corresponding SQL.
+			*
+			* @param term the search term
+			*/
+			process: function(term) {
+				var self = this,
+					tmp = term,
+					patt = /\s*\:([\w^\:]+)\:([\w^\:]+)\s+([\<\>\=]){1,2}\s+([^\".+\"$]+|[\s]+)/gi,
+					templ = "SELECT DISTINCT " +
+					"{0}.provider as source, {0}.scientificname as name, {0}.type as type " +
+					"FROM {0} WHERE {0}.{1} {2} {3}",
+					location = null,
+					sqls = [],
+					sql = "SET STATEMENT_TIMEOUT TO 0; ";
+				while (tmp.length > 0) {
+					location = patt.exec(tmp.toString());
+					if (location != null && location.length == 5) {
+						sqls.push(templ.format(location[1],location[2],location[3],location[4]));
+					}
+					tmp = tmp.substr(patt.lastIndex);
+				}
+				sql += sqls.join(" UNION ");
+				self.search(term, sql);
+			}
         }
     );
 
