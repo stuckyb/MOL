@@ -110,7 +110,7 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.goButton.click(
                     function(event) {
-                        self.process($.trim(self.display.searchBox.val()));
+						self.process($.trim(self.display.searchBox.val()));
                     }
                 );
 
@@ -192,19 +192,22 @@ mol.modules.map.search = function(mol) {
 			process: function(term) {
 				var self = this,
 					tmp = term,
-					patt = /\s*\:([\w^\:]+)\:([\w^\:]+)\s+([\<\>\=]){1,2}\s+([^\".+\"$]+|[\s]+)/gi,
 					templ = "SELECT DISTINCT " +
 					"{0}.provider as source, {0}.scientificname as name, {0}.type as type " +
 					"FROM {0} WHERE {0}.{1} {2} {3}",
-					location = null,
-					sqls = [],
-					sql = "SET STATEMENT_TIMEOUT TO 0; ";
+					sql = "SET STATEMENT_TIMEOUT TO 0; ",
+					matches = null,
+					patt = null,
+					sqls = [];
 				while (tmp.length > 0) {
-					location = patt.exec(tmp.toString());
-					if (location != null && location.length == 5) {
-						sqls.push(templ.format(location[1],location[2],location[3],location[4]));
+					patt = /\s*\:([\w^\:]+)\:([\w^\:]+)\s+([\<\>\=]){1,2}\s+(\'[^\']+\'|\"[^\"]+\"|[^\s]+)/gi;
+					matches = patt.exec(tmp.toString());
+					if (matches == null || matches.length != 5) {
+						break;
+					} else if (matches.length == 5) {
+						sqls.push(templ.format(matches[1],matches[2],matches[3],matches[4].replace(/\"/g,"\'")));
+						tmp = tmp.substr(patt.lastIndex);
 					}
-					tmp = tmp.substr(patt.lastIndex);
 				}
 				sql += sqls.join(" UNION ");
 				self.search(term, sql);
