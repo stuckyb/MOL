@@ -7,7 +7,7 @@ mol.modules.services.cartodb = function(mol) {
       init: function(user, host) {
         this.user = user;
         this.host = host;
-        this.url = 'https://{0}.{1}/api/v1/sql?q={2}';        
+        this.url = 'https://{0}.{1}/api/v2/sql?q={2}';        
       },
 
       query: function(sql, callback) {
@@ -30,9 +30,6 @@ mol.modules.services.cartodb = function(mol) {
     }
   );
   
-  // TODO: Put params in mol.config.js
-  //mol.services.cartodb.sqlApi = new
-  //mol.services.cartodb.SqlApi('layers', 'moldb.io:8080');
   mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi('mol', 'cartodb.com');
   
   mol.services.cartodb.query = function(sql, callback) {

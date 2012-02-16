@@ -1,6 +1,6 @@
 /* BEGIN Shared Styles */
 
-/* sets defaults for units within a widget background greed fade theme, 
+/* sets defaults for units within a widget background greed fade theme,
  * as well as min-height and 100% width */
 
 .widgetTheme{
@@ -16,9 +16,9 @@
         rgba(29,43,82,0.65) 89%,
         rgba(29,43,82,0.75) 57%
     );
-    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
-    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     color: rgb(240, 240, 260);
 }
 button{
@@ -40,7 +40,7 @@ button:hover{
     background-color: rgba(25, 25, 25, 1.0);
     cursor: pointer;
 }
- 
+
 /* BEGIN Layers Widget
  * Add, Delete
  * Layer Stack
@@ -74,9 +74,9 @@ button:hover{
     border-bottom-right-radius: 3px;
     -moz-border-radius-topright: 3px;
     border-top-right-radius: 3px;
-    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
-    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     background-image: -webkit-gradient(
         linear,
         left bottom,
@@ -103,7 +103,7 @@ button:hover{
     width: 100%;
     float: left;
     position: relative;
-} 
+}
 
 
 .mol-LayerControl-Layers ::-webkit-scrollbar {
@@ -137,9 +137,8 @@ button:hover{
 }
 
 .mol-LayerControl-Layers .layer, .staticLink{
-    position: relative;
-    width: 96%;
-    float: left;
+    display: table-cell;
+    width: 405px;
     margin-top: 3px;
     padding: 2px;
     -moz-border-radius: 3px;
@@ -157,15 +156,15 @@ button:hover{
     width: 95%;
 }
 .mol-LayerControl-Layers .staticLink input::selection {
-    background: #ababab; 
+    background: #ababab;
     background-color: #ababab;
 }
 .mol-LayerControl-Layers .staticLink input::-webkit-selection {
-    background: #ababab; 
+    background: #ababab;
     background-color: #ababab;
 }
 .mol-LayerControl-Layers .staticLink input::-moz-selection {
-    background: #ababab; 
+    background: #ababab;
     background-color: #ababab;
 }
 
@@ -174,7 +173,7 @@ button:hover{
 }
 .mol-LayerControl-Layers .layer .layerName{
     float: left;
-    width: 60%;
+    #width: 60%;
     margin-left: 5px;
     margin-right: 5px;
     pointer-events: none;
@@ -198,8 +197,8 @@ button:hover{
     width: 18px;
 }
 .mol-LayerControl-Layers .layer .buttonContainer {
-    width: 10%;
-    float: left;
+    width: 23%;
+    float: right;
     position: relative;
     margin-right: 5px;
 }
@@ -212,12 +211,12 @@ button:hover{
 	width:24px;
 	height:24px;
     cursor: pointer;
-    
+
 }
 .mol-LayerControl-Layers .layer .customCheck:after{
 	content:url('/static/maps/layers/inactive.png');
     margin: 2px;
-    padding: 0px 1px 0px 1px; 
+    padding: 0px 1px 0px 1px;
     height: 24px;
 	position:absolute;
     left: 0;
@@ -239,19 +238,45 @@ button:hover{
 .mol-LayerControl-Layers .layer .info{
     float: right;
     position: relative;
-    width: 10%;
+    width: 7%;
     font-style: italic;
     font-size: 1.2em;
     height: 24px;
 }
 
+.mol-LayerControl-Layers .layer .opacity {
+    float: right;
+    position: absolute;
+    #width: 75px;
+    font-style: italic;
+    font-size: 1.2em;
+    height: 24px;
+    #margin-left: 220px;
+}
+
+.mol-LayerControl-Layers .layer .zoom {
+    float: right;
+    position: relative;
+    width: 7%;
+    font-style: italic;
+    font-size: 1.2em;
+    height: 24px;
+}
+
+.mol-LayerControl-Layers .layerContainer {
+    display: table-row;
+}
+.mol-LayerControl-Layers .loading {
+    display: table-cell;
+    float: left;
+}
 
 
 /* BEGIN SEARCH UI
  * search, results
  */
- 
-.mol-LayerControl-Search, .mol-LayerControl-Add {
+
+.mol-LayerControl-Search .searchContainer, .mol-LayerControl-Add {
     float: left;
     position: relative;
     height: 28px;
@@ -272,7 +297,24 @@ button:hover{
     float: left;
     margin-right: 5px;
     width: 55%;
+
 }
+
+.ui-autocomplete {
+        max-height: 500px;
+        overflow-y: auto;
+        /* prevent horizontal scrollbar */
+        overflow-x: hidden;
+        /* add padding to account for vertical scrollbar */
+        padding-right: 20px;
+    }
+
+.mol-LayerControl-Search .loading {
+    display: none;
+    padding-top: 5px;
+    height: 24px;
+}
+
 .mol-LayerControl-Search .execute{
     float: left;
     margin-left: 6px;
@@ -283,6 +325,7 @@ button:hover{
     margin-left: 6px;
     padding-top: 2px;
 }
+
 .mol-LayerControl-Search .cancel img{
     width: 100%;
 }
@@ -310,9 +353,9 @@ button:hover{
 ::-webkit-scrollbar-button:end:increment {
     display: block;
 }
- 
+
 /* Turn off the down area up on top, and up area on bottom */
-.mol-LayerControl-Results 
+.mol-LayerControl-Results
 ::-webkit-scrollbar-button:vertical:start:increment,
 ::-webkit-scrollbar-button:vertical:start:decrement,
 ::-webkit-scrollbar-button:vertical:end:increment,
@@ -323,7 +366,10 @@ button:hover{
     height: 50px;
     background-color: white;
 }
- 
+
+.mol-LayerControl-Results .noresults {
+    text-align: center;
+}
 
 .mol-LayerControl-Results .filters{
     float: left;
@@ -339,7 +385,7 @@ button:hover{
     font-size: 12px;
     -moz-border-radius: 3px;
     border-radius: 3px;
-    
+
 }
 .mol-LayerControl-Results .filters .filter .options{
     max-height: 125px;
@@ -395,7 +441,7 @@ button:hover{
     font-size: 0.9em;
     float: right;
     padding-right: 10px;
-} 
+}
 
 .mol-LayerControl-Results .searchResults .resultList{
     position: relative;
@@ -442,12 +488,14 @@ button:hover{
 .mol-LayerControl-Results .result a{
     color: rgb(230, 250, 230);
 }
+
 .mol-LayerControl-Results .result .buttonContainer {
 	width:24px;
 	height:24px;
-    position: relative;
-    float: left;
+   position: relative;
+   float: left;
 }
+
 .mol-LayerControl-Results .result .checkbox {
     opacity: 0.0;
 	position:absolute;
@@ -457,7 +505,7 @@ button:hover{
 	width:24px;
 	height:24px;
     cursor: pointer;
-    
+
 }
 .mol-LayerControl-Results .break{
     float: left;

@@ -27,11 +27,11 @@ class MapPage(BaseHandler):
 
 class TestPage(BaseHandler):
     def get(self):
-        self.render_template('test.html', {})
+        self.render_template('design.html', {})
 
 application = webapp.WSGIApplication(
          [('/', MapPage),
-         ('/test', TestPage)],
+         ('/design', TestPage)],
          debug=True)
 
 def main():
