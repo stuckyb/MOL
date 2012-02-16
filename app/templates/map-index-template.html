@@ -45,6 +45,7 @@
     <script src="../../../js/mol.map.layers.js"></script>
     <script src="../../../js/mol.map.tiles.js"></script>
     <script src="../../../js/mol.map.menu.js"></script>
+    <script src="../../../js/mol.map.loading.js"></script>
     {% endif %}
 
     <meta charset="utf-8" />
@@ -74,6 +75,8 @@
 	         re.start()
 	         ne = new env.map.menu.MenuEngine(proxy, bus)
 	         ne.start()
+	         le = new env.map.loading.LoadingEngine(proxy, bus)
+            le.start()
           });
           {% else %}
           env = mol(function(env) {
@@ -91,6 +94,8 @@
 	         re.start()
 	         ne = new env.map.menu.MenuEngine(proxy, bus)
 	         ne.start()
+	         le = new env.map.loading.LoadingEngine(proxy, bus)
+            le.start()
           });
           {% endif %}
       });

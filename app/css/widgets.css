@@ -192,7 +192,17 @@ button:hover{
     padding-top: 2px;
     padding-bottom: 2px;
 }
+.mol-LayerControl-Layers .layer .source{
+    float: left;
+    width: 10%;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
 .mol-LayerControl-Layers .layer img.type{
+    height: 18px;
+    width: 18px;
+}
+.mol-LayerControl-Layers .layer img.source{
     height: 18px;
     width: 18px;
 }
