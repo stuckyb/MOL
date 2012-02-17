@@ -37,7 +37,9 @@ mol.modules.map.search = function(mol) {
              * Initialize autocomplate functionality
              */
             initAutocomplete: function() {
-                var url= "https://mol.cartodb.com/api/v2/sql?q=",
+                this.populateAutocomplete(null,null); //Hacked in for demo
+                //hacked out for demo
+                /*var url= "https://mol.cartodb.com/api/v2/sql?q=",
                     self = this,
                     sql = '' +
                     'SET STATEMENT_TIMEOUT TO 0; ' + // Secret konami workaround for 40 second timeout.
@@ -55,25 +57,27 @@ mol.modules.map.search = function(mol) {
 
                     };
 
-                this.proxy.execute(action, new mol.services.Callback(success, failure));
+                this.proxy.execute(action, new mol.services.Callback(success, failure));*/
 
             },
             /*
              * Populate autocomplete results list
              */
             populateAutocomplete : function(action, response) {
-                this.scientificnames = [];
+               //hacked out for demo
+               /* this.scientificnames = [];
                 _.each(
                     response.rows,
                     function (row) {
                         this.scientificnames.push(row.scientificname);
                     }.bind(this)
-                  );
+                  );*/
                 $(this.display.searchBox).autocomplete({
                         RegEx : '\\b<term>[^\\b]*', //<term> gets replaced by the search term.
                         minLength : 3,
                         delay : 0,
-                        source : this.scientificnames
+                        source : scientificnames // Hacked in for demo
+                        //source : this.scientificnames //hacked out for demo
 
                  });
             },
@@ -166,7 +170,7 @@ mol.modules.map.search = function(mol) {
              */
             search: function(term, sql) {
                 var self = this,
-                    // sql = this.sql.format(term, term),
+                    sql = this.sql.format(term, term),
                     params = {sql:sql, term: term},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
