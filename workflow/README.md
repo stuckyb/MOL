@@ -7,7 +7,7 @@ This document provides information about the MOL workflow for uploading data to 
 1) import the shapefiles into a postgre datababse using shp2pgsql using flags -D -d -s 4326
 http://postgis.refractions.net/docs/ch04.html#shp2pgsql_usage
 
-2) Project the polygons using ST_Transform. We used Web Mercator (SRID 3785)
+2) Project the polygons using ST_Transform. We used Web Mercator (SRID 3857)
 http://www.postgis.org/docs/ST_Transform.html
 *note: this step is necessary because the ST_SimplifyPreserveTopology only works properly on projected shapes.
 (from PostGIS In Action, Obe & Hsu 2011)
