@@ -2076,7 +2076,9 @@ mol.modules.map.search = function(mol) {
              * Initialize autocomplate functionality
              */
             initAutocomplete: function() {
-                var url= "https://mol.cartodb.com/api/v2/sql?q=",
+                this.populateAutocomplete(null,null); //Hacked in for demo
+                //hacked out for demo
+                /*var url= "https://mol.cartodb.com/api/v2/sql?q=",
                     self = this,
                     sql = '' +
                     'SET STATEMENT_TIMEOUT TO 0; ' + // Secret konami workaround for 40 second timeout.
@@ -2094,25 +2096,27 @@ mol.modules.map.search = function(mol) {
 
                     };
 
-                this.proxy.execute(action, new mol.services.Callback(success, failure));
+                this.proxy.execute(action, new mol.services.Callback(success, failure));*/
 
             },
             /*
              * Populate autocomplete results list
              */
             populateAutocomplete : function(action, response) {
-                this.scientificnames = [];
+               //hacked out for demo
+               /* this.scientificnames = [];
                 _.each(
                     response.rows,
                     function (row) {
                         this.scientificnames.push(row.scientificname);
                     }.bind(this)
-                  );
+                  );*/
                 $(this.display.searchBox).autocomplete({
                         RegEx : '\\b<term>[^\\b]*', //<term> gets replaced by the search term.
                         minLength : 3,
                         delay : 0,
-                        source : this.scientificnames
+                        source : scientificnames // Hacked in for demo
+                        //source : this.scientificnames //hacked out for demo
 
                  });
             },
@@ -2139,7 +2143,7 @@ mol.modules.map.search = function(mol) {
                         } else {
                             self.display.toggle(event.visible);
                         }
-
+						params.visible = false;
                         e = new mol.bus.Event('results-display-toggle', params);
                         self.bus.fireEvent(e);
                     }
@@ -2149,7 +2153,7 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.goButton.click(
                     function(event) {
-                        self.search(self.display.searchBox.val());
+						self.process($.trim(self.display.searchBox.val()));
                     }
                 );
 
@@ -2203,7 +2207,7 @@ mol.modules.map.search = function(mol) {
              *
              * @param term the search term (scientific name)
              */
-            search: function(term) {
+            search: function(term, sql) {
                 var self = this,
                     sql = this.sql.format(term, term),
                     params = {sql:sql, term: term},
@@ -2221,7 +2225,36 @@ mol.modules.map.search = function(mol) {
 
                 this.proxy.execute(action, new mol.services.Callback(success, failure));
                 this.bus.fireEvent('search', new mol.bus.Event('search', term));
-            }
+            },
+
+			/**
+			* Processes search phase and convert the search phase to a corresponding SQL.
+			*
+			* @param term the search term
+			*/
+			process: function(term) {
+				var self = this,
+					tmp = term,
+					templ = "SELECT DISTINCT " +
+					"{0}.provider as source, {0}.scientificname as name, {0}.type as type " +
+					"FROM {0} WHERE {0}.{1} {2} {3}",
+					sql = "SET STATEMENT_TIMEOUT TO 0; ",
+					matches = null,
+					patt = null,
+					sqls = [];
+				while (tmp.length > 0) {
+					patt = /\s*\:([\w^\:]+)\:([\w^\:]+)\s+([\<\>\=]){1,2}\s+(\'[^\']+\'|\"[^\"]+\"|[^\s]+)/gi;
+					matches = patt.exec(tmp.toString());
+					if (matches == null || matches.length != 5) {
+						break;
+					} else if (matches.length == 5) {
+						sqls.push(templ.format(matches[1],matches[2],matches[3],matches[4].replace(/\"/g,"\'")));
+						tmp = tmp.substr(patt.lastIndex);
+					}
+				}
+				sql += sqls.join(" UNION ");
+				self.search(term, sql);
+			}
         }
     );
 
