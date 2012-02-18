@@ -88,7 +88,7 @@ def main():
 
     logging.info("Downloading aggregate data on field '%s' in table '%s'.",
         options.fieldname, options.tablename)
-    results = cdb.sql("SET STATEMENT_TIMEOUT TO 0; SELECT %(fieldname)s FROM %(tablename)s" %
+    results = cdb.sql("SET STATEMENT_TIMEOUT TO 0; SELECT %(fieldname)s FROM %(tablename)s LIMIT 2608487" %
         {'fieldname': options.fieldname, 
          'tablename': options.tablename}
     )
