@@ -67,19 +67,23 @@ mol.modules.map.layers = function(mol) {
                     function(layer) {
                         var l = this.display.addLayer(layer);
                         self = this;
-
-                        // Opacity slider change handler.
-                        l.opacity.change(
-                            function(event) {
-                                var params = {
-                                        layer: layer,
-                                        opacity: parseFloat(l.opacity.val())
-                                    },
-                                    e = new mol.bus.Event('layer-opacity', params);
-
-                                self.bus.fireEvent(e);
-                            }
-                        );
+                        
+                        if (layer.type === 'points') {
+                            l.opacity.hide();
+                        } else {
+                            // Opacity slider change handler.
+                            l.opacity.change(
+                                function(event) {
+                                    var params = {
+                                            layer: layer,
+                                            opacity: parseFloat(l.opacity.val())
+                                        },
+                                        e = new mol.bus.Event('layer-opacity', params);
+                                    
+                                    self.bus.fireEvent(e);
+                                }
+                            );
+                        }
 
                         // Click handler for zoom button.
                         l.zoom.click(
@@ -217,8 +221,6 @@ mol.modules.map.layers = function(mol) {
                 ld.sourcePng[0].title ='Layer Source: '+layer.source;
                 ld.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
                 ld.typePng[0].title = 'Layer Type: '+layer.type;
-
-
                 this.list.append(ld);
 				    this.layers.push(layer);
                 return ld;
