@@ -84,8 +84,22 @@ mol.modules.map.layers = function(mol) {
                                 }
                             );
                         }
-
-                        // Click handler for zoom button.
+                        
+                        // Close handler for x button fires a 'remove-layers' event.
+                        l.close.click(
+                            function(event) {
+                                var params = {
+                                        layers: [layer]
+                                    },
+                                    e = new mol.bus.Event('remove-layers', params);
+                                
+                                self.bus.fireEvent(e);
+                                l.remove();
+                            }
+                        );
+                        
+                        // Click handler for zoom button fires 'layer-zoom-extent' 
+                        // and 'show-loading-indicator' events.
                         l.zoom.click(
                             function(event) {
                                 var params = {
@@ -158,7 +172,6 @@ mol.modules.map.layers = function(mol) {
                 var html = '' +
                     '<li class="layerContainer">' +
                     '  <div class="layer widgetTheme">' +
-                    '    <button><img class="source" src="/static/maps/search/{0}.png"></button>' +
                     '    <button><img class="type" src="/static/maps/search/{0}.png"></button>' +
                     '    <div class="layerName">' +
                     '        <div class="layerNomial">{1}</div>' +
@@ -167,6 +180,7 @@ mol.modules.map.layers = function(mol) {
                     '        <input class="toggle" type="checkbox">' +
                     '        <span class="customCheck"></span> ' +
                     '    </div>' +
+                    '    <button class="close">x</button>' +
                     '    <button class="info">i</button>' +
                     '    <button class="zoom">z</button>' +
                     '    <input type="range" class="opacity" min=".25" max="1.0" step=".25" />' +
@@ -179,8 +193,8 @@ mol.modules.map.layers = function(mol) {
                 this.toggle = $(this.find('.toggle'));
                 this.zoom = $(this.find('.zoom'));
                 this.info = $(this.find('.info'));
+                this.close = $(this.find('.close'));
                 this.typePng = $(this.find('.type'));
-                this.sourcePng = $(this.find('.source'));
             }
         }
     );
@@ -216,11 +230,8 @@ mol.modules.map.layers = function(mol) {
 
             addLayer: function(layer) {
                 var ld = new mol.map.layers.LayerDisplay(layer);
-
-                ld.sourcePng[0].src ='static/maps/search/'+layer.source.replace(/ /g,"_")+'.png';
-                ld.sourcePng[0].title ='Layer Source: '+layer.source;
                 ld.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
-                ld.typePng[0].title = 'Layer Type: '+layer.type;
+                ld.typePng[0].title = 'Layer Type: '+layer.type;                
                 this.list.append(ld);
 				    this.layers.push(layer);
                 return ld;
