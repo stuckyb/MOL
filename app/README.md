@@ -42,7 +42,7 @@ BOOM! You should be able to access the app at [http://localhost:8080](http://loc
 
 # Backends
 
-We're using [App Engine backends](http://code.google.com/appengine/docs/python/backends/) for executing long running jobs that pre-cache CartoDB queries. For example, on of these jobs queries CartoDB for a distict list of `scientificname`, and for each one, performs a second CartoDB search profile query (e.g., a row per source/type) and stores the results in the `CacheItem` entity.
+We're using [App Engine backends](http://code.google.com/appengine/docs/python/backends/) for executing long running jobs that pre-cache CartoDB queries. For example, one of these jobs queries CartoDB for a distict list of `scientificname`, and for each one, performs a second CartoDB search profile query (e.g., a row per source/type) and stores the results in the `CacheItem` entity.
 
 Backends are configured in `backends.yaml`. 
 
