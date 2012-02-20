@@ -88,21 +88,19 @@ def main():
 
     logging.info("Downloading aggregate data on field '%s' in table '%s'.",
         options.fieldname, options.tablename)
-    results = cdb.sql("SELECT %(fieldname)s, COUNT(*) AS count FROM %(tablename)s GROUP BY %(fieldname)s ORDER BY %(fieldname)s ASC, count" %
+    results = cdb.sql("SET STATEMENT_TIMEOUT TO 0; SELECT %(fieldname)s FROM %(tablename)s LIMIT 2608487" %
         {'fieldname': options.fieldname, 
          'tablename': options.tablename}
     )
 
     fieldname_lc = options.fieldname.lower()
     rows = results['rows']
-    print options.fieldname + ", count"
+    print options.fieldname
     
     total_count = 0
     for row in rows:
-        print "\"" + unicode(row[fieldname_lc]) + "\", " + str(row['count']) 
-        total_count += row['count']
+        print "\"" + row[fieldname_lc] + "\""
 
-    logging.info("Total count: %d", total_count)
     logging.info("Download complete, %d rows written out.", len(rows))
 
 if __name__ == '__main__':

@@ -238,11 +238,33 @@ def getUploadedFeatureHashes(table_name, provider, collection):
     quoted_provider = "$a_complicated_tag_here$%s$a_complicated_tag_here$" % provider
     quoted_collection = "$another_complicated_tag_here$%s$another_complicated_tag_here$" % collection
 
+    # CartoDB seems to have problems downloading more than 100_000 entries
+    # at a time. So, we'll download them in slices.
     results = cartodb.sql(
-        "SELECT FeatureHash FROM %s WHERE provider=%s AND collection=%s" % 
+        "SELECT COUNT(*) AS count FROM %s WHERE provider=%s AND collection=%s AND FeatureHash IS NOT NULL" %
             (table_name, quoted_provider, quoted_collection)
     )
-    rows = results['rows']
+    total_count = results['rows'][0]['count']
+
+    logging.info("Need to download %d hashes.", total_count)
+
+    rows = []
+    HASH_DOWNLOAD_SIZE = 1000000
+
+    start = 0
+    while start < total_count:
+        start += HASH_DOWNLOAD_SIZE
+
+        results = cartodb.sql(
+            "SET STATEMENT_TIMEOUT TO 0; SELECT FeatureHash FROM %s WHERE provider=%s AND collection=%s ORDER BY FeatureHash OFFSET %d LIMIT %d" % 
+                (table_name, quoted_provider, quoted_collection, start, HASH_DOWNLOAD_SIZE)
+        )
+        my_rows = results['rows']
+        rows.extend(my_rows)
+
+        logging.info("\tDownloaded %d hashes (total: %d).", len(my_rows), len(rows))
+
+    logging.info("Downloaded %d hashed.", len(rows))
 
     # TODO: We should probably check for hash-collision here, just in case.
 

@@ -1,8 +1,8 @@
 /**
- * This module provides core functions. 
+ * This module provides core functions.
  */
-mol.modules.core = function(mol) { 
-    
+mol.modules.core = function(mol) {
+
     mol.core = {};
 
     /**
@@ -12,10 +12,10 @@ mol.modules.core = function(mol) {
         var name = layer.name.trim().replace(/ /g, "_"),
             type = layer.type.trim().replace(/ /g, "_"),
             source = layer.source.trim().replace(/ /g, "_");
-        
+
         return 'layer-{0}-{1}-{2}'.format(name, type, source);
     };
-    
+
     /**
      * @param id The layer id of the form "layer-{name}-{type}-{source}".
      */
@@ -24,12 +24,12 @@ mol.modules.core = function(mol) {
             name = tokens[1].replace(/_/g, " "),
             type = tokens[2].replace(/_/g, " "),
             source = tokens[3].replace(/_/g, " ");
-        
+
         return {
             id: id,
             name: name,
             type: type,
-            souce: source
+            source: source
         };
     };
 };
