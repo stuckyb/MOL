@@ -58,6 +58,15 @@ Backends are fired off using the taskqueue API, so keep an eye on the taskqueue 
 http://localhost:8080/_ah/admin/queues
 ```
 
+When you're ready to deploy or update backends to the production servers on App Engine, use this command:
+
+```shell
+$ appcfg backends -V {app version} . update
+```
+
+Definitely check out [all of the available commands](http://code.google.com/appengine/docs/python/backends/overview.html#Commands) for backends.
+
+
 # Emacs
 
 You can setup Emacs with a JavaScript REPL which is really nice for hacking on MOL code since it's mainly written in JavaScript. If you need to install Emacs, it's easy, and here's a [great starting point](https://github.om/whizbangsystems/emacs-starter-kit). Just follow the instructions in the README.
