@@ -11,9 +11,10 @@ mol.modules.services.cartodb = function(mol) {
                 this.cache = '/cache/get';
             },
 
-            query: function(sql, callback) {                
+            query: function(key, sql, callback) {                
                   var data = {
-                          key: this.url.format(this.user, this.host, encodeURI(sql))
+                          key: key,
+                          sql: sql
                       },
                       xhr = $.post(this.cache, data);
                 
@@ -34,8 +35,8 @@ mol.modules.services.cartodb = function(mol) {
     
     mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi('mol', 'cartodb.com');
     
-    mol.services.cartodb.query = function(sql, callback) {
-        mol.services.cartodb.sqlApi.query(sql, callback);
+    mol.services.cartodb.query = function(key, sql, callback) {
+        mol.services.cartodb.sqlApi.query(key, sql, callback);
     };
 
     /**

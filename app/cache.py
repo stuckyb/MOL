@@ -18,6 +18,18 @@ class CacheItem(model.Model):
     string = model.StringProperty('s', indexed=False) 
     created = model.DateTimeProperty('c', auto_now_add=True)
     
+    @classmethod 
+    def create(cls, key, value, dumps=False, value_type='string'):
+        entity = None
+        if value_type == 'string':
+            if dumps:
+                entity = cls(id=key.strip().lower(), string=simplejson.dumps(value))
+            else:
+                entity = cls(id=key.strip().lower(), string=value)
+        elif value_type == 'blob':
+            entity = cls(id=key.strip().lower(), blob=value)
+        return entity
+
     @classmethod
     def get(cls, key, loads=False, value_type='string'):
         value = None
@@ -34,14 +46,11 @@ class CacheItem(model.Model):
 
     @classmethod
     def add(cls, key, value, dumps=False, value_type='string'):
-        if value_type == 'string':
-            if dumps:
-                cls(id=key.strip().lower(), string=simplejson.dumps(value)).put()
-            else:
-                cls(id=key.strip().lower(), string=value).put()
-        elif value_type == 'blob':
-            cls(id=key.strip().lower(), blob=value).put()
+        cls.create(key, value, dumps, value_type).put()
     
+def create_entry(key, value, dumps=False, value_type='string'):
+    return CacheItem.create(key, value, dumps, value_type)
+
 def get(key, loads=False, value_type='string'):
     """Gets a cached item value by key.
 

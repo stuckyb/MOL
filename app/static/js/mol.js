@@ -258,7 +258,7 @@ mol.modules.mvp = function(mol) {
 
                 switch (action.type) {
                     case 'cartodb-sql-query':
-                    cartodb.query(action.sql, this.callback(action, callback));
+                    cartodb.query(action.key, action.sql, this.callback(action, callback));
                     break;
                 }
             },
@@ -299,7 +299,8 @@ mol.modules.mvp = function(mol) {
             }                
         }
     );
-};mol.modules.services.cartodb = function(mol) {
+};
+mol.modules.services.cartodb = function(mol) {
     
     mol.services.cartodb = {};
     
@@ -312,9 +313,10 @@ mol.modules.mvp = function(mol) {
                 this.cache = '/cache/get';
             },
 
-            query: function(sql, callback) {                
+            query: function(key, sql, callback) {                
                   var data = {
-                          key: this.url.format(this.user, this.host, encodeURI(sql))
+                          key: key,
+                          sql: sql
                       },
                       xhr = $.post(this.cache, data);
                 
@@ -335,8 +337,8 @@ mol.modules.mvp = function(mol) {
     
     mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi('mol', 'cartodb.com');
     
-    mol.services.cartodb.query = function(sql, callback) {
-        mol.services.cartodb.sqlApi.query(sql, callback);
+    mol.services.cartodb.query = function(key, sql, callback) {
+        mol.services.cartodb.sqlApi.query(key, sql, callback);
     };
 
     /**
@@ -2163,12 +2165,13 @@ mol.modules.map.search = function(mol) {
                         self.bus.fireEvent(e);
                     }
                 );
+                
                 /**
                  * Clicking the go button executes a search.
                  */
                 this.display.goButton.click(
                     function(event) {
-						self.process($.trim(self.display.searchBox.val()));
+						      self.search(self.display.searchBox.val());
                     }
                 );
 
@@ -2222,10 +2225,10 @@ mol.modules.map.search = function(mol) {
              *
              * @param term the search term (scientific name)
              */
-            search: function(term, sql) {
+            search: function(term) {
                 var self = this,
                     sql = this.sql.format(term, term),
-                    params = {sql:sql, term: term},
+                    params = {sql:sql, key: 'name-{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {term:term, response:response},
@@ -2236,40 +2239,11 @@ mol.modules.map.search = function(mol) {
                     failure = function(action, response) {
                         self.display.loading.hide();
                     };
-                this.display.loading.show();
 
+                this.display.loading.show();
                 this.proxy.execute(action, new mol.services.Callback(success, failure));
                 this.bus.fireEvent('search', new mol.bus.Event('search', term));
-            },
-
-			/**
-			* Processes search phase and convert the search phase to a corresponding SQL.
-			*
-			* @param term the search term
-			*/
-			process: function(term) {
-				var self = this,
-					tmp = term,
-					templ = "SELECT DISTINCT " +
-					"{0}.provider as source, {0}.scientificname as name, {0}.type as type " +
-					"FROM {0} WHERE {0}.{1} {2} {3}",
-					sql = "SET STATEMENT_TIMEOUT TO 0; ",
-					matches = null,
-					patt = null,
-					sqls = [];
-				while (tmp.length > 0) {
-					patt = /\s*\:([\w^\:]+)\:([\w^\:]+)\s+([\<\>\=]){1,2}\s+(\'[^\']+\'|\"[^\"]+\"|[^\s]+)/gi;
-					matches = patt.exec(tmp.toString());
-					if (matches == null || matches.length != 5) {
-						break;
-					} else if (matches.length == 5) {
-						sqls.push(templ.format(matches[1],matches[2],matches[3],matches[4].replace(/\"/g,"\'")));
-						tmp = tmp.substr(patt.lastIndex);
-					}
-				}
-				sql += sqls.join(" UNION ");
-				self.search(term, sql);
-			}
+            }
         }
     );
 
@@ -2542,7 +2516,8 @@ mol.modules.map.tiles = function(mol) {
                     table = layer.type === 'points' ? 'points' : 'polygons',
                     query = sql.format(table, layer.name),
                     params = {
-                        sql: query
+                        sql: query,
+                        key: 'extent-{0}-{1}-{2}'.format(layer.source, layer.type, layer.name)
                     },
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {

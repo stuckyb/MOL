@@ -238,7 +238,8 @@ mol.modules.map.tiles = function(mol) {
                     table = layer.type === 'points' ? 'points' : 'polygons',
                     query = sql.format(table, layer.name),
                     params = {
-                        sql: query
+                        sql: query,
+                        key: 'extent-{0}-{1}-{2}'.format(layer.source, layer.type, layer.name)
                     },
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {

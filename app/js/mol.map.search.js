@@ -37,48 +37,18 @@ mol.modules.map.search = function(mol) {
              * Initialize autocomplate functionality
              */
             initAutocomplete: function() {
-                this.populateAutocomplete(null,null); //Hacked in for demo
-                //hacked out for demo
-                /*var url= "https://mol.cartodb.com/api/v2/sql?q=",
-                    self = this,
-                    sql = '' +
-                    'SET STATEMENT_TIMEOUT TO 0; ' + // Secret konami workaround for 40 second timeout.
-                    'SELECT ' +
-                    'DISTINCT scientificname ' +
-                    'FROM polygons ' +
-                    'UNION SELECT ' +
-                    'DISTINCT scientificname ' +
-                    'FROM points ' +
-                    'ORDER BY scientificname ASC',
-                    params = {sql:sql},
-                    action = new mol.services.Action('cartodb-sql-query', params),
-                    success = this.populateAutocomplete.bind(this),
-                    failure = function(action, response) {
-
-                    };
-
-                this.proxy.execute(action, new mol.services.Callback(success, failure));*/
-
+                this.populateAutocomplete(null,null); 
             },
+
             /*
              * Populate autocomplete results list
              */
             populateAutocomplete : function(action, response) {
-               //hacked out for demo
-               /* this.scientificnames = [];
-                _.each(
-                    response.rows,
-                    function (row) {
-                        this.scientificnames.push(row.scientificname);
-                    }.bind(this)
-                  );*/
                 $(this.display.searchBox).autocomplete({
                         RegEx : '\\b<term>[^\\b]*', //<term> gets replaced by the search term.
                         minLength : 3,
                         delay : 0,
-                        source : scientificnames // Hacked in for demo
-                        //source : this.scientificnames //hacked out for demo
-
+                        source : scientificnames
                  });
             },
             addEventHandlers: function() {
@@ -109,12 +79,13 @@ mol.modules.map.search = function(mol) {
                         self.bus.fireEvent(e);
                     }
                 );
+                
                 /**
                  * Clicking the go button executes a search.
                  */
                 this.display.goButton.click(
                     function(event) {
-						self.process($.trim(self.display.searchBox.val()));
+						      self.search(self.display.searchBox.val());
                     }
                 );
 
@@ -168,10 +139,10 @@ mol.modules.map.search = function(mol) {
              *
              * @param term the search term (scientific name)
              */
-            search: function(term, sql) {
+            search: function(term) {
                 var self = this,
                     sql = this.sql.format(term, term),
-                    params = {sql:sql, term: term},
+                    params = {sql:sql, key: 'name-{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {term:term, response:response},
@@ -182,40 +153,11 @@ mol.modules.map.search = function(mol) {
                     failure = function(action, response) {
                         self.display.loading.hide();
                     };
-                this.display.loading.show();
 
+                this.display.loading.show();
                 this.proxy.execute(action, new mol.services.Callback(success, failure));
                 this.bus.fireEvent('search', new mol.bus.Event('search', term));
-            },
-
-			/**
-			* Processes search phase and convert the search phase to a corresponding SQL.
-			*
-			* @param term the search term
-			*/
-			process: function(term) {
-				var self = this,
-					tmp = term,
-					templ = "SELECT DISTINCT " +
-					"{0}.provider as source, {0}.scientificname as name, {0}.type as type " +
-					"FROM {0} WHERE {0}.{1} {2} {3}",
-					sql = "SET STATEMENT_TIMEOUT TO 0; ",
-					matches = null,
-					patt = null,
-					sqls = [];
-				while (tmp.length > 0) {
-					patt = /\s*\:([\w^\:]+)\:([\w^\:]+)\s+([\<\>\=]){1,2}\s+(\'[^\']+\'|\"[^\"]+\"|[^\s]+)/gi;
-					matches = patt.exec(tmp.toString());
-					if (matches == null || matches.length != 5) {
-						break;
-					} else if (matches.length == 5) {
-						sqls.push(templ.format(matches[1],matches[2],matches[3],matches[4].replace(/\"/g,"\'")));
-						tmp = tmp.substr(patt.lastIndex);
-					}
-				}
-				sql += sqls.join(" UNION ");
-				self.search(term, sql);
-			}
+            }
         }
     );
 
