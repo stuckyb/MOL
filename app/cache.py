@@ -1,9 +1,5 @@
-"""This module contains a cache for CartoDB SQL API responses. The cache key is
-the full CartoDB SQL API request URL. The cache value is the unmodified
-CartoDB response.
-
-Note: This module requires App Engine SDK 0.9.6 or later since it uses the 
-NDB API (google.appengine.ext.ndb).
+"""This module contains a cache that supports string and blob values. It supports
+both because blobs are unable to encode unicode characters properly.
 """
 
 __author__ = 'Aaron Steele'
@@ -12,48 +8,57 @@ __author__ = 'Aaron Steele'
 import logging
 
 # Google App Engine imports
-from google.appengine.api import urlfetch
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext.ndb import model
 
-class SqlCacheEntry(model.Model): # id=key
-    """The cache entry."""
-
-    value = model.StringProperty('v', indexed=False)
+class CacheItem(model.Model):
+    """An item in the cache. Supports blob and string cached values since blob
+    can't handle unicode characters.
+    """
+    blob = model.BlobProperty('b') 
+    string = model.StringProperty('s', indexed=False) 
     created = model.DateTimeProperty('c', auto_now_add=True)
+    
+    @classmethod
+    def get(cls, key, loads=False, value_type='string'):
+        value = None
+        item = model.Key(cls.__name__, key.strip().lower()).get()
+        if item:            
+            if value_type == 'string':
+                if loads:
+                    value = simplejson.loads(item.string)
+                else:
+                    value = item.string
+            elif value_type == 'blob':
+                value = item.blob
+        return value
 
     @classmethod
-    def get_key(cls, keyname):
-        """Returns a SqlCacheEntry.Key for the given keyname."""
-        return model.Key('SqlCacheEntry', keyname)
+    def add(cls, key, value, dumps=False, value_type='string'):
+        if value_type == 'string':
+            if dumps:
+                cls(id=key.strip().lower(), string=simplejson.dumps(value)).put()
+            else:
+                cls(id=key.strip().lower(), string=value).put()
+        elif value_type == 'blob':
+            cls(id=key.strip().lower(), blob=value).put()
+    
+def get(key, loads=False, value_type='string'):
+    """Gets a cached item value by key.
 
-    @classmethod
-    def getit(cls, keyname):
-        """Gets a SqlCacheEntry by keyname."""
-        return cls.get_key(keyname).get()
+    Arguments:
+        key - The cache item key.
+        loads - If true call simplejson.loads() on cached item (default false).
+        value_type - The type of cache value (string or blob, default string).
+    """
+    return CacheItem.get(key, loads, value_type)
 
-    @classmethod
-    def putit(cls, keyname, value):
-        """Puts a new SqlCacheEntry with the given keyname and value."""
-        cls(key=cls.get_key(keyname), value=value).put()
+def add(key, value, dumps=False, value_type='string'):
+    """Adds a value to the cache by key.
 
-class SqlCache(object):
-
-    @classmethod
-    def get(cls, key):
-        """Returns a SqlCacheEntry value for a key parameter. If the key isn't found,,
-        a request is made to CartoDB and the response is cached and returned.
-        """
-        if not key:
-            logging.error('Missing key parameter')
-            return
-        entry = SqlCacheEntry.getit(key)        
-        if not entry:
-            logging.info('No SqlCacheEntry found for key=%s' % key)
-            value = urlfetch.fetch(key).content
-            logging.info('Add SqlCacheEntry %s=%s' % (key, value))
-            SqlCacheEntry.putit(key, value)
-        else:
-            value = entry.value
-        return value       
+    Arguments:
+        key - The cache item key.
+        value - The cache item value.
+        dumps - If true call simplejson.dumps() to value before caching (default false).
+        value_type - The type of cache value (string or blob, default string).
+    """
+    CacheItem.add(key, value, dumps, value_type)

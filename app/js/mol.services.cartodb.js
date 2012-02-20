@@ -8,7 +8,7 @@ mol.modules.services.cartodb = function(mol) {
                 this.user = user;
                 this.host = host;
                 this.url = 'https://{0}.{1}/api/v2/sql?q={2}';  
-                this.cache = '/cache/sql/get';
+                this.cache = '/cache/get';
             },
 
             query: function(sql, callback) {                

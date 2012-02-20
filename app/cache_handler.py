@@ -1,4 +1,4 @@
-"""This module contains a cache handler for CartoDB SQL API responses."""
+"""This module contains a cache handler."""
 
 __author__ = 'Aaron Steele'
 
@@ -9,6 +9,7 @@ import cache
 import logging
 
 # Google App Engine imports
+from google.appengine.api import urlfetch
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
@@ -16,15 +17,17 @@ class GetHandler(webapp.RequestHandler):
     """Request handler for cache requests."""
 
     def post(self):
-        """Returns a CartoDB SQL API response for a key - the CartoDB SQL API 
-        request URL parameter.
-        """
+        """Returns a cached value by key or None if it doesn't exist."""
         key = self.request.get('key', None)
+        value = cache.get(key)
+        if not value:
+            value = urlfetch.fetch(key).content
+            cache.add(key, value)
         self.response.headers["Content-Type"] = "application/json"
-        self.response.out.write(cache.SqlCache.get(key))
+        self.response.out.write(value)
                     
 application = webapp.WSGIApplication(
-    [('/cache/sql/get', GetHandler),], 
+    [('/cache/get', GetHandler),], 
     debug=True)
          
 def main():

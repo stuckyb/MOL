@@ -26,11 +26,8 @@ handlers:
   static_files: static/\1
   upload: static/(.*\.(gif|png|jpg))
 
-- url: /cache/sql/.*
-  script: sql_cache_handler.py
-
-- url: /cache/tile/.*
-  script: tile_cache_handler.py
+- url: /cache/.*
+  script: cache_handler.py
 
 - url: /.*
   script: app.py
