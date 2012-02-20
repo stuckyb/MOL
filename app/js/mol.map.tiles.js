@@ -98,7 +98,34 @@ mol.modules.map.tiles = function(mol) {
                         self.renderTiles(event.layers);
                     }
                 );
-				
+                
+                /**
+                 * Handler for when the remove-layers event is fired. This 
+                 * functions removes all layers from the Google Map. The
+                 * event.layers is an array of layer objects {id}.                
+                 */
+				    this.bus.addHandler(
+                    'remove-layers',
+                    function(event) {
+                        var layers = event.layers,
+                            mapTypes = self.map.overlayMapTypes;
+                        
+                        _.each(
+                            layers,
+                            function(layer) { // "lid" is short for layer id.
+                                var lid = layer.id;
+                                mapTypes.forEach(
+                                    function(mt, index) { // "mt" is short for map type.
+                                        if ((mt != undefined) && (mt.name === lid)) {
+                                            mapTypes.removeAt(index);
+                                        }
+                                    }
+                                );
+                            }
+                        );
+                    }
+                );
+                
 				    /**
 				     * Handler for when the reorder-layers event is fired. This renders
 				     * the layers according to the list of layers provided
@@ -108,6 +135,7 @@ mol.modules.map.tiles = function(mol) {
 					     function(event) {
 						      var layers = event.layers,
                             mapTypes = self.map.overlayMapTypes;
+
 						      _.each(
 							       layers,
 							       function(lid) { // "lid" is short for layerId.
@@ -210,7 +238,8 @@ mol.modules.map.tiles = function(mol) {
                     table = layer.type === 'points' ? 'points' : 'polygons',
                     query = sql.format(table, layer.name),
                     params = {
-                        sql: query
+                        sql: query,
+                        key: 'extent-{0}-{1}-{2}'.format(layer.source, layer.type, layer.name)
                     },
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {

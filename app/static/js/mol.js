@@ -258,7 +258,7 @@ mol.modules.mvp = function(mol) {
 
                 switch (action.type) {
                     case 'cartodb-sql-query':
-                    cartodb.query(action.sql, this.callback(action, callback));
+                    cartodb.query(action.key, action.sql, this.callback(action, callback));
                     break;
                 }
             },
@@ -299,265 +299,269 @@ mol.modules.mvp = function(mol) {
             }                
         }
     );
-};mol.modules.services.cartodb = function(mol) {
-  
-  mol.services.cartodb = {};
-  
-  mol.services.cartodb.SqlApi = Class.extend(
-    {
-      init: function(user, host) {
-        this.user = user;
-        this.host = host;
-        this.url = 'https://{0}.{1}/api/v2/sql?q={2}';        
-      },
+};
+mol.modules.services.cartodb = function(mol) {
+    
+    mol.services.cartodb = {};
+    
+    mol.services.cartodb.SqlApi = Class.extend(
+        {
+            init: function(user, host) {
+                this.user = user;
+                this.host = host;
+                this.url = 'https://{0}.{1}/api/v2/sql?q={2}';  
+                this.cache = '/cache/get';
+            },
 
-      query: function(sql, callback) {
-        var encodedSql = encodeURI(sql),
-        request = this.url.format(this.user, this.host, encodedSql);
-        xhr = $.getJSON(request); 
-        
-        xhr.success(
-          function(response) {
-            callback.success(response);
-          }
-        );
+            query: function(key, sql, callback) {                
+                  var data = {
+                          key: key,
+                          sql: sql
+                      },
+                      xhr = $.post(this.cache, data);
+                
+                xhr.success(
+                    function(response) {
+                        callback.success(response);
+                    }
+                );
 
-        xhr.error(
-          function(response) {
-            callback.failure(response);
-          }
-        );
-      }
-    }
-  );
-  
-  mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi('mol', 'cartodb.com');
-  
-  mol.services.cartodb.query = function(sql, callback) {
-    mol.services.cartodb.sqlApi.query(sql, callback);
-  };
-
-  /**
-   * Converts a CartoDB SQL response to a search profile response.
-   * 
-   */
-  mol.services.cartodb.Converter = Class.extend(    
-    {
-      init: function() {
-      },
-      
-      convert: function(response) {
-        this.response = response;
-        return {
-
-          "layers": this.getLayers(this.response), 
-          "names": this.genNames(this.response), 
-          "sources": this.genSources(this.response), 
-          "types": this.genTypes(this.response)
-        };
-      },
-
-      /**
-       * Returns an array of unique values in the response. Key value is 
-       * name, source, or type.
-       */
-      uniques: function(key, response) {
-        var results = [],
-        row = null;
-
-        for (i in response.rows) {
-          row = response.rows[i];
-          switch (key) {
-          case 'name':
-            results.push(row.name);
-            break;
-          case 'type':
-            results.push(row.type);
-            break;
-          case 'source':
-            results.push(row.source);
-            break;
-          }
+                xhr.error(
+                    function(response) {
+                        callback.failure(response);
+                    }
+                );
+            }
         }
-        return _.uniq(results);
-      },
+    );
+    
+    mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi('mol', 'cartodb.com');
+    
+    mol.services.cartodb.query = function(key, sql, callback) {
+        mol.services.cartodb.sqlApi.query(key, sql, callback);
+    };
 
-      /**
-       * Returns the top level names profile object.
-       *  
-       * {"name": "types":[], "sources":[], "layers":[]}
-       * 
-       */
-      genNames: function(response) {
-        var names = this.uniques('name', response),
-        name = null,
-        profile = {};
-        
-        for (i in names) {
-          name = names[i];
-          profile[name] = this.getNameProfile(name, response);
+    /**
+     * Converts a CartoDB SQL response to a search profile response.
+     * 
+     */
+    mol.services.cartodb.Converter = Class.extend(    
+        {
+            init: function() {
+            },
+            
+            convert: function(response) {
+                this.response = response;
+                return {
+
+                    "layers": this.getLayers(this.response), 
+                    "names": this.genNames(this.response), 
+                    "sources": this.genSources(this.response), 
+                    "types": this.genTypes(this.response)
+                };
+            },
+
+            /**
+             * Returns an array of unique values in the response. Key value is 
+             * name, source, or type.
+             */
+            uniques: function(key, response) {
+                var results = [],
+                row = null;
+
+                for (i in response.rows) {
+                    row = response.rows[i];
+                    switch (key) {
+                    case 'name':
+                        results.push(row.name);
+                        break;
+                    case 'type':
+                        results.push(row.type);
+                        break;
+                    case 'source':
+                        results.push(row.source);
+                        break;
+                    }
+                }
+                return _.uniq(results);
+            },
+
+            /**
+             * Returns the top level names profile object.
+             *  
+             * {"name": "types":[], "sources":[], "layers":[]}
+             * 
+             */
+            genNames: function(response) {
+                var names = this.uniques('name', response),
+                name = null,
+                profile = {};
+                
+                for (i in names) {
+                    name = names[i];
+                    profile[name] = this.getNameProfile(name, response);
+                }
+                
+                return profile;
+            },
+            
+            /**
+             * Returns the top level types profile object.
+             *  
+             * {"type": "names":[], "sources":[], "layers":[]}
+             * 
+             */
+            genTypes: function(response) {
+                var types = this.uniques('type', response),
+                type = null,
+                profile = {};
+                
+                for (i in types) {
+                    type = types[i];
+                    profile[type] = this.getTypeProfile(type, response);
+                }
+                
+                return profile;
+            },
+
+            /**
+             * Returns the top level source profile object.
+             *  
+             * {"source": "names":[], "types":[], "layers":[]}
+             * 
+             */
+            genSources: function(response) {
+                var sources = this.uniques('source', response),
+                source = null,
+                profile = {};
+                
+                for (i in sources) {
+                    source = sources[i];
+                    profile[source] = this.getSourceProfile(source, response);
+                }
+                
+                return profile;
+            },
+
+            /**
+             * Returns a profile for a single name.
+             */
+            getNameProfile: function(name, response) {
+                var layers = [],
+                sources = [],
+                types = [],
+                row = null;
+                
+                for (i in response.rows) {
+                    row = response.rows[i];
+                    if (name === row.name) {
+                        layers.push(i + '');
+                        sources.push(row.source);
+                        types.push(row.type);
+                    }
+                }
+                return {
+                    "layers": _.uniq(layers),
+                    "sources" : _.uniq(sources),
+                    "types": _.uniq(types)
+                };
+            },
+
+            /**
+             * Returns a profile for a single source.
+             */
+            getSourceProfile: function(source, response) {
+                var layers = [],
+                names = [],
+                types = [],
+                row = null;
+                
+                for (i in response.rows) {
+                    row = response.rows[i];
+                    if (source === row.source) {
+                        layers.push(i + '');
+                        names.push(row.name);
+                        types.push(row.type);
+                    }
+                }
+                return {
+                    "layers": _.uniq(layers),
+                    "names" : _.uniq(names),
+                    "types": _.uniq(types)
+                };
+            },
+
+            /**
+             * Returns a profile for a single type.
+             */
+            getTypeProfile: function(type, response) {
+                var layers = [],
+                sources = [],
+                names = [],
+                row = null;
+                
+                for (i in response.rows) {
+                    row = response.rows[i];
+                    if (type === row.type) {
+                        layers.push(i + '');
+                        sources.push(row.source);
+                        names.push(row.name);
+                    }
+                }
+                return {
+                    "layers": _.uniq(layers),
+                    "sources" : _.uniq(sources),
+                    "names": _.uniq(names)
+                };
+            },
+            
+            /**
+             * Returns the layers profile.
+             */
+            getLayers: function(response) {
+                var rows = response.rows,
+                row = null,
+                key = null,
+                layers = {};
+
+                for (i in rows) {
+                    row = rows[i];
+                    key = i + '';
+                    layers[key] = {
+                        name: row.name,
+                        source: row.source,
+                        type: row.type
+                        //extent: this.getExtent(row.extent)
+                    };
+                }
+                return layers;
+            },
+
+            /**
+             * Returns an array of coordinate arrays:
+             * [[1, 2], ...]
+             *  
+             * @param polygon POLYGON((34.073597 36.393648,34.073597 36.467531,
+             *                         34.140662 36.467531,34.140662 36.393648,
+             *                         34.073597 36.393648))
+             */
+            getExtent: function(polygon) {
+                return _.map(
+                    polygon.split('POLYGON((')[1].split('))')[0].split(','), 
+                    function(x) {
+                        var pair = x.split(' '); 
+                        return [parseFloat(pair[0]), parseFloat(pair[1])];
+                    }
+                );                
+            }
         }
-        
-        return profile;
-      },
-      
-      /**
-       * Returns the top level types profile object.
-       *  
-       * {"type": "names":[], "sources":[], "layers":[]}
-       * 
-       */
-      genTypes: function(response) {
-        var types = this.uniques('type', response),
-        type = null,
-        profile = {};
-        
-        for (i in types) {
-          type = types[i];
-          profile[type] = this.getTypeProfile(type, response);
-        }
-        
-        return profile;
-      },
+    );
 
-      /**
-       * Returns the top level source profile object.
-       *  
-       * {"source": "names":[], "types":[], "layers":[]}
-       * 
-       */
-      genSources: function(response) {
-        var sources = this.uniques('source', response),
-        source = null,
-        profile = {};
-        
-        for (i in sources) {
-          source = sources[i];
-          profile[source] = this.getSourceProfile(source, response);
-        }
-        
-        return profile;
-      },
+    mol.services.cartodb.converter = new mol.services.cartodb.Converter();
 
-      /**
-       * Returns a profile for a single name.
-       */
-      getNameProfile: function(name, response) {
-        var layers = [],
-        sources = [],
-        types = [],
-        row = null;
-        
-        for (i in response.rows) {
-          row = response.rows[i];
-          if (name === row.name) {
-            layers.push(i + '');
-            sources.push(row.source);
-            types.push(row.type);
-          }
-        }
-        return {
-          "layers": _.uniq(layers),
-          "sources" : _.uniq(sources),
-          "types": _.uniq(types)
-        };
-      },
-
-      /**
-       * Returns a profile for a single source.
-       */
-      getSourceProfile: function(source, response) {
-        var layers = [],
-        names = [],
-        types = [],
-        row = null;
-        
-        for (i in response.rows) {
-          row = response.rows[i];
-          if (source === row.source) {
-            layers.push(i + '');
-            names.push(row.name);
-            types.push(row.type);
-          }
-        }
-        return {
-          "layers": _.uniq(layers),
-          "names" : _.uniq(names),
-          "types": _.uniq(types)
-        };
-      },
-
-      /**
-       * Returns a profile for a single type.
-       */
-      getTypeProfile: function(type, response) {
-        var layers = [],
-        sources = [],
-        names = [],
-        row = null;
-        
-        for (i in response.rows) {
-          row = response.rows[i];
-          if (type === row.type) {
-            layers.push(i + '');
-            sources.push(row.source);
-            names.push(row.name);
-          }
-        }
-        return {
-          "layers": _.uniq(layers),
-          "sources" : _.uniq(sources),
-          "names": _.uniq(names)
-        };
-      },
-      
-      /**
-       * Returns the layers profile.
-       */
-      getLayers: function(response) {
-        var rows = response.rows,
-        row = null,
-        key = null,
-        layers = {};
-
-        for (i in rows) {
-          row = rows[i];
-          key = i + '';
-          layers[key] = {
-            name: row.name,
-            source: row.source,
-            type: row.type
-            //extent: this.getExtent(row.extent)
-          };
-        }
-        return layers;
-      },
-
-      /**
-       * Returns an array of coordinate arrays:
-       * [[1, 2], ...]
-       *  
-       * @param polygon POLYGON((34.073597 36.393648,34.073597 36.467531,
-       *                         34.140662 36.467531,34.140662 36.393648,
-       *                         34.073597 36.393648))
-       */
-      getExtent: function(polygon) {
-        return _.map(
-          polygon.split('POLYGON((')[1].split('))')[0].split(','), 
-          function(x) {
-            var pair = x.split(' '); 
-            return [parseFloat(pair[0]), parseFloat(pair[1])];
-          }
-        );                
-      }
-    }
-  );
-
-  mol.services.cartodb.converter = new mol.services.cartodb.Converter();
-
-  mol.services.cartodb.convert = function(response) {
-    return mol.services.cartodb.converter.convert(response);
-  };
+    mol.services.cartodb.convert = function(response) {
+        return mol.services.cartodb.converter.convert(response);
+    };
 };
 mol.modules.map = function(mol) {
 
@@ -1015,21 +1019,39 @@ mol.modules.map.layers = function(mol) {
                     function(layer) {
                         var l = this.display.addLayer(layer);
                         self = this;
-
-                        // Opacity slider change handler.
-                        l.opacity.change(
+                        
+                        if (layer.type === 'points') {
+                            l.opacity.hide();
+                        } else {
+                            // Opacity slider change handler.
+                            l.opacity.change(
+                                function(event) {
+                                    var params = {
+                                            layer: layer,
+                                            opacity: parseFloat(l.opacity.val())
+                                        },
+                                        e = new mol.bus.Event('layer-opacity', params);
+                                    
+                                    self.bus.fireEvent(e);
+                                }
+                            );
+                        }
+                        
+                        // Close handler for x button fires a 'remove-layers' event.
+                        l.close.click(
                             function(event) {
                                 var params = {
-                                        layer: layer,
-                                        opacity: parseFloat(l.opacity.val())
+                                        layers: [layer]
                                     },
-                                    e = new mol.bus.Event('layer-opacity', params);
-
+                                    e = new mol.bus.Event('remove-layers', params);
+                                
                                 self.bus.fireEvent(e);
+                                l.remove();
                             }
                         );
-
-                        // Click handler for zoom button.
+                        
+                        // Click handler for zoom button fires 'layer-zoom-extent' 
+                        // and 'show-loading-indicator' events.
                         l.zoom.click(
                             function(event) {
                                 var params = {
@@ -1102,7 +1124,6 @@ mol.modules.map.layers = function(mol) {
                 var html = '' +
                     '<li class="layerContainer">' +
                     '  <div class="layer widgetTheme">' +
-                    '    <button><img class="source" src="/static/maps/search/{0}.png"></button>' +
                     '    <button><img class="type" src="/static/maps/search/{0}.png"></button>' +
                     '    <div class="layerName">' +
                     '        <div class="layerNomial">{1}</div>' +
@@ -1111,6 +1132,7 @@ mol.modules.map.layers = function(mol) {
                     '        <input class="toggle" type="checkbox">' +
                     '        <span class="customCheck"></span> ' +
                     '    </div>' +
+                    '    <button class="close">x</button>' +
                     '    <button class="info">i</button>' +
                     '    <button class="zoom">z</button>' +
                     '    <input type="range" class="opacity" min=".25" max="1.0" step=".25" />' +
@@ -1123,8 +1145,8 @@ mol.modules.map.layers = function(mol) {
                 this.toggle = $(this.find('.toggle'));
                 this.zoom = $(this.find('.zoom'));
                 this.info = $(this.find('.info'));
+                this.close = $(this.find('.close'));
                 this.typePng = $(this.find('.type'));
-                this.sourcePng = $(this.find('.source'));
             }
         }
     );
@@ -1160,13 +1182,8 @@ mol.modules.map.layers = function(mol) {
 
             addLayer: function(layer) {
                 var ld = new mol.map.layers.LayerDisplay(layer);
-
-                ld.sourcePng[0].src ='static/maps/search/'+layer.source.replace(/ /g,"_")+'.png';
-                ld.sourcePng[0].title ='Layer Source: '+layer.source;
                 ld.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
-                ld.typePng[0].title = 'Layer Type: '+layer.type;
-
-
+                ld.typePng[0].title = 'Layer Type: '+layer.type;                
                 this.list.append(ld);
 				    this.layers.push(layer);
                 return ld;
@@ -2076,7 +2093,9 @@ mol.modules.map.search = function(mol) {
              * Initialize autocomplate functionality
              */
             initAutocomplete: function() {
-                var url= "https://mol.cartodb.com/api/v2/sql?q=",
+                this.populateAutocomplete(null,null); //Hacked in for demo
+                //hacked out for demo
+                /*var url= "https://mol.cartodb.com/api/v2/sql?q=",
                     self = this,
                     sql = '' +
                     'SET STATEMENT_TIMEOUT TO 0; ' + // Secret konami workaround for 40 second timeout.
@@ -2094,25 +2113,27 @@ mol.modules.map.search = function(mol) {
 
                     };
 
-                this.proxy.execute(action, new mol.services.Callback(success, failure));
+                this.proxy.execute(action, new mol.services.Callback(success, failure));*/
 
             },
             /*
              * Populate autocomplete results list
              */
             populateAutocomplete : function(action, response) {
-                this.scientificnames = [];
+               //hacked out for demo
+               /* this.scientificnames = [];
                 _.each(
                     response.rows,
                     function (row) {
                         this.scientificnames.push(row.scientificname);
                     }.bind(this)
-                  );
+                  );*/
                 $(this.display.searchBox).autocomplete({
                         RegEx : '\\b<term>[^\\b]*', //<term> gets replaced by the search term.
                         minLength : 3,
                         delay : 0,
-                        source : this.scientificnames
+                        source : scientificnames // Hacked in for demo
+                        //source : this.scientificnames //hacked out for demo
 
                  });
             },
@@ -2139,17 +2160,18 @@ mol.modules.map.search = function(mol) {
                         } else {
                             self.display.toggle(event.visible);
                         }
-
+						params.visible = false;
                         e = new mol.bus.Event('results-display-toggle', params);
                         self.bus.fireEvent(e);
                     }
                 );
+                
                 /**
                  * Clicking the go button executes a search.
                  */
                 this.display.goButton.click(
                     function(event) {
-                        self.search(self.display.searchBox.val());
+						      self.search(self.display.searchBox.val());
                     }
                 );
 
@@ -2206,7 +2228,7 @@ mol.modules.map.search = function(mol) {
             search: function(term) {
                 var self = this,
                     sql = this.sql.format(term, term),
-                    params = {sql:sql, term: term},
+                    params = {sql:sql, key: 'name-{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {term:term, response:response},
@@ -2217,8 +2239,8 @@ mol.modules.map.search = function(mol) {
                     failure = function(action, response) {
                         self.display.loading.hide();
                     };
-                this.display.loading.show();
 
+                this.display.loading.show();
                 this.proxy.execute(action, new mol.services.Callback(success, failure));
                 this.bus.fireEvent('search', new mol.bus.Event('search', term));
             }
@@ -2354,7 +2376,34 @@ mol.modules.map.tiles = function(mol) {
                         self.renderTiles(event.layers);
                     }
                 );
-				
+                
+                /**
+                 * Handler for when the remove-layers event is fired. This 
+                 * functions removes all layers from the Google Map. The
+                 * event.layers is an array of layer objects {id}.                
+                 */
+				    this.bus.addHandler(
+                    'remove-layers',
+                    function(event) {
+                        var layers = event.layers,
+                            mapTypes = self.map.overlayMapTypes;
+                        
+                        _.each(
+                            layers,
+                            function(layer) { // "lid" is short for layer id.
+                                var lid = layer.id;
+                                mapTypes.forEach(
+                                    function(mt, index) { // "mt" is short for map type.
+                                        if ((mt != undefined) && (mt.name === lid)) {
+                                            mapTypes.removeAt(index);
+                                        }
+                                    }
+                                );
+                            }
+                        );
+                    }
+                );
+                
 				    /**
 				     * Handler for when the reorder-layers event is fired. This renders
 				     * the layers according to the list of layers provided
@@ -2364,6 +2413,7 @@ mol.modules.map.tiles = function(mol) {
 					     function(event) {
 						      var layers = event.layers,
                             mapTypes = self.map.overlayMapTypes;
+
 						      _.each(
 							       layers,
 							       function(lid) { // "lid" is short for layerId.
@@ -2466,7 +2516,8 @@ mol.modules.map.tiles = function(mol) {
                     table = layer.type === 'points' ? 'points' : 'polygons',
                     query = sql.format(table, layer.name),
                     params = {
-                        sql: query
+                        sql: query,
+                        key: 'extent-{0}-{1}-{2}'.format(layer.source, layer.type, layer.name)
                     },
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
