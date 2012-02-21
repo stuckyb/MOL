@@ -131,19 +131,28 @@ def uploadToCartoDB(provider_dir):
                 collection.get_provider(), 
                 collection.get_name()
             )
-            uploaded_feature_hashes = getUploadedFeatureHashes(
-                _getoptions().table_name, 
-                collection.get_provider(), 
-                collection.get_name()
-            )
-            logging.info("%d feature hashes downloaded.", len(uploaded_feature_hashes))
+            uploaded_feature_hashes = []
+            if _getoptions().rows_to_skip == 0:
+                uploaded_feature_hashes = getUploadedFeatureHashes(
+                    _getoptions().table_name, 
+                    collection.get_provider(), 
+                    collection.get_name()
+                )
+                logging.info("%d feature hashes downloaded.", len(uploaded_feature_hashes))
+            else:
+                logging.info("%d feature hashes downloaded: --skip-rows %d in operation.", len(uploaded_feature_hashes), _getoptions().rows_to_skip)
             
             # We currently combine three SQL statements into a single statement for transmission to CartoDB.
             sql_statements = set()
 
+            rows_to_skip = _getoptions().rows_to_skip
             row_count = 0
             for feature in features:
                 row_count += 1
+
+                if(rows_to_skip > 0 and row_count <= rows_to_skip):
+                    logging.info("\tSkipping row %d (--skip-rows %d in operation)", row_count, rows_to_skip)
+                    continue
 
                 properties = feature['properties']
                 new_properties = collection.default_fields()
@@ -571,6 +580,14 @@ def parse_cmdline():
                       action="store_true",
                       dest="mark_time",
                       help="Turns on millisecond timing in the output, so that the time between messages can be tracked."
+    )
+    parser.add_option('--skip-rows',
+                      type="int",
+                      action="store",
+                      dest="rows_to_skip",
+                      metavar="N",
+                      default="0",
+                      help="How many rows should we skip before starting the upload? TURNS OFF DUPLICATION CHECKING."
     )
 
     return parser.parse_args()[0]
