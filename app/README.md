@@ -40,6 +40,33 @@ $ dev_appserver.py ./
 
 BOOM! You should be able to access the app at [http://localhost:8080](http://localhost:8080).
 
+# Backends
+
+We're using [App Engine backends](http://code.google.com/appengine/docs/python/backends/) for executing long running jobs that pre-cache CartoDB queries. For example, one of these jobs queries CartoDB for a distict list of `scientificname`, and for each one, performs a second CartoDB search profile query (e.g., a row per source/type) and stores the results in the `CacheItem` entity.
+
+Backends are configured in `backends.yaml`. 
+
+To use backends with the development server via `dev_appserver.py`, you'll need to start it with the following command:
+
+```bash
+$ dev_appserver.py --use_sqlite --backends .
+```
+
+Backends are fired off using the taskqueue API, so keep an eye on the taskqueue admin console:
+
+```
+http://localhost:8080/_ah/admin/queues
+```
+
+When you're ready to deploy or update backends to the production servers on App Engine, use this command:
+
+```shell
+$ appcfg backends -V {app version} . update
+```
+
+Definitely check out [all of the available commands](http://code.google.com/appengine/docs/python/backends/overview.html#Commands) for backends.
+
+
 # Emacs
 
 You can setup Emacs with a JavaScript REPL which is really nice for hacking on MOL code since it's mainly written in JavaScript. If you need to install Emacs, it's easy, and here's a [great starting point](https://github.om/whizbangsystems/emacs-starter-kit). Just follow the instructions in the README.

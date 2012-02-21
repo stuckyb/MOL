@@ -13,12 +13,13 @@ mol.modules.map.layers = function(mol) {
                 this.display = new mol.map.layers.LayerListDisplay('.map_container');
                 this.fireEvents();
                 this.addEventHandlers();
+				    this.initSortable();
             },
 
             /**
              * Handles an 'add-layers' event by adding them to the layer list.
              * The event is expected to have a property named 'layers' which
-             * is an arry of layer objects, each with a 'name' and 'type' property. 
+             * is an arry of layer objects, each with a 'name' and 'type' property.
              * This function ignores layers that are already represented
              * as widgets.
              */
@@ -55,7 +56,7 @@ mol.modules.map.layers = function(mol) {
 
                 this.bus.fireEvent(event);
             },
-            
+
             /**
              * Adds layer widgets to the map. The layers parameter is an array
              * of layer objects {id, name, type, source}.
@@ -66,35 +67,55 @@ mol.modules.map.layers = function(mol) {
                     function(layer) {
                         var l = this.display.addLayer(layer);
                         self = this;
-               
-                        // Opacity slider change handler.
-                        l.opacity.change(
+                        
+                        if (layer.type === 'points') {
+                            l.opacity.hide();
+                        } else {
+                            // Opacity slider change handler.
+                            l.opacity.change(
+                                function(event) {
+                                    var params = {
+                                            layer: layer,
+                                            opacity: parseFloat(l.opacity.val())
+                                        },
+                                        e = new mol.bus.Event('layer-opacity', params);
+                                    
+                                    self.bus.fireEvent(e);
+                                }
+                            );
+                        }
+                        
+                        // Close handler for x button fires a 'remove-layers' event.
+                        l.close.click(
                             function(event) {
                                 var params = {
-                                        layer: layer,
-                                        opacity: parseFloat(l.opacity.val())
+                                        layers: [layer]
                                     },
-                                    e = new mol.bus.Event('layer-opacity', params);
+                                    e = new mol.bus.Event('remove-layers', params);
                                 
-                                self.bus.fireEvent(e);                                
+                                self.bus.fireEvent(e);
+                                l.remove();
                             }
                         );
                         
-                        // Click handler for zoom button.
+                        // Click handler for zoom button fires 'layer-zoom-extent' 
+                        // and 'show-loading-indicator' events.
                         l.zoom.click(
                             function(event) {
                                 var params = {
                                         layer: layer,
                                         auto_bound: true
                                     },
-                                    e = new mol.bus.Event('layer-zoom-extent', params);
-                                
+                                    e = new mol.bus.Event('layer-zoom-extent', params),
+                                    le = new mol.bus.Event('show-loading-indicator');
+
                                 self.bus.fireEvent(e);
+                                self.bus.fireEvent(le);
                             }
                         );
-                        
+
                         l.toggle.attr('checked', true);
-                        
+
                         // Click handler for the toggle button.
                         l.toggle.click(
                             function(event) {
@@ -111,7 +132,37 @@ mol.modules.map.layers = function(mol) {
                     },
                     this
                 );
-            }
+            },
+
+			   /**
+			    * Add sorting capability to LayerListDisplay, when a result is
+             * drag-n-drop, and the order of the result list is changed,
+             * then the map will re-render according to the result list's order.
+			    **/
+			   initSortable: function() {
+				    var self = this,
+					     display = this.display;
+
+				    display.list.sortable(
+                    {
+					         update: function(event, ui) {
+						          var layers = [],
+						          params = {},
+                            e = null;
+
+						          $(display.list).find('li').each(
+                                function(i, el) {
+							               layers.push($(el).attr('id'));
+						              }
+                            );
+
+                            params.layers = layers;
+						          e = new mol.bus.Event('reorder-layers', params);
+						          self.bus.fireEvent(e);
+					         }
+				        }
+                );
+			   }
         }
     );
 
@@ -119,7 +170,7 @@ mol.modules.map.layers = function(mol) {
         {
             init: function(layer) {
                 var html = '' +
-                    '<div class="layerContainer">' +
+                    '<li class="layerContainer">' +
                     '  <div class="layer widgetTheme">' +
                     '    <button><img class="type" src="/static/maps/search/{0}.png"></button>' +
                     '    <div class="layerName">' +
@@ -128,12 +179,13 @@ mol.modules.map.layers = function(mol) {
                     '    <div class="buttonContainer">' +
                     '        <input class="toggle" type="checkbox">' +
                     '        <span class="customCheck"></span> ' +
-                    '    </div>' +                    
+                    '    </div>' +
+                    '    <button class="close">x</button>' +
                     '    <button class="info">i</button>' +
                     '    <button class="zoom">z</button>' +
                     '    <input type="range" class="opacity" min=".25" max="1.0" step=".25" />' +
                     '  </div>' +
-                    '</div>';
+                    '</li>';
 
                 this._super(html.format(layer.type, layer.name));
                 this.attr('id', layer.id);
@@ -141,6 +193,8 @@ mol.modules.map.layers = function(mol) {
                 this.toggle = $(this.find('.toggle'));
                 this.zoom = $(this.find('.zoom'));
                 this.info = $(this.find('.info'));
+                this.close = $(this.find('.close'));
+                this.typePng = $(this.find('.type'));
             }
         }
     );
@@ -160,79 +214,31 @@ mol.modules.map.layers = function(mol) {
                     '</div>';
 
                 this._super(html);
-                $(this.find("#sortable")).sortable();
-		          $(this.find("#sortable")).disableSelection();
+                this.list = $(this.find("#sortable"));
                 this.open = false;
                 this.views = {};
                 this.layers = [];
-                this.render();
             },
 
             getLayer: function(layer) {
                 return $(this.find('#{0}'.format(layer.id)));
             },
 
+			   getLayerById: function(id) {
+				    return _.find(this.layers, function(layer){ return layer.id === id; });
+			   },
+
             addLayer: function(layer) {
                 var ld = new mol.map.layers.LayerDisplay(layer);
-
-                $(this.find('#sortable')).append(ld);
+                ld.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
+                ld.typePng[0].title = 'Layer Type: '+layer.type;                
+                this.list.append(ld);
+				    this.layers.push(layer);
                 return ld;
             },
 
             render: function(howmany, order) {
-                var self = this,
-                    el = $(this.find('.dropdown'));
-
-                el.find('li').each(
-                    function(i ,el) {
-                        $(el).remove();
-                    }
-                );
-
-                _(this.layers.slice(0, howmany)).each(
-                    function(layer) {
-                        var v = self.views[layer.name];
-
-                        if (v) {
-                            delete self.views[layer.name];
-                        }
-
-                        v = new Layer(
-                            {
-                                layer: layer,
-                                bus: self.bus
-                            }
-                        );
-
-                        self.views[layer.name] = v;
-                        el.find('a.expand').before(v.render().el);
-                        //el.append(v.render().el);
-                    }
-                );
-
-                if (howmany === self.layers.length) {
-                    $(this.find('a.expand')).hide();
-                } else {
-                    $(this.find('a.expand')).show();
-                }
-
-                el.sortable(
-                    {
-                        revert: false,
-                        items: '.sortable',
-                        axis: 'y',
-                        cursor: 'pointer',
-                        stop: function(event,ui) {
-                            $(ui.item).removeClass('moving');
-                            //DONT CALL THIS FUNCTION ON beforeStop event, it will crash
-                            self.sortLayers();
-                        },
-                        start:function(event,ui) {
-                            $(ui.item).addClass('moving');
-                        }
-                    }
-                );
-
+				    var self = this;
                 this.updateLayerNumber();
                 return this;
             },
@@ -240,16 +246,16 @@ mol.modules.map.layers = function(mol) {
             updateLayerNumber: function() {
                 var t = 0;
                 _(this.layers).each(function(a) {
-                                        if(a.enabled) t++;
-                                    });
+					if(a.enabled) t++;
+				});
                 $(this.find('.layer_number')).html(t + " LAYER"+ (t>1?'S':''));
             },
 
             sortLayers: function() {
                 var order = [];
                 $(this.find('li')).each(function(i, el) {
-                                      order.push($(el).attr('id'));
-                                  });
+					order.push($(el).attr('id'));
+				});
                 this.bus.emit("map:reorder_layers", order);
             },
 
@@ -277,11 +283,11 @@ mol.modules.map.layers = function(mol) {
 
             hiding: function(e) {
                 var layers = null;
-                
+
                 if (!this.open) {
                     return;
                 }
-                
+
                 // put first what are showing
                 this.layers.sort(
                     function(a, b) {

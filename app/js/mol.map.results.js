@@ -362,8 +362,10 @@ mol.modules.map.results = function(mol) {
                         var id = layer.id,
                             name = layer.name,
                             result = new mol.map.results.ResultDisplay(name, id);
-                            result.sourcePng[0].src = 'static/maps/search/'+layer.source+'.png';
-                            result.typePng[0].src = 'static/maps/search/'+layer.type+'.png';
+                            result.sourcePng[0].src = 'static/maps/search/'+layer.source.replace(/ /g,"_")+'.png';
+                            result.sourcePng[0].title = 'Layer Source: ' + layer.source;
+                            result.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
+                            result.typePng[0].title = 'Layer Type: ' + layer.type;
                         this.resultList.append(result);
                         return result;
                     },

@@ -10,7 +10,7 @@ builtins:
 
 handlers:
 - url: /admin/.*
-  script: app.py
+  script: admin_handler.py
   login: admin
 
 - url: /js
@@ -26,6 +26,11 @@ handlers:
   static_files: static/\1
   upload: static/(.*\.(gif|png|jpg))
 
+- url: /cache/.*
+  script: cache_handler.py
+
+- url: /backend/build_search_cache(/.*)?
+  script: search_cache_backend.py
 
 - url: /.*
   script: app.py

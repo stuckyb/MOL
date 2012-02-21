@@ -55,7 +55,7 @@ mol.modules.services = function(mol) {
 
                 switch (action.type) {
                     case 'cartodb-sql-query':
-                    cartodb.query(action.sql, this.callback(action, callback));
+                    cartodb.query(action.key, action.sql, this.callback(action, callback));
                     break;
                 }
             },

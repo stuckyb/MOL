@@ -11,9 +11,14 @@ autocomplete.prototype._initSource = function() {
     var source = this.options.source;
     if ( $.isArray(source) ) {
         this.source = function( request, response ) {
-            var leftRegExp = this.options.leftRegExp == undefined ? '' : this.options.leftRegExp;
-            var rightRegExp = this.options.rightRegExp == undefined ? '' : this.options.rightRegExp;
-            var matcher = new RegExp( leftRegExp + autocomplete.escapeRegex( request.term ) + rightRegExp, "i" );
+            var matchstr = autocomplete.escapeRegex( request.term );
+            if (typeof this.options.RegEx == 'string') {
+                   if (this.options.RegEx.indexOf('<term>') > 0) {
+                       matchstr = this.options.RegEx.replace(/<term>/g, autocomplete.escapeRegex( request.term ));
+
+                   }
+            }
+            var matcher = new RegExp( matchstr, "i" );
             response( $.grep( source, function( value ) {
                 value = value.label || value.value || value;
                 return matcher.test( value );

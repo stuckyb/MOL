@@ -192,16 +192,27 @@ button:hover{
     padding-top: 2px;
     padding-bottom: 2px;
 }
+.mol-LayerControl-Layers .layer .source{
+    float: left;
+    width: 10%;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
 .mol-LayerControl-Layers .layer img.type{
     height: 18px;
     width: 18px;
 }
+.mol-LayerControl-Layers .layer img.source{
+    height: 18px;
+    width: 18px;
+}
 .mol-LayerControl-Layers .layer .buttonContainer {
-    width: 23%;
+    width: 29%;
     float: right;
     position: relative;
     margin-right: 5px;
 }
+
 .mol-LayerControl-Layers .layer .toggle {
     opacity: 0.0;
 	position:absolute;
@@ -244,14 +255,23 @@ button:hover{
     height: 24px;
 }
 
-.mol-LayerControl-Layers .layer .opacity {
+.mol-LayerControl-Layers .layer .close {
     float: right;
-    position: absolute;
-    #width: 75px;
+    position: relative;
+    width: 7%;
     font-style: italic;
     font-size: 1.2em;
     height: 24px;
-    #margin-left: 220px;
+}
+
+.mol-LayerControl-Layers .layer .opacity {
+    float: right;
+    position: relative;
+    width: 20%;
+    font-style: italic;
+    font-size: 1.2em;
+    height: 24px;
+    margin-right: 35px;
 }
 
 .mol-LayerControl-Layers .layer .zoom {

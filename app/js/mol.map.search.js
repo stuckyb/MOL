@@ -37,45 +37,18 @@ mol.modules.map.search = function(mol) {
              * Initialize autocomplate functionality
              */
             initAutocomplete: function() {
-                var url= "https://mol.cartodb.com/api/v2/sql?q=",
-                    self = this,
-                    sql = '' +
-                    'SET STATEMENT_TIMEOUT TO 0; ' + // Secret konami workaround for 40 second timeout.
-                    'SELECT ' +
-                    'DISTINCT scientificname ' +
-                    'FROM polygons ' +
-                    'UNION SELECT ' +
-                    'DISTINCT scientificname ' +
-                    'FROM points ' +
-                    'ORDER BY scientificname ASC',
-                    params = {sql:sql},
-                    action = new mol.services.Action('cartodb-sql-query', params),
-                    success = this.populateAutocomplete.bind(this),
-                    failure = function(action, response) {
-
-                    };
-
-                this.proxy.execute(action, new mol.services.Callback(success, failure));
-
+                this.populateAutocomplete(null,null); 
             },
+
             /*
              * Populate autocomplete results list
              */
             populateAutocomplete : function(action, response) {
-                this.scientificnames = [];
-                _.each(
-                    response.rows,
-                    function (row) {
-                        this.scientificnames.push(row.scientificname);
-                    }.bind(this)
-                  );
                 $(this.display.searchBox).autocomplete({
-                        leftRegExp : '\\b',
-                        rightRegExp : '[^\\b]*?\\b',
-                        minLength : 2,
+                        RegEx : '\\b<term>[^\\b]*', //<term> gets replaced by the search term.
+                        minLength : 3,
                         delay : 0,
-                        source : this.scientificnames
-
+                        source : scientificnames
                  });
             },
             addEventHandlers: function() {
@@ -101,17 +74,18 @@ mol.modules.map.search = function(mol) {
                         } else {
                             self.display.toggle(event.visible);
                         }
-
+						params.visible = false;
                         e = new mol.bus.Event('results-display-toggle', params);
                         self.bus.fireEvent(e);
                     }
                 );
+                
                 /**
                  * Clicking the go button executes a search.
                  */
                 this.display.goButton.click(
                     function(event) {
-                        self.search(self.display.searchBox.val());
+						      self.search(self.display.searchBox.val());
                     }
                 );
 
@@ -168,7 +142,7 @@ mol.modules.map.search = function(mol) {
             search: function(term) {
                 var self = this,
                     sql = this.sql.format(term, term),
-                    params = {sql:sql, term: term},
+                    params = {sql:sql, key: 'name-{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {term:term, response:response},
@@ -179,8 +153,8 @@ mol.modules.map.search = function(mol) {
                     failure = function(action, response) {
                         self.display.loading.hide();
                     };
-                this.display.loading.show();
 
+                this.display.loading.show();
                 this.proxy.execute(action, new mol.services.Callback(success, failure));
                 this.bus.fireEvent('search', new mol.bus.Event('search', term));
             }
