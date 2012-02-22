@@ -106,6 +106,14 @@ class ProviderConfig(object):
                     (filename, ", ".join(required_fieldset.difference(properties_keyset))))
                 sys.exit(1)
 
+            # Some "manual" validation. Eventually, this will happen
+            # elsewhere (see issue #9 and branch 'issue9'), but for now,
+            # we do this here.
+            valid_types = ('points', 'range', 'ecoregion', 'protectedarea')
+            if properties['type'] not in valid_types:
+                logging.error("File %s does not have a valid type: '%s' type specified, but valid types are: %s", filename, properties['type'], ", ".join(valid_types))
+                sys.exit(1)
+
         def default_fields(self):
             """ Returns a dict of every field which already has a value set in config.yaml.
             """
