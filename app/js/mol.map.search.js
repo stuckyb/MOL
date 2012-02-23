@@ -37,7 +37,7 @@ mol.modules.map.search = function(mol) {
              * Initialize autocomplate functionality
              */
             initAutocomplete: function() {
-                this.populateAutocomplete(null,null); 
+                this.populateAutocomplete(null, null); 
             },
 
             /*
@@ -54,7 +54,7 @@ mol.modules.map.search = function(mol) {
                             $.getJSON(
                                 'api/autocomplete',
                                 {
-                                    key: request.term
+                                    key: 'ac-{0}'.format(request.term)
                                 },
                                 function(names) {
                                     response(names);

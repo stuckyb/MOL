@@ -6,6 +6,7 @@ __author__ = 'Aaron Steele'
 
 # Standard Python imports
 import logging
+import simplejson
 
 # Google App Engine imports
 from google.appengine.ext.ndb import model

@@ -13,6 +13,9 @@ Example usage:
     "Abrothrix jelskii"
   ]
 """
+
+import cache
+
 from google.appengine.ext import webapp
 from google.appengine.ext.ndb import model
 from google.appengine.ext.webapp.util import run_wsgi_app
@@ -45,11 +48,11 @@ class AutocompleteHandler(webapp.RequestHandler):
         if not key:
             self.response.out.write('[]')
             return
-        entity = AutocompleteName.get(key)
-        if not entity:
+        names = cache.get(key)
+        if not names:
             self.response.out.write('[]')
         else:
-            self.response.out.write(entity.names_json)
+            self.response.out.write(names)
 
 application = webapp.WSGIApplication(
          [('/api/autocomplete', AutocompleteHandler)],

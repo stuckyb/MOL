@@ -2093,50 +2093,33 @@ mol.modules.map.search = function(mol) {
              * Initialize autocomplate functionality
              */
             initAutocomplete: function() {
-                this.populateAutocomplete(null,null); //Hacked in for demo
-                //hacked out for demo
-                /*var url= "https://mol.cartodb.com/api/v2/sql?q=",
-                    self = this,
-                    sql = '' +
-                    'SET STATEMENT_TIMEOUT TO 0; ' + // Secret konami workaround for 40 second timeout.
-                    'SELECT ' +
-                    'DISTINCT scientificname ' +
-                    'FROM polygons ' +
-                    'UNION SELECT ' +
-                    'DISTINCT scientificname ' +
-                    'FROM points ' +
-                    'ORDER BY scientificname ASC',
-                    params = {sql:sql},
-                    action = new mol.services.Action('cartodb-sql-query', params),
-                    success = this.populateAutocomplete.bind(this),
-                    failure = function(action, response) {
-
-                    };
-
-                this.proxy.execute(action, new mol.services.Callback(success, failure));*/
-
+                this.populateAutocomplete(null, null); 
             },
+
             /*
              * Populate autocomplete results list
              */
             populateAutocomplete : function(action, response) {
-               //hacked out for demo
-               /* this.scientificnames = [];
-                _.each(
-                    response.rows,
-                    function (row) {
-                        this.scientificnames.push(row.scientificname);
-                    }.bind(this)
-                  );*/
-                $(this.display.searchBox).autocomplete({
-                        RegEx : '\\b<term>[^\\b]*', //<term> gets replaced by the search term.
-                        minLength : 3,
-                        delay : 0,
-                        source : scientificnames // Hacked in for demo
-                        //source : this.scientificnames //hacked out for demo
-
+                $(this.display.searchBox).autocomplete(
+                    {
+                        RegEx: '\\b<term>[^\\b]*', //<term> gets replaced by the search term.
+                        minLength: 3,
+                        delay: 0,
+                        source: function(request, response) {
+                            // TODO: Refactor this using our proxy:
+                            $.getJSON(
+                                'api/autocomplete',
+                                {
+                                    key: 'ac-{0}'.format(request.term)
+                                },
+                                function(names) {
+                                    response(names);
+                                }
+                            );
+                        }
                  });
             },
+            
             addEventHandlers: function() {
                 var self = this;
 

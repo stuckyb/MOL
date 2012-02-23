@@ -92,21 +92,35 @@ class SearchCacheBuilder(webapp.RequestHandler):
 
     def post(self):
         url = 'https://mol.cartodb.com/api/v2/sql'
-        sql = 'SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from polygons limit 20' #UNION select distinct(scientificname) from points limit 1000'
-        request = '%s?%s' % (url, urllib.urlencode(dict(q=sql)))
+        sql_points = 'SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from points' # limit 20' 
+        sql_polygons = 'SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from polygons' #limit 20' 
+
+        # Get points names:
+        request = '%s?%s' % (url, urllib.urlencode(dict(q=sql_points)))
         result = urlfetch.fetch(request, deadline=60)
         content = result.content
         rows = simplejson.loads(content)['rows']
 
-        sql = "SET STATEMENT_TIMEOUT TO 0; SELECT p.provider as source, p.scientificname as name, p.type as type FROM polygons as p WHERE p.scientificname = '%s'" #UNION SELECT t.provider as source, t.scientificname as name, t.type as type FROM points as t WHERE t.scientificname = '%s'"          
+        # Get polygons names:
+        request = '%s?%s' % (url, urllib.urlencode(dict(q=sql_polygons)))
+        result = urlfetch.fetch(request, deadline=60)
+        content = result.content
+        rows.extend(simplejson.loads(content)['rows'])
+
+        # Get unique names from points and polygons:
+        unique_names = list(set([x['scientificname'] for x in rows]))
+
+
+        sql = "SET STATEMENT_TIMEOUT TO 0; SELECT p.provider as source, p.scientificname as name, p.type as type FROM polygons as p WHERE p.scientificname = '%s' UNION SELECT t.provider as source, t.scientificname as name, t.type as type FROM points as t WHERE t.scientificname = '%s'"          
+
         # Cache search results.
         rpcs = []
-        for names in self.names_generator(rows):
+        for names in self.names_generator(unique_names):
             for name in names:
 
-                index_name(name)
+                #index_name(name)
 
-                q = sql % (name) #, name)
+                q = sql % (name, name)
                 payload = urllib.urlencode(dict(q=q))
                 rpc = urlfetch.create_rpc(deadline=60)
                 rpc.callback = create_callback(rpc, name, url, payload)
@@ -118,11 +132,42 @@ class SearchCacheBuilder(webapp.RequestHandler):
             
         check_entities(flush=True)
 
-    def names_generator(self, rows):
+        # Build autocomplete cache:
+        for name in unique_names:
+            # Add autocomplete cache entries:
+            for term in name_keys(name):
+                key = 'ac-%s' % term
+                names = cache.get(key, loads=True) # names is a list of names
+                if names:
+                    if name not in names:
+                        names.append(name)
+                else:
+                    names = [name]
+                entity = cache.create_entry(key, names, dumps=True)
+                ac_entities.append(entity)
+            check_entities()
+        check_entities(flush=True)
+
+        # Build autocomplete search results cache:
+        for name in unique_names:
+            for term in name_keys(name):
+                key = 'ac-%s' % term
+                names_list = cache.get(key, loads=True) # names is a list of names
+                rows = [cache.get('name-%s' % x, loads=True)['rows'] 
+                           for x in names_list]
+                result = reduce(lambda x, y: x + y, rows)
+                entity = cache.create_entry(
+                    'name-%s' % term, dict(rows=result), dumps=True)
+                entities.append(entity)
+            check_entities()
+        check_entities(flush=True)
+            
+
+    def names_generator(self, unique_names):
         """Generates lists of at most 10 names."""
         names = []
-        for x in xrange(len(rows)):
-            names.append(rows[x]['scientificname'])
+        for x in xrange(len(unique_names)):
+            names.append(unique_names[x])
             if x % 10 == 0:
                 yield names
                 names = []
