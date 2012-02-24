@@ -25,10 +25,10 @@ def check_entities(flush=False):
     """Writes entities to datastore in batches."""
     global entities
     global ac_entities
-    if len(entities) > 100 or flush:
+    if len(entities) >= 5000 or flush:
         ndb.put_multi(entities)
         entities = [] 
-    if len(ac_entities) > 100 or flush:
+    if len(ac_entities) >= 5000 or flush:
         ndb.put_multi(ac_entities)
         ac_entities = [] 
     
@@ -42,8 +42,8 @@ def handle_result(rpc, name, url, payload):
     except urlfetch.DownloadError:
         tries = 10
         while tries > 0:
-            result = urlfetch.fetch(url, payload=payload, method='POST', deadline=60)
             try:
+                result = urlfetch.fetch(url, payload=payload, method='POST', deadline=60)
                 entities.append(cache.create_entry(key, result.content))
                 check_entities()
                 return
@@ -92,8 +92,8 @@ class SearchCacheBuilder(webapp.RequestHandler):
 
     def post(self):
         url = 'https://mol.cartodb.com/api/v2/sql'
-        sql_points = 'SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from points' # limit 20' 
-        sql_polygons = 'SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from polygons' #limit 20' 
+        sql_points = 'SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from points'# limit 20' 
+        sql_polygons = 'SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from polygons'# limit 20' 
 
         # Get points names:
         request = '%s?%s' % (url, urllib.urlencode(dict(q=sql_points)))
@@ -117,16 +117,12 @@ class SearchCacheBuilder(webapp.RequestHandler):
         rpcs = []
         for names in self.names_generator(unique_names):
             for name in names:
-
-                #index_name(name)
-
                 q = sql % (name, name)
                 payload = urllib.urlencode(dict(q=q))
                 rpc = urlfetch.create_rpc(deadline=60)
                 rpc.callback = create_callback(rpc, name, url, payload)
                 urlfetch.make_fetch_call(rpc, url, payload=payload, method='POST')
-                rpcs.append(rpc)
-            
+                rpcs.append(rpc)            
             for rpc in rpcs:
                 rpc.wait()
             
@@ -145,7 +141,7 @@ class SearchCacheBuilder(webapp.RequestHandler):
                     names = [name]
                 entity = cache.create_entry(key, names, dumps=True)
                 ac_entities.append(entity)
-            check_entities()
+            check_entities(flush=True)
         check_entities(flush=True)
 
         # Build autocomplete search results cache:
@@ -162,7 +158,6 @@ class SearchCacheBuilder(webapp.RequestHandler):
             check_entities()
         check_entities(flush=True)
             
-
     def names_generator(self, unique_names):
         """Generates lists of at most 10 names."""
         names = []
