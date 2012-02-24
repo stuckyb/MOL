@@ -92,8 +92,10 @@ class SearchCacheBuilder(webapp.RequestHandler):
 
     def post(self):
         url = 'https://mol.cartodb.com/api/v2/sql'
-        sql_points = 'SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from points'# limit 20' 
-        sql_polygons = 'SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from polygons'# limit 20' 
+        sql_points = "SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from points limit 500" #where scientificname='Dacelo novaeguineae'"
+        # limit 20' 
+        sql_polygons = "SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from polygons limit 500" #where scientificname='Dacelo novaeguineae'"
+        # limit 20' 
 
         # Get points names:
         request = '%s?%s' % (url, urllib.urlencode(dict(q=sql_points)))
@@ -152,10 +154,18 @@ class SearchCacheBuilder(webapp.RequestHandler):
                 rows = [cache.get('name-%s' % x, loads=True)['rows'] 
                            for x in names_list]
                 result = reduce(lambda x, y: x + y, rows)
-                entity = cache.create_entry(
-                    'name-%s' % term, dict(rows=result), dumps=True)
+                entity = cache.get('name-%s' % term, loads=True)
+                if not entity:
+                    entity = cache.create_entry(
+                        'name-%s' % term, dict(rows=result), dumps=True)
+                else:
+                    for r in entity['rows']:
+                        if r not in result:
+                            result.append(r)
+                    entity = cache.create_entry(
+                        'name-%s' % term, dict(rows=result), dumps=True)
                 entities.append(entity)
-            check_entities()
+            check_entities(flush=True)
         check_entities(flush=True)
             
     def names_generator(self, unique_names):
