@@ -20,9 +20,9 @@ class GetHandler(webapp.RequestHandler):
     def post(self):
         """Returns a cached value by key or None if it doesn't exist."""
         key = self.request.get('key', 'empty')
-        sql = self.request.get('sql')
+        sql = self.request.get('sql', None)
         value = cache.get(key)
-        if not value:
+        if not value and sql:
             logging.info('Cache miss on %s' % key)
             url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
             value = urlfetch.fetch(url, deadline=60).content

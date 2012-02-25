@@ -4,6 +4,8 @@ __contributors__ = []
 from autocomplete_handler import AutocompleteName
 import cache
 
+import collections
+import csv
 import logging
 import simplejson
 import urllib
@@ -20,6 +22,7 @@ entities = []
 global ac_entities
 ac_entities = []
 
+global names_map
 
 def check_entities(flush=False):
     """Writes entities to datastore in batches."""
@@ -38,6 +41,8 @@ def handle_result(rpc, name, url, payload):
     try:
         result = rpc.get_result()
         entities.append(cache.create_entry(key, result.content))
+        entities.extend([cache.create_entry('name-%s' % x, result.content)
+                         for x in names_map[name]])
         check_entities()
     except urlfetch.DownloadError:
         tries = 10
@@ -45,6 +50,8 @@ def handle_result(rpc, name, url, payload):
             try:
                 result = urlfetch.fetch(url, payload=payload, method='POST', deadline=60)
                 entities.append(cache.create_entry(key, result.content))
+                entities.extend([cache.create_entry('name-%s' % x, result.content)
+                                 for x in names_map[name]])
                 check_entities()
                 return
             except urlfetch.DownloadError:
@@ -71,19 +78,49 @@ def name_keys(name):
             for i in indexes:
                 yield n[:i]
 
-def index_name(name):
-    """Create AutocompleteName entities."""
-    for key in name_keys(name):
-        entity = AutocompleteName.get(key)
-        if entity:
-            if name not in entity.names:
-                entity.names.append(name)
+def load_names():
+    """Loads names.csv into a defaultdict with scientificname keys mapped to
+    a list of common names."""
+    global names_map
+    names_map = collections.defaultdict(list)
+    for row in csv.DictReader(open('names.csv', 'r')):
+        names_map[row['scientific']].extend(row['english'].split(','))
+
+def add_autocomplete_cache(name):
+    # Add autocomplete cache entries:
+    for term in name_keys(name):
+        key = 'ac-%s' % term
+        names = cache.get(key, loads=True) # names is a list of names
+        if names:
+            if name not in names:
+                names.append(name)
         else:
-            entity = AutocompleteName.create(key)
-            entity.names.append(name)
+            names = [name]
+        entity = cache.create_entry(key, names, dumps=True)
         ac_entities.append(entity)
     check_entities(flush=True)
-    
+
+def add_autocomplete_results(name):
+    # Add name search results.
+    for term in name_keys(name):
+        key = 'ac-%s' % term
+        names_list = cache.get(key, loads=True) # names is a list of names
+        rows = [cache.get('name-%s' % x, loads=True)['rows'] 
+                for x in names_list]
+        result = reduce(lambda x, y: x + y, rows)
+        entity = cache.get('name-%s' % term, loads=True)
+        if not entity:
+            entity = cache.create_entry(
+                'name-%s' % term, dict(rows=result), dumps=True)
+        else:
+            for r in entity['rows']:
+                if r not in result:
+                    result.append(r)
+            entity = cache.create_entry(
+                'name-%s' % term, dict(rows=result), dumps=True)
+        entities.append(entity)
+    check_entities(flush=True)
+
 class SearchCacheBuilder(webapp.RequestHandler):
     def get(self):
         self.error(405)
@@ -109,6 +146,8 @@ class SearchCacheBuilder(webapp.RequestHandler):
         content = result.content
         rows.extend(simplejson.loads(content)['rows'])
 
+        load_names()
+
         # Get unique names from points and polygons:
         unique_names = list(set([x['scientificname'] for x in rows]))
 
@@ -131,41 +170,19 @@ class SearchCacheBuilder(webapp.RequestHandler):
         check_entities(flush=True)
 
         # Build autocomplete cache:
-        for name in unique_names:
-            # Add autocomplete cache entries:
-            for term in name_keys(name):
-                key = 'ac-%s' % term
-                names = cache.get(key, loads=True) # names is a list of names
-                if names:
-                    if name not in names:
-                        names.append(name)
-                else:
-                    names = [name]
-                entity = cache.create_entry(key, names, dumps=True)
-                ac_entities.append(entity)
-            check_entities(flush=True)
+        for name in unique_names:            
+            add_autocomplete_cache(name)
+            if names_map.has_key(name):
+                for common in names_map[name]:
+                    add_autocomplete_cache(common)            
         check_entities(flush=True)
 
         # Build autocomplete search results cache:
         for name in unique_names:
-            for term in name_keys(name):
-                key = 'ac-%s' % term
-                names_list = cache.get(key, loads=True) # names is a list of names
-                rows = [cache.get('name-%s' % x, loads=True)['rows'] 
-                           for x in names_list]
-                result = reduce(lambda x, y: x + y, rows)
-                entity = cache.get('name-%s' % term, loads=True)
-                if not entity:
-                    entity = cache.create_entry(
-                        'name-%s' % term, dict(rows=result), dumps=True)
-                else:
-                    for r in entity['rows']:
-                        if r not in result:
-                            result.append(r)
-                    entity = cache.create_entry(
-                        'name-%s' % term, dict(rows=result), dumps=True)
-                entities.append(entity)
-            check_entities(flush=True)
+            add_autocomplete_results(name)
+            if names_map.has_key(name):
+                for common in names_map[name]:
+                    add_autocomplete_results(common)            
         check_entities(flush=True)
             
     def names_generator(self, unique_names):
