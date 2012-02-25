@@ -65,6 +65,7 @@ Collections:
         - ISLAND
       seasonality: 
         - SEASONAL
+        - OccCode
       surveystartdate: 
         - YEAR
       surveyenddate: 
