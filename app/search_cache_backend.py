@@ -9,10 +9,10 @@ import csv
 import logging
 import simplejson
 import urllib
+import webapp2
 
 from google.appengine.api import urlfetch
 from google.appengine.ext import ndb 
-from google.appengine.ext import webapp
 from google.appengine.ext.ndb import model
 from google.appengine.ext.webapp.util import run_wsgi_app
 
@@ -86,16 +86,22 @@ def load_names():
     for row in csv.DictReader(open('names.csv', 'r')):
         names_map[row['scientific']].extend(row['english'].split(','))
 
-def add_autocomplete_cache(name):
-    # Add autocomplete cache entries:
+def add_autocomplete_cache(name, kind):
+    """Add autocomplete cache entries.
+
+    Arguments:
+      name - The name (Puma concolor)
+      kind - The name kind (scientific, english, etc)
+    """
+    name_val = '%s:%s' % (name, kind)
     for term in name_keys(name):
         key = 'ac-%s' % term
         names = cache.get(key, loads=True) # names is a list of names
         if names:
-            if name not in names:
-                names.append(name)
+            if name_val not in names:
+                names.append(name_val)
         else:
-            names = [name]
+            names = [name_val]
         entity = cache.create_entry(key, names, dumps=True)
         ac_entities.append(entity)
     check_entities(flush=True)
@@ -105,8 +111,10 @@ def add_autocomplete_results(name):
     for term in name_keys(name):
         key = 'ac-%s' % term
         names_list = cache.get(key, loads=True) # names is a list of names
-        rows = [cache.get('name-%s' % x, loads=True)['rows'] 
-                for x in names_list]
+        
+        # Note: Each 'x' here is of the form name:kind which is why we split on ':'
+        rows = [cache.get('name-%s' % x.split(':')[0], loads=True)['rows'] for x in names_list]
+
         result = reduce(lambda x, y: x + y, rows)
         entity = cache.get('name-%s' % term, loads=True)
         if not entity:
@@ -121,7 +129,7 @@ def add_autocomplete_results(name):
         entities.append(entity)
     check_entities(flush=True)
 
-class SearchCacheBuilder(webapp.RequestHandler):
+class SearchCacheBuilder(webapp2.RequestHandler):
     def get(self):
         self.error(405)
         self.response.headers['Allow'] = 'POST'
@@ -129,9 +137,9 @@ class SearchCacheBuilder(webapp.RequestHandler):
 
     def post(self):
         url = 'https://mol.cartodb.com/api/v2/sql'
-        sql_points = "SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from points limit 500" #where scientificname='Dacelo novaeguineae'"
+        sql_points = "SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from points limit 1" #where scientificname='Dacelo novaeguineae'"
         # limit 20' 
-        sql_polygons = "SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from polygons limit 500" #where scientificname='Dacelo novaeguineae'"
+        sql_polygons = "SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from polygons limit 1" #where scientificname='Dacelo novaeguineae'"
         # limit 20' 
 
         # Get points names:
@@ -171,10 +179,10 @@ class SearchCacheBuilder(webapp.RequestHandler):
 
         # Build autocomplete cache:
         for name in unique_names:            
-            add_autocomplete_cache(name)
+            add_autocomplete_cache(name, 'scientific')
             if names_map.has_key(name):
                 for common in names_map[name]:
-                    add_autocomplete_cache(common)            
+                    add_autocomplete_cache(common, 'english')            
         check_entities(flush=True)
 
         # Build autocomplete search results cache:
@@ -196,7 +204,7 @@ class SearchCacheBuilder(webapp.RequestHandler):
         if len(names) > 0:
             yield names            
     
-application = webapp.WSGIApplication(
+application = webapp2.WSGIApplication(
     [('/backend/build_search_cache', SearchCacheBuilder),]
     , debug=True)
 

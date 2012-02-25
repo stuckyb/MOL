@@ -8,13 +8,13 @@ import cache
 # Standard Python imports
 import logging
 import urllib
+import webapp2
 
 # Google App Engine imports
 from google.appengine.api import urlfetch
-from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-class GetHandler(webapp.RequestHandler):
+class GetHandler(webapp2.RequestHandler):
     """Request handler for cache requests."""
 
     def post(self):
@@ -30,7 +30,7 @@ class GetHandler(webapp.RequestHandler):
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(value)
                     
-application = webapp.WSGIApplication(
+application = webapp2.WSGIApplication(
     [('/cache/get', GetHandler),], 
     debug=True)
          

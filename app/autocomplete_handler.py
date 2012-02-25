@@ -16,12 +16,12 @@ Example usage:
 
 import cache
 
-from google.appengine.ext import webapp
 from google.appengine.ext.ndb import model
 from google.appengine.ext.webapp.util import run_wsgi_app
 
 import logging
 import simplejson
+import webapp2
 
 class AutocompleteName(model.Model):
     """Model for autocompleted names. Each entity key is a substring of a 
@@ -38,7 +38,7 @@ class AutocompleteName(model.Model):
     def create(cls, key):
         return cls(id=key.strip().lower())
 
-class AutocompleteHandler(webapp.RequestHandler):
+class AutocompleteHandler(webapp2.RequestHandler):
     """Handler for the autocomplete request. Expects a key parameter. Returns 
     a list of all matching names or an empty list as JSON.
     """
@@ -54,7 +54,7 @@ class AutocompleteHandler(webapp.RequestHandler):
         else:
             self.response.out.write(names)
 
-application = webapp.WSGIApplication(
+application = webapp2.WSGIApplication(
          [('/api/autocomplete', AutocompleteHandler)],
          debug=True)
 

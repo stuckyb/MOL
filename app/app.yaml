@@ -1,16 +1,16 @@
 application: mol-lab
 version: canary
-runtime: python
+runtime: python27
+threadsafe: true
 api_version: 1
 
 builtins:
-- datastore_admin: on
 - appstats: on
 - remote_api: on
 
 handlers:
 - url: /admin/.*
-  script: admin_handler.py
+  script: admin_handler.application
   login: admin
 
 - url: /js
@@ -27,13 +27,13 @@ handlers:
   upload: static/(.*\.(gif|png|jpg))
 
 - url: /cache/.*
-  script: cache_handler.py
+  script: cache_handler.application
 
 - url: /api/autocomplete
-  script: autocomplete_handler.py
+  script: autocomplete_handler.application
 
 - url: /backend/build_search_cache(/.*)?
-  script: search_cache_backend.py
+  script: search_cache_backend.application
 
 - url: /.*
-  script: app.py
+  script: app.application
