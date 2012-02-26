@@ -430,7 +430,8 @@ def encodeGeoJSONEntryAsSQL(entry, table_name):
     # be a fix), or we can clone our own python-oauth2 and fix that.
     # Another alternative would be to use POST and multipart/form-data,
     # which is probably the better long term solution anyway.
-    values = [unicode(v).encode('ascii', 'replace') for v in properties.values()]
+    # values = [unicode(v).encode('ascii', 'replace') for v in properties.values()]
+    values = [unicode(v).encode('ascii', 'xmlcharrefreplace') for v in properties.values()]
         # 'values' will be in the same order as 'fields'
         # as long as there are "no intervening modifications to the 
         # dictionary" [http://docs.python.org/library/stdtypes.html#dict]
