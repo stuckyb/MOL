@@ -84,14 +84,18 @@ class TableSchema(object):
             if row['required'] is None or row['required'] != 'y':
                 is_required = 0
 
-            self.schema[row_alias] = {'required': is_required, 'type': row['type']}
-
-            # Check if this field should be indexed.
-            if row['indexed'] is not None and row['indexed'] == 'y':
-                self.schema[row_alias]['indexed'] = 1
-                self.indexed_fields.append(row_alias)
+            if row['type'].lower() == 'geometry':
+                # Do nothing: geometry fields are automatically created in CartoDB.
+                1
             else:
-                self.schema[row_alias]['indexed'] = 0
+                self.schema[row_alias] = {'required': is_required, 'type': row['type']}
+
+                # Check if this field should be indexed.
+                if row['indexed'] is not None and row['indexed'] == 'y':
+                    self.schema[row_alias]['indexed'] = 1
+                    self.indexed_fields.append(row_alias)
+                else:
+                    self.schema[row_alias]['indexed'] = 0
 
         urlconn.close()
 

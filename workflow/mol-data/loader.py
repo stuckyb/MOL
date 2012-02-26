@@ -421,8 +421,29 @@ def encodeGeoJSONEntryAsSQL(entry, table_name):
     Returns: none.
     """
     
-    # Get the fields and values ready to be turned into an SQL statement
+    # Determine the geometry for this object, by converting the GeoJSON
+    # geometry representation into WKT.
+    # geometry = "SRID=4326;" + shapely.geometry.asShape(entry['geometry']).wkb
+    try:
+        shape = shapely.geometry.asShape(entry['geometry'])
+        bounds = shape.bounds
+	geometry = shape.wkb.encode('hex')
+		# We can use SRID=4326 because we loaded it in that SRID from
+		# ogr2ogr.
+    except ValueError as e:
+	logging.error("Error parsing '%s' as geometry: %s" % (entry['geometry'], e))
+	# So we continue, skipping only this feature.
+	# Run the upload again to catch these "missing features".
+	return ""
+
+    # Store the bounds in the upload object.
     properties = entry['properties']
+    properties['minx'] = bounds[0]
+    properties['miny'] = bounds[1]
+    properties['maxx'] = bounds[2]
+    properties['maxy'] = bounds[3]
+
+    # Get the fields and values ready to be turned into an SQL statement
     fields = properties.keys()
     # oauth2 has cannot currently send UTF-8 data in the URL. So we go 
     # back to ASCII at this point. This can be fixed by waiting for oauth2
@@ -436,18 +457,7 @@ def encodeGeoJSONEntryAsSQL(entry, table_name):
         # as long as there are "no intervening modifications to the 
         # dictionary" [http://docs.python.org/library/stdtypes.html#dict]
 
-    # Determine the geometry for this object, by converting the GeoJSON
-    # geometry representation into WKT.
-    # geometry = "SRID=4326;" + shapely.geometry.asShape(entry['geometry']).wkb
-    try:
-	    geometry = shapely.geometry.asShape(entry['geometry']).wkb.encode('hex')
-		# We can use SRID=4326 because we loaded it in that SRID from
-		# ogr2ogr.
-    except ValueError as e:
-	logging.error("Error parsing '%s' as geometry: %s" % (entry['geometry'], e))
-	# So we continue, skipping only this feature.
-	# Run the upload again to catch these "missing features".
-	return ""
+
 
     # Generate a 'tag', by calculating a SHA-1 hash of the concatenation
     # of the current time (in seconds since the epoch) and the string
