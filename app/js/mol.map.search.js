@@ -48,6 +48,8 @@ mol.modules.map.search = function(mol) {
                         sci = '<a><i>{0}</i></a>'.format(name);
                     
                     item.label = kind === 'scientific' ? sci : eng;
+                    item.value = name;
+
                     item.label = item.label.replace(
                         new RegExp("(?![^&;]+;)(?!<[^<>]*)(" + 
                                    $.ui.autocomplete.escapeRegex(this.term) + 
@@ -176,7 +178,7 @@ mol.modules.map.search = function(mol) {
             search: function(term) {
                 var self = this,
                     sql = this.sql.format(term, term),
-                    params = {sql:sql, key: 'name-{0}'.format(term)},
+                    params = {sql:null, key: 'name-{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {term:term, response:response},

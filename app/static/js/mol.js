@@ -2094,6 +2094,27 @@ mol.modules.map.search = function(mol) {
              */
             initAutocomplete: function() {
                 this.populateAutocomplete(null, null); 
+                
+                // http://stackoverflow.com/questions/2435964/jqueryui-how-can-i-custom-format-the-autocomplete-plug-in-results
+                $.ui.autocomplete.prototype._renderItem = function (ul, item) {
+                    var val = item.label.split(':'),
+                        name = val[0],
+                        kind = val[1],
+                        eng = '<a>{0}</a>'.format(name),
+                        sci = '<a><i>{0}</i></a>'.format(name);
+                    
+                    item.label = kind === 'scientific' ? sci : eng;
+                    item.value = name;
+
+                    item.label = item.label.replace(
+                        new RegExp("(?![^&;]+;)(?!<[^<>]*)(" + 
+                                   $.ui.autocomplete.escapeRegex(this.term) + 
+                                   ")(?![^<>]*>)(?![^&;]+;)", "gi"), "<strong>$1</strong>");
+                    return $("<li></li>")
+                        .data("item.autocomplete", item)
+                        .append("<a>" + item.label + "</a>")
+                        .appendTo(ul);
+                };
             },
 
             /*
@@ -2102,7 +2123,9 @@ mol.modules.map.search = function(mol) {
             populateAutocomplete : function(action, response) {
                 $(this.display.searchBox).autocomplete(
                     {
-                        RegEx: '\\b<term>[^\\b]*', //<term> gets replaced by the search term.
+                        //RegEx: '\\b<term>[^\\b]*', //<term> gets
+                        //replaced by the search term.
+                        //RegEx: 
                         minLength: 3,
                         delay: 0,
                         source: function(request, response) {
@@ -2211,7 +2234,7 @@ mol.modules.map.search = function(mol) {
             search: function(term) {
                 var self = this,
                     sql = this.sql.format(term, term),
-                    params = {sql:sql, key: 'name-{0}'.format(term)},
+                    params = {sql:null, key: 'name-{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {term:term, response:response},

@@ -20,7 +20,7 @@ from google.appengine.ext.ndb import model
 from google.appengine.ext.webapp.util import run_wsgi_app
 
 import logging
-import simplejson
+import json
 import webapp2
 
 class AutocompleteName(model.Model):
@@ -28,7 +28,7 @@ class AutocompleteName(model.Model):
     scientificname with a list of matching names. 
     """
     names = model.StringProperty('n', repeated=True)
-    names_json = model.ComputedProperty(lambda self: simplejson.dumps(self.names))
+    names_json = model.ComputedProperty(lambda self: json.dumps(self.names))
     created = model.DateTimeProperty('c', auto_now_add=True)
     @classmethod
     def get(cls, key):

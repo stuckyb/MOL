@@ -1,4 +1,4 @@
-application: mol-lab
+application: map-of-life
 version: canary
 runtime: python27
 threadsafe: true
