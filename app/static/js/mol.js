@@ -567,7 +567,7 @@ mol.modules.map = function(mol) {
 
     mol.map = {};
 
-    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading'];
+    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
@@ -881,7 +881,8 @@ mol.modules.map = function(mol) {
         BOTTOM: '.BOTTOM',
         LAST: '.LAST'
     };
-};mol.modules.map.loading = function(mol) {
+};
+mol.modules.map.loading = function(mol) {
 
     mol.map.loading = {};
 
@@ -1289,6 +1290,13 @@ mol.modules.map.menu = function(mol) {
              */
             addEventHandlers: function() {
                 var self = this;
+
+                this.display.dashboardItem.click(
+                    function(event) {                        
+                        self.bus.fireEvent(
+                            new mol.bus.Event('taxonomy-dashboard-toggle'));
+                    }
+                );
                 
                 this.display.searchItem.click(
                     function(event) {                        
@@ -1323,6 +1331,7 @@ mol.modules.map.menu = function(mol) {
                     '    <div class="label">' +
                     '       <img class="layersToggle" src="/static/maps/layers/expand.png">' +
                     '    </div>' +
+                    '    <div class="widgetTheme dashboard button">Dashboard</div>' +  
                     '    <div class="widgetTheme search button">Search</div>' +  
                     
                     // TODO: These are commented out while we decide where this functionality goes.
@@ -1343,6 +1352,7 @@ mol.modules.map.menu = function(mol) {
 
                 this._super(html);
                 this.searchItem = $(this.find('.search'));
+                this.dashboardItem = $(this.find('.dashboard'));
             }
         }
     );    
@@ -2166,7 +2176,7 @@ mol.modules.map.search = function(mol) {
                         } else {
                             self.display.toggle(event.visible);
                         }
-						params.visible = false;
+						      params.visible = false;
                         e = new mol.bus.Event('results-display-toggle', params);
                         self.bus.fireEvent(e);
                     }
@@ -2574,3 +2584,106 @@ mol.modules.map.tiles = function(mol) {
         }
     );
 };
+mol.modules.map.dashboard = function(mol) {
+    
+    mol.map.dashboard = {};
+    
+    mol.map.dashboard.DashboardEngine = mol.mvp.Engine.extend(
+        {
+            init: function(proxy, bus) {
+                this.proxy = proxy;
+                this.bus = bus;
+            },
+            
+            /**
+             * Starts the MenuEngine. Note that the container parameter is 
+             * ignored.
+             */
+            start: function() {
+                this.display = new mol.map.dashboard.DashboardDisplay();
+                this.initDialog();
+                this.addEventHandlers();
+            },
+
+            /**
+             * Adds a handler for the 'search-display-toggle' event which 
+             * controls display visibility. Also adds UI event handlers for the
+             * display.
+             */
+            addEventHandlers: function() {
+                var self = this;
+                
+                /**
+                 * Callback that toggles the dashboard display visibility. 
+                 * 
+                 * @param event mol.bus.Event
+                 */
+                this.bus.addHandler(
+                    'taxonomy-dashboard-toggle',
+                    function(event) {
+                        var params = null,
+                            e = null;
+
+                        if (event.state === undefined) {
+                            self.display.dialog('open');
+                        } else {
+                            self.display.dialog(event.state);
+                        }
+                    }
+                );
+            },
+            
+            /**
+             * Fires the 'add-map-control' event. The mol.map.MapEngine handles 
+             * this event and adds the display to the map.
+             */
+            initDialog: function() {
+                this.display.dialog(
+                    {
+                        autoOpen: false,
+					         width: 800,
+					         buttons: {
+						          "Ok": function() { 
+							           $(this).dialog("close"); 
+						          }
+					         }
+                    }
+                );
+            }            
+        }
+    );
+    
+    mol.map.dashboard.DashboardDisplay = mol.mvp.View.extend(
+        {
+            init: function() {
+                var html = '' +                    
+                    '<div id="dialog" class="mol-LayerControl-Results" style="">' +
+                    '  <div class="dashboard">' +
+                    '  <div class="title">Dashboard</div>' +
+                    '  <div class="subtitle">Statistics for data served by the Map of Life</div>' +
+                    '  <table>' +
+                    '    <tr>' +
+                    '      <td width="100px"><b>Source</b></td>' +
+                    '      <td><b>Amphibians</b></td>' +
+                    '      <td><b>Birds</b></td>' +
+                    '      <td><b>Mammals</b></td>' +
+                    '      <td><b>Reptiles</b></td>' +
+                    '    </tr>' +
+                    '    <tr>' +
+                    '      <td>GBIF points</td>' +
+                    '      <td>500 species with records</t>' +
+                    '      <td>1,500 species with 30,000 records</td>' +
+                    '      <td>152 species with 88,246 records</td>' +
+                    '      <td>800 species with 100,000 records</td>' +
+                    '    </tr>' +
+                    '  </table>' +    
+                    '</div>  ';
+
+                this._super(html);
+            }
+        }
+    );    
+};
+    
+        
+            
