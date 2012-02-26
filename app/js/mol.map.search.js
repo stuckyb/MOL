@@ -110,7 +110,7 @@ mol.modules.map.search = function(mol) {
                         } else {
                             self.display.toggle(event.visible);
                         }
-						params.visible = false;
+						      params.visible = false;
                         e = new mol.bus.Event('results-display-toggle', params);
                         self.bus.fireEvent(e);
                     }

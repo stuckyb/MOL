@@ -17,9 +17,12 @@
     <script src="../../../js/lib/jquery.ui.mouse.js"></script>
     <script src="../../../js/lib/jquery.ui.sortable.js"></script>
     <script src="../../../js/lib/jquery.ui.position.js"></script>
+    <script src="../../../js/lib/jquery.ui.draggable.js"></script>
+    <script src="../../../js/lib/jquery.ui.resizable.js"></script>
     <script src="../../../js/lib/jquery.ui.autocomplete.js"></script>
     <script src="../../../js/lib/jquery.ui.autocomplete.regexp.js"></script>
     <script src="../../../js/lib/jquery.imagesloaded.js"></script>
+    <script src="../../../js/lib/jquery.ui.dialog.js"></script>
     <!-- <script src="../../../js/lib/jquery-ui-1.8.10.custom.min.js"></script> -->
     <!-- <script src="../../../js/lib/jquery-ui.min.js"></script> -->
     <script src="../../../js/lib/underscore-min.js"></script>
@@ -45,6 +48,7 @@
     <script src="../../../js/mol.map.tiles.js"></script>
     <script src="../../../js/mol.map.menu.js"></script>
     <script src="../../../js/mol.map.loading.js"></script>
+    <script src="../../../js/mol.map.dashboard.js"></script>
     {% endif %}
 
     <meta charset="utf-8" />
@@ -76,6 +80,8 @@
 	         ne.start()
 	         le = new env.map.loading.LoadingEngine(proxy, bus)
             le.start()
+            de = new env.map.dashboard.DashboardEngine(proxy, bus);
+            de.start()
           });
           {% else %}
           env = mol(function(env) {
@@ -95,6 +101,8 @@
 	         ne.start()
 	         le = new env.map.loading.LoadingEngine(proxy, bus)
             le.start()
+            de = new env.map.dashboard.DashboardEngine(proxy, bus);
+            de.start()
           });
           {% endif %}
       });
