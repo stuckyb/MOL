@@ -26,8 +26,8 @@ $ sudo apt-get install python2.7
 # Install Google App Engine Python SDK
 $ mkdir ~/bin
 $ cd ~/bin
-$ curl -O http://googleappengine.googlecode.com/files/google_appengine_1.6.1.zip
-$ unzip google_appengine_1.6.1.zip
+$ curl -O http://googleappengine.googlecode.com/files/google_appengine_1.6.2.zip
+$ unzip google_appengine_1.6.2.zip
 $ export PATH=$PATH:~/bin/google_appengine # Add this line to ~/.bashrc
 ```
 
@@ -49,8 +49,10 @@ Backends are configured in `backends.yaml`.
 To use backends with the development server via `dev_appserver.py`, you'll need to start it with the following command:
 
 ```bash
-$ dev_appserver.py --use_sqlite --backends .
+$ dev_appserver.py --clear_datastore --use_sqlite --backends .
 ```
+
+Then populate auto-complete fields by hitting  [http://localhost:8080/admin/build-search-cache](http://localhost:8080/admin/build-search-cache)
 
 Backends are fired off using the taskqueue API, so keep an eye on the taskqueue admin console:
 
