@@ -46,13 +46,18 @@ We're using [App Engine backends](http://code.google.com/appengine/docs/python/b
 
 Backends are configured in `backends.yaml` and require the python-mysqldb modules, Google App Engine SDK 1.6.2+, and Python 2.7. 
 
-To use backends with the development server via `dev_appserver.py`, you'll need to start it with the following command:
+
+
+To use backends with the development server via `dev_appserver.py`, first clear the datastore:
 
 ```bash
-$ dev_appserver.py --clear_datastore --use_sqlite --backends .
+$ dev_appserver.py --clear_datastore
 ```
+Then start it using
 
-
+```bash
+$ dev_appserver.py --use_sqlite --backends .
+```
 
 Then populate auto-complete fields by hitting  [http://localhost:8080/admin/build-search-cache](http://localhost:8080/admin/build-search-cache)
 
