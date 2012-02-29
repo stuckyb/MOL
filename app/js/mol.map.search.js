@@ -37,8 +37,8 @@ mol.modules.map.search = function(mol) {
              * Initialize autocomplate functionality
              */
             initAutocomplete: function() {
-                this.populateAutocomplete(null, null); 
-                
+                this.populateAutocomplete(null, null);
+
                 // http://stackoverflow.com/questions/2435964/jqueryui-how-can-i-custom-format-the-autocomplete-plug-in-results
                 $.ui.autocomplete.prototype._renderItem = function (ul, item) {
                     var val = item.label.split(':'),
@@ -46,13 +46,13 @@ mol.modules.map.search = function(mol) {
                         kind = val[1],
                         eng = '<a>{0}</a>'.format(name),
                         sci = '<a><i>{0}</i></a>'.format(name);
-                    
+
                     item.label = kind === 'scientific' ? sci : eng;
                     item.value = name;
 
                     item.label = item.label.replace(
-                        new RegExp("(?![^&;]+;)(?!<[^<>]*)(" + 
-                                   $.ui.autocomplete.escapeRegex(this.term) + 
+                        new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
+                                   $.ui.autocomplete.escapeRegex(this.term) +
                                    ")(?![^<>]*>)(?![^&;]+;)", "gi"), "<strong>$1</strong>");
                     return $("<li></li>")
                         .data("item.autocomplete", item)
@@ -69,7 +69,7 @@ mol.modules.map.search = function(mol) {
                     {
                         //RegEx: '\\b<term>[^\\b]*', //<term> gets
                         //replaced by the search term.
-                        //RegEx: 
+                        //RegEx:
                         minLength: 3,
                         delay: 0,
                         source: function(request, response) {
@@ -86,7 +86,7 @@ mol.modules.map.search = function(mol) {
                         }
                  });
             },
-            
+
             addEventHandlers: function() {
                 var self = this;
 
@@ -101,7 +101,7 @@ mol.modules.map.search = function(mol) {
                 this.bus.addHandler(
                     'search-display-toggle',
                     function(event) {
-                        var params = null,
+                        var params = {},
                             e = null;
 
                         if (event.visible === undefined) {
@@ -110,12 +110,12 @@ mol.modules.map.search = function(mol) {
                         } else {
                             self.display.toggle(event.visible);
                         }
-						      params.visible = false;
+						params.visible = false;
                         e = new mol.bus.Event('results-display-toggle', params);
                         self.bus.fireEvent(e);
                     }
                 );
-                
+
                 /**
                  * Clicking the go button executes a search.
                  */
@@ -183,14 +183,13 @@ mol.modules.map.search = function(mol) {
                     success = function(action, response) {
                         var results = {term:term, response:response},
                             event = new mol.bus.Event('search-results', results);
-                        self.display.loading.hide();
+                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search"}));
                         self.bus.fireEvent(event);
                     },
                     failure = function(action, response) {
-                        self.display.loading.hide();
+                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search"}));
                     };
-
-                this.display.loading.show();
+                 self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search"}));
                 this.proxy.execute(action, new mol.services.Callback(success, failure));
                 this.bus.fireEvent('search', new mol.bus.Event('search', term));
             }
@@ -217,7 +216,6 @@ mol.modules.map.search = function(mol) {
                 this.goButton = $(this.find('.execute'));
                 this.cancelButton = $(this.find('.cancel'));
                 this.searchBox = $(this.find('.value'));
-                this.loading = $(this.find('.loading'));
             },
 
             clear: function() {

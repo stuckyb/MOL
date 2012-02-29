@@ -121,7 +121,7 @@ mol.modules.map.layers = function(mol) {
                                         auto_bound: true
                                     },
                                     e = new mol.bus.Event('layer-zoom-extent', params),
-                                    le = new mol.bus.Event('show-loading-indicator');
+                                    le = new mol.bus.Event('show-loading-indicator',{source : "map"});
 
                                 self.bus.fireEvent(e);
                                 self.bus.fireEvent(le);

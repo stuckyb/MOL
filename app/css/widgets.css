@@ -60,7 +60,7 @@ button:hover{
     float: right;
     text-align: center;
     padding: 5px;
-    width: 70px;
+    width: 90px;
 }
 .mol-LayerControl-Menu div.add{
     -moz-border-radius-topleft: 3px;
@@ -99,6 +99,7 @@ button:hover{
     height: 16px;
     padding-right: 2px;
 }
+
 .mol-LayerControl-Layers {
     width: 100%;
     float: left;

@@ -43,9 +43,8 @@ mol.modules.map.menu = function(mol) {
                 );
                 this.display.speciesListItem.click(
                     function(event) {
-                        var params = {toggle : this.checked};
                         self.bus.fireEvent(
-                            new mol.bus.Event('species-list-tool-toggle', params));
+                            new mol.bus.Event('species-list-tool-toggle'));
                     }
                 );
                 this.bus.addHandler(
@@ -91,7 +90,7 @@ mol.modules.map.menu = function(mol) {
                     '    </div>' +
                     '    <div class="widgetTheme dashboard button">Dashboard</div>' +
                     '    <div class="widgetTheme search button">Search</div>' +
-                    '    <div class="widgetTheme"><input type="checkbox" class="list checkbox" name="queryclicktype">Species&nbsp;List</div>' +
+                    '    <div class="widgetTheme list button">Species&nbsp;List</div>' +
                     '</div>' +
                     '<div class="mol-LayerControl-Layers">' +
                     '      <div class="staticLink widgetTheme" >' +

@@ -14,7 +14,7 @@ mol.modules.map.query = function(mol) {
                         "FROM polygons_new " +
                         "WHERE ST_DWithin(the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " +
                         //"WHERE ST_DWithin(the_geom,ST_PointFromText('POINT({0})',4326),0.1) " +
-                        "AND provider = 'birds1000m'";
+                        "AND provider = 'Jetz' AND polygonres = '1000' ORDER BY scientificname";
 
         },
         start : function() {
@@ -25,22 +25,20 @@ mol.modules.map.query = function(mol) {
          *  Build the loading display and add it as a control to the top center of the map display.
          */
         addQueryDisplay : function() {
-        //putting this in the menu for now
-      /*           var params = {
-                   display: null, // The loader gif display
-                   slot: mol.map.ControlDisplay.Slot.TOP,
-                   position: google.maps.ControlPosition.TOP_RIGHT
-                };
+                this.bus.fireEvent(new mol.bus.Event('register-list-click'));
+                this.enabled=false;
+                  var params = {
+                                display: null,
+                                slot: mol.map.ControlDisplay.Slot.BOTTOM,
+                                position: google.maps.ControlPosition.TOP_RIGHT
+                        };
                 this.display = new mol.map.QueryDisplay();
                 params.display = this.display;
-                this.bus.fireEvent(new mol.bus.Event('add-map-control', params));
-       */
-                this.bus.fireEvent(new mol.bus.Event('register-list-click'));
-                this.toolEnabled=false;
+                this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
         },
         getList: function(lat, lng, radius, marker) {
                 var self = this,
-                    sql = this.sql.format((lat+' '+lng), radius),
+                    sql = this.sql.format((lng+' '+lat), radius),
                     params = {sql:sql, key: '{0}'.format((lat+'-'+lng+'-'+radius))},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
@@ -71,31 +69,24 @@ mol.modules.map.query = function(mol) {
             this.bus.addHandler(
                 'species-list-query-click',
                 function (event) {
-                    var params = {
-                                display: null,
-                                slot: mol.map.ControlDisplay.Slot.BOTTOM,
-                                position: google.maps.ControlPosition.TOP_RIGHT
-                        };
-                    if(self.toolEnabled) {
+
+                    if(self.enabled) {
                         //get rid of the old circle, if there was one
                         if(self.listradius) {
                             self.listradius.setMap(null);
                         }
                         self.listradius =  new google.maps.Circle({
                             map: event.map,
-                            radius: 50000, // 50 km
+                            radius: parseInt(self.display.radiusInput.val())*1000, // 50 km
                             center: event.gmaps_event.latLng
                         });
-                        if(!self.resultsdisplay) {
-                           self.resultsdisplay = new mol.map.QueryResultsListDisplay();
-                           params.display = self.resultsdisplay;
-                           self.bus.fireEvent(new mol.bus.Event('add-map-control', params));
-                        } else {
-                            $(self.resultsdisplay.resultslist).html('');
-                            $(self.resultsdisplay.loading).show();
-                        }
-                        self.bus.fireEvent( new mol.bus.Event('layer-display-toggle'),{visible : false});
-                        self.bus.fireEvent( new mol.bus.Event('search-display-toggle'),{visible : false});
+
+
+                        $(self.display.resultslist).html('Searching for species...');
+
+                        self.bus.fireEvent( new mol.bus.Event('layer-display-toggle', {visible : false}));
+                        //self.bus.fireEvent( new mol.bus.Event('search-display-toggle', {visible : false}));
+                        self.bus.fireEvent( new mol.bus.Event('show-loading-indicator', {source : 'listradius'}));
                         self.getList(event.gmaps_event.latLng.lat(),event.gmaps_event.latLng.lng(),self.listradius.radius, self.listradius);
                     }
                  }
@@ -103,21 +94,28 @@ mol.modules.map.query = function(mol) {
              this.bus.addHandler(
                 'species-list-query-results',
                 function (event) {
+                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'listradius'}));
+                    if(!event.response.error&&self.enabled) {
 
-                    if(!event.response.error&&self.toolEnabled) {
-
-                        $(self.resultsdisplay.loading).hide();
                         //fill in the results
-                        $(self.resultsdisplay.resultslist).html('');
+                        $(self.display.resultslist).html('');
+                        self.display.resultslist.html(
+                                event.response.total_rows +
+                                ' species found within ' +
+                                self.listradius.radius/1000 + ' km of<br> ' +
+                                Math.round(self.listradius.center.lat()*1000)/1000 + '&deg; Latitude ' +
+                                Math.round(self.listradius.center.lng()*1000)/1000 + '&deg; Longitude '
+                         );
                         _.each(
                             event.response.rows,
                             function(name) {
                                 var result = new mol.map.QueryResultDisplay(name.scientificname);
-                                self.resultsdisplay.resultslist.append(result);
+                                self.display.resultslist.append(result);
                             }
                         )
+                        $(self.resultsdisplay).show();
                     } else {
-                        //TODO
+                        //TODO -- What if nothing comes back?
                     }
                 }
              );
@@ -125,14 +123,25 @@ mol.modules.map.query = function(mol) {
             this.bus.addHandler(
                 'species-list-tool-toggle',
                 function(event) {
-                    self.toolEnabled = event.toggle;
-                    if(self.toolEnabled == false) {
-                        self.listradius.setMap(null);
-                        $(self.resultsdisplay).remove();
-                        self.resultsdisplay = null;
+                    self.enabled = !self.enabled;
+                    if(self.enabled == true) {
+                        if (self.listradius) {
+                            self.listradius.setMap(null);
+                        }
+                        $(self.display).show();
+                        self.bus.fireEvent( new mol.bus.Event('layer-display-toggle',{visible: false}));
+                        //self.bus.fireEvent( new mol.bus.Event('search-display-toggle',{visible: true}));
                     } else {
-                        self.bus.fireEvent( new mol.bus.Event('layer-display-toggle'),{visible: false});
-                        self.bus.fireEvent( new mol.bus.Event('search-display-toggle'),{visible: false});
+                        $(self.display).hide();
+                        self.bus.fireEvent( new mol.bus.Event('layer-display-toggle',{visible: true}));
+                        //self.bus.fireEvent( new mol.bus.Event('search-display-toggle',{visible: false}));
+                    }
+                }
+            );
+            this.display.radiusInput.keyup(
+                function(event) {
+                    if(this.value>1000) {
+                        this.value=1000;
                     }
                 }
             );
@@ -140,39 +149,31 @@ mol.modules.map.query = function(mol) {
     }
     );
 
-    /*
-     *  Display for a loading indicator.
-     *  Use jQuery hide() and show() to turn it off and on.
-     */
     mol.map.QueryDisplay = mol.mvp.View.extend(
-    {
-        init : function() {
-            var className = 'mol-Map-QueryDisplay',
-                html = '' +
-                        '<div class="' + className + ' widgetTheme">' +
-                        '   <div><input type="checkbox" class="list" name="queryclicktype" value="list">Species List Tool (50km)</div>' +
-                        '</div>';
-            this._super(html);
-            this.speciesListTool = $(this).find('.list');
-
-        }
-    }
-    );
-    mol.map.QueryResultsListDisplay = mol.mvp.View.extend(
     {
         init : function(names) {
             var className = 'mol-Map-QueryResultsListDisplay',
                 html = '' +
                         '<div class="' + className + ' widgetTheme">' +
-                        '   <div class="loading">' +
-                        '       <img src="static/loading.gif">' +
+                        '   <div class="controls">' +
+                        '     Search Radius (km) <input type="text" class="radius" size="5" value="50">' +
+                        '     Class <select class="class" value="Birds">' +
+                        '       <option value="aves">Birds</option>' +
+                        '       <option disabled value="osteichthyes">Fish</option>' +
+                        '       <option disabled value="reptilia">Reptiles</option>' +
+                        '       <option disabled value="amphibia">Amphibians</option>' +
+                        '       <option disabled value="mammalia">Mammals</option>' +
+                        '     </select>' +
                         '   </div>' +
-                        '   <div  class="resultslist"></div>'
-                        '</div>',
+                        '   <div class="resultslist">Click on the map to find bird species within 50km of that point.</div>' +
+                        '</div>';
 
             this._super(html);
             this.resultslist=$(this.find('.resultslist'));
-            this.loading=$(this.find('.loading'));
+            this.radiusInput=$(this.find('.radius'));
+            $(this.radiusInput).numeric({negative : false, decimal : false});
+            this.classInput=$(this.find('.class'));
+            $(this).hide();
         }
     }
     );

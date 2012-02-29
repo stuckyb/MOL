@@ -98,18 +98,18 @@ mol.modules.map.tiles = function(mol) {
                         self.renderTiles(event.layers);
                     }
                 );
-                
+
                 /**
-                 * Handler for when the remove-layers event is fired. This 
+                 * Handler for when the remove-layers event is fired. This
                  * functions removes all layers from the Google Map. The
-                 * event.layers is an array of layer objects {id}.                
+                 * event.layers is an array of layer objects {id}.
                  */
 				    this.bus.addHandler(
                     'remove-layers',
                     function(event) {
                         var layers = event.layers,
                             mapTypes = self.map.overlayMapTypes;
-                        
+
                         _.each(
                             layers,
                             function(layer) { // "lid" is short for layer id.
@@ -125,7 +125,7 @@ mol.modules.map.tiles = function(mol) {
                         );
                     }
                 );
-                
+
 				    /**
 				     * Handler for when the reorder-layers event is fired. This renders
 				     * the layers according to the list of layers provided
@@ -168,10 +168,10 @@ mol.modules.map.tiles = function(mol) {
                     newLayers,
                     function(layer) {
                         tiles.push(this.getTile(layer, this.map));
-                        this.bus.fireEvent(new mol.bus.Event("show-loading-indicator"));
+                        this.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : "overlays"}));
                         $("img",this.map.overlayMapTypes).imagesLoaded(
                             function(images,proper,broken) {
-                                this.bus.fireEvent(new mol.bus.Event("hide-loading-indicator"));
+                                this.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "overlays"}));
                             }.bind(this)
                          );
                     },

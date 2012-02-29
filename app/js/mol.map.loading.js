@@ -11,6 +11,7 @@ mol.modules.map.loading = function(mol) {
         start : function() {
             this.addLoadingDisplay();
             this.addEventHandlers();
+            this.cache = {};
         },
         /*
          *  Build the loading display and add it as a control to the top center of the map display.
@@ -33,8 +34,20 @@ mol.modules.map.loading = function(mol) {
             */
             this.bus.addHandler(
                 'hide-loading-indicator',
-                function() {
-                    self.loading.hide();
+                function(event) {
+                    var done = true;
+                    self.cache[event.source]="done";
+                    _.each(
+                        self.cache,
+                        function(source) {
+                             if(source=="loading") {
+                                 done = false;
+                             }
+                        }
+                    )
+                    if(done==true) {
+                        self.loading.hide();
+                    }
                 }
             );
            /*
@@ -42,8 +55,9 @@ mol.modules.map.loading = function(mol) {
             */
             this.bus.addHandler(
                 'show-loading-indicator',
-                function() {
+                function(event) {
                     self.loading.show();
+                    self.cache[event.source]="loading";
                 }
             );
         }

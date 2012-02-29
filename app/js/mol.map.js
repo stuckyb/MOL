@@ -136,7 +136,7 @@ mol.modules.map = function(mol) {
                 this.bus.addHandler(
                         'map-zoom-changed',
                         function() {
-                           self.bus.fireEvent(new mol.bus.Event('show-loading-indicator'));
+                           self.bus.fireEvent(new mol.bus.Event('show-loading-indicator',{source : "map"}));
                         }
                 );
                  /*
@@ -145,7 +145,7 @@ mol.modules.map = function(mol) {
                 this.bus.addHandler(
                         'map-center-changed',
                         function() {
-                           self.bus.fireEvent(new mol.bus.Event('show-loading-indicator'));
+                           self.bus.fireEvent(new mol.bus.Event('show-loading-indicator',{source : "map"}));
                         }
                 );
                 /*
@@ -154,14 +154,12 @@ mol.modules.map = function(mol) {
                 this.bus.addHandler(
                         'map-idle',
                         function() {
-                            var e = new mol.bus.Event('hide-loading-indicator');
-                            if (self.display.map.overlayMapTypes.length == 0) {
-                                self.bus.fireEvent(e);
-                            } else {
+                            self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator',{source : "map"}));
+                            if (self.display.map.overlayMapTypes.length > 0) {
+                                self.bus.fireEvent(new mol.bus.Event('show-loading-indicator',{source : "overlays"}));
                                 $("img",self.display.map.overlayMapTypes).imagesLoaded (
                                     function(images, proper, broken) {
-                                        var e = new mol.bus.Event('hide-loading-indicator');
-                                        self.bus.fireEvent(e);
+                                        self.bus.fireEvent( new mol.bus.Event('hide-loading-indicator',{source : "overlays"}));
                                     }
                                  );
                             }
