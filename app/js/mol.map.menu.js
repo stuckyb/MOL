@@ -41,6 +41,13 @@ mol.modules.map.menu = function(mol) {
                             new mol.bus.Event('search-display-toggle'));
                     }
                 );
+                this.display.speciesListItem.click(
+                    function(event) {
+                        var params = {toggle : this.checked};
+                        self.bus.fireEvent(
+                            new mol.bus.Event('species-list-tool-toggle', params));
+                    }
+                );
                 this.bus.addHandler(
                     'menu-display-toggle',
                     function(event) {
@@ -84,6 +91,7 @@ mol.modules.map.menu = function(mol) {
                     '    </div>' +
                     '    <div class="widgetTheme dashboard button">Dashboard</div>' +
                     '    <div class="widgetTheme search button">Search</div>' +
+                    '    <div class="widgetTheme"><input type="checkbox" class="list checkbox" name="queryclicktype">Species&nbsp;List</div>' +
                     '</div>' +
                     '<div class="mol-LayerControl-Layers">' +
                     '      <div class="staticLink widgetTheme" >' +
@@ -96,6 +104,7 @@ mol.modules.map.menu = function(mol) {
                 this._super(html);
                 this.searchItem = $(this.find('.search'));
                 this.dashboardItem = $(this.find('.dashboard'));
+                this.speciesListItem = $(this.find('.list'));
             }
         }
     );
