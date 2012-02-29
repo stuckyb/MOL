@@ -124,10 +124,10 @@ mol.modules.map.query = function(mol) {
                 'species-list-tool-toggle',
                 function(event) {
                     self.enabled = !self.enabled;
-                    if(self.enabled == true) {
-                        if (self.listradius) {
+                    if (self.listradius) {
                             self.listradius.setMap(null);
                         }
+                    if(self.enabled == true) {
                         $(self.display).show();
                         self.bus.fireEvent( new mol.bus.Event('layer-display-toggle',{visible: false}));
                         //self.bus.fireEvent( new mol.bus.Event('search-display-toggle',{visible: true}));
