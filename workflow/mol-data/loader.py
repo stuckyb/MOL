@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim: set fileencoding=utf-8 :
 #
-# Copyright 2011 Aaron Steele, John Wieczorek, Gaurav Vaidya
+# Copyright 2011, 2012 Aaron Steele, John Wieczorek, Gaurav Vaidya
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -437,11 +437,13 @@ def encodeGeoJSONEntryAsSQL(entry, table_name):
 	return ""
 
     # Store the bounds in the upload object.
+    # Actually, DON'T. The schema can't handle it yet.
+    # we'll restore it when we can.
     properties = entry['properties']
-    properties['minx'] = bounds[0]
-    properties['miny'] = bounds[1]
-    properties['maxx'] = bounds[2]
-    properties['maxy'] = bounds[3]
+    #properties['minx'] = bounds[0]
+    #properties['miny'] = bounds[1]
+    #properties['maxx'] = bounds[2]
+    #properties['maxy'] = bounds[3]
 
     # Get the fields and values ready to be turned into an SQL statement
     fields = properties.keys()
