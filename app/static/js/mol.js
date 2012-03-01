@@ -614,6 +614,11 @@ mol.modules.map = function(mol) {
                 controls[ControlPosition.BOTTOM_LEFT].clear();
                 controls[ControlPosition.BOTTOM_LEFT].push(this.ctlBottom.element);
 
+                // Add bottom right map control.
+                this.ctlRightBottom = new ControlDisplay('RightBottomControl');
+                controls[ControlPosition.RIGHT_BOTTOM].clear();
+                controls[ControlPosition.RIGHT_BOTTOM].push(this.ctlRightBottom.element);
+
             },
             /**
              * Gets the control display at a Google Map control position.
@@ -637,6 +642,9 @@ mol.modules.map = function(mol) {
                     break;
                 case ControlPosition.BOTTOM_LEFT:
                     control = this.ctlBottom;
+                    break;
+                 case ControlPosition.RIGHT_BOTTOM:
+                    control = this.ctlRightBottom;
                     break;
                 }
 
@@ -687,7 +695,7 @@ mol.modules.map = function(mol) {
                     function(event) {
                             google.maps.event.addListener(
                             self.display.map,
-                            "click",
+                            "rightclick",
                             function(event) {
                                 var params = { gmaps_event : event, map : self.display.map}
                                 self.bus.fireEvent(new mol.bus.Event('species-list-query-click',params));
@@ -1418,9 +1426,9 @@ mol.modules.map.menu = function(mol) {
                     '    <div class="label">' +
                     '       <img class="layersToggle" src="/static/maps/layers/expand.png">' +
                     '    </div>' +
-                    '    <div class="widgetTheme dashboard button">Dashboard</div>' +
-                    '    <div class="widgetTheme search button">Search</div>' +
-                    //'    <div class="widgetTheme list button">Species&nbsp;List</div>' +
+                    '    <div title="Toggle taxonomy dashboard." class="widgetTheme dashboard button">Dashboard</div>' +
+                    '    <div title="Toggle layer search tools." class="widgetTheme search button">Search</div>' +
+                    '    <div title="Toggle species list radius tool (right-click to use)" class="widgetTheme list button">Species&nbsp;Lists</div>' +
                     '</div>' +
                     '<div class="mol-LayerControl-Layers">' +
                     '      <div class="staticLink widgetTheme" >' +
@@ -2846,11 +2854,12 @@ mol.modules.map.query = function(mol) {
         addQueryDisplay : function() {
                 var params = {
                     display: null,
-                    slot: mol.map.ControlDisplay.Slot.MIDDLE,
-                    position: google.maps.ControlPosition.TOP_RIGHT
+                    slot: mol.map.ControlDisplay.Slot.LAST,
+                    position: google.maps.ControlPosition.RIGHT_BOTTOM
                  };
                 this.bus.fireEvent(new mol.bus.Event('register-list-click'));
                 this.enabled=true;
+                this.features={};
                 this.display = new mol.map.QueryDisplay();
                 params.display = this.display;
                 this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
@@ -2868,6 +2877,7 @@ mol.modules.map.query = function(mol) {
                     failure = function(action, response) {
 
                     };
+
                 this.proxy.execute(action, new mol.services.Callback(success, failure));
 
         },
@@ -2907,7 +2917,7 @@ mol.modules.map.query = function(mol) {
                         scientificnames = [],
                         infoWindow;
                     //self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'listradius'}));
-                    if(!event.response.error&&self.enabled) {
+                    if(!event.response.error) {
                         var listradius = event.listradius;
                         //fill in the results
                         //$(self.display.resultslist).html('');
@@ -2937,6 +2947,10 @@ mol.modules.map.query = function(mol) {
                                 listradius.setMap(null);
                             }
                          );
+                         self.features[listradius.center.toString()+listradius.radius] = {
+                             listradius : listradius,
+                             infoWindow : infoWindow
+                         }
 
                         //var marker = new google.maps.Marker({
                         //             position: self.listradius.center,
@@ -2961,10 +2975,24 @@ mol.modules.map.query = function(mol) {
                         }
                     if(self.enabled == true) {
                         $(self.display).show();
+                        _.each(
+                            self.features,
+                            function(feature) {
+                                feature.listradius.setMap(self.map);
+                                feature.infoWindow.setMap(self.map);
+                            }
+                        );
                         //self.bus.fireEvent( new mol.bus.Event('layer-display-toggle',{visible: false}));
                         //self.bus.fireEvent( new mol.bus.Event('search-display-toggle',{visible: true}));
                     } else {
                         $(self.display).hide();
+                        _.each(
+                            self.features,
+                            function(feature) {
+                                feature.listradius.setMap(null);
+                                feature.infoWindow.setMap(null);
+                            }
+                        );
                       //  self.bus.fireEvent( new mol.bus.Event('layer-display-toggle',{visible: true}));
                         //self.bus.fireEvent( new mol.bus.Event('search-display-toggle',{visible: false}));
                     }
@@ -2984,13 +3012,14 @@ mol.modules.map.query = function(mol) {
     mol.map.QueryDisplay = mol.mvp.View.extend(
     {
         init : function(names) {
-            var className = 'mol-Map-QueryResultsListDisplay',
+            var className = 'mol-Map-QueryDisplay',
                 html = '' +
                         '<div class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
                         '     Search Radius (km) <input type="text" class="radius" size="5" value="50">' +
                         '     Class <select class="class" value="Birds">' +
-                        '       <option value="aves">Birds</option>' +
+                        '       <option value="aves">All</option>' +
+                        '       <option selected value="aves">Birds</option>' +
                         '       <option disabled value="osteichthyes">Fish</option>' +
                         '       <option disabled value="reptilia">Reptiles</option>' +
                         '       <option disabled value="amphibia">Amphibians</option>' +
