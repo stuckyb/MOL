@@ -94,11 +94,12 @@ mol.modules.map.query = function(mol) {
                         var listradius = event.listradius;
                         //fill in the results
                         //$(self.display.resultslist).html('');
-                        content= event.response.total_rows +
+                        content=  event.response.total_rows +
                                 ' species found within ' +
                                 listradius.radius/1000 + ' km of ' +
                                 Math.round(listradius.center.lat()*1000)/1000 + '&deg; Latitude ' +
-                                Math.round(listradius.center.lng()*1000)/1000 + '&deg; Longitude<br>';
+                                Math.round(listradius.center.lng()*1000)/1000 + '&deg; Longitude' +
+                                '<div class="mol-Map-ListQueryInfoWindowResults">';
                         _.each(
                             event.response.rows,
                             function(name) {
@@ -109,21 +110,24 @@ mol.modules.map.query = function(mol) {
                         )
 
                         infoWindow= new google.maps.InfoWindow( {
-                            content: content+scientificnames.join(', '),
+                            content: content+scientificnames.join(', ')+'</div>',
                             position: listradius.center
                         });
+
+                        self.features[listradius.center.toString()+listradius.radius] = {
+                             listradius : listradius,
+                             infoWindow : infoWindow
+                         }
 
                         google.maps.event.addListener(
                             infoWindow,
                             "closeclick",
                             function (event) {
                                 listradius.setMap(null);
+                                delete(self.features[listradius.center.toString()+listradius.radius]);
                             }
                          );
-                         self.features[listradius.center.toString()+listradius.radius] = {
-                             listradius : listradius,
-                             infoWindow : infoWindow
-                         }
+
 
                         //var marker = new google.maps.Marker({
                         //             position: self.listradius.center,

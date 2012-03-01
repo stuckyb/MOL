@@ -88,9 +88,9 @@ mol.modules.map.menu = function(mol) {
                     '    <div class="label">' +
                     '       <img class="layersToggle" src="/static/maps/layers/expand.png">' +
                     '    </div>' +
-                    '    <div class="widgetTheme dashboard button">Dashboard</div>' +
-                    '    <div class="widgetTheme search button">Search</div>' +
-                    '    <div class="widgetTheme list button">Species&nbsp;Lists</div>' +
+                    '    <div title="Toggle taxonomy dashboard." class="widgetTheme dashboard button">Dashboard</div>' +
+                    '    <div title="Toggle layer search tools." class="widgetTheme search button">Search</div>' +
+                    '    <div title="Toggle species list radius tool (right-click to use)" class="widgetTheme list button">Species&nbsp;Lists</div>' +
                     '</div>' +
                     '<div class="mol-LayerControl-Layers">' +
                     '      <div class="staticLink widgetTheme" >' +

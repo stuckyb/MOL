@@ -671,13 +671,6 @@ button:hover{
     white-space: nowrap;
     padding: 2px;
 }
-.mol-Map-QueryResultsListDisplay {
-
-    float: left;
-    position: absolute;
-
-    right: 0px;
-
-    -moz-border-radius: 3px;
-    border-radius: 3px;
+.mol-Map-ListQueryInfoWindowResults {
+     font-size: 0.8em;
 }
