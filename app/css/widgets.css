@@ -672,5 +672,7 @@ button:hover{
     padding: 2px;
 }
 .mol-Map-ListQueryInfoWindowResults {
-     font-size: 0.8em;
+     font-size: 12px;
+     font-style:normal
+     font-weight:normal
 }

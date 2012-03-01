@@ -99,7 +99,7 @@ mol.modules.map.query = function(mol) {
                                 listradius.radius/1000 + ' km of ' +
                                 Math.round(listradius.center.lat()*1000)/1000 + '&deg; Latitude ' +
                                 Math.round(listradius.center.lng()*1000)/1000 + '&deg; Longitude' +
-                                '<div class="mol-Map-ListQueryInfoWindowResults">';
+                                '<p><div class="mol-Map-ListQueryInfoWindowResults">';
                         _.each(
                             event.response.rows,
                             function(name) {
