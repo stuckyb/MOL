@@ -27,6 +27,13 @@ mol.modules.map.menu = function(mol) {
              */
             addEventHandlers: function() {
                 var self = this;
+
+                this.display.dashboardItem.click(
+                    function(event) {                        
+                        self.bus.fireEvent(
+                            new mol.bus.Event('taxonomy-dashboard-toggle'));
+                    }
+                );
                 
                 this.display.searchItem.click(
                     function(event) {                        
@@ -61,6 +68,7 @@ mol.modules.map.menu = function(mol) {
                     '    <div class="label">' +
                     '       <img class="layersToggle" src="/static/maps/layers/expand.png">' +
                     '    </div>' +
+                    '    <div class="widgetTheme dashboard button">Dashboard</div>' +  
                     '    <div class="widgetTheme search button">Search</div>' +  
                     
                     // TODO: These are commented out while we decide where this functionality goes.
@@ -81,6 +89,7 @@ mol.modules.map.menu = function(mol) {
 
                 this._super(html);
                 this.searchItem = $(this.find('.search'));
+                this.dashboardItem = $(this.find('.dashboard'));
             }
         }
     );    

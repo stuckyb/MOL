@@ -13,19 +13,22 @@ Example usage:
     "Abrothrix jelskii"
   ]
 """
-from google.appengine.ext import webapp
+
+import cache
+
 from google.appengine.ext.ndb import model
 from google.appengine.ext.webapp.util import run_wsgi_app
 
 import logging
-import simplejson
+import json
+import webapp2
 
 class AutocompleteName(model.Model):
     """Model for autocompleted names. Each entity key is a substring of a 
     scientificname with a list of matching names. 
     """
     names = model.StringProperty('n', repeated=True)
-    names_json = model.ComputedProperty(lambda self: simplejson.dumps(self.names))
+    names_json = model.ComputedProperty(lambda self: json.dumps(self.names))
     created = model.DateTimeProperty('c', auto_now_add=True)
     @classmethod
     def get(cls, key):
@@ -35,7 +38,7 @@ class AutocompleteName(model.Model):
     def create(cls, key):
         return cls(id=key.strip().lower())
 
-class AutocompleteHandler(webapp.RequestHandler):
+class AutocompleteHandler(webapp2.RequestHandler):
     """Handler for the autocomplete request. Expects a key parameter. Returns 
     a list of all matching names or an empty list as JSON.
     """
@@ -45,13 +48,13 @@ class AutocompleteHandler(webapp.RequestHandler):
         if not key:
             self.response.out.write('[]')
             return
-        entity = AutocompleteName.get(key)
-        if not entity:
+        names = cache.get(key)
+        if not names:
             self.response.out.write('[]')
         else:
-            self.response.out.write(entity.names_json)
+            self.response.out.write(names)
 
-application = webapp.WSGIApplication(
+application = webapp2.WSGIApplication(
          [('/api/autocomplete', AutocompleteHandler)],
          debug=True)
 

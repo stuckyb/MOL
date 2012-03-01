@@ -567,7 +567,7 @@ mol.modules.map = function(mol) {
 
     mol.map = {};
 
-    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading'];
+    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
@@ -881,7 +881,8 @@ mol.modules.map = function(mol) {
         BOTTOM: '.BOTTOM',
         LAST: '.LAST'
     };
-};mol.modules.map.loading = function(mol) {
+};
+mol.modules.map.loading = function(mol) {
 
     mol.map.loading = {};
 
@@ -1289,6 +1290,13 @@ mol.modules.map.menu = function(mol) {
              */
             addEventHandlers: function() {
                 var self = this;
+
+                this.display.dashboardItem.click(
+                    function(event) {                        
+                        self.bus.fireEvent(
+                            new mol.bus.Event('taxonomy-dashboard-toggle'));
+                    }
+                );
                 
                 this.display.searchItem.click(
                     function(event) {                        
@@ -1323,6 +1331,7 @@ mol.modules.map.menu = function(mol) {
                     '    <div class="label">' +
                     '       <img class="layersToggle" src="/static/maps/layers/expand.png">' +
                     '    </div>' +
+                    '    <div class="widgetTheme dashboard button">Dashboard</div>' +  
                     '    <div class="widgetTheme search button">Search</div>' +  
                     
                     // TODO: These are commented out while we decide where this functionality goes.
@@ -1343,6 +1352,7 @@ mol.modules.map.menu = function(mol) {
 
                 this._super(html);
                 this.searchItem = $(this.find('.search'));
+                this.dashboardItem = $(this.find('.dashboard'));
             }
         }
     );    
@@ -2093,50 +2103,56 @@ mol.modules.map.search = function(mol) {
              * Initialize autocomplate functionality
              */
             initAutocomplete: function() {
-                this.populateAutocomplete(null,null); //Hacked in for demo
-                //hacked out for demo
-                /*var url= "https://mol.cartodb.com/api/v2/sql?q=",
-                    self = this,
-                    sql = '' +
-                    'SET STATEMENT_TIMEOUT TO 0; ' + // Secret konami workaround for 40 second timeout.
-                    'SELECT ' +
-                    'DISTINCT scientificname ' +
-                    'FROM polygons ' +
-                    'UNION SELECT ' +
-                    'DISTINCT scientificname ' +
-                    'FROM points ' +
-                    'ORDER BY scientificname ASC',
-                    params = {sql:sql},
-                    action = new mol.services.Action('cartodb-sql-query', params),
-                    success = this.populateAutocomplete.bind(this),
-                    failure = function(action, response) {
+                this.populateAutocomplete(null, null); 
+                
+                // http://stackoverflow.com/questions/2435964/jqueryui-how-can-i-custom-format-the-autocomplete-plug-in-results
+                $.ui.autocomplete.prototype._renderItem = function (ul, item) {
+                    var val = item.label.split(':'),
+                        name = val[0],
+                        kind = val[1],
+                        eng = '<a>{0}</a>'.format(name),
+                        sci = '<a><i>{0}</i></a>'.format(name);
+                    
+                    item.label = kind === 'scientific' ? sci : eng;
+                    item.value = name;
 
-                    };
-
-                this.proxy.execute(action, new mol.services.Callback(success, failure));*/
-
+                    item.label = item.label.replace(
+                        new RegExp("(?![^&;]+;)(?!<[^<>]*)(" + 
+                                   $.ui.autocomplete.escapeRegex(this.term) + 
+                                   ")(?![^<>]*>)(?![^&;]+;)", "gi"), "<strong>$1</strong>");
+                    return $("<li></li>")
+                        .data("item.autocomplete", item)
+                        .append("<a>" + item.label + "</a>")
+                        .appendTo(ul);
+                };
             },
+
             /*
              * Populate autocomplete results list
              */
             populateAutocomplete : function(action, response) {
-               //hacked out for demo
-               /* this.scientificnames = [];
-                _.each(
-                    response.rows,
-                    function (row) {
-                        this.scientificnames.push(row.scientificname);
-                    }.bind(this)
-                  );*/
-                $(this.display.searchBox).autocomplete({
-                        RegEx : '\\b<term>[^\\b]*', //<term> gets replaced by the search term.
-                        minLength : 3,
-                        delay : 0,
-                        source : scientificnames // Hacked in for demo
-                        //source : this.scientificnames //hacked out for demo
-
+                $(this.display.searchBox).autocomplete(
+                    {
+                        //RegEx: '\\b<term>[^\\b]*', //<term> gets
+                        //replaced by the search term.
+                        //RegEx: 
+                        minLength: 3,
+                        delay: 0,
+                        source: function(request, response) {
+                            // TODO: Refactor this using our proxy:
+                            $.getJSON(
+                                'api/autocomplete',
+                                {
+                                    key: 'ac-{0}'.format(request.term)
+                                },
+                                function(names) {
+                                    response(names);
+                                }
+                            );
+                        }
                  });
             },
+            
             addEventHandlers: function() {
                 var self = this;
 
@@ -2160,7 +2176,7 @@ mol.modules.map.search = function(mol) {
                         } else {
                             self.display.toggle(event.visible);
                         }
-						params.visible = false;
+						      params.visible = false;
                         e = new mol.bus.Event('results-display-toggle', params);
                         self.bus.fireEvent(e);
                     }
@@ -2228,7 +2244,7 @@ mol.modules.map.search = function(mol) {
             search: function(term) {
                 var self = this,
                     sql = this.sql.format(term, term),
-                    params = {sql:sql, key: 'name-{0}'.format(term)},
+                    params = {sql:null, key: 'name-{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {term:term, response:response},
@@ -2568,3 +2584,106 @@ mol.modules.map.tiles = function(mol) {
         }
     );
 };
+mol.modules.map.dashboard = function(mol) {
+    
+    mol.map.dashboard = {};
+    
+    mol.map.dashboard.DashboardEngine = mol.mvp.Engine.extend(
+        {
+            init: function(proxy, bus) {
+                this.proxy = proxy;
+                this.bus = bus;
+            },
+            
+            /**
+             * Starts the MenuEngine. Note that the container parameter is 
+             * ignored.
+             */
+            start: function() {
+                this.display = new mol.map.dashboard.DashboardDisplay();
+                this.initDialog();
+                this.addEventHandlers();
+            },
+
+            /**
+             * Adds a handler for the 'search-display-toggle' event which 
+             * controls display visibility. Also adds UI event handlers for the
+             * display.
+             */
+            addEventHandlers: function() {
+                var self = this;
+                
+                /**
+                 * Callback that toggles the dashboard display visibility. 
+                 * 
+                 * @param event mol.bus.Event
+                 */
+                this.bus.addHandler(
+                    'taxonomy-dashboard-toggle',
+                    function(event) {
+                        var params = null,
+                            e = null;
+
+                        if (event.state === undefined) {
+                            self.display.dialog('open');
+                        } else {
+                            self.display.dialog(event.state);
+                        }
+                    }
+                );
+            },
+            
+            /**
+             * Fires the 'add-map-control' event. The mol.map.MapEngine handles 
+             * this event and adds the display to the map.
+             */
+            initDialog: function() {
+                this.display.dialog(
+                    {
+                        autoOpen: false,
+					         width: 800,
+					         buttons: {
+						          "Ok": function() { 
+							           $(this).dialog("close"); 
+						          }
+					         }
+                    }
+                );
+            }            
+        }
+    );
+    
+    mol.map.dashboard.DashboardDisplay = mol.mvp.View.extend(
+        {
+            init: function() {
+                var html = '' +                    
+                    '<div id="dialog" class="mol-LayerControl-Results" style="">' +
+                    '  <div class="dashboard">' +
+                    '  <div class="title">Dashboard</div>' +
+                    '  <div class="subtitle">Statistics for data served by the Map of Life</div>' +
+                    '  <table>' +
+                    '    <tr>' +
+                    '      <td width="100px"><b>Source</b></td>' +
+                    '      <td><b>Amphibians</b></td>' +
+                    '      <td><b>Birds</b></td>' +
+                    '      <td><b>Mammals</b></td>' +
+                    '      <td><b>Reptiles</b></td>' +
+                    '    </tr>' +
+                    '    <tr>' +
+                    '      <td>GBIF points</td>' +
+                    '      <td>500 species with records</t>' +
+                    '      <td>1,500 species with 30,000 records</td>' +
+                    '      <td>152 species with 88,246 records</td>' +
+                    '      <td>800 species with 100,000 records</td>' +
+                    '    </tr>' +
+                    '  </table>' +    
+                    '</div>  ';
+
+                this._super(html);
+            }
+        }
+    );    
+};
+    
+        
+            

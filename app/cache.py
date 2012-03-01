@@ -6,6 +6,7 @@ __author__ = 'Aaron Steele'
 
 # Standard Python imports
 import logging
+import json
 
 # Google App Engine imports
 from google.appengine.ext.ndb import model
@@ -23,7 +24,7 @@ class CacheItem(model.Model):
         entity = None
         if value_type == 'string':
             if dumps:
-                entity = cls(id=key.strip().lower(), string=simplejson.dumps(value))
+                entity = cls(id=key.strip().lower(), string=json.dumps(value))
             else:
                 entity = cls(id=key.strip().lower(), string=value)
         elif value_type == 'blob':
@@ -37,7 +38,7 @@ class CacheItem(model.Model):
         if item:            
             if value_type == 'string':
                 if loads:
-                    value = simplejson.loads(item.string)
+                    value = json.loads(item.string)
                 else:
                     value = item.string
             elif value_type == 'blob':
@@ -56,7 +57,7 @@ def get(key, loads=False, value_type='string'):
 
     Arguments:
         key - The cache item key.
-        loads - If true call simplejson.loads() on cached item (default false).
+        loads - If true call json.loads() on cached item (default false).
         value_type - The type of cache value (string or blob, default string).
     """
     return CacheItem.get(key, loads, value_type)
@@ -67,7 +68,7 @@ def add(key, value, dumps=False, value_type='string'):
     Arguments:
         key - The cache item key.
         value - The cache item value.
-        dumps - If true call simplejson.dumps() to value before caching (default false).
+        dumps - If true call json.dumps() to value before caching (default false).
         value_type - The type of cache value (string or blob, default string).
     """
     CacheItem.add(key, value, dumps, value_type)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim: set fileencoding=utf-8 :
 #
-# Copyright 2011 Aaron Steele, John Wieczorek, Gaurav Vaidya
+# Copyright 2011, 2012 Aaron Steele, John Wieczorek, Gaurav Vaidya
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -421,25 +421,13 @@ def encodeGeoJSONEntryAsSQL(entry, table_name):
     Returns: none.
     """
     
-    # Get the fields and values ready to be turned into an SQL statement
-    properties = entry['properties']
-    fields = properties.keys()
-    # oauth2 has cannot currently send UTF-8 data in the URL. So we go 
-    # back to ASCII at this point. This can be fixed by waiting for oauth2
-    # to be fixed (https://github.com/simplegeo/python-oauth2/pull/91 might
-    # be a fix), or we can clone our own python-oauth2 and fix that.
-    # Another alternative would be to use POST and multipart/form-data,
-    # which is probably the better long term solution anyway.
-    values = [unicode(v).encode('ascii', 'replace') for v in properties.values()]
-        # 'values' will be in the same order as 'fields'
-        # as long as there are "no intervening modifications to the 
-        # dictionary" [http://docs.python.org/library/stdtypes.html#dict]
-
     # Determine the geometry for this object, by converting the GeoJSON
     # geometry representation into WKT.
     # geometry = "SRID=4326;" + shapely.geometry.asShape(entry['geometry']).wkb
     try:
-	    geometry = shapely.geometry.asShape(entry['geometry']).wkb.encode('hex')
+        shape = shapely.geometry.asShape(entry['geometry'])
+        bounds = shape.bounds
+	geometry = shape.wkb.encode('hex')
 		# We can use SRID=4326 because we loaded it in that SRID from
 		# ogr2ogr.
     except ValueError as e:
@@ -447,6 +435,31 @@ def encodeGeoJSONEntryAsSQL(entry, table_name):
 	# So we continue, skipping only this feature.
 	# Run the upload again to catch these "missing features".
 	return ""
+
+    # Store the bounds in the upload object.
+    # Actually, DON'T. The schema can't handle it yet.
+    # we'll restore it when we can.
+    properties = entry['properties']
+    #properties['minx'] = bounds[0]
+    #properties['miny'] = bounds[1]
+    #properties['maxx'] = bounds[2]
+    #properties['maxy'] = bounds[3]
+
+    # Get the fields and values ready to be turned into an SQL statement
+    fields = properties.keys()
+    # oauth2 has cannot currently send UTF-8 data in the URL. So we go 
+    # back to ASCII at this point. This can be fixed by waiting for oauth2
+    # to be fixed (https://github.com/simplegeo/python-oauth2/pull/91 might
+    # be a fix), or we can clone our own python-oauth2 and fix that.
+    # Another alternative would be to use POST and multipart/form-data,
+    # which is probably the better long term solution anyway.
+    # values = [unicode(v).encode('ascii', 'replace') for v in properties.values()]
+    values = [unicode(v).encode('ascii', 'xmlcharrefreplace') for v in properties.values()]
+        # 'values' will be in the same order as 'fields'
+        # as long as there are "no intervening modifications to the 
+        # dictionary" [http://docs.python.org/library/stdtypes.html#dict]
+
+
 
     # Generate a 'tag', by calculating a SHA-1 hash of the concatenation
     # of the current time (in seconds since the epoch) and the string

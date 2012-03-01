@@ -26,8 +26,8 @@ $ sudo apt-get install python2.7
 # Install Google App Engine Python SDK
 $ mkdir ~/bin
 $ cd ~/bin
-$ curl -O http://googleappengine.googlecode.com/files/google_appengine_1.6.1.zip
-$ unzip google_appengine_1.6.1.zip
+$ curl -O http://googleappengine.googlecode.com/files/google_appengine_1.6.2.zip
+$ unzip google_appengine_1.6.2.zip
 $ export PATH=$PATH:~/bin/google_appengine # Add this line to ~/.bashrc
 ```
 
@@ -44,13 +44,22 @@ BOOM! You should be able to access the app at [http://localhost:8080](http://loc
 
 We're using [App Engine backends](http://code.google.com/appengine/docs/python/backends/) for executing long running jobs that pre-cache CartoDB queries. For example, one of these jobs queries CartoDB for a distict list of `scientificname`, and for each one, performs a second CartoDB search profile query (e.g., a row per source/type) and stores the results in the `CacheItem` entity.
 
-Backends are configured in `backends.yaml`. 
+Backends are configured in `backends.yaml` and require the python-mysqldb modules, Google App Engine SDK 1.6.2+, and Python 2.7. 
 
-To use backends with the development server via `dev_appserver.py`, you'll need to start it with the following command:
+
+
+To use backends with the development server via `dev_appserver.py`, first clear the datastore:
+
+```bash
+$ dev_appserver.py --clear_datastore
+```
+Then start it using
 
 ```bash
 $ dev_appserver.py --use_sqlite --backends .
 ```
+
+Then populate auto-complete fields by hitting  [http://localhost:8080/admin/build-search-cache](http://localhost:8080/admin/build-search-cache)
 
 Backends are fired off using the taskqueue API, so keep an eye on the taskqueue admin console:
 

@@ -8,21 +8,21 @@ import cache
 # Standard Python imports
 import logging
 import urllib
+import webapp2
 
 # Google App Engine imports
 from google.appengine.api import urlfetch
-from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-class GetHandler(webapp.RequestHandler):
+class GetHandler(webapp2.RequestHandler):
     """Request handler for cache requests."""
 
     def post(self):
         """Returns a cached value by key or None if it doesn't exist."""
         key = self.request.get('key', 'empty')
-        sql = self.request.get('sql')
+        sql = self.request.get('sql', None)
         value = cache.get(key)
-        if not value:
+        if not value and sql:
             logging.info('Cache miss on %s' % key)
             url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
             value = urlfetch.fetch(url, deadline=60).content
@@ -30,7 +30,7 @@ class GetHandler(webapp.RequestHandler):
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(value)
                     
-application = webapp.WSGIApplication(
+application = webapp2.WSGIApplication(
     [('/cache/get', GetHandler),], 
     debug=True)
          
