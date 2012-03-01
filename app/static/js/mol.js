@@ -2664,37 +2664,78 @@ mol.modules.map.tiles = function(mol) {
     );
 };
 mol.modules.map.dashboard = function(mol) {
-    
+
     mol.map.dashboard = {};
-    
+
     mol.map.dashboard.DashboardEngine = mol.mvp.Engine.extend(
         {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
+                this.sql = "" +
+                    "SELECT " +
+                    "  provider, type, count(*) as Total, " +
+                    "  count(CASE WHEN class='aves') as Birds, " +
+                    "  count(CASE WHEN class='mammalia') as Mammals, " +
+                    "  count(CASE WHEN class='reptilia') as Reptiles, " +
+                    "  count(CASE WHEN class='osteichthyes') as Fish, " +
+                    "  count(CASE WHEN class='amphibia') as Amphibians " +
+                    "FROM " +
+                    "  (SELECT DISTINCT scientificname, provider, type FROM polygons_new) p, " +
+                    "  (SELECT DISTINCT scientific, class FROM master_taxonomy) t, " +
+                    "  (SELECT count(*), class) " +
+                    "WHERE " +
+                    "  p.scientificname = t.scientific " +
+                    "GROUP BY"  +
+                    "  provider, type";
             },
-            
+
             /**
-             * Starts the MenuEngine. Note that the container parameter is 
+             * Starts the MenuEngine. Note that the container parameter is
              * ignored.
              */
             start: function() {
                 this.display = new mol.map.dashboard.DashboardDisplay();
                 this.initDialog();
                 this.addEventHandlers();
+                this.getCounts();
+            },
+            getCounts: function() {
+                 var self = this,
+                    sql = this.sql,
+                    params = {sql:sql, key: 'dashboard'},
+                    action = new mol.services.Action('cartodb-sql-query', params),
+                    success = function(action, response) {
+                        var results = {response:response};
+                        self.showCounts(results);
+                    },
+                    failure = function(action, response) {
+
+                    };
+                this.proxy.execute(action, new mol.services.Callback(success, failure));
+
+            },
+            showCounts: function(results) {
+                var self = this;
+                _.each(
+                    results.rows,
+                    function(row) {
+                        $(self.display.table).append(new mol.map.dashboard.DashboardRowDisplay(row))
+                    }
+                )
             },
 
             /**
-             * Adds a handler for the 'search-display-toggle' event which 
+             * Adds a handler for the 'search-display-toggle' event which
              * controls display visibility. Also adds UI event handlers for the
              * display.
              */
             addEventHandlers: function() {
                 var self = this;
-                
+
                 /**
-                 * Callback that toggles the dashboard display visibility. 
-                 * 
+                 * Callback that toggles the dashboard display visibility.
+                 *
                  * @param event mol.bus.Event
                  */
                 this.bus.addHandler(
@@ -2711,9 +2752,8 @@ mol.modules.map.dashboard = function(mol) {
                     }
                 );
             },
-            
             /**
-             * Fires the 'add-map-control' event. The mol.map.MapEngine handles 
+             * Fires the 'add-map-control' event. The mol.map.MapEngine handles
              * this event and adds the display to the map.
              */
             initDialog: function() {
@@ -2722,25 +2762,25 @@ mol.modules.map.dashboard = function(mol) {
                         autoOpen: false,
 					         width: 800,
 					         buttons: {
-						          "Ok": function() { 
-							           $(this).dialog("close"); 
+						          "Ok": function() {
+							           $(this).dialog("close");
 						          }
 					         }
                     }
                 );
-            }            
+            }
         }
     );
-    
+
     mol.map.dashboard.DashboardDisplay = mol.mvp.View.extend(
         {
             init: function() {
-                var html = '' +                    
+                var html = '' +
                     '<div id="dialog" class="mol-LayerControl-Results" style="">' +
                     '  <div class="dashboard">' +
                     '  <div class="title">Dashboard</div>' +
                     '  <div class="subtitle">Statistics for data served by the Map of Life</div>' +
-                    '  <table>' +
+                    '  <table class="stat_table">' +
                     '    <tr>' +
                     '      <td width="100px"><b>Source</b></td>' +
                     '      <td><b>Amphibians</b></td>' +
@@ -2748,24 +2788,35 @@ mol.modules.map.dashboard = function(mol) {
                     '      <td><b>Mammals</b></td>' +
                     '      <td><b>Reptiles</b></td>' +
                     '    </tr>' +
-                    '    <tr>' +
-                    '      <td>GBIF points</td>' +
-                    '      <td>500 species with records</t>' +
-                    '      <td>1,500 species with 30,000 records</td>' +
-                    '      <td>152 species with 88,246 records</td>' +
-                    '      <td>800 species with 100,000 records</td>' +
-                    '    </tr>' +
-                    '  </table>' +    
+                    '  </table>' +
                     '</div>  ';
 
                 this._super(html);
+                this.table = $(this.find('.stat_table'));
             }
         }
-    );    
+    );
+    mol.map.dashboard.DashboardRowDisplay = mol.mvp.View.extend(
+        {
+            init: function(row) {
+                var html = '' +
+                    '    <tr>' +
+                    '      <td>{0} {1}</td>' +
+                    '      <td>{2} species with {4} records</t>' +
+                    '      <td>{4} species with {6} records</td>' +
+                    '      <td>{6} species with {8} records</td>' +
+                    '      <td>{8} species with {10} records</td>' +
+                    '    </tr>';
+
+                this._super(html.format(name[0],name[1],name[2],name[3],name[4],name[5],name[6],name[7],name[8],name[9],name[10]));
+                this.table = $(this.find('.stat_table'));
+            }
+        }
+    );
 };
-    
-        
-            
+
+
+
 mol.modules.map.query = function(mol) {
 
     mol.map.query = {};
