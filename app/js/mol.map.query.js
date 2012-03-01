@@ -1,5 +1,5 @@
 mol.modules.map.query = function(mol) {
-
+    
     mol.map.query = {};
 
     mol.map.query.QueryEngine = mol.mvp.Engine.extend(
@@ -64,7 +64,7 @@ mol.modules.map.query = function(mol) {
                 function (params) {
                     var e = {
                         params : params
-                    }
+                    };
                     self.changeTool(e);
                 }
             );
@@ -106,7 +106,7 @@ mol.modules.map.query = function(mol) {
                                 //content.append(result);
                                 scientificnames.push(name.scientificname);
                             }
-                        )
+                        );
 
                         infoWindow= new google.maps.InfoWindow( {
                             content: content+scientificnames.join(', '),
@@ -123,7 +123,7 @@ mol.modules.map.query = function(mol) {
                          self.features[listradius.center.toString()+listradius.radius] = {
                              listradius : listradius,
                              infoWindow : infoWindow
-                         }
+                         };
 
                         //var marker = new google.maps.Marker({
                         //             position: self.listradius.center,
@@ -221,4 +221,4 @@ mol.modules.map.query = function(mol) {
         }
     }
     );
-}
+};
