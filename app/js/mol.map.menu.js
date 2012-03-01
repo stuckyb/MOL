@@ -90,7 +90,7 @@ mol.modules.map.menu = function(mol) {
                     '    </div>' +
                     '    <div class="widgetTheme dashboard button">Dashboard</div>' +
                     '    <div class="widgetTheme search button">Search</div>' +
-                    '    <div class="widgetTheme list button">Species&nbsp;List</div>' +
+                    //'    <div class="widgetTheme list button">Species&nbsp;List</div>' +
                     '</div>' +
                     '<div class="mol-LayerControl-Layers">' +
                     '      <div class="staticLink widgetTheme" >' +

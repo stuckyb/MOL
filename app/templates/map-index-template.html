@@ -107,7 +107,7 @@
              le.start()
              de = new env.map.dashboard.DashboardEngine(proxy, bus);
              de.start()
-             qe = new env.map.query.QueryEngine(proxy, bus);
+             qe = new env.map.query.QueryEngine(proxy, bus, me.display.map);
              qe.start()
           });
           {% endif %}

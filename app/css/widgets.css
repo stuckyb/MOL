@@ -660,15 +660,20 @@ button:hover{
 }
 .mol-Map-QueryDisplay {
     float: left;
-    heightL 15px;
+    height: 15px;
     -moz-border-radius: 3px;
     border-radius: 3px;
 }
 .mol-Map-QueryResultsListDisplay {
-    max-height: 500px;
-    overflow-y: scroll;
+
+    float: left;
+    position: absolute;
+
+    right: 0px;
+    text-align: right;
+    font-size: 0.8em;
+    white-space: nowrap;
     padding: 2px;
-    margin: 6px;
     -moz-border-radius: 3px;
     border-radius: 3px;
 }
