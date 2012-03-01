@@ -660,9 +660,16 @@ button:hover{
 }
 .mol-Map-QueryDisplay {
     float: left;
-    height: 15px;
+    height: 25px;
+    position: absolute;
+    bottom: 20px;
+    right: 6px;
     -moz-border-radius: 3px;
     border-radius: 3px;
+    text-align: right;
+    font-size: 0.8em;
+    white-space: nowrap;
+    padding: 2px;
 }
 .mol-Map-QueryResultsListDisplay {
 
@@ -670,10 +677,7 @@ button:hover{
     position: absolute;
 
     right: 0px;
-    text-align: right;
-    font-size: 0.8em;
-    white-space: nowrap;
-    padding: 2px;
+
     -moz-border-radius: 3px;
     border-radius: 3px;
 }

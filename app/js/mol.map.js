@@ -49,6 +49,11 @@ mol.modules.map = function(mol) {
                 controls[ControlPosition.BOTTOM_LEFT].clear();
                 controls[ControlPosition.BOTTOM_LEFT].push(this.ctlBottom.element);
 
+                // Add bottom right map control.
+                this.ctlRightBottom = new ControlDisplay('RightBottomControl');
+                controls[ControlPosition.RIGHT_BOTTOM].clear();
+                controls[ControlPosition.RIGHT_BOTTOM].push(this.ctlRightBottom.element);
+
             },
             /**
              * Gets the control display at a Google Map control position.
@@ -72,6 +77,9 @@ mol.modules.map = function(mol) {
                     break;
                 case ControlPosition.BOTTOM_LEFT:
                     control = this.ctlBottom;
+                    break;
+                 case ControlPosition.RIGHT_BOTTOM:
+                    control = this.ctlRightBottom;
                     break;
                 }
 
@@ -122,7 +130,7 @@ mol.modules.map = function(mol) {
                     function(event) {
                             google.maps.event.addListener(
                             self.display.map,
-                            "click",
+                            "rightclick",
                             function(event) {
                                 var params = { gmaps_event : event, map : self.display.map}
                                 self.bus.fireEvent(new mol.bus.Event('species-list-query-click',params));
