@@ -138,7 +138,12 @@ var CartoDB = CartoDB || {};
         // Add the cartodb tiles
         var cartodb_layer = {
           getTileUrl: function(coord, zoom) {
-            return 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query + '&map_key=' + (params.map_key || '') + '&style=' + ((params.tile_style)?encodeURIComponent(params.tile_style):'');
+            //return 'http://' + params.user_name +
+            //'.cartodb.com/tiles/' + params.table_name +
+            //'/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query
+            //+ '&map_key=' + (params.map_key || '') + '&style=' +
+            //((params.tile_style)?encodeURIComponent(params.tile_style):'');
+              return 'http://' + params.hostname+ '/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query + '&map_key=' + (params.map_key || '') + '&style=' + ((params.tile_style)?encodeURIComponent(params.tile_style):'');
           },
           tileSize: new google.maps.Size(256, 256),
           name: params.tile_name,
@@ -215,7 +220,7 @@ var CartoDB = CartoDB || {};
             params.query = sql;
           var cartodb_layer = {
               getTileUrl: function(coord, zoom) {
-              return 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query + '&map_key=' + (params.map_key || '') + '&style=' + (encodeURIComponent(params.tile_style) || '');
+              return 'http://' + params.hostname + '/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query + '&map_key=' + (params.map_key || '') + '&style=' + (encodeURIComponent(params.tile_style) || '');
             },
             tileSize: new google.maps.Size(256, 256),
             name: params.tile_name,
@@ -228,7 +233,7 @@ var CartoDB = CartoDB || {};
       }
 
       function generateTileJson(params) {
-        var core_url = 'http://' + params.user_name + '.cartodb.com';  
+        var core_url = 'http://' + params.hostname;
         var base_url = core_url + '/tiles/' + params.table_name + '/{z}/{x}/{y}';
         var tile_url = base_url + '.png?cache_buster=0';
         var grid_url = base_url + '.grid.json';

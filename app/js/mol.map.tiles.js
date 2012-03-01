@@ -270,11 +270,15 @@ mol.modules.map.tiles = function(mol) {
             init: function(layer, table, map) {
                 var sql =  "SELECT * FROM {0} where scientificname = '{1}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
-                    tile_style = opacity ? "#{0}{polygon-fill:#99cc00;polygon-opacity:{1};}".format(table, opacity) : null;
-
+                    tile_style = opacity ? "#{0}{polygon-fill:#99cc00;polygon-opacity:{1};}".format(table, opacity) : null,
+                    hostname = window.location.hostname;
+                
+                hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
+                
                 this.layer = new google.maps.CartoDBLayer(
                     {
                         tile_name: layer.id,
+                        hostname: hostname,
                         map_canvas: 'map_container',
                         map: map,
                         user_name: 'mol',

@@ -13,6 +13,9 @@ handlers:
   script: admin_handler.application
   login: admin
 
+- url: /tiles/.*
+  script: tile_handler.application
+
 - url: /js
   static_dir: js
 
