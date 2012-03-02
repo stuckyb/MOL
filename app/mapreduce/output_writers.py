@@ -24,20 +24,16 @@ __all__ = [
     "BlobstoreOutputWriter",
     "BlobstoreOutputWriterBase",
     "BlobstoreRecordsOutputWriter",
-    "KeyValueBlobstoreOutputWriter",
     "COUNTER_IO_WRITE_BYTES",
     "COUNTER_IO_WRITE_MSEC",
     "OutputWriter",
     "RecordsPool",
     ]
 
-import gc
-import logging
 import string
 import time
 
 from mapreduce.lib import files
-from mapreduce.lib.files import file_service_pb
 from mapreduce.lib.files import records
 from mapreduce import errors
 from mapreduce import model
@@ -219,7 +215,7 @@ class _FilePool(object):
     for filename, data in self._append_buffer.iteritems():
       with files.open(filename, "a") as f:
         if len(data) > self._flush_size:
-          raise errors.Error("Bad data: %s" % len(data))
+          raise "Bad data: " + str(len(data))
         if self._ctx:
           operation.counters.Increment(
               COUNTER_IO_WRITE_BYTES, len(data))(self._ctx)
@@ -258,25 +254,19 @@ class RecordsPool(object):
   _RECORD_OVERHEAD_BYTES = 10
 
   def __init__(self, filename,
-               flush_size_chars=_FILES_API_FLUSH_SIZE,
-               ctx=None,
-               exclusive=False):
+               flush_size_chars=_FILES_API_FLUSH_SIZE, ctx=None):
     """Constructor.
 
     Args:
       filename: file name to write data to as string.
       flush_size_chars: buffer flush threshold as int.
       ctx: mapreduce context as context.Context.
-      exclusive: a boolean flag indicating if the pool has an exclusive
-        access to the file. If it is True, then it's possible to write
-        bigger chunks of data.
     """
     self._flush_size = flush_size_chars
     self._buffer = []
     self._size = 0
     self._filename = filename
     self._ctx = ctx
-    self._exclusive = exclusive
 
   def append(self, data):
     """Append data to a file."""
@@ -284,7 +274,7 @@ class RecordsPool(object):
     if self._size + data_length > self._flush_size:
       self.flush()
 
-    if not self._exclusive and data_length > _FILES_API_MAX_SIZE:
+    if data_length > _FILES_API_MAX_SIZE:
       raise errors.Error(
           "Too big input %s (%s)."  % (data_length, _FILES_API_MAX_SIZE))
     else:
@@ -303,7 +293,7 @@ class RecordsPool(object):
         w.write(record)
 
     str_buf = buf.to_string()
-    if not self._exclusive and len(str_buf) > _FILES_API_MAX_SIZE:
+    if len(str_buf) > _FILES_API_MAX_SIZE:
       # Shouldn't really happen because of flush size.
       raise errors.Error(
           "Buffer too big. Can't write more than %s bytes in one request: "
@@ -312,7 +302,7 @@ class RecordsPool(object):
 
     # Write data to file.
     start_time = time.time()
-    with files.open(self._filename, "a", exclusive_lock=self._exclusive) as f:
+    with files.open(self._filename, "a") as f:
       f.write(str_buf)
       if self._ctx:
         operation.counters.Increment(
@@ -325,7 +315,6 @@ class RecordsPool(object):
     # reset buffer
     self._buffer = []
     self._size = 0
-    gc.collect()
 
   def __enter__(self):
     return self
@@ -564,30 +553,5 @@ class BlobstoreRecordsOutputWriter(BlobstoreOutputWriterBase):
       ctx: an instance of context.Context.
     """
     if ctx.get_pool("records_pool") is None:
-      ctx.register_pool("records_pool",
-                        # we can have exclusive pool because we create one
-                        # file per shard.
-                        RecordsPool(self._filename, ctx=ctx, exclusive=True))
+      ctx.register_pool("records_pool", RecordsPool(self._filename, ctx=ctx))
     ctx.get_pool("records_pool").append(str(data))
-
-
-class KeyValueBlobstoreOutputWriter(BlobstoreRecordsOutputWriter):
-  """Output writer for KeyValue records files in blobstore."""
-
-  def write(self, data, ctx):
-    if len(data) != 2:
-      logging.error("Got bad tuple of length %d (2-tuple expected): %s",
-                    len(data), data)
-
-    try:
-      key = str(data[0])
-      value = str(data[1])
-    except TypeError:
-      logging.error("Expecting a tuple, but got %s: %s",
-                    data.__class__.__name__, data)
-
-    proto = file_service_pb.KeyValue()
-    proto.set_key(key)
-    proto.set_value(value)
-    BlobstoreRecordsOutputWriter.write(self, proto.Encode(), ctx)
-

@@ -30,6 +30,7 @@ from google.appengine.ext import db
 from mapreduce import base_handler
 from mapreduce import errors
 from mapreduce import model
+from google.appengine.ext.webapp import template
 
 
 # TODO(user): a list of features we'd like to have in status page:
@@ -265,8 +266,7 @@ class ResourceHandler(base_handler.BaseHandler):
     "status": ("overview.html", "text/html"),
     "detail": ("detail.html", "text/html"),
     "base.css": ("base.css", "text/css"),
-    "jquery.js": ("jquery-1.6.1.min.js", "text/javascript"),
-    "jquery-json.js": ("jquery.json-2.2.min.js", "text/javascript"),
+    "jquery.js": ("jquery-1.4.2.min.js", "text/javascript"),
     "status.js": ("status.js", "text/javascript"),
   }
 
@@ -321,7 +321,6 @@ class ListJobsHandler(base_handler.GetJsonHandler):
 
           # Specific to overview page.
           "chart_url": job.sparkline_url,
-          "chart_width": job.chart_width,
           "active_shards": job.active_shards,
           "shards": job.mapreduce_spec.mapper.shard_count,
       }
@@ -358,7 +357,7 @@ class GetJobDetailHandler(base_handler.GetJsonHandler):
     })
     self.json_response["result_status"] = job.result_status
 
-    shards_list = model.ShardState.find_by_mapreduce_state(job)
+    shards_list = model.ShardState.find_by_mapreduce_id(mapreduce_id)
     all_shards = []
     shards_list.sort(key=lambda x: x.shard_number)
     for shard in shards_list:

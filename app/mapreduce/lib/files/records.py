@@ -81,7 +81,6 @@ C will be stored as a FULL record in the fourth block.
 """
 
 
-import logging
 import struct
 
 import google
@@ -117,7 +116,7 @@ class Error(Exception):
   """Base class for exceptions in this module."""
 
 
-class InvalidRecordError(Error):
+class InvalidRecordError(Exception):
   """Raised when invalid record encountered."""
 
 
@@ -327,46 +326,30 @@ class RecordsReader(object):
     """Reads record from current position in reader."""
     data = None
     while True:
-      last_offset = self.tell()
       try:
         (chunk, record_type) = self.__try_read_record()
         if record_type == RECORD_TYPE_NONE:
           self.__sync()
         elif record_type == RECORD_TYPE_FULL:
-          if data is not None:
-            logging.warning(
-                "Ordering corruption: Got FULL record while already "
-                "in a chunk at offset %d", last_offset)
           return chunk
         elif record_type == RECORD_TYPE_FIRST:
           if data is not None:
-            logging.warning(
-                "Ordering corruption: Got FIRST record while already "
-                "in a chunk at offset %d", last_offset)
+            raise InvalidRecordError()
           data = chunk
         elif record_type == RECORD_TYPE_MIDDLE:
           if data is None:
-            logging.warning(
-                "Ordering corruption: Got MIDDLE record before FIRST "
-                "record at offset %d", last_offset)
-          else:
-            data += chunk
+            raise InvalidRecordError()
+          data += chunk
         elif record_type == RECORD_TYPE_LAST:
           if data is None:
-            logging.warning(
-                "Ordering corruption: Got LAST record but no chunk is in "
-                "progress at offset %d", last_offset)
-          else:
-            result = data + chunk
-            data = None
-            return result
+            raise InvalidRecordError()
+          result = data + chunk
+          data = None
+          return result
         else:
-          raise InvalidRecordError("Unsupported record type: %s" % record_type)
-
-      except InvalidRecordError, e:
-        logging.warning("Invalid record encountered at %s (%s). Syncing to "
-                        "the next block", last_offset, e)
-        data = None
+          raise InvalidRecordError('Unsupported record type: %s' %
+                                   (record_type))
+      except InvalidRecordError:
         self.__sync()
 
   def __iter__(self):

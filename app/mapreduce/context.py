@@ -23,21 +23,9 @@ from handlers such as counters, log messages, mutation pools.
 
 
 
-__all__ = [
-           "get",
-           "Context",
-           "Counters",
-           "EntityList",
-           "ItemList",
-           "MutationPool",
-           "COUNTER_MAPPER_CALLS",
-           "COUNTER_MAPPER_WALLTIME_MS",
-           "DATASTORE_DEADLINE",
-           "MAX_ENTITY_COUNT",
-           "MAX_POOL_SIZE",
-           ]
-
-import threading
+__all__ = ["MAX_ENTITY_COUNT", "MAX_POOL_SIZE", "Context", "MutationPool",
+           "Counters", "ItemList", "EntityList", "get", "COUNTER_MAPPER_CALLS",
+           "DATASTORE_DEADLINE"]
 
 from google.appengine.api import datastore
 from google.appengine.ext import db
@@ -55,11 +43,7 @@ MAX_ENTITY_COUNT = 500
 DATASTORE_DEADLINE = 15
 
 # The name of the counter which counts all mapper calls.
-COUNTER_MAPPER_CALLS = "mapper-calls"
-
-# Total walltime in msec given to mapper process. This is not just mapper
-# hundler function, but includes all i/o overhead.
-COUNTER_MAPPER_WALLTIME_MS = "mapper-walltime-ms"
+COUNTER_MAPPER_CALLS = "mapper_calls"
 
 
 def _normalize_entity(value):
@@ -133,19 +117,15 @@ class MutationPool(object):
 
   def __init__(self,
                max_pool_size=MAX_POOL_SIZE,
-               max_entity_count=MAX_ENTITY_COUNT,
-               mapreduce_spec=None):
+               max_entity_count=MAX_ENTITY_COUNT):
     """Constructor.
 
     Args:
       max_pool_size: maximum pools size in bytes before flushing it to db.
       max_entity_count: maximum number of entities before flushing it to db.
-      mapreduce_spec: An optional instance of MapperSpec.
     """
     self.max_pool_size = max_pool_size
     self.max_entity_count = max_entity_count
-    params = mapreduce_spec.params if mapreduce_spec is not None else {}
-    self.force_writes = bool(params.get("force_ops_writes", False))
     self.puts = ItemList()
     self.deletes = ItemList()
 
@@ -185,23 +165,22 @@ class MutationPool(object):
   def __flush_puts(self):
     """Flush all puts to datastore."""
     if self.puts.length:
-      datastore.Put(self.puts.items, config=self.__create_config())
+      datastore.Put(self.puts.items, rpc=self.__create_rpc())
     self.puts.clear()
 
   def __flush_deletes(self):
     """Flush all deletes to datastore."""
     if self.deletes.length:
-      datastore.Delete(self.deletes.items, config=self.__create_config())
+      datastore.Delete(self.deletes.items, rpc=self.__create_rpc())
     self.deletes.clear()
 
-  def __create_config(self):
-    """Creates datastore Config.
+  def __create_rpc(self):
+    """Creates correctly configured RPC object for datastore calls.
 
     Returns:
-      A datastore_rpc.Configuration instance.
+      A UserRPC instance.
     """
-    return datastore.CreateConfig(deadline=DATASTORE_DEADLINE,
-                                  force_writes=self.force_writes)
+    return datastore.CreateRPC(deadline=DATASTORE_DEADLINE)
 
 
 # This doesn't do much yet. In future it will play nicely with checkpoint/error
@@ -242,7 +221,7 @@ class Context(object):
   """
 
   # Current context instance
-  _local = threading.local()
+  _context_instance = None
 
   def __init__(self, mapreduce_spec, shard_state, task_retry_count=0):
     """Constructor.
@@ -268,8 +247,7 @@ class Context(object):
 
     self.mutation_pool = MutationPool(
         max_pool_size=(MAX_POOL_SIZE/(2**self.task_retry_count)),
-        max_entity_count=(MAX_ENTITY_COUNT/(2**self.task_retry_count)),
-        mapreduce_spec=mapreduce_spec)
+        max_entity_count=(MAX_ENTITY_COUNT/(2**self.task_retry_count)))
     self.counters = Counters(shard_state)
 
     self._pools = {}
@@ -314,7 +292,7 @@ class Context(object):
     Args:
       context: new context as Context or None.
     """
-    cls._local._context_instance = context
+    cls._context_instance = context
 
 
 def get():
@@ -323,6 +301,4 @@ def get():
   Returns:
     current context as Context.
   """
-  if not hasattr(Context._local, '_context_instance') :
-    return None
-  return Context._local._context_instance
+  return Context._context_instance

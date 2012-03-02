@@ -17,7 +17,6 @@ html, body {
   padding: 0;
   border-right: 1px solid grey;
   margin: 0;
-  background-color: #f8f8f8;
 }
 #content {
   border: 0;
@@ -31,9 +30,11 @@ html, body {
 #control {
   padding: 0;
   margin: 0;
+  top: 0;
+  right: 0;
   height: 25px;
   width: 100%;
-  border-bottom: 1px solid #808080;
+  border-bottom: 1px solid grey;
 }
 #control-table {
   height: 100%;
@@ -55,8 +56,6 @@ html, body {
 
 /* shared styling of pipeline info divs */
 .status-message {
-}
-.status-message-text {
   font-family: monospace;
 }
 abbr {
@@ -79,10 +78,11 @@ abbr {
 .slot-detail,
 .status-param-value {
   padding-left: 1em;
+  max-width: 400px;
   word-wrap: break-word;
 }
-.value-disclosure-more {
-  display: none;
+.status-param-detail {
+  padding-left: 2em;
 }
 .run-after-pipeline-id,
 .child-pipeline-id,
@@ -111,6 +111,7 @@ abbr {
 #sidebar .status-title {
 }
 #sidebar .status-message {
+  max-width: 200px;
   word-wrap: break-word;
 }
 #sidebar .status-time {
@@ -121,28 +122,34 @@ abbr {
 }
 #sidebar .status-box {
   font-size: 0.85em;
-  padding: 3px 3px;
+  padding: 1px 3px;
   min-width: 200px;
   border-left: 1px solid #BFBFBF;
-  border-right: 0;
-  border-top: 0;
-  border-bottom: 1px solid #BFBFBF;
+  border-right: 1px solid #BFBFBF;
 }
 #sidebar .status-waiting {
-  background-color: #EDEDED;
+  background-color: #D3D3D3;
+  border-top: 1px solid #bfbfbf;
+  border-bottom: 1px solid #959595;
 }
 #sidebar .status-run,
 #sidebar .status-finalizing {
   background-color: #fff;
+  border-top: 1px solid #bfbfbf;
+  border-bottom: 1px solid #959595;
 }
 #sidebar .status-done {
-  background-color: #BEEDBE;
+  background-color: #90EE90;
+  border-top: 1px solid #C5EBC5;
+  border-bottom: 1px solid #75BF75;
 }
 #sidebar .status-aborted {
-  background-color: #EDBEC6;
+  background-color: #FFC0CB;
+  border-top: 1px solid #FFDBE1;
+  border-bottom: 1px solid #FFADBB;
 }
 #sidebar .status-retry {
-  background-color: #EDE7B2;
+  background-color: khaki;
 }
 .treeview li {
   padding: 0 0 0 16px;
@@ -154,28 +161,17 @@ abbr {
   padding-left: 3px;
   display: block;
 }
-.selected-indicator {
-  display: none;
-}
-.selected-link .selected-indicator {
-  display: block;
-  float: right;
-  margin: 0;
-  padding: 0;
-  font-size: 30px;
-  color: #000;
-  font-weight: bold;
-  line-height: 15px;
-}
-.status-links .selected-link {
-  font-weight: bold !important;
+#sidebar .selected-link:before {
+  content: '*';
+  vertical-align: middle;
+  margin-right: 2px;
 }
 .status-links a:active,
 .status-links a:link,
 .status-links a:visited {
-  text-decoration: underline;
+  text-decoration: none;
   color: blue;
-  font-weight: normal;
+  font-weight: bold;
 }
 .disclosure:hover,
 .status-links a:hover,
@@ -183,7 +179,6 @@ abbr {
   text-decoration: underline;
 }
 #sidebar .detail-link {
-  word-wrap: break-word;
 }
 .detail-link a {
   font-size: 1.2em;

@@ -18,16 +18,9 @@
 
 
 
-__all__ = [
-    "create_datastore_write_config",
-    "for_name",
-    "get_short_name",
-    "handler_for_name",
-    "is_generator",
-    "parse_bool",
-    "HugeTask",
-    "HugeTaskHandler",
-    ]
+__all__ = ["for_name", "is_generator_function", "get_short_name", "parse_bool",
+           "create_datastore_write_config",
+           "HugeTask", "HugeTaskHandler"]
 
 
 import base64
@@ -35,7 +28,6 @@ import cgi
 import inspect
 import logging
 import zlib
-import types
 import urllib
 
 from mapreduce.lib import files
@@ -117,32 +109,8 @@ def for_name(fq_name, recursive=False):
     raise
 
 
-def handler_for_name(fq_name):
-  """Resolves and instantiates handler by fully qualified name.
-
-  First resolves the name using for_name call. Then if it resolves to a class,
-  instantiates a class, if it resolves to a method - instantiates the class and
-  binds method to the instance.
-
-  Args:
-    fq_name: fully qualified name of something to find.
-
-  Returns:
-    handler instance which is ready to be called.
-  """
-  resolved_name = for_name(fq_name)
-  if isinstance(resolved_name, (type, types.ClassType)):
-    # create new instance if this is type
-    return resolved_name()
-  elif isinstance(resolved_name, types.MethodType):
-    # bind the method
-    return getattr(resolved_name.im_class(), resolved_name.__name__)
-  else:
-    return resolved_name
-
-
-def is_generator(obj):
-  """Return true if the object is generator or generator function.
+def is_generator_function(obj):
+  """Return true if the object is a user-defined generator function.
 
   Generator function objects provides same attributes as functions.
   See isfunction.__doc__ for attributes listing.
@@ -155,9 +123,6 @@ def is_generator(obj):
   Returns:
     true if the object is generator function.
   """
-  if isinstance(obj, types.GeneratorType):
-    return True
-
   CO_GENERATOR = 0x20
   return bool(((inspect.isfunction(obj) or inspect.ismethod(obj)) and
                obj.func_code.co_flags & CO_GENERATOR))
