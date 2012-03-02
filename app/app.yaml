@@ -8,6 +8,9 @@ builtins:
 - appstats: on
 - remote_api: on
 
+includes:
+- mapreduce/include.yaml
+
 handlers:
 - url: /admin/.*
   script: admin_handler.application

@@ -137,9 +137,9 @@ class SearchCacheBuilder(webapp2.RequestHandler):
 
     def post(self):
         url = 'https://mol.cartodb.com/api/v2/sql'
-        sql_points = "SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from points limit 1" #where scientificname='Dacelo novaeguineae'"
+        sql_points = "select distinct(scientificname) from points limit 100" #where scientificname='Dacelo novaeguineae'"
         # limit 20'
-        sql_polygons = "SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from polygons limit 1" #where scientificname='Dacelo novaeguineae'"
+        sql_polygons = "select distinct(scientificname) from polygons limit 100" #where scientificname='Dacelo novaeguineae'"
         # limit 20'
 
         # Get points names:
@@ -160,7 +160,7 @@ class SearchCacheBuilder(webapp2.RequestHandler):
         unique_names = list(set([x['scientificname'] for x in rows]))
 
 
-        sql = "SET STATEMENT_TIMEOUT TO 0; SELECT p.provider as source, p.scientificname as name, p.type as type FROM polygons as p WHERE p.scientificname = '%s' UNION SELECT t.provider as source, t.scientificname as name, t.type as type FROM points as t WHERE t.scientificname = '%s'"
+        sql = "SELECT p.provider as source, p.scientificname as name, p.type as type FROM polygons as p WHERE p.scientificname = '%s' UNION SELECT t.provider as source, t.scientificname as name, t.type as type FROM points as t WHERE t.scientificname = '%s'"
 
         # Cache search results.
         rpcs = []
