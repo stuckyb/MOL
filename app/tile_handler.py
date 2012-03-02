@@ -20,7 +20,7 @@ if 'SERVER_SOFTWARE' in os.environ:
 else:
     PROD = True
 
-app_id = os.environ['CURRENT_VERSION_ID']
+app_id = os.environ['CURRENT_VERSION_ID'].split('.')[0]
 if PROD:
     app_host = 'http://%s.map-of-life.appspot.com' % app_id
 else:
@@ -30,12 +30,9 @@ class TileHandler(webapp2.RequestHandler):
     """Request handler for cache requests."""
 
     def get(self):
-        logging.info('request: %s' % self.request.url)
         tile_url = self.request.url.replace(app_host, 'http://mol.cartodb.com')
-        logging.info('cdb request: %s' % tile_url)        
         tile_png = cache.get(tile_url, value_type='blob')
         if not tile_png:
-            logging.info('Tile cache miss on %s' % tile_url)
             tile_png = urlfetch.fetch(tile_url, deadline=60).content
             cache.add(tile_url, tile_png, value_type='blob')
         self.response.headers["Content-Type"] = "image/png"
@@ -45,12 +42,9 @@ class GridHandler(webapp2.RequestHandler):
     """Request handler for cache requests."""
 
     def get(self):
-        logging.info('request: %s' % self.request.url)
         grid_url = self.request.url.replace(app_host, 'http://mol.cartodb.com')
-        logging.info('cdb request: %s' % grid_url)        
         grid_json = cache.get(grid_url)
         if not grid_json:
-            logging.info('Grid cache miss on %s' % grid_url)
             grid_json = urlfetch.fetch(grid_url, deadline=60).content
             cache.add(grid_url, grid_json)
         self.response.headers["Content-Type"] = "application/json"
