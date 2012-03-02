@@ -19,6 +19,7 @@
 
 
 __all__ = [
+    "BadCombinerOutputError",
     "BadParamsError",
     "BadReaderParamsError",
     "BadWriterParamsError",
@@ -26,6 +27,7 @@ __all__ = [
     "Error",
     "MissingYamlError",
     "MultipleDocumentsInMrYaml",
+    "ShuffleServiceError",
     ]
 
 class Error(Exception):
@@ -54,3 +56,12 @@ class BadReaderParamsError(BadParamsError):
 
 class BadWriterParamsError(BadParamsError):
   """The input parameters to a reader were invalid."""
+
+
+class ShuffleServiceError(Error):
+  """Error doing shuffle through shuffle service."""
+
+
+class BadCombinerOutputError(Error):
+  """Combiner outputs data instead of yielding it."""
+

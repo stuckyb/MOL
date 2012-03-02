@@ -152,8 +152,14 @@ RAW = file_service_pb.FileContentType.RAW
 
 def _raise_app_error(e):
   """Convert RPC error into api-specific exception."""
-  if (e.application_error ==
-      file_service_pb.FileServiceErrors.EXISTENCE_ERROR):
+  if (e.application_error in
+      [file_service_pb.FileServiceErrors.EXISTENCE_ERROR,
+       file_service_pb.FileServiceErrors.EXISTENCE_ERROR_METADATA_NOT_FOUND,
+       file_service_pb.FileServiceErrors.EXISTENCE_ERROR_METADATA_FOUND,
+       file_service_pb.FileServiceErrors.EXISTENCE_ERROR_SHARDING_MISMATCH,
+       file_service_pb.FileServiceErrors.EXISTENCE_ERROR_OBJECT_NOT_FOUND,
+       file_service_pb.FileServiceErrors.EXISTENCE_ERROR_BUCKET_NOT_FOUND,
+       ]):
     raise ExistenceError()
   elif (e.application_error ==
         file_service_pb.FileServiceErrors.API_TEMPORARILY_UNAVAILABLE):
@@ -503,6 +509,19 @@ def delete(filename):
     files_blobstore._delete(filename)
   else:
     raise InvalidFileNameError( 'Unsupported file name: %s' % filename)
+
+
+def _get_capabilities():
+  """Get files API capabilities.
+
+  Returns:
+    An instance of file_service_pb.GetCapabilitiesResponse.
+  """
+  request = file_service_pb.GetCapabilitiesRequest()
+  response = file_service_pb.GetCapabilitiesResponse()
+
+  _make_call('GetCapabilities', request, response)
+  return response
 
 
 class BufferedFile(object):

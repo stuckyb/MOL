@@ -35,9 +35,12 @@ import datetime
 import logging
 import math
 import os
-from mapreduce.lib import simplejson
+import random
+try:
+  import json as simplejson
+except ImportError:
+  from mapreduce.lib import simplejson
 import time
-import types
 
 from google.appengine.api import datastore_errors
 from google.appengine.api import datastore_types
@@ -213,8 +216,10 @@ def _get_descending_key(gettime=time.time):
     A string with a time descending key.
   """
   now_descending = int((_FUTURE_TIME - gettime()) * 100)
-  return "%d%s" % (now_descending,
-                   os.environ.get("REQUEST_ID_HASH", "FFFFFFFF"))
+  request_id_hash = os.environ.get("REQUEST_ID_HASH")
+  if not request_id_hash:
+    request_id_hash = str(random.getrandbits(32))
+  return "%d%s" % (now_descending, request_id_hash)
 
 
 class CountersMap(JsonMixin):
@@ -316,6 +321,14 @@ class CountersMap(JsonMixin):
     counters_map.counters = json["counters"]
     return counters_map
 
+  def to_dict(self):
+    """Convert to dictionary.
+
+    Returns:
+      a dictionary with counter name as key and counter values as value.
+    """
+    return self.counters
+
 
 class MapperSpec(JsonMixin):
   """Contains a specification for the mapper phase of the mapreduce.
@@ -370,16 +383,7 @@ class MapperSpec(JsonMixin):
       cached handler instance as callable.
     """
     if self.__handler is None:
-      resolved_spec = util.for_name(self.handler_spec)
-      if isinstance(resolved_spec, type):
-        # create new instance if this is type
-        self.__handler = resolved_spec()
-      elif isinstance(resolved_spec, types.MethodType):
-        # bind the method
-        self.__handler = getattr(resolved_spec.im_class(),
-                                 resolved_spec.__name__)
-      else:
-        self.__handler = resolved_spec
+      self.__handler = util.handler_for_name(self.handler_spec)
     return self.__handler
 
   handler = property(get_handler)
@@ -555,6 +559,7 @@ class MapreduceState(db.Model):
 
   # For UI purposes only.
   chart_url = db.TextProperty(default="")
+  chart_width = db.IntegerProperty(default=300, indexed=False)
   sparkline_url = db.TextProperty(default="")
   result_status = db.StringProperty(required=False, choices=_RESULTS)
   active_shards = db.IntegerProperty(default=0, indexed=False)
@@ -599,12 +604,23 @@ class MapreduceState(db.Model):
         each shard
     """
     chart = google_chart_api.BarChart(shards_processed)
-    if self.mapreduce_spec and shards_processed:
-      chart.bottom.labels = [
-          str(x) for x in xrange(self.mapreduce_spec.mapper.shard_count)]
+    shard_count = len(shards_processed)
+
+    if shards_processed:
+      # Only 16 labels on the whole chart.
+      stride_length = max(1, shard_count / 16)
+      chart.bottom.labels = []
+      for x in xrange(shard_count):
+        if (x % stride_length == 0 or
+            x == shard_count - 1):
+          chart.bottom.labels.append(x)
+        else:
+          chart.bottom.labels.append("")
       chart.left.labels = ['0', str(max(shards_processed))]
       chart.left.min = 0
-    self.chart_url = chart.display.Url(300, 200)
+
+    self.chart_width = min(700, max(300, shard_count * 20))
+    self.chart_url = chart.display.Url(self.chart_width, 200)
 
   def get_processed(self):
     """Number of processed entities.
@@ -734,6 +750,11 @@ class ShardState(db.Model):
   shard_description = db.TextProperty(default="")
   last_work_item = db.TextProperty(default="")
 
+  def copy_from(self, other_state):
+    """Copy data from another shard state entity to self."""
+    for prop in self.properties().values():
+      setattr(self, prop.name, getattr(other_state, prop.name))
+
   def get_shard_number(self):
     """Gets the shard number from the key name."""
     return int(self.key().name().split("-")[-1])
@@ -789,16 +810,28 @@ class ShardState(db.Model):
     return cls.get_by_key_name(shard_id)
 
   @classmethod
-  def find_by_mapreduce_id(cls, mapreduce_id):
+  def find_by_mapreduce_state(cls, mapreduce_state):
     """Find all shard states for given mapreduce.
 
     Args:
-      mapreduce_id: mapreduce id.
+      mapreduce_state: MapreduceState instance
 
     Returns:
-      iterable of all ShardState for given mapreduce id.
+      iterable of all ShardState for given mapreduce.
     """
-    return cls.all().filter("mapreduce_id =", mapreduce_id).fetch(99999)
+    keys = []
+    for i in range(mapreduce_state.mapreduce_spec.mapper.shard_count):
+      shard_id = cls.shard_id_from_number(mapreduce_state.key().name(), i)
+      keys.append(cls.get_key_by_shard_id(shard_id))
+    return [state for state in db.get(keys) if state]
+
+  @classmethod
+  def find_by_mapreduce_id(cls, mapreduce_id):
+    logging.error(
+        "ShardState.find_by_mapreduce_id method may be inconsistent. " +
+        "ShardState.find_by_mapreduce_state should be used instead.")
+    return cls.all().filter(
+        "mapreduce_id =", mapreduce_id).fetch(99999)
 
   @classmethod
   def create_new(cls, mapreduce_id, shard_number):
