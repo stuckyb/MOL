@@ -1,5 +1,5 @@
 mol.modules.map.query = function(mol) {
-    
+
     mol.map.query = {};
 
     mol.map.query.QueryEngine = mol.mvp.Engine.extend(
@@ -11,7 +11,7 @@ mol.modules.map.query = function(mol) {
                 this.sql = "" +
                         "SET STATEMENT_TIMEOUT TO 0;" +
                         "SELECT DISTINCT scientificname " +
-                        "FROM polygons_new " +
+                        "FROM polygons " +
                         "WHERE ST_DWithin(the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " +
                         //"WHERE ST_DWithin(the_geom,ST_PointFromText('POINT({0})',4326),0.1) " +
                         "AND provider = 'Jetz' AND polygonres = '1000' ORDER BY scientificname";
@@ -99,7 +99,7 @@ mol.modules.map.query = function(mol) {
                                 listradius.radius/1000 + ' km of ' +
                                 Math.round(listradius.center.lat()*1000)/1000 + '&deg; Latitude ' +
                                 Math.round(listradius.center.lng()*1000)/1000 + '&deg; Longitude' +
-                                '<p><div class="mol-Map-ListQueryInfoWindowResults">';
+                                '<div class="mol-Map-ListQueryInfoWindowResults">';
                         _.each(
                             event.response.rows,
                             function(name) {
