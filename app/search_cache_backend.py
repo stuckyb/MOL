@@ -137,9 +137,9 @@ class SearchCacheBuilder(webapp2.RequestHandler):
 
     def post(self):
         url = 'https://mol.cartodb.com/api/v2/sql'
-        sql_points = "select distinct(scientificname) from points limit 100" #where scientificname='Dacelo novaeguineae'"
+        sql_points = "select distinct(scientificname) from points limit 10" #where scientificname='Dacelo novaeguineae'"
         # limit 20'
-        sql_polygons = "select distinct(scientificname) from polygons limit 100" #where scientificname='Dacelo novaeguineae'"
+        sql_polygons = "select distinct(scientificname) from polygons limit 10" #where scientificname='Dacelo novaeguineae'"
         # limit 20'
 
         # Get points names:

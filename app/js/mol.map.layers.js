@@ -195,7 +195,6 @@ mol.modules.map.layers = function(mol) {
                     '        <span class="customCheck"></span> ' +
                     '    </div>' +
                     '    <button class="close">x</button>' +
-                    '    <button class="info">i</button>' +
                     '    <button class="zoom">z</button>' +
                     '    <input type="range" class="opacity" min=".25" max="1.0" step=".25" />' +
                     '  </div>' +

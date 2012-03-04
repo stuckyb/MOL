@@ -6,7 +6,6 @@ api_version: 1
 
 builtins:
 - appstats: on
-- remote_api: on
 
 includes:
 - mapreduce/include.yaml
