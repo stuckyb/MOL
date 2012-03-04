@@ -424,7 +424,7 @@ var CartoDB = CartoDB || {};
 
   CartoDB.Infowindow.prototype.open = function(feature,latlng){
     var that = this
-      , infowindow_sql = 'SELECT * FROM ' + this.params_.table_name + ' WHERE cartodb_id=' + feature;
+      , infowindow_sql = 'SELECT contact, provider, scientificname, seasonality, type FROM ' + this.params_.table_name + ' WHERE cartodb_id=' + feature;
     that.feature_ = feature;
 
     // If the table is private, you can't run any api methods
