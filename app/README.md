@@ -47,7 +47,6 @@ We're using [App Engine backends](http://code.google.com/appengine/docs/python/b
 Backends are configured in `backends.yaml` and require the python-mysqldb modules, Google App Engine SDK 1.6.2+, and Python 2.7. 
 
 
-
 To use backends with the development server via `dev_appserver.py`, first clear the datastore:
 
 ```bash
@@ -59,7 +58,7 @@ Then start it using
 $ dev_appserver.py --use_sqlite --backends .
 ```
 
-Then populate auto-complete fields by hitting  [http://localhost:8080/admin/build-search-cache](http://localhost:8080/admin/build-search-cache)
+Then populate auto-complete fields by hitting  [http://localhost:8080/admin/build-search-cache](http://localhost:8080/admin/build-search-cache), but make sure the `LIMIT` is low enough (e.g., 10) [in this file](https://github.com/MapofLife/MOL/blob/develop/app/search_cache_backend.py#L140) so that it's fast. 
 
 Backends are fired off using the taskqueue API, so keep an eye on the taskqueue admin console:
 
@@ -70,7 +69,7 @@ http://localhost:8080/_ah/admin/queues
 When you're ready to deploy or update backends to the production servers on App Engine, use this command:
 
 ```shell
-$ appcfg backends -V {app version} . update
+$ appcfg.py backends -V {app version} . update
 ```
 
 Definitely check out [all of the available commands](http://code.google.com/appengine/docs/python/backends/overview.html#Commands) for backends.

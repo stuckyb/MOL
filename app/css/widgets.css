@@ -208,7 +208,7 @@ button:hover{
     width: 18px;
 }
 .mol-LayerControl-Layers .layer .buttonContainer {
-    width: 29%;
+    width: 21%;
     float: right;
     position: relative;
     margin-right: 5px;
@@ -565,8 +565,9 @@ button:hover{
 .mol-LayerControl-Results .result .buttonContainer {
 	width:24px;
 	height:24px;
-    position: relative;
-    float: left;
+   position: relative;
+   float: right;
+   margin-right: 10px; 
 }
 
 .mol-LayerControl-Results .result .checkbox {

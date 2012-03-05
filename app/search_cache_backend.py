@@ -129,6 +129,24 @@ def add_autocomplete_results(name):
         entities.append(entity)
     check_entities(flush=True)
 
+class ClearCache(webapp2.RequestHandler):
+    def get(self):
+        self.error(405)
+        self.response.headers['Allow'] = 'POST'
+        return
+
+    def post(self):
+        keys = []
+        key_count = 0
+        for key in cache.CacheItem.query().iter(keys_only=True):
+            if key_count > 1000:
+                ndb.delete_multi(keys)
+                keys = []
+                key_count = 0
+            keys.append(key)
+        if len(keys) > 0:
+            ndb.delete_multi(keys)
+
 class SearchCacheBuilder(webapp2.RequestHandler):
     def get(self):
         self.error(405)
@@ -137,10 +155,8 @@ class SearchCacheBuilder(webapp2.RequestHandler):
 
     def post(self):
         url = 'https://mol.cartodb.com/api/v2/sql'
-        sql_points = "SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from points limit 10" #where scientificname='Dacelo novaeguineae'"
-        # limit 20'
-        sql_polygons = "SET STATEMENT_TIMEOUT TO 0; select distinct(scientificname) from polygons limit 10" #where scientificname='Dacelo novaeguineae'"
-        # limit 20'
+        sql_points = "select distinct(scientificname) from points"
+        sql_polygons = "select distinct(scientificname) from polygons"
 
         # Get points names:
         request = '%s?%s' % (url, urllib.urlencode(dict(q=sql_points)))
@@ -160,7 +176,7 @@ class SearchCacheBuilder(webapp2.RequestHandler):
         unique_names = list(set([x['scientificname'] for x in rows]))
 
 
-        sql = "SET STATEMENT_TIMEOUT TO 0; SELECT p.provider as source, p.scientificname as name, p.type as type FROM polygons as p WHERE p.scientificname = '%s' UNION SELECT t.provider as source, t.scientificname as name, t.type as type FROM points as t WHERE t.scientificname = '%s'"
+        sql = "SELECT p.provider as source, p.scientificname as name, p.type as type FROM polygons as p WHERE p.scientificname = '%s' UNION SELECT t.provider as source, t.scientificname as name, t.type as type FROM points as t WHERE t.scientificname = '%s'"
 
         # Cache search results.
         rpcs = []
@@ -205,7 +221,8 @@ class SearchCacheBuilder(webapp2.RequestHandler):
             yield names
 
 application = webapp2.WSGIApplication(
-    [('/backend/build_search_cache', SearchCacheBuilder),]
+    [('/backend/build_search_cache', SearchCacheBuilder),
+     ('/backend/clear_search_cache', ClearCache),]
     , debug=True)
 
 def main():

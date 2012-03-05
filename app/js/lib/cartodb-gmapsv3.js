@@ -65,7 +65,7 @@ var CartoDB = CartoDB || {};
         // If the table is private you can't auto zoom without being authenticated
         if (!params.map_key) {
           $.ajax({
-            url:'http://'+params.user_name+'.cartodb.com/api/v1/sql/?q='+escape('select ST_Extent(the_geom) from '+ params.table_name),
+            url:'http://'+params.user_name+'.cartodb.com/api/v2/sql/?q='+escape('select ST_Extent(the_geom) from '+ params.table_name),
             dataType: 'jsonp',
             timeout: 2000,
             callbackParameter: 'callback',
@@ -424,7 +424,7 @@ var CartoDB = CartoDB || {};
 
   CartoDB.Infowindow.prototype.open = function(feature,latlng){
     var that = this
-      , infowindow_sql = 'SELECT * FROM ' + this.params_.table_name + ' WHERE cartodb_id=' + feature;
+      , infowindow_sql = 'SELECT contact, provider, scientificname, seasonality, type FROM ' + this.params_.table_name + ' WHERE cartodb_id=' + feature;
     that.feature_ = feature;
 
     // If the table is private, you can't run any api methods
@@ -434,7 +434,7 @@ var CartoDB = CartoDB || {};
 
 
     $.ajax({
-      url:'http://'+ this.params_.user_name +'.cartodb.com/api/v1/sql/?q='+infowindow_sql,
+      url:'http://'+ this.params_.user_name +'.cartodb.com/api/v2/sql/?q='+infowindow_sql,
       dataType: 'jsonp',
       timeout: 2000,
       callbackParameter: 'callback',

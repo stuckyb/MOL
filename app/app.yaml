@@ -5,10 +5,16 @@ threadsafe: true
 api_version: 1
 
 builtins:
-- appstats: on
-- remote_api: on
+- appstats: off
+
+inbound_services:
+- warmup
+
+includes:
+- mapreduce/include.yaml
 
 handlers:
+
 - url: /admin/.*
   script: admin_handler.application
   login: admin
@@ -35,7 +41,7 @@ handlers:
 - url: /api/autocomplete
   script: autocomplete_handler.application
 
-- url: /backend/build_search_cache(/.*)?
+- url: /backend/.*
   script: search_cache_backend.application
 
 - url: /.*

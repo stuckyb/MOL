@@ -11,7 +11,6 @@ mol.modules.map.search = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.sql = '' +
-                    'SET STATEMENT_TIMEOUT TO 0; ' + // Secret konami workaround for 40 second timeout.
                     'SELECT ' +
                     'p.provider as source, p.scientificname as name, p.type as type ' +
                     'FROM polygons as p ' +
