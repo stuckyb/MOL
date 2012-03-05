@@ -69,7 +69,7 @@ http://localhost:8080/_ah/admin/queues
 When you're ready to deploy or update backends to the production servers on App Engine, use this command:
 
 ```shell
-$ appcfg backends -V {app version} . update
+$ appcfg.py backends -V {app version} . update
 ```
 
 Definitely check out [all of the available commands](http://code.google.com/appengine/docs/python/backends/overview.html#Commands) for backends.
