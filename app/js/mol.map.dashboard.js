@@ -1,16 +1,35 @@
 mol.modules.map.dashboard = function(mol) {
-    
+
     mol.map.dashboard = {};
-    
+
     mol.map.dashboard.DashboardEngine = mol.mvp.Engine.extend(
         {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
-            },
-            
+                this.sql = '';
+//Here is the sql to use for polygon dash requests.
+/*SELECT s.provider as provider, s.type as type, num_species, num_records, s.class FROM
+    (SELECT provider, type, count(*) as num_species, class
+        FROM
+        (SELECT DISTINCT scientificname, provider, type from gbif_import) p,
+        (SELECT DISTINCT scientific, class from master_taxonomy) t
+    WHERE p.scientificname = t.scientific
+    GROUP BY provider, type, class
+        ) s,
+    (SELECT provider, type, count(*) as num_records, class
+    FROM
+        (SELECT scientificname, provider, type from gbif_import) pr,
+        (SELECT DISTINCT scientific, class from master_taxonomy) tr
+    WHERE pr.scientificname = tr.scientific
+    GROUP BY provider, type, class
+        ) r
+ WHERE
+    r.provider = s.provider and r.type = s.type and r.class = s.class;
+*/            },
+
             /**
-             * Starts the MenuEngine. Note that the container parameter is 
+             * Starts the MenuEngine. Note that the container parameter is
              * ignored.
              */
             start: function() {
@@ -20,16 +39,16 @@ mol.modules.map.dashboard = function(mol) {
             },
 
             /**
-             * Adds a handler for the 'search-display-toggle' event which 
+             * Adds a handler for the 'search-display-toggle' event which
              * controls display visibility. Also adds UI event handlers for the
              * display.
              */
             addEventHandlers: function() {
                 var self = this;
-                
+
                 /**
-                 * Callback that toggles the dashboard display visibility. 
-                 * 
+                 * Callback that toggles the dashboard display visibility.
+                 *
                  * @param event mol.bus.Event
                  */
                 this.bus.addHandler(
@@ -46,9 +65,9 @@ mol.modules.map.dashboard = function(mol) {
                     }
                 );
             },
-            
+
             /**
-             * Fires the 'add-map-control' event. The mol.map.MapEngine handles 
+             * Fires the 'add-map-control' event. The mol.map.MapEngine handles
              * this event and adds the display to the map.
              */
             initDialog: function() {
@@ -57,21 +76,21 @@ mol.modules.map.dashboard = function(mol) {
                         autoOpen: false,
 					         width: 800,
 					         buttons: {
-						          "Ok": function() { 
-							           $(this).dialog("close"); 
+						          "Ok": function() {
+							           $(this).dialog("close");
 						          }
 					         }
                     }
                 );
-            }            
+            }
         }
     );
-    
+
     mol.map.dashboard.DashboardDisplay = mol.mvp.View.extend(
         {
             init: function() {
-                var html = '' +                    
-                    '<div id="dialog" class="mol-LayerControl-Results" style="">' +
+                var html = '' +
+                    '<div id="dialog" class="mol-LayerControl-Results">' +
                     '  <div class="dashboard">' +
                     '  <div class="title">Dashboard</div>' +
                     '  <div class="subtitle">Statistics for data served by the Map of Life</div>' +
@@ -82,22 +101,39 @@ mol.modules.map.dashboard = function(mol) {
                     '      <td><b>Birds</b></td>' +
                     '      <td><b>Mammals</b></td>' +
                     '      <td><b>Reptiles</b></td>' +
+                    '      <td><b>Fish</b></td>' +
                     '    </tr>' +
                     '    <tr>' +
                     '      <td>GBIF points</td>' +
-                    '      <td>500 species with records</t>' +
+                    '      <td>500 species with records</td>' +
                     '      <td>1,500 species with 30,000 records</td>' +
                     '      <td>152 species with 88,246 records</td>' +
                     '      <td>800 species with 100,000 records</td>' +
-                    '    </tr>' +
-                    '  </table>' +    
+                    '      <td></td>' +
+                    '   <tr>' +
+                    '       <td>Jetz range maps</td>' +
+                    '       <td></td>' +
+                    '       <td>9,869 species with 28,019 records</td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '       <td>723 species with 9,755 records</td>' +
+                    '   </tr>' +
+                    '   <tr>' +
+                    '       <td>IUCN range maps</td>' +
+                    '       <td>5,966 species with 18,852 records</td>' +
+                    '       <td></td>' +
+                    '       <td>4,081 species with 38,673 records</td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '   </tr>' +
+                    '  </table>' +
                     '</div>  ';
 
                 this._super(html);
             }
         }
-    );    
+    );
 };
-    
-        
-            
+
+
+
