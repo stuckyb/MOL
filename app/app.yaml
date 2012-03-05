@@ -5,7 +5,7 @@ threadsafe: true
 api_version: 1
 
 builtins:
-- appstats: on
+- appstats: off
 
 inbound_services:
 - warmup
