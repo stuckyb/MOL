@@ -7,6 +7,9 @@ api_version: 1
 builtins:
 - appstats: on
 
+inbound_services:
+- warmup
+
 includes:
 - mapreduce/include.yaml
 
@@ -38,7 +41,7 @@ handlers:
 - url: /api/autocomplete
   script: autocomplete_handler.application
 
-- url: /backend/build_search_cache(/.*)?
+- url: /backend/.*
   script: search_cache_backend.application
 
 - url: /.*

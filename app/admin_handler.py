@@ -16,11 +16,20 @@ class SearchCacheHandler(webapp2.RequestHandler):
             queue_name='build-search-cache', 
             eta=datetime.datetime.now(), 
             target='search-cache-builder-backend')            
-        logging.info("BOOM")
+        self.response.set_status(202) # Accepted
+
+class ClearCacheHandler(webapp2.RequestHandler):
+    def get(self):
+        taskqueue.add(
+            url='/backend/clear_search_cache', 
+            queue_name='clear-search-cache', 
+            eta=datetime.datetime.now(), 
+            target='clear-cache-builder-backend')            
         self.response.set_status(202) # Accepted
 
 application = webapp2.WSGIApplication(
-         [('/admin/build-search-cache', SearchCacheHandler)],
+         [('/admin/build-search-cache', SearchCacheHandler),
+          ('/admin/clear-search-cache', ClearCacheHandler)],
          debug=True)
 
 def main():
