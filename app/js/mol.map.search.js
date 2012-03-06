@@ -212,9 +212,9 @@ mol.modules.map.search = function(mol) {
                     '</div>';
 
                 this._super(html);
-                this.goButton = $(this.find('.execute'));
-                this.cancelButton = $(this.find('.cancel'));
-                this.searchBox = $(this.find('.value'));
+                this.goButton = $(this).find('.execute');
+                this.cancelButton = $(this).find('.cancel');
+                this.searchBox = $(this).find('.value');
             },
 
             clear: function() {

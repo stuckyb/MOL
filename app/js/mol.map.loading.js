@@ -17,7 +17,8 @@ mol.modules.map.loading = function(mol) {
          *  Build the loading display and add it as a control to the top center of the map display.
          */
         addLoadingDisplay : function() {
-                 var params = {
+                 var event,
+                    params = {
                    display: null, // The loader gif display
                    slot: mol.map.ControlDisplay.Slot.TOP,
                    position: google.maps.ControlPosition.TOP_CENTER

@@ -209,10 +209,10 @@ mol.modules.map.query = function(mol) {
                         '</div>';
 
             this._super(html);
-            this.resultslist=$(this.find('.resultslist'));
-            this.radiusInput=$(this.find('.radius'));
+            this.resultslist=$(this).find('.resultslist');
+            this.radiusInput=$(this).find('.radius');
             $(this.radiusInput).numeric({negative : false, decimal : false});
-            this.classInput=$(this.find('.class'));
+            this.classInput=$(this).find('.class');
         }
     }
     );

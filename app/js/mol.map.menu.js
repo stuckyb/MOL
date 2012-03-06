@@ -101,9 +101,9 @@ mol.modules.map.menu = function(mol) {
                     '</div>';
 
                 this._super(html);
-                this.searchItem = $(this.find('.search'));
-                this.dashboardItem = $(this.find('.dashboard'));
-                this.speciesListItem = $(this.find('.list'));
+                this.searchItem = $(this).find('.search');
+                this.dashboardItem = $(this).find('.dashboard');
+                this.speciesListItem = $(this).find('.list');
             }
         }
     );

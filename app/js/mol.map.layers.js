@@ -202,12 +202,12 @@ mol.modules.map.layers = function(mol) {
 
                 this._super(html.format(layer.type, layer.name));
                 this.attr('id', layer.id);
-                this.opacity = $(this.find('.opacity'));
-                this.toggle = $(this.find('.toggle'));
-                this.zoom = $(this.find('.zoom'));
-                this.info = $(this.find('.info'));
-                this.close = $(this.find('.close'));
-                this.typePng = $(this.find('.type'));
+                this.opacity = $(this).find('.opacity');
+                this.toggle = $(this).find('.toggle');
+                this.zoom = $(this).find('.zoom');
+                this.info = $(this).find('.info');
+                this.close = $(this).find('.close');
+                this.typePng = $(this).find('.type');
             }
         }
     );
@@ -227,14 +227,14 @@ mol.modules.map.layers = function(mol) {
                     '</div>';
 
                 this._super(html);
-                this.list = $(this.find("#sortable"));
+                this.list = $(this).find("#sortable");
                 this.open = false;
                 this.views = {};
                 this.layers = [];
             },
 
             getLayer: function(layer) {
-                return $(this.find('#{0}'.format(layer.id)));
+                return $(this).find('#{0}'.format(layer.id));
             },
 
 			   getLayerById: function(id) {
@@ -261,12 +261,12 @@ mol.modules.map.layers = function(mol) {
                 _(this.layers).each(function(a) {
 					if(a.enabled) t++;
 				});
-                $(this.find('.layer_number')).html(t + " LAYER"+ (t>1?'S':''));
+                $(this).find('.layer_number').html(t + " LAYER"+ (t>1?'S':''));
             },
 
             sortLayers: function() {
                 var order = [];
-                $(this.find('li')).each(function(i, el) {
+                $(this).find('li').each(function(i, el) {
 					order.push($(el).attr('id'));
 				});
                 this.bus.emit("map:reorder_layers", order);
