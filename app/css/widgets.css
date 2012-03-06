@@ -16,6 +16,7 @@
         rgba(29,43,82,0.65) 89%,
         rgba(29,43,82,0.75) 57%
     );
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#A51D2B52', endColorstr='#BF1D2B52');
     -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
     box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
@@ -29,6 +30,7 @@ button{
     font-weight:700;
     color: rgb(240, 240, 260);
     background-color: rgba(25, 25, 25, 0.75);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#BF191919', endColorstr='#BF191919');
     -moz-box-shadow: 2px 2px 5px #000;
     -webkit-box-shadow: 2px 2px 5px #000;
     box-shadow: 2px 2px 5px #222;
@@ -38,6 +40,7 @@ button{
 }
 button:hover{
     background-color: rgba(25, 25, 25, 1.0);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF191919', endColorstr='#FF191919');
     cursor: pointer;
 }
 
@@ -60,7 +63,7 @@ button:hover{
     float: right;
     text-align: center;
     padding: 5px;
-    width: 70px;
+    width: 90px;
 }
 .mol-LayerControl-Menu div.add{
     -moz-border-radius-topleft: 3px;
@@ -99,6 +102,7 @@ button:hover{
     height: 16px;
     padding-right: 2px;
 }
+
 .mol-LayerControl-Layers {
     width: 100%;
     float: left;
@@ -207,7 +211,7 @@ button:hover{
     width: 18px;
 }
 .mol-LayerControl-Layers .layer .buttonContainer {
-    width: 29%;
+    width: 21%;
     float: right;
     position: relative;
     margin-right: 5px;
@@ -417,7 +421,7 @@ button:hover{
     padding-top: 10px;
     position: relative;
     -moz-border-radius: 3px;
-    border-radius: 3px;    
+    border-radius: 3px;
     font-style:normal;
     font-weight: normal;
 }
@@ -565,7 +569,8 @@ button:hover{
 	width:24px;
 	height:24px;
    position: relative;
-   float: left;
+   float: right;
+   margin-right: 10px;
 }
 
 .mol-LayerControl-Results .result .checkbox {
@@ -656,4 +661,22 @@ button:hover{
     position: absolute;
     bottom: 10px;
     right: 15px;
+}
+.mol-Map-QueryDisplay {
+    float: left;
+    height: 25px;
+    position: absolute;
+    bottom: 20px;
+    right: 6px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    text-align: right;
+    font-size: 0.8em;
+    white-space: nowrap;
+    padding: 2px;
+}
+.mol-Map-ListQueryInfoWindowResults {
+     font-size: 12px;
+     font-style:normal
+     font-weight:normal
 }

@@ -40,6 +40,20 @@ mol.modules.map.layers = function(mol) {
                         self.addLayers(event.layers);
                     }
                 );
+                this.bus.addHandler(
+                    'layer-display-toggle',
+                    function(event) {
+                        var params = null,
+                        e = null;
+
+                        if (event.visible === undefined) {
+                            self.display.toggle();
+                            params = {visible: self.display.is(':visible')};
+                        } else {
+                            self.display.toggle(event.visible);
+                        }
+                    }
+                );
             },
 
             /**
@@ -67,7 +81,7 @@ mol.modules.map.layers = function(mol) {
                     function(layer) {
                         var l = this.display.addLayer(layer);
                         self = this;
-                        
+
                         if (layer.type === 'points') {
                             l.opacity.hide();
                         } else {
@@ -79,12 +93,12 @@ mol.modules.map.layers = function(mol) {
                                             opacity: parseFloat(l.opacity.val())
                                         },
                                         e = new mol.bus.Event('layer-opacity', params);
-                                    
+
                                     self.bus.fireEvent(e);
                                 }
                             );
                         }
-                        
+
                         // Close handler for x button fires a 'remove-layers' event.
                         l.close.click(
                             function(event) {
@@ -92,13 +106,13 @@ mol.modules.map.layers = function(mol) {
                                         layers: [layer]
                                     },
                                     e = new mol.bus.Event('remove-layers', params);
-                                
+
                                 self.bus.fireEvent(e);
                                 l.remove();
                             }
                         );
-                        
-                        // Click handler for zoom button fires 'layer-zoom-extent' 
+
+                        // Click handler for zoom button fires 'layer-zoom-extent'
                         // and 'show-loading-indicator' events.
                         l.zoom.click(
                             function(event) {
@@ -107,7 +121,7 @@ mol.modules.map.layers = function(mol) {
                                         auto_bound: true
                                     },
                                     e = new mol.bus.Event('layer-zoom-extent', params),
-                                    le = new mol.bus.Event('show-loading-indicator');
+                                    le = new mol.bus.Event('show-loading-indicator',{source : "map"});
 
                                 self.bus.fireEvent(e);
                                 self.bus.fireEvent(le);
@@ -181,7 +195,6 @@ mol.modules.map.layers = function(mol) {
                     '        <span class="customCheck"></span> ' +
                     '    </div>' +
                     '    <button class="close">x</button>' +
-                    '    <button class="info">i</button>' +
                     '    <button class="zoom">z</button>' +
                     '    <input type="range" class="opacity" min=".25" max="1.0" step=".25" />' +
                     '  </div>' +
@@ -189,12 +202,12 @@ mol.modules.map.layers = function(mol) {
 
                 this._super(html.format(layer.type, layer.name));
                 this.attr('id', layer.id);
-                this.opacity = $(this.find('.opacity'));
-                this.toggle = $(this.find('.toggle'));
-                this.zoom = $(this.find('.zoom'));
-                this.info = $(this.find('.info'));
-                this.close = $(this.find('.close'));
-                this.typePng = $(this.find('.type'));
+                this.opacity = $(this).find('.opacity');
+                this.toggle = $(this).find('.toggle');
+                this.zoom = $(this).find('.zoom');
+                this.info = $(this).find('.info');
+                this.close = $(this).find('.close');
+                this.typePng = $(this).find('.type');
             }
         }
     );
@@ -214,14 +227,14 @@ mol.modules.map.layers = function(mol) {
                     '</div>';
 
                 this._super(html);
-                this.list = $(this.find("#sortable"));
+                this.list = $(this).find("#sortable");
                 this.open = false;
                 this.views = {};
                 this.layers = [];
             },
 
             getLayer: function(layer) {
-                return $(this.find('#{0}'.format(layer.id)));
+                return $(this).find('#{0}'.format(layer.id));
             },
 
 			   getLayerById: function(id) {
@@ -231,7 +244,7 @@ mol.modules.map.layers = function(mol) {
             addLayer: function(layer) {
                 var ld = new mol.map.layers.LayerDisplay(layer);
                 ld.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
-                ld.typePng[0].title = 'Layer Type: '+layer.type;                
+                ld.typePng[0].title = 'Layer Type: '+layer.type;
                 this.list.append(ld);
 				    this.layers.push(layer);
                 return ld;
@@ -248,12 +261,12 @@ mol.modules.map.layers = function(mol) {
                 _(this.layers).each(function(a) {
 					if(a.enabled) t++;
 				});
-                $(this.find('.layer_number')).html(t + " LAYER"+ (t>1?'S':''));
+                $(this).find('.layer_number').html(t + " LAYER"+ (t>1?'S':''));
             },
 
             sortLayers: function() {
                 var order = [];
-                $(this.find('li')).each(function(i, el) {
+                $(this).find('li').each(function(i, el) {
 					order.push($(el).attr('id'));
 				});
                 this.bus.emit("map:reorder_layers", order);

@@ -2,7 +2,7 @@ mol.modules.map = function(mol) {
 
     mol.map = {};
 
-    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard'];
+    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard', 'query'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
@@ -49,6 +49,11 @@ mol.modules.map = function(mol) {
                 controls[ControlPosition.BOTTOM_LEFT].clear();
                 controls[ControlPosition.BOTTOM_LEFT].push(this.ctlBottom.element);
 
+                // Add bottom right map control.
+                this.ctlRightBottom = new ControlDisplay('RightBottomControl');
+                controls[ControlPosition.RIGHT_BOTTOM].clear();
+                controls[ControlPosition.RIGHT_BOTTOM].push(this.ctlRightBottom.element);
+
             },
             /**
              * Gets the control display at a Google Map control position.
@@ -73,6 +78,9 @@ mol.modules.map = function(mol) {
                 case ControlPosition.BOTTOM_LEFT:
                     control = this.ctlBottom;
                     break;
+                 case ControlPosition.RIGHT_BOTTOM:
+                    control = this.ctlRightBottom;
+                    break;
                 }
 
                 return control;
@@ -86,21 +94,21 @@ mol.modules.map = function(mol) {
                     "zoom_changed",
                     function() {
                         self.bus.fireEvent(new mol.bus.Event('map-zoom-changed'));
-                    }.bind(self)
+                    }
                 );
                 google.maps.event.addListener(
                     self.display.map,
                     "center_changed",
                     function() {
                         self.bus.fireEvent(new mol.bus.Event('map-center-changed'));
-                    }.bind(self)
+                    }
                 );
                 google.maps.event.addListener(
                     self.display.map,
                     "idle",
                     function () {
                         self.bus.fireEvent(new mol.bus.Event('map-idle'));
-                    }.bind(self)
+                    }
                 );
                 /**
                  * The event.overlays contains an array of overlays for the map.
@@ -117,14 +125,26 @@ mol.modules.map = function(mol) {
                         );
                     }
                 );
-
+                this.bus.addHandler(
+                    'register-list-click',
+                    function(event) {
+                            google.maps.event.addListener(
+                            self.display.map,
+                            "rightclick",
+                            function(event) {
+                                var params = { gmaps_event : event, map : self.display.map}
+                                self.bus.fireEvent(new mol.bus.Event('species-list-query-click',params));
+                            }
+                        );
+                    }
+                );
                 /*
                  *  Turn on the loading indicator display when zooming
                  */
                 this.bus.addHandler(
                         'map-zoom-changed',
                         function() {
-                           self.bus.fireEvent(new mol.bus.Event('show-loading-indicator'));
+                           self.bus.fireEvent(new mol.bus.Event('show-loading-indicator',{source : "map"}));
                         }
                 );
                  /*
@@ -133,7 +153,7 @@ mol.modules.map = function(mol) {
                 this.bus.addHandler(
                         'map-center-changed',
                         function() {
-                           self.bus.fireEvent(new mol.bus.Event('show-loading-indicator'));
+                           self.bus.fireEvent(new mol.bus.Event('show-loading-indicator',{source : "map"}));
                         }
                 );
                 /*
@@ -142,14 +162,12 @@ mol.modules.map = function(mol) {
                 this.bus.addHandler(
                         'map-idle',
                         function() {
-                            var e = new mol.bus.Event('hide-loading-indicator');
-                            if (self.display.map.overlayMapTypes.length == 0) {
-                                self.bus.fireEvent(e);
-                            } else {
+                            self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator',{source : "map"}));
+                            if (self.display.map.overlayMapTypes.length > 0) {
+                                self.bus.fireEvent(new mol.bus.Event('show-loading-indicator',{source : "overlays"}));
                                 $("img",self.display.map.overlayMapTypes).imagesLoaded (
                                     function(images, proper, broken) {
-                                        var e = new mol.bus.Event('hide-loading-indicator');
-                                        self.bus.fireEvent(e);
+                                        self.bus.fireEvent( new mol.bus.Event('hide-loading-indicator',{source : "overlays"}));
                                     }
                                  );
                             }
@@ -179,7 +197,36 @@ mol.modules.map = function(mol) {
                         );
                     }
                 );
+                /**
+                 * Handles the layer-toggle event. The event.layer is a layer
+                 * object {name, type} and event.showing is true if the layer
+                 * is showing, false otherwise.
+                 */
+                this.bus.addHandler(
+                    'toggle-overlays',
+                    function(event) {
+                        var toggle = event.toggle,
+                        overlayMapTypes = self.display.map.overlayMapTypes;
+                        if(toggle == false) {
+                            self.layerList = [];
+                            overlayMapTypes.forEach(
+                                function(layer, index) {
+                                    self.layerList.push(layer);
+                                    overlayMapTypes.removeAt(index);
+                                }
+                            )
+                            overlayMapTypes.clear();
+                        } else {
+                            _.each(
+                                self.layerList,
+                                function(layer){
+                                    self.display.map.overlayMapTypes.push(layer);
+                                }
+                            )
+                        }
 
+                    }
+                );
                 this.bus.addHandler(
                     'add-map-control',
 
@@ -280,9 +327,11 @@ mol.modules.map = function(mol) {
 
                 this._super(html);
                 //this.selectable({disabled: true});
-                this.find(Slot.TOP).removeClass('ui-selectee');
-                this.find(Slot.MIDDLE).removeClass('ui-selectee');
-                this.find(Slot.BOTTOM).removeClass('ui-selectee');
+
+                    $(this).find(Slot.TOP).removeClass('ui-selectee');
+                    $(this).find(Slot.MIDDLE).removeClass('ui-selectee');
+                    $(this).find(Slot.BOTTOM).removeClass('ui-selectee');
+
             },
 
             /**
@@ -293,7 +342,7 @@ mol.modules.map = function(mol) {
              */
             slot: function(display, slot) {
                 var Slot = mol.map.ControlDisplay.Slot,
-                    slotDisplay = this.find(slot);
+                    slotDisplay = $(this).find(slot);
 
                 switch (slot) {
                 case Slot.FIRST :

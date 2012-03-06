@@ -65,7 +65,7 @@ var CartoDB = CartoDB || {};
         // If the table is private you can't auto zoom without being authenticated
         if (!params.map_key) {
           $.ajax({
-            url:'http://'+params.user_name+'.cartodb.com/api/v1/sql/?q='+escape('select ST_Extent(the_geom) from '+ params.table_name),
+            url:'http://'+params.user_name+'.cartodb.com/api/v2/sql/?q='+escape('select ST_Extent(the_geom) from '+ params.table_name),
             dataType: 'jsonp',
             timeout: 2000,
             callbackParameter: 'callback',
@@ -138,7 +138,12 @@ var CartoDB = CartoDB || {};
         // Add the cartodb tiles
         var cartodb_layer = {
           getTileUrl: function(coord, zoom) {
-            return 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query + '&map_key=' + (params.map_key || '') + '&style=' + ((params.tile_style)?encodeURIComponent(params.tile_style):'');
+            //return 'http://' + params.user_name +
+            //'.cartodb.com/tiles/' + params.table_name +
+            //'/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query
+            //+ '&map_key=' + (params.map_key || '') + '&style=' +
+            //((params.tile_style)?encodeURIComponent(params.tile_style):'');
+              return 'http://' + params.hostname+ '/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query + '&map_key=' + (params.map_key || '') + '&style=' + ((params.tile_style)?encodeURIComponent(params.tile_style):'');
           },
           tileSize: new google.maps.Size(256, 256),
           name: params.tile_name,
@@ -215,7 +220,7 @@ var CartoDB = CartoDB || {};
             params.query = sql;
           var cartodb_layer = {
               getTileUrl: function(coord, zoom) {
-              return 'http://' + params.user_name + '.cartodb.com/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query + '&map_key=' + (params.map_key || '') + '&style=' + (encodeURIComponent(params.tile_style) || '');
+              return 'http://' + params.hostname + '/tiles/' + params.table_name + '/'+zoom+'/'+coord.x+'/'+coord.y+'.png?sql='+params.query + '&map_key=' + (params.map_key || '') + '&style=' + (encodeURIComponent(params.tile_style) || '');
             },
             tileSize: new google.maps.Size(256, 256),
             name: params.tile_name,
@@ -228,7 +233,7 @@ var CartoDB = CartoDB || {};
       }
 
       function generateTileJson(params) {
-        var core_url = 'http://' + params.user_name + '.cartodb.com';  
+        var core_url = 'http://' + params.hostname;
         var base_url = core_url + '/tiles/' + params.table_name + '/{z}/{x}/{y}';
         var tile_url = base_url + '.png?cache_buster=0';
         var grid_url = base_url + '.grid.json';
@@ -419,7 +424,7 @@ var CartoDB = CartoDB || {};
 
   CartoDB.Infowindow.prototype.open = function(feature,latlng){
     var that = this
-      , infowindow_sql = 'SELECT * FROM ' + this.params_.table_name + ' WHERE cartodb_id=' + feature;
+      , infowindow_sql = 'SELECT contact, provider, scientificname, seasonality, type FROM ' + this.params_.table_name + ' WHERE cartodb_id=' + feature;
     that.feature_ = feature;
 
     // If the table is private, you can't run any api methods
@@ -429,7 +434,7 @@ var CartoDB = CartoDB || {};
 
 
     $.ajax({
-      url:'http://'+ this.params_.user_name +'.cartodb.com/api/v1/sql/?q='+infowindow_sql,
+      url:'http://'+ this.params_.user_name +'.cartodb.com/api/v2/sql/?q='+infowindow_sql,
       dataType: 'jsonp',
       timeout: 2000,
       callbackParameter: 'callback',

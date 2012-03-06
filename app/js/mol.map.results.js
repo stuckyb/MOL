@@ -53,7 +53,7 @@ mol.modules.map.results = function(mol) {
                         layers = _.map(
                             checkedResults,
                             function(result) {
-                                var id = result.find('.result').attr('id');
+                                var id = $(result).find('.result').attr('id');
                                 return mol.core.getLayerFromId(id);
                             }
                         );
@@ -289,13 +289,13 @@ mol.modules.map.results = function(mol) {
                     '</div>';
 
                 this._super(html);
-                this.resultList = $(this.find('.resultList'));
-                this.filters = $(this.find('.filters'));
-                this.selectAllLink = $(this.find('.selectAll'));
-                this.selectNoneLink = $(this.find('.selectNone'));
-                this.addAllButton = $(this.find('.addAll'));
-                this.results = $(this.find('.results'));
-                this.noResults = $(this.find('.noresults'));
+                this.resultList = $(this).find('.resultList');
+                this.filters = $(this).find('.filters');
+                this.selectAllLink = $(this).find('.selectAll');
+                this.selectNoneLink = $(this).find('.selectNone');
+                this.addAllButton = $(this).find('.addAll');
+                this.results = $(this).find('.results');
+                this.noResults = $(this).find('.noresults');
             },
 
             clearResults: function() {
@@ -441,7 +441,6 @@ mol.modules.map.results = function(mol) {
                     '  <div class="resultNomial" ></div>' +
                     '  <div class="resultAuthor"></div>' +
                     '</div>' +
-                    '<div class="resultLink"><a href="#" class="info">more info</a></div>' +
                     '<div class="buttonContainer"> ' +
                     '  <input type="checkbox" class="checkbox" /> ' +
                     '  <span class="customCheck"></span> ' +
@@ -452,10 +451,10 @@ mol.modules.map.results = function(mol) {
 
                 this._super(html.format(id, name));
 
-                this.infoLink = $(this.find('.info'));
-                this.nameBox = $(this.find('.resultName'));
-                this.sourcePng = $(this.find('.source'));
-                this.typePng = $(this.find('.type'));
+                this.infoLink = $(this).find('.info');
+                this.nameBox = $(this).find('.resultName');
+                this.sourcePng = $(this).find('.source');
+                this.typePng = $(this).find('.type');
             }
         }
     );
@@ -474,8 +473,8 @@ mol.modules.map.results = function(mol) {
                     '</div>';
 
                 this._super(html.format(name));
-                this.name = $(this.find('.filterName'));
-                this.options = $(this.find('.options'));
+                this.name = $(this).find('.filterName');
+                this.options = $(this).find('.options');
                 this.allOption = new mol.map.results.OptionDisplay('All');
                 this.allOption.addClass('selected');
                 this.options.append(this.allOption);
