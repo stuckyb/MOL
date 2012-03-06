@@ -96,8 +96,6 @@ button:hover{
     text-align: left;
     cursor: pointer;
     padding-bottom: 5px;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#D8232323', endColorstr='#D8424242);
-
 }
 .mol-LayerControl-Menu div.label img{
     float: right;
