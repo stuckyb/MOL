@@ -16,6 +16,7 @@
         rgba(29,43,82,0.65) 89%,
         rgba(29,43,82,0.75) 57%
     );
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#A51D2B52', endColorstr='#BF1D2B52');
     -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
     box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
@@ -29,6 +30,7 @@ button{
     font-weight:700;
     color: rgb(240, 240, 260);
     background-color: rgba(25, 25, 25, 0.75);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#BF191919', endColorstr='#BF191919');
     -moz-box-shadow: 2px 2px 5px #000;
     -webkit-box-shadow: 2px 2px 5px #000;
     box-shadow: 2px 2px 5px #222;
@@ -38,6 +40,7 @@ button{
 }
 button:hover{
     background-color: rgba(25, 25, 25, 1.0);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF191919', endColorstr='#FF191919');
     cursor: pointer;
 }
 
@@ -93,6 +96,8 @@ button:hover{
     text-align: left;
     cursor: pointer;
     padding-bottom: 5px;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#D8232323', endColorstr='#D8424242);
+
 }
 .mol-LayerControl-Menu div.label img{
     float: right;
@@ -567,7 +572,7 @@ button:hover{
 	height:24px;
    position: relative;
    float: right;
-   margin-right: 10px; 
+   margin-right: 10px;
 }
 
 .mol-LayerControl-Results .result .checkbox {

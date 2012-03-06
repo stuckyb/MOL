@@ -94,21 +94,21 @@ mol.modules.map = function(mol) {
                     "zoom_changed",
                     function() {
                         self.bus.fireEvent(new mol.bus.Event('map-zoom-changed'));
-                    }.bind(self)
+                    }
                 );
                 google.maps.event.addListener(
                     self.display.map,
                     "center_changed",
                     function() {
                         self.bus.fireEvent(new mol.bus.Event('map-center-changed'));
-                    }.bind(self)
+                    }
                 );
                 google.maps.event.addListener(
                     self.display.map,
                     "idle",
                     function () {
                         self.bus.fireEvent(new mol.bus.Event('map-idle'));
-                    }.bind(self)
+                    }
                 );
                 /**
                  * The event.overlays contains an array of overlays for the map.
@@ -134,7 +134,7 @@ mol.modules.map = function(mol) {
                             function(event) {
                                 var params = { gmaps_event : event, map : self.display.map}
                                 self.bus.fireEvent(new mol.bus.Event('species-list-query-click',params));
-                            }.bind(self)
+                            }
                         );
                     }
                 );
@@ -327,9 +327,11 @@ mol.modules.map = function(mol) {
 
                 this._super(html);
                 //this.selectable({disabled: true});
-                this.find(Slot.TOP).removeClass('ui-selectee');
-                this.find(Slot.MIDDLE).removeClass('ui-selectee');
-                this.find(Slot.BOTTOM).removeClass('ui-selectee');
+
+                    $(this).find(Slot.TOP).removeClass('ui-selectee');
+                    $(this).find(Slot.MIDDLE).removeClass('ui-selectee');
+                    $(this).find(Slot.BOTTOM).removeClass('ui-selectee');
+
             },
 
             /**
@@ -340,7 +342,7 @@ mol.modules.map = function(mol) {
              */
             slot: function(display, slot) {
                 var Slot = mol.map.ControlDisplay.Slot,
-                    slotDisplay = this.find(slot);
+                    slotDisplay = $(this).find(slot);
 
                 switch (slot) {
                 case Slot.FIRST :
