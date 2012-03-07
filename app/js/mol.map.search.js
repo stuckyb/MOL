@@ -82,6 +82,9 @@ mol.modules.map.search = function(mol) {
                                     response(names);
                                 }
                             );
+                        },
+                        select: function(event, ui) {
+                            $(this).autocomplete("close");
                         }
                  });
             },
@@ -120,6 +123,7 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.goButton.click(
                     function(event) {
+                              $(self.display).autocomplete("close");
 						      self.search(self.display.searchBox.val());
                     }
                 );
