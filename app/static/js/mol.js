@@ -80,9 +80,9 @@ mol.modules.core = function(mol) {
      * Retunrs a layer id string given a layer {name, type, source}.
      */
     mol.core.getLayerId = function(layer) {
-        var name = layer.name.trim().replace(/ /g, "_"),
-            type = layer.type.trim().replace(/ /g, "_"),
-            source = layer.source.trim().replace(/ /g, "_");
+        var name = $.trim(layer.name).replace(/ /g, "_"),
+            type = $.trim(layer.type).replace(/ /g, "_"),
+            source = $.trim(layer.source).replace(/ /g, "_");
 
         return 'layer-{0}-{1}-{2}'.format(name, type, source);
     };
@@ -1096,7 +1096,7 @@ mol.modules.map.layers = function(mol) {
                 _.each(
                     layers,
                     function(layer) {
-                        var l = this.display.addLayer(layer);
+                        var l = this.display.addLayer(layer),
                         self = this;
 
                         if (layer.type === 'points') {
@@ -2238,6 +2238,9 @@ mol.modules.map.search = function(mol) {
                                     response(names);
                                 }
                             );
+                        },
+                        select: function(event, ui) {
+                            $(this).autocomplete("close");
                         }
                  });
             },
@@ -2276,6 +2279,7 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.goButton.click(
                     function(event) {
+                              $(self.display).autocomplete("close");
 						      self.search(self.display.searchBox.val());
                     }
                 );
@@ -2543,20 +2547,21 @@ mol.modules.map.tiles = function(mol) {
             renderTiles: function(layers) {
                 var tiles = [],
                     overlays = this.map.overlayMapTypes.getArray(),
-                    newLayers = this.filterLayers(layers, overlays);
+                    newLayers = this.filterLayers(layers, overlays),
+                    self = this;
 
                 _.each(
                     newLayers,
                     function(layer) {
-                        tiles.push(this.getTile(layer, this.map));
-                        this.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : "overlays"}));
-                        $("img",this.map.overlayMapTypes).imagesLoaded(
+                        tiles.push(self.getTile(layer, self.map));
+                        self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : "overlays"}));
+                        $("img",self.map.overlayMapTypes).imagesLoaded(
                             function(images,proper,broken) {
-                                this.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "overlays"}));
-                            }.bind(this)
+                                self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "overlays"}));
+                            }
                          );
                     },
-                    this
+                    self
                 );
             },
             /**
@@ -2653,9 +2658,9 @@ mol.modules.map.tiles = function(mol) {
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
                     tile_style = opacity ? "#{0}{polygon-fill:#99cc00;polygon-opacity:{1};}".format(table, opacity) : null,
                     hostname = window.location.hostname;
-                
+
                 hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
-                
+
                 this.layer = new google.maps.CartoDBLayer(
                     {
                         tile_name: layer.id,
