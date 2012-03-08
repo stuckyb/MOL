@@ -79,7 +79,7 @@ mol.modules.map.layers = function(mol) {
                 _.each(
                     layers,
                     function(layer) {
-                        var l = this.display.addLayer(layer);
+                        var l = this.display.addLayer(layer),
                         self = this;
 
                         if (layer.type === 'points') {
