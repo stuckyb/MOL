@@ -28,10 +28,10 @@ def check_entities(flush=False):
     """Writes entities to datastore in batches."""
     global entities
     global ac_entities
-    if len(entities) >= 5000 or flush:
+    if len(entities) >= 1000 or flush:
         ndb.put_multi(entities)
         entities = []
-    if len(ac_entities) >= 5000 or flush:
+    if len(ac_entities) >= 1000 or flush:
         ndb.put_multi(ac_entities)
         ac_entities = []
 

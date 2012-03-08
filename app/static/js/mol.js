@@ -659,21 +659,21 @@ mol.modules.map = function(mol) {
                     "zoom_changed",
                     function() {
                         self.bus.fireEvent(new mol.bus.Event('map-zoom-changed'));
-                    }.bind(self)
+                    }
                 );
                 google.maps.event.addListener(
                     self.display.map,
                     "center_changed",
                     function() {
                         self.bus.fireEvent(new mol.bus.Event('map-center-changed'));
-                    }.bind(self)
+                    }
                 );
                 google.maps.event.addListener(
                     self.display.map,
                     "idle",
                     function () {
                         self.bus.fireEvent(new mol.bus.Event('map-idle'));
-                    }.bind(self)
+                    }
                 );
                 /**
                  * The event.overlays contains an array of overlays for the map.
@@ -699,7 +699,7 @@ mol.modules.map = function(mol) {
                             function(event) {
                                 var params = { gmaps_event : event, map : self.display.map}
                                 self.bus.fireEvent(new mol.bus.Event('species-list-query-click',params));
-                            }.bind(self)
+                            }
                         );
                     }
                 );
@@ -892,9 +892,11 @@ mol.modules.map = function(mol) {
 
                 this._super(html);
                 //this.selectable({disabled: true});
-                this.find(Slot.TOP).removeClass('ui-selectee');
-                this.find(Slot.MIDDLE).removeClass('ui-selectee');
-                this.find(Slot.BOTTOM).removeClass('ui-selectee');
+
+                    $(this).find(Slot.TOP).removeClass('ui-selectee');
+                    $(this).find(Slot.MIDDLE).removeClass('ui-selectee');
+                    $(this).find(Slot.BOTTOM).removeClass('ui-selectee');
+
             },
 
             /**
@@ -905,7 +907,7 @@ mol.modules.map = function(mol) {
              */
             slot: function(display, slot) {
                 var Slot = mol.map.ControlDisplay.Slot,
-                    slotDisplay = this.find(slot);
+                    slotDisplay = $(this).find(slot);
 
                 switch (slot) {
                 case Slot.FIRST :
@@ -948,7 +950,8 @@ mol.modules.map.loading = function(mol) {
          *  Build the loading display and add it as a control to the top center of the map display.
          */
         addLoadingDisplay : function() {
-                 var params = {
+                 var event,
+                    params = {
                    display: null, // The loader gif display
                    slot: mol.map.ControlDisplay.Slot.TOP,
                    position: google.maps.ControlPosition.TOP_CENTER
@@ -1216,12 +1219,12 @@ mol.modules.map.layers = function(mol) {
 
                 this._super(html.format(layer.type, layer.name));
                 this.attr('id', layer.id);
-                this.opacity = $(this.find('.opacity'));
-                this.toggle = $(this.find('.toggle'));
-                this.zoom = $(this.find('.zoom'));
-                this.info = $(this.find('.info'));
-                this.close = $(this.find('.close'));
-                this.typePng = $(this.find('.type'));
+                this.opacity = $(this).find('.opacity');
+                this.toggle = $(this).find('.toggle');
+                this.zoom = $(this).find('.zoom');
+                this.info = $(this).find('.info');
+                this.close = $(this).find('.close');
+                this.typePng = $(this).find('.type');
             }
         }
     );
@@ -1241,14 +1244,14 @@ mol.modules.map.layers = function(mol) {
                     '</div>';
 
                 this._super(html);
-                this.list = $(this.find("#sortable"));
+                this.list = $(this).find("#sortable");
                 this.open = false;
                 this.views = {};
                 this.layers = [];
             },
 
             getLayer: function(layer) {
-                return $(this.find('#{0}'.format(layer.id)));
+                return $(this).find('#{0}'.format(layer.id));
             },
 
 			   getLayerById: function(id) {
@@ -1275,12 +1278,12 @@ mol.modules.map.layers = function(mol) {
                 _(this.layers).each(function(a) {
 					if(a.enabled) t++;
 				});
-                $(this.find('.layer_number')).html(t + " LAYER"+ (t>1?'S':''));
+                $(this).find('.layer_number').html(t + " LAYER"+ (t>1?'S':''));
             },
 
             sortLayers: function() {
                 var order = [];
-                $(this.find('li')).each(function(i, el) {
+                $(this).find('li').each(function(i, el) {
 					order.push($(el).attr('id'));
 				});
                 this.bus.emit("map:reorder_layers", order);
@@ -1438,9 +1441,9 @@ mol.modules.map.menu = function(mol) {
                     '</div>';
 
                 this._super(html);
-                this.searchItem = $(this.find('.search'));
-                this.dashboardItem = $(this.find('.dashboard'));
-                this.speciesListItem = $(this.find('.list'));
+                this.searchItem = $(this).find('.search');
+                this.dashboardItem = $(this).find('.dashboard');
+                this.speciesListItem = $(this).find('.list');
             }
         }
     );
@@ -1503,7 +1506,7 @@ mol.modules.map.results = function(mol) {
                         layers = _.map(
                             checkedResults,
                             function(result) {
-                                var id = result.find('.result').attr('id');
+                                var id = $(result).find('.result').attr('id');
                                 return mol.core.getLayerFromId(id);
                             }
                         );
@@ -1739,13 +1742,13 @@ mol.modules.map.results = function(mol) {
                     '</div>';
 
                 this._super(html);
-                this.resultList = $(this.find('.resultList'));
-                this.filters = $(this.find('.filters'));
-                this.selectAllLink = $(this.find('.selectAll'));
-                this.selectNoneLink = $(this.find('.selectNone'));
-                this.addAllButton = $(this.find('.addAll'));
-                this.results = $(this.find('.results'));
-                this.noResults = $(this.find('.noresults'));
+                this.resultList = $(this).find('.resultList');
+                this.filters = $(this).find('.filters');
+                this.selectAllLink = $(this).find('.selectAll');
+                this.selectNoneLink = $(this).find('.selectNone');
+                this.addAllButton = $(this).find('.addAll');
+                this.results = $(this).find('.results');
+                this.noResults = $(this).find('.noresults');
             },
 
             clearResults: function() {
@@ -1901,10 +1904,10 @@ mol.modules.map.results = function(mol) {
 
                 this._super(html.format(id, name));
 
-                this.infoLink = $(this.find('.info'));
-                this.nameBox = $(this.find('.resultName'));
-                this.sourcePng = $(this.find('.source'));
-                this.typePng = $(this.find('.type'));
+                this.infoLink = $(this).find('.info');
+                this.nameBox = $(this).find('.resultName');
+                this.sourcePng = $(this).find('.source');
+                this.typePng = $(this).find('.type');
             }
         }
     );
@@ -1923,8 +1926,8 @@ mol.modules.map.results = function(mol) {
                     '</div>';
 
                 this._super(html.format(name));
-                this.name = $(this.find('.filterName'));
-                this.options = $(this.find('.options'));
+                this.name = $(this).find('.filterName');
+                this.options = $(this).find('.options');
                 this.allOption = new mol.map.results.OptionDisplay('All');
                 this.allOption.addClass('selected');
                 this.options.append(this.allOption);
@@ -2365,9 +2368,9 @@ mol.modules.map.search = function(mol) {
                     '</div>';
 
                 this._super(html);
-                this.goButton = $(this.find('.execute'));
-                this.cancelButton = $(this.find('.cancel'));
-                this.searchBox = $(this.find('.value'));
+                this.goButton = $(this).find('.execute');
+                this.cancelButton = $(this).find('.cancel');
+                this.searchBox = $(this).find('.value');
             },
 
             clear: function() {
@@ -3022,10 +3025,10 @@ mol.modules.map.query = function(mol) {
                         '</div>';
 
             this._super(html);
-            this.resultslist=$(this.find('.resultslist'));
-            this.radiusInput=$(this.find('.radius'));
+            this.resultslist=$(this).find('.resultslist');
+            this.radiusInput=$(this).find('.radius');
             $(this.radiusInput).numeric({negative : false, decimal : false});
-            this.classInput=$(this.find('.class'));
+            this.classInput=$(this).find('.class');
         }
     }
     );
