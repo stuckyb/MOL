@@ -155,18 +155,36 @@ class SearchCacheBuilder(webapp2.RequestHandler):
 
     def post(self):
         url = 'https://mol.cartodb.com/api/v2/sql'
-        sql_points = "select distinct(scientificname) from points limit 100"
-        sql_polygons = "select distinct(scientificname) from polygons limit 100"
+        sql_points = "select distinct(scientificname) from points"
+        sql_polygons = "select distinct(scientificname) from polygons"
 
         # Get points names:
-        request = '%s?%s' % (url, urllib.urlencode(dict(q=sql_points)))
-        result = urlfetch.fetch(request, deadline=60)
-        content = result.content
-        rows = json.loads(content)['rows']
+        # request = '%s?%s' % (url, urllib.urlencode(dict(q=sql_points)))        
+        # try:
+        #     result = urlfetch.fetch(request, deadline=60)
+        # except urlfetch.DownloadError:
+        #     tries = 10
+        #     while tries > 0:
+        #         try:
+        #             result = urlfetch.fetch(request, deadline=60)
+        #         except urlfetch.DownloadError:
+        #             tries = tries - 1
+        # content = result.content
+        # rows = json.loads(content)['rows']
+
+        rows = []
 
         # Get polygons names:
         request = '%s?%s' % (url, urllib.urlencode(dict(q=sql_polygons)))
-        result = urlfetch.fetch(request, deadline=60)
+        try:
+            result = urlfetch.fetch(request, deadline=60)
+        except urlfetch.DownloadError:
+            tries = 10
+            while tries > 0:
+                try:
+                    result = urlfetch.fetch(request, deadline=60)
+                except urlfetch.DownloadError:
+                    tries = tries - 1
         content = result.content
         rows.extend(json.loads(content)['rows'])
 
@@ -176,13 +194,15 @@ class SearchCacheBuilder(webapp2.RequestHandler):
         unique_names = list(set([x['scientificname'] for x in rows]))
 
 
-        sql = "SELECT p.provider as source, p.scientificname as name, p.type as type FROM polygons as p WHERE p.scientificname = '%s' UNION SELECT t.provider as source, t.scientificname as name, t.type as type FROM points as t WHERE t.scientificname = '%s'"
+        #sql = "SELECT p.provider as source, p.scientificname as name, p.type as type FROM polygons as p WHERE p.scientificname = '%s' UNION SELECT t.provider as source, t.scientificname as name, t.type as type FROM points as t WHERE t.scientificname = '%s'"
+
+        sql = "SELECT p.provider as source, p.scientificname as name, p.type as type FROM polygons as p WHERE p.scientificname = '%s'"
 
         # Cache search results.
         rpcs = []
         for names in self.names_generator(unique_names):
             for name in names:
-                q = sql % (name, name)
+                q = sql % name #(name, name)
                 payload = urllib.urlencode(dict(q=q))
                 rpc = urlfetch.create_rpc(deadline=60)
                 rpc.callback = create_callback(rpc, name, url, payload)
