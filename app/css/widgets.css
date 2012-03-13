@@ -105,11 +105,13 @@ button:hover{
     height: 16px;
     padding-right: 2px;
 }
-
-.mol-LayerControl-Layers {
-    width: 100%;
-    float: left;
-    position: relative;
+.mol-LayerControl-Menu div.label img{
+    float: right;
+    height: 16px;
+    padding-right: 2px;
+}
+.mol-LayerControl-Menu .layersToggle {
+    visibility:hidden;
 }
 
 
@@ -682,4 +684,30 @@ button:hover{
      font-size: 12px;
      font-style:normal
      font-weight:normal
+}
+.mol-Map-LegendDisplay {
+    float: left;
+    position: absolute;
+    bottom: 20px;
+    right: 6px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    text-align: right;
+    font-size: 0.8em;
+    padding: 2px;
+}
+.mol-Map-LegendDisplay .seasonality1 {
+      background-color:#99CC00
+}
+.mol-Map-LegendDisplay .seasonality2 {
+      background-color:#FFCC00
+}
+.mol-Map-LegendDisplay .seasonality3 {
+      background-color:#006BB4
+}
+.mol-Map-LegendDisplay .seasonality4 {
+      background-color:#FF9900
+}
+.mol-Map-LegendDisplay .seasonality5 {
+      background-color:#E25B5B
 }

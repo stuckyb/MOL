@@ -43,8 +43,31 @@ mol.modules.map.menu = function(mol) {
                 );
                 this.display.speciesListItem.click(
                     function(event) {
-                        self.bus.fireEvent(
-                            new mol.bus.Event('species-list-tool-toggle'));
+                        self.bus.fireEvent(new mol.bus.Event('species-list-tool-toggle'));
+                    }
+                );
+                this.display.layersToggle.click(
+                    function(event) {
+                        if(self.display.layersToggle[0].src == '/static/maps/layers/collapse.png')  {
+                            self.bus.fireEvent(new mol.bus.Event('layer-display-toggle',{visible : false}));
+                            self.display.layersToggle[0].src = '/static/maps/layers/expand.png';
+                        } else {
+                            self.bus.fireEvent(new mol.bus.Event('layer-display-toggle',{visible : true}));
+                            self.display.layersToggle[0].src = '/static/maps/layers/collapse.png';
+                        }
+                    }
+                );
+
+                this.bus.addHandler(
+                    'hide-layer-display-toggle',
+                    function(event) {
+                        self.display.layersToggle[0].style.visibility="hidden";
+                    }
+                );
+                this.bus.addHandler(
+                    'show-layer-display-toggle',
+                    function(event) {
+                        self.display.layersToggle[0].style.visibility="visible";
                     }
                 );
                 this.bus.addHandler(
@@ -86,16 +109,16 @@ mol.modules.map.menu = function(mol) {
                 var html = '' +
                     '<div class="mol-LayerControl-Menu ">' +
                     '    <div class="label">' +
-                    '       <img class="layersToggle" src="/static/maps/layers/expand.png">' +
+                    '       <img class="layersToggle" src="/static/maps/layers/collapse.png">' +
                     '    </div>' +
                     '    <div title="Toggle taxonomy dashboard." class="widgetTheme dashboard button">Dashboard</div>' +
                     '    <div title="Toggle layer search tools." class="widgetTheme search button">Search</div>' +
                     '    <div title="Toggle species list radius tool (right-click to use)" class="widgetTheme list button">Species&nbsp;Lists</div>' +
                     '</div>' +
                     '<div class="mol-LayerControl-Layers">' +
-                    '      <div class="staticLink widgetTheme" >' +
+                    /*'      <div class="staticLink widgetTheme" >' +
                     '          <input type="text" class="linkText" />' +
-                    '      </div>' +
+                    '      </div>' +*/
                     '   <div class="scrollContainer">' +
                     '   </div>' +
                     '</div>';
@@ -104,6 +127,7 @@ mol.modules.map.menu = function(mol) {
                 this.searchItem = $(this).find('.search');
                 this.dashboardItem = $(this).find('.dashboard');
                 this.speciesListItem = $(this).find('.list');
+                this.layersToggle = $(this).find('.layersToggle');
             }
         }
     );

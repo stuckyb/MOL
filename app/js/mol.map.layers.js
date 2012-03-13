@@ -81,6 +81,7 @@ mol.modules.map.layers = function(mol) {
                     function(layer) {
                         var l = this.display.addLayer(layer),
                         self = this;
+                        self.bus.fireEvent(new mol.bus.Event('show-layer-display-toggle'));
 
                         if (layer.type === 'points') {
                             l.opacity.hide();
@@ -106,9 +107,11 @@ mol.modules.map.layers = function(mol) {
                                         layers: [layer]
                                     },
                                     e = new mol.bus.Event('remove-layers', params);
-
                                 self.bus.fireEvent(e);
                                 l.remove();
+                                if(l.parent.length = 0) {
+                                    self.bus.fireEvent(new mol.bus.Event('hide-layer-display-toggle'));
+                                }
                             }
                         );
 
@@ -203,6 +206,10 @@ mol.modules.map.layers = function(mol) {
                 this._super(html.format(layer.type, layer.name));
                 this.attr('id', layer.id);
                 this.opacity = $(this).find('.opacity');
+                /* IE8 Doesnt support sliders */
+                if(this.opacity[0].type == "text") {
+                    $(this.opacity[0]).hide();
+                }
                 this.toggle = $(this).find('.toggle');
                 this.zoom = $(this).find('.zoom');
                 this.info = $(this).find('.info');
@@ -217,9 +224,9 @@ mol.modules.map.layers = function(mol) {
             init: function() {
                 var html = '' +
                     '<div class="mol-LayerControl-Layers">' +
-                    '  <div class="staticLink widgetTheme" style="display: none; ">' +
+                    /*'  <div class="staticLink widgetTheme" style="display: none; ">' +
                     '    <input type="text" class="linkText">' +
-                    '  </div>' +
+                    '  </div>' +*/
                     '  <div class="scrollContainer" style="">' +
                     '    <ul id="sortable">' +
                     '    </ul>' +

@@ -14,7 +14,7 @@ mol.modules.map.query = function(mol) {
                         "FROM polygons " +
                         "WHERE ST_DWithin(the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " +
                         //"WHERE ST_DWithin(the_geom,ST_PointFromText('POINT({0})',4326),0.1) " +
-                        "AND provider = 'Jetz' AND polygonres = '1000' ORDER BY scientificname";
+                        " {2} ORDER BY scientificname";
 
         },
         start : function() {
@@ -37,13 +37,13 @@ mol.modules.map.query = function(mol) {
                 params.display = this.display;
                 this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
         },
-        getList: function(lat, lng, listradius) {
+        getList: function(lat, lng, listradius, constraints, className) {
                 var self = this,
-                    sql = this.sql.format((lng+' '+lat), listradius.radius),
-                    params = {sql:sql, key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius))},
+                    sql = this.sql.format((lng+' '+lat), listradius.radius, constraints),
+                    params = {sql:sql, key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius+constraints))},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
-                        var results = {listradius:listradius, response:response},
+                        var results = {listradius:listradius, className : className, constraints: constraints, response:response},
                         event = new mol.bus.Event('species-list-query-results', results);
                         self.bus.fireEvent(event);
                     },
@@ -71,7 +71,10 @@ mol.modules.map.query = function(mol) {
             this.bus.addHandler(
                 'species-list-query-click',
                 function (event) {
-                    var listradius;
+                    var listradius,
+                        constraints = $(self.display.classInput).val(),
+                        className =  $("option:selected", $(self.display.classInput)).text();
+
                     if(self.enabled) {
                         listradius =  new google.maps.Circle({
                             map: event.map,
@@ -79,7 +82,7 @@ mol.modules.map.query = function(mol) {
                             center: event.gmaps_event.latLng
                         });
                         self.bus.fireEvent( new mol.bus.Event('show-loading-indicator', {source : 'listradius'}));
-                        self.getList(event.gmaps_event.latLng.lat(),event.gmaps_event.latLng.lng(),listradius);
+                        self.getList(event.gmaps_event.latLng.lat(),event.gmaps_event.latLng.lng(),listradius, constraints, className);
                     }
                  }
             );
@@ -91,10 +94,13 @@ mol.modules.map.query = function(mol) {
                         infoWindow;
                     //self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'listradius'}));
                     if(!event.response.error) {
-                        var listradius = event.listradius;
+                        var listradius = event.listradius,
+                            className = event.className;
                         //fill in the results
                         //$(self.display.resultslist).html('');
                         content=  event.response.total_rows +
+                                ' ' +
+                                className +
                                 ' species found within ' +
                                 listradius.radius/1000 + ' km of ' +
                                 Math.round(listradius.center.lat()*1000)/1000 + '&deg; Latitude ' +
@@ -196,14 +202,21 @@ mol.modules.map.query = function(mol) {
                         '<div class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
                         '     Search Radius (km) <input type="text" class="radius" size="5" value="50">' +
-                        '     Class <select class="class" value="Birds">' +
-                        '       <option value="aves">All</option>' +
-                        '       <option selected value="aves">Birds</option>' +
-                        '       <option disabled value="osteichthyes">Fish</option>' +
-                        '       <option disabled value="reptilia">Reptiles</option>' +
-                        '       <option disabled value="amphibia">Amphibians</option>' +
-                        '       <option disabled value="mammalia">Mammals</option>' +
+                        '     Class <select class="class" value="and class=\'aves\' and polygonres=\'1000\'">' +
+                        '       <option value="">All</option>' +
+                        '       <option selected value="and class=\'aves\' and polygonres=\'1000\'">Bird (course)</option>' +
+                        '       <option value="and class=\'aves\' and polygonres=\'100\'">Bird (fine)</option>' +
+                        '       <option value="and class=\' osteichthyes\'">Fish</option>' +
+                        '       <option value="and class=\'reptilia\'">Reptile</option>' +
+                        '       <option value="and class=\'amphibia\'">Amphibian</option>' +
+                        '       <option value="and class=\'mammalia\'">Mammal</option>' +
                         '     </select>' +
+ /*                       '     Feature type <select class="type" value="polygons">' +
+                        '       <option value="">All</option>' +
+                        '       <option selected value="and type=\'range\' ">Range maps</option>' +
+                        '       <option value="and type=\'pa\'">Presence/absence Maps</option>' +
+                        '       <option value="and class=\'point\'">Point records</option>' +
+                        '     </select>' +*/
                         '   </div>' +
                         //'   <div class="resultslist">Click on the map to find bird species within 50km of that point.</div>' +
                         '</div>';
@@ -213,6 +226,7 @@ mol.modules.map.query = function(mol) {
             this.radiusInput=$(this).find('.radius');
             $(this.radiusInput).numeric({negative : false, decimal : false});
             this.classInput=$(this).find('.class');
+            this.typeInput=$(this).find('.type');
         }
     }
     );

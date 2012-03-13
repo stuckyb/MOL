@@ -299,9 +299,7 @@ mol.modules.map = function(mol) {
                 };
 
                 this.map = new google.maps.Map(this.element, mapOptions);
-
-
-            },
+            }
         }
     );
 

@@ -150,6 +150,7 @@ mol.modules.map.search = function(mol) {
                 this.display.searchBox.keyup(
                     function(event) {
                       if (event.keyCode === 13) {
+                        $(this).autocomplete("close");
                         self.display.goButton.click();
                       }
                     }
