@@ -147,6 +147,7 @@ class ClearCache(webapp2.RequestHandler):
         if len(keys) > 0:
             ndb.delete_multi(keys)
 
+
 class SearchCacheBuilder(webapp2.RequestHandler):
     def get(self):
         self.error(405)
@@ -155,27 +156,12 @@ class SearchCacheBuilder(webapp2.RequestHandler):
 
     def post(self):
         url = 'https://mol.cartodb.com/api/v2/sql'
-        sql_points = "select distinct(scientificname) from points"
-        sql_polygons = "select distinct(scientificname) from polygons"
-
-        # Get points names:
-        # request = '%s?%s' % (url, urllib.urlencode(dict(q=sql_points)))        
-        # try:
-        #     result = urlfetch.fetch(request, deadline=60)
-        # except urlfetch.DownloadError:
-        #     tries = 10
-        #     while tries > 0:
-        #         try:
-        #             result = urlfetch.fetch(request, deadline=60)
-        #         except urlfetch.DownloadError:
-        #             tries = tries - 1
-        # content = result.content
-        # rows = json.loads(content)['rows']
+        sql = "select distinct(scientificname) from scientificnames limit 1"
 
         rows = []
 
         # Get polygons names:
-        request = '%s?%s' % (url, urllib.urlencode(dict(q=sql_polygons)))
+        request = '%s?%s' % (url, urllib.urlencode(dict(q=sql)))
         try:
             result = urlfetch.fetch(request, deadline=60)
         except urlfetch.DownloadError:
@@ -196,13 +182,13 @@ class SearchCacheBuilder(webapp2.RequestHandler):
 
         #sql = "SELECT p.provider as source, p.scientificname as name, p.type as type FROM polygons as p WHERE p.scientificname = '%s' UNION SELECT t.provider as source, t.scientificname as name, t.type as type FROM points as t WHERE t.scientificname = '%s'"
 
-        sql = "SELECT p.provider as source, p.scientificname as name, p.type as type FROM polygons as p WHERE p.scientificname = '%s'"
+        sql = "SELECT sn.provider AS source, sn.scientificname AS name, sn.type AS type FROM scientificnames AS sn WHERE sn.scientificname = '%s'"
 
         # Cache search results.
         rpcs = []
         for names in self.names_generator(unique_names):
             for name in names:
-                q = sql % name #(name, name)
+                q = sql % name 
                 payload = urllib.urlencode(dict(q=q))
                 rpc = urlfetch.create_rpc(deadline=60)
                 rpc.callback = create_callback(rpc, name, url, payload)
