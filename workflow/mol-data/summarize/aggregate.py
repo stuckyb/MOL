@@ -52,6 +52,12 @@ def _getoptions():
         default="cartodb.json",
         help="The cartodb.json file to process (default: 'cartodb.json')"
     )
+    parser.add_option("-w", "--where",
+        action="store",
+        dest="whereclause",
+        default="TRUE",
+        help="A WHERE clause to put in"
+    )
 
     return parser.parse_args()[0]
 
@@ -88,9 +94,11 @@ def main():
 
     logging.info("Downloading aggregate data on field '%s' in table '%s'.",
         options.fieldname, options.tablename)
-    results = cdb.sql("SELECT %(fieldname)s, COUNT(*) AS count FROM %(tablename)s GROUP BY %(fieldname)s ORDER BY %(fieldname)s ASC, count" %
+    results = cdb.sql("SELECT %(fieldname)s, COUNT(*) AS count FROM %(tablename)s WHERE %(where)s GROUP BY %(fieldname)s ORDER BY %(fieldname)s ASC, count" %
         {'fieldname': options.fieldname, 
-         'tablename': options.tablename}
+         'tablename': options.tablename,
+         'where': options.whereclause
+        }
     )
 
     fieldname_lc = options.fieldname.lower()
