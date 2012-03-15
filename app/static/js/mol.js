@@ -567,7 +567,7 @@ mol.modules.map = function(mol) {
 
     mol.map = {};
 
-    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard', 'query'];
+    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard', 'query', 'legend'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
@@ -2638,7 +2638,8 @@ mol.modules.map.tiles = function(mol) {
                     break;
                 case 'polygon':
                 case 'range':
-                case 'expert opinion range map':
+                case 'ecoregion':
+                case 'protectedarea':
                     new mol.map.tiles.CartoDbTile(layer, 'polygons', this.map);
                     break;
                 }
@@ -2817,10 +2818,10 @@ mol.modules.map.dashboard = function(mol) {
                     '    </tr>' +
                     '    <tr>' +
                     '      <td>GBIF points</td>' +
-                    '      <td>500 species with records</td>' +
-                    '      <td>1,500 species with 30,000 records</td>' +
-                    '      <td>152 species with 88,246 records</td>' +
-                    '      <td>800 species with 100,000 records</td>' +
+                    '      <td>5,662 species with 1,794,441 records</td>' +
+                    '      <td>13,000 species with 132,412,174 records</td>' +
+                    '      <td>14,095 species with 4,351,065 records</td>' +
+                    '      <td>11,445 species with 1,695,170 records</td>' +
                     '      <td></td>' +
                     '   <tr>' +
                     '       <td>Jetz range maps</td>' +
@@ -2878,7 +2879,7 @@ mol.modules.map.query = function(mol) {
         addQueryDisplay : function() {
                 var params = {
                     display: null,
-                    slot: mol.map.ControlDisplay.Slot.LAST,
+                    slot: mol.map.ControlDisplay.Slot.BOTTOM,
                     position: google.maps.ControlPosition.RIGHT_BOTTOM
                  };
                 this.bus.fireEvent(new mol.bus.Event('register-list-click'));
@@ -3092,4 +3093,57 @@ mol.modules.map.query = function(mol) {
         }
     }
     );
+};
+mol.modules.map.legend = function(mol) {
+
+    mol.map.legend = {};
+
+    mol.map.legend.LegendEngine = mol.mvp.Engine.extend(
+    {
+        init : function(proxy, bus, map) {
+                this.proxy = proxy;
+                this.bus = bus;
+                this.map = map;
+        },
+        start : function() {
+            this.addLegendDisplay();
+            this.addEventHandlers();
+        },
+        /*
+         *  Build the legend display and add it as a control to the bottom right of the map display.
+         */
+        addLegendDisplay : function() {
+                var params = {
+                    display: null,
+                    slot: mol.map.ControlDisplay.Slot.TOP,
+                    position: google.maps.ControlPosition.RIGHT_BOTTOM
+                 };
+                this.display = new mol.map.LegendDisplay();
+                params.display = this.display;
+                this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
+        },
+        addEventHandlers : function () {
+            var self = this;
+        }
+    }
+    );
+
+    mol.map.LegendDisplay = mol.mvp.View.extend(
+    {
+        init : function(names) {
+            var className = 'mol-Map-LegendDisplay',
+                html = '' +
+                        '<div class="' + className + ' widgetTheme">' +
+                        '       Seasonality Key' +
+                        '       <div class="legendRow"><div class="seasonality1 legendItem"></div> Resident</div>' +
+                        '       <div class="legendRow"><div class="seasonality2 legendItem"></div> Breeding Season</div>' +
+                        '       <div class="legendRow"><div class="seasonality3 legendItem"></div> Non-breeding Season</div>' +
+                        '       <div class="legendRow"><div class="seasonality4 legendItem"></div> Passage</div>' +
+                        '       <div class="legendRow"><div class="seasonality5 legendItem"></div> Seasonality Uncertain</div>' +
+                        '</div>';
+
+            this._super(html);
+        }
+    }
+   );
 };

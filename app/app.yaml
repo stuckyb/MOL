@@ -4,14 +4,8 @@ runtime: python27
 threadsafe: true
 api_version: 1
 
-builtins:
-- appstats: off
-
 inbound_services:
 - warmup
-
-includes:
-- mapreduce/include.yaml
 
 handlers:
 
