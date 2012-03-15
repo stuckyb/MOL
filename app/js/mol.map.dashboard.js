@@ -105,10 +105,10 @@ mol.modules.map.dashboard = function(mol) {
                     '    </tr>' +
                     '    <tr>' +
                     '      <td>GBIF points</td>' +
-                    '      <td>500 species with records</td>' +
-                    '      <td>1,500 species with 30,000 records</td>' +
-                    '      <td>152 species with 88,246 records</td>' +
-                    '      <td>800 species with 100,000 records</td>' +
+                    '      <td>5,662 species with 1,794,441 records</td>' +
+                    '      <td>13,000 species with 132,412,174 records</td>' +
+                    '      <td>14,095 species with 4,351,065 records</td>' +
+                    '      <td>11,445 species with 1,695,170 records</td>' +
                     '      <td></td>' +
                     '   <tr>' +
                     '       <td>Jetz range maps</td>' +
