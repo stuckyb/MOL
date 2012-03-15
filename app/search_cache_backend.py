@@ -28,10 +28,10 @@ def check_entities(flush=False):
     """Writes entities to datastore in batches."""
     global entities
     global ac_entities
-    if len(entities) >= 1000 or flush:
+    if len(entities) >= 500 or flush:
         ndb.put_multi(entities)
         entities = []
-    if len(ac_entities) >= 1000 or flush:
+    if len(ac_entities) >= 500 or flush:
         ndb.put_multi(ac_entities)
         ac_entities = []
 
@@ -84,7 +84,7 @@ def load_names():
     global names_map
     names_map = collections.defaultdict(list)
     for row in csv.DictReader(open('names.csv', 'r')):
-        names_map[row['scientific']].extend(row['english'].split(','))
+        names_map[row['scientific'].strip()].extend([x.strip() for x in row['english'].split(',')])
 
 def add_autocomplete_cache(name, kind):
     """Add autocomplete cache entries.
@@ -93,6 +93,8 @@ def add_autocomplete_cache(name, kind):
       name - The name (Puma concolor)
       kind - The name kind (scientific, english, etc)
     """
+    name = name.strip()
+    kind = kind.strip()
     name_val = '%s:%s' % (name, kind)
     for term in name_keys(name):
         key = 'ac-%s' % term
@@ -108,6 +110,7 @@ def add_autocomplete_cache(name, kind):
 
 def add_autocomplete_results(name):
     # Add name search results.
+    name = name.strip()
     for term in name_keys(name):
         key = 'ac-%s' % term
         names_list = cache.get(key, loads=True) # names is a list of names
@@ -156,7 +159,7 @@ class SearchCacheBuilder(webapp2.RequestHandler):
 
     def post(self):
         url = 'https://mol.cartodb.com/api/v2/sql'
-        sql = "select distinct(scientificname) from scientificnames limit 1"
+        sql = "select distinct(scientificname) from scientificnames offset 0 limit 25000"
 
         rows = []
 

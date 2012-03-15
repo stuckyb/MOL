@@ -2638,7 +2638,8 @@ mol.modules.map.tiles = function(mol) {
                     break;
                 case 'polygon':
                 case 'range':
-                case 'expert opinion range map':
+                case 'ecoregion':
+                case 'protectedarea':
                     new mol.map.tiles.CartoDbTile(layer, 'polygons', this.map);
                     break;
                 }
