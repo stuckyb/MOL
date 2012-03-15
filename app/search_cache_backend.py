@@ -141,11 +141,24 @@ class ClearCache(webapp2.RequestHandler):
     def post(self):
         keys = []
         key_count = 0
-        for key in cache.CacheItem.query().iter(keys_only=True):
-            if key_count > 1000:
-                ndb.delete_multi(keys)
-                keys = []
-                key_count = 0
+        for key in cache.CacheItem.query().iter(keys_only=True):            
+            if key_count > 100:
+                try:
+                    ndb.delete_multi(keys)
+                    keys = []
+                    key_count = 0
+                except:
+                    logging.info('delete_multi retry')
+                    tries = 10
+                    while tries > 0:
+                        try:
+                            ndb.delete_multi(keys)
+                            keys = []
+                            key_count = 0
+                        except:
+                            logging.info('delete_multi retries left: %s' % tries)
+                            tries = tries - 1
+                    log.info('Failed to delete_multi on %s' % keys)
             keys.append(key)
         if len(keys) > 0:
             ndb.delete_multi(keys)
@@ -159,7 +172,7 @@ class SearchCacheBuilder(webapp2.RequestHandler):
 
     def post(self):
         url = 'https://mol.cartodb.com/api/v2/sql'
-        sql = "select distinct(scientificname) from scientificnames offset 0 limit 25000"
+        sql = "select distinct(scientificname) from scientificnames where type = 'protectedarea'"
 
         rows = []
 
