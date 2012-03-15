@@ -668,34 +668,44 @@ button:hover{
     right: 15px;
 }
 .mol-Map-QueryDisplay {
-    float: left;
+    clear:both;
     height: 25px;
-    position: absolute;
-    bottom: 20px;
-    right: 6px;
     -moz-border-radius: 3px;
     border-radius: 3px;
     text-align: right;
     font-size: 0.8em;
     white-space: nowrap;
     padding: 2px;
+    padding-left:6px;
+    padding-right:6px;
+    margin: 2px;
 }
 .mol-Map-ListQueryInfoWindowResults {
      font-size: 12px;
      font-style:normal
      font-weight:normal
 }
+
 .mol-Map-LegendDisplay {
-    float: left;
-    position: absolute;
-    bottom: 20px;
-    right: 6px;
+    display: table-cell;
+    float:right;
     -moz-border-radius: 3px;
     border-radius: 3px;
-    text-align: right;
     font-size: 0.8em;
     padding: 2px;
+    padding-left:6px;
+    padding-right:6px;
+    margin: 2px;
 }
+.mol-Map-LegendDisplay .legendRow {
+     margin-left:12px;
+}
+.mol-Map-LegendDisplay .legendItem {
+     display:inline-block;
+     width: 8px;
+     height: 8px;
+}
+
 .mol-Map-LegendDisplay .seasonality1 {
       background-color:#99CC00
 }

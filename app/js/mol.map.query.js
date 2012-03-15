@@ -27,7 +27,7 @@ mol.modules.map.query = function(mol) {
         addQueryDisplay : function() {
                 var params = {
                     display: null,
-                    slot: mol.map.ControlDisplay.Slot.LAST,
+                    slot: mol.map.ControlDisplay.Slot.BOTTOM,
                     position: google.maps.ControlPosition.RIGHT_BOTTOM
                  };
                 this.bus.fireEvent(new mol.bus.Event('register-list-click'));
