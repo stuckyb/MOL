@@ -4,9 +4,10 @@ mol.modules.map.layers = function(mol) {
 
     mol.map.layers.LayerEngine = mol.mvp.Engine.extend(
         {
-            init: function(proxy, bus) {
+            init: function(proxy, bus, map) {
                 this.proxy = proxy;
                 this.bus = bus;
+                this.map = map;
             },
 
             start: function() {
@@ -109,7 +110,8 @@ mol.modules.map.layers = function(mol) {
                                     e = new mol.bus.Event('remove-layers', params);
                                 self.bus.fireEvent(e);
                                 l.remove();
-                                if(l.parent.length = 0) {
+                                // Hide the layer widge toggle in the main menu if no layers exist
+                                if(self.map.overlayMapTypes.length == 0) {
                                     self.bus.fireEvent(new mol.bus.Event('hide-layer-display-toggle'));
                                 }
                             }

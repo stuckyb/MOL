@@ -12,13 +12,8 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'SELECT ' +
-                    'p.provider as source, p.scientificname as name, p.type as type ' +
-                    'FROM polygons as p ' +
-                    'WHERE p.scientificname = \'{0}\' ' +
-                    'UNION SELECT ' +
-                    't.provider as source, t.scientificname as name, t.type as type ' +
-                    'FROM points as t ' +
-                    'WHERE t.scientificname = \'{1}\'';
+                    'provider as source, scientificname as name, type as type ' +
+                    'FROM scientificnames WHERE scientificname = \'{0}\'';
             },
 
             /**
@@ -75,10 +70,18 @@ mol.modules.map.search = function(mol) {
                             // TODO: Refactor this using our proxy:
                             $.getJSON(
                                 'api/autocomplete',
+                                //"http://mol.cartodb.com/api/v2/sql?q=select scientificname from scientificnames WHERE scientificname LIKE '{0}%25'".format(request.term),
                                 {
-                                    key: 'ac-{0}'.format(request.term)
+                                   key: 'ac-{0}'.format(request.term)
                                 },
                                 function(names) {
+                                   /* var names = [];
+                                    _.each(
+                                            json.rows,
+                                            function(row) {
+                                                names.push(row.scientificname);
+                                            }
+                                    )*/
                                     response(names);
                                 }
                             );
@@ -182,7 +185,7 @@ mol.modules.map.search = function(mol) {
             search: function(term) {
                 var self = this,
                     sql = this.sql.format(term, term),
-                    params = {sql:null, key: 'name-{0}'.format(term)},
+                    params = {sql:sql, key: 'name-{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {term:term, response:response},
@@ -195,7 +198,7 @@ mol.modules.map.search = function(mol) {
                     };
                  self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search"}));
                 this.proxy.execute(action, new mol.services.Callback(success, failure));
-                this.bus.fireEvent('search', new mol.bus.Event('search', term));
+                //this.bus.fireEvent('search', new mol.bus.Event('search', term));
             }
         }
     );
@@ -204,16 +207,11 @@ mol.modules.map.search = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<div class="mol-LayerControl-Search">' +
-                    '  <div class="searchContainer widgetTheme">' +
-                    '    <div class="title ui-autocomplete-input"">Search:</div>' +
+                    '<div class="mol-LayerControl-Search widgetTheme">' +
+                    '    <div class="title ui-autocomplete-input">Search:</div>' +
                     '    <input class="value" type="text" placeholder="Search by name">' +
                     '    <button class="execute">Go</button>' +
-                    '    <button class="cancel">' +
-                    '      <img src="/static/maps/search/cancel.png">' +
-                    '    </button>' +
-                    '  </div>' +
-                    '  <img class="loading" src="/static/loading.gif">' +
+                    '    <button class="cancel">&nbsp;</button>' +
                     '</div>';
 
                 this._super(html);
