@@ -22,11 +22,12 @@ class GetHandler(webapp2.RequestHandler):
         key = self.request.get('key', 'empty')
         sql = self.request.get('sql', None)
         value = cache.get(key)
-        if not value and sql:
-            logging.info('Cache miss on %s' % key)
-            url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
-            value = urlfetch.fetch(url, deadline=60).content
-            cache.add(key, value)
+        # Commented out to prevent filling cache with search results.
+        # if not value and sql:
+        #     url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
+        #     value = urlfetch.fetch(url, deadline=60).content
+        #     logging.info('Cache miss. Requesting %s with response %s' % (url, value))
+        #     cache.add(key, value)
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(value)
                     

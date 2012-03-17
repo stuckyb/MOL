@@ -41,7 +41,7 @@ mol.modules.map.search = function(mol) {
                         eng = '<a>{0}</a>'.format(name),
                         sci = '<a><i>{0}</i></a>'.format(name);
 
-                    item.label = kind === 'scientific' ? sci : eng;
+                    item.label = kind === 'sci' ? sci : eng;
                     item.value = name;
 
                     item.label = item.label.replace(
@@ -61,27 +61,15 @@ mol.modules.map.search = function(mol) {
             populateAutocomplete : function(action, response) {
                 $(this.display.searchBox).autocomplete(
                     {
-                        //RegEx: '\\b<term>[^\\b]*', //<term> gets
-                        //replaced by the search term.
-                        //RegEx:
                         minLength: 3,
                         delay: 0,
                         source: function(request, response) {
-                            // TODO: Refactor this using our proxy:
                             $.getJSON(
                                 'api/autocomplete',
-                                //"http://mol.cartodb.com/api/v2/sql?q=select scientificname from scientificnames WHERE scientificname LIKE '{0}%25'".format(request.term),
                                 {
-                                   key: 'ac-{0}'.format(request.term)
+                                    key: 'ac-{0}'.format(request.term)
                                 },
                                 function(names) {
-                                   /* var names = [];
-                                    _.each(
-                                            json.rows,
-                                            function(row) {
-                                                names.push(row.scientificname);
-                                            }
-                                    )*/
                                     response(names);
                                 }
                             );
@@ -126,7 +114,7 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.goButton.click(
                     function(event) {
-                              $(self.display).autocomplete("close");
+                        $(self.display).autocomplete("close");
 						      self.search(self.display.searchBox.val());
                     }
                 );
@@ -184,7 +172,7 @@ mol.modules.map.search = function(mol) {
              */
             search: function(term) {
                 var self = this,
-                    sql = this.sql.format(term, term),
+                    sql = this.sql.format(term),
                     params = {sql:sql, key: 'name-{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
@@ -196,7 +184,7 @@ mol.modules.map.search = function(mol) {
                     failure = function(action, response) {
                         self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search"}));
                     };
-                 self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search"}));
+                self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search"}));
                 this.proxy.execute(action, new mol.services.Callback(success, failure));
                 //this.bus.fireEvent('search', new mol.bus.Event('search', term));
             }
