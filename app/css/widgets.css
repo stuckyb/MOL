@@ -23,7 +23,7 @@
     color: rgb(240, 240, 260);
 }
 button{
-    float: left;
+    display:inline-block;
     width: auto;
     margin: 2px;
     font-size: 1.1em;
@@ -305,27 +305,26 @@ button:hover{
  * search, results
  */
 
-.mol-LayerControl-Search .searchContainer, .mol-LayerControl-Add {
-    float: left;
-    position: relative;
-    height: 28px;
-    width: 65%;
+.mol-LayerControl-Search, .mol-LayerControl-Add {
+    display: table-cell;
+    height: 26px;
     margin-bottom: 5px;
     margin-right: 5px;
     padding: 3px 5px 2px 5px;
     -moz-border-radius: 4px;
     border-radius: 4px;
+    white-space: nowrap;
 }
 .mol-LayerControl-Search .title{
-    float: left;
+    display:inline-block;
     line-height: 25px;
     font-size: 1.1em;
     margin-right: 2px;
 }
 .mol-LayerControl-Search .value{
-    float: left;
+    display:inline-block;
     margin-right: 5px;
-    width: 55%;
+    /*width: 55%;*/
 
 }
 
@@ -338,25 +337,27 @@ button:hover{
         padding-right: 20px;
     }
 
-.mol-LayerControl-Search .loading {
-    display: none;
-    padding-top: 5px;
-    height: 24px;
-}
 
 .mol-LayerControl-Search .execute{
-    float: left;
-    margin-left: 6px;
+    display:inline-block;
+    margin-left: 4px;
     width: 50px;
+    height:20px;
 }
 .mol-LayerControl-Search .cancel{
-    width: 25px;
-    margin-left: 6px;
-    padding-top: 2px;
+    display:inline;
+    height: 20px;
+    width: 20px;
+    margin-left: 4px;
+    background-image:url('/static/maps/search/cancel.png');
+    background-size:14px 14px;
+    background-repeat:no-repeat;
+    background-position:center;
 }
 
 .mol-LayerControl-Search .cancel img{
-    width: 100%;
+    width: 16px;
+    height: 16px;
 }
 
 .mol-LayerControl-Results{
@@ -532,6 +533,7 @@ button:hover{
     overflow-y: auto;
 }
 
+
 .mol-LayerControl-Results ul {
     padding-left: 0px;
     margin-bottom: 5px;
@@ -553,7 +555,7 @@ button:hover{
 }
 .mol-LayerControl-Results .result div.resultName{
     width: 55%;
-    float: left;
+    display:inline-block;
     margin-left: 4px;
 }
 .mol-LayerControl-Results .result .resultAuthor{
@@ -569,13 +571,18 @@ button:hover{
 .mol-LayerControl-Results .result a{
     color: rgb(230, 250, 230);
 }
-
+.mol-LayerControl-Results .resultType{
+    display:inline-block;
+}
+.mol-LayerControl-Results .resultSource{
+    display:inline-block;
+}
 .mol-LayerControl-Results .result .buttonContainer {
 	width:24px;
 	height:24px;
-   position: relative;
-   float: right;
-   margin-right: 10px;
+    position: relative;
+    float: right;
+    margin-right: 10px;
 }
 
 .mol-LayerControl-Results .result .checkbox {
