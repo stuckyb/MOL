@@ -123,12 +123,14 @@ def add_autocomplete_results(name):
         if not entity:
             entity = cache.create_entry(
                 'name-%s' % term, dict(rows=result), dumps=True)
-        else:
+        if entity.has_key('rows'):
             for r in entity['rows']:
                 if r not in result:
                     result.append(r)
             entity = cache.create_entry(
                 'name-%s' % term, dict(rows=result), dumps=True)
+        else:
+            logging.warn('No rows for entity %s' % entity)
         entities.append(entity)
     check_entities(flush=True)
 

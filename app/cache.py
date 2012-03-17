@@ -38,7 +38,11 @@ class CacheItem(model.Model):
         if item:            
             if value_type == 'string':
                 if loads:
-                    value = json.loads(item.string)
+                    try:
+                        value = json.loads(item.string)
+                    except:
+                        logging.warn('Invalid JSON: %%s' % item.string)
+                        value = item.string
                 else:
                     value = item.string
             elif value_type == 'blob':
