@@ -6,6 +6,7 @@ __author__ = 'Aaron Steele'
 import cache
 
 # Standard Python imports
+import json
 import logging
 import urllib
 import webapp2
@@ -22,12 +23,11 @@ class GetHandler(webapp2.RequestHandler):
         key = self.request.get('key', 'empty')
         sql = self.request.get('sql', None)
         value = cache.get(key)
-        # Commented out to prevent filling cache with search results.
-        # if not value and sql:
-        #     url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
-        #     value = urlfetch.fetch(url, deadline=60).content
-        #     logging.info('Cache miss. Requesting %s with response %s' % (url, value))
-        #     cache.add(key, value)
+        if not value and sql:
+            url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
+            value = urlfetch.fetch(url, deadline=60).content
+            if not json.loads(value).has_key('error'):
+                cache.add(key, value)
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(value)
                     

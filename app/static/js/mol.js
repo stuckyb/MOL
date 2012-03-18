@@ -948,16 +948,17 @@ mol.modules.map.loading = function(mol) {
          *  Build the loading display and add it as a control to the top center of the map display.
          */
         addLoadingDisplay : function() {
-                 var event,
-                    params = {
-                   display: null, // The loader gif display
-                   slot: mol.map.ControlDisplay.Slot.TOP,
-                   position: google.maps.ControlPosition.TOP_CENTER
+            var event,
+                params = {
+                    display: null, // The loader gif display
+                    slot: mol.map.ControlDisplay.Slot.TOP,
+                    position: google.maps.ControlPosition.TOP_CENTER
                 };
-                this.loading = new mol.map.LoadingDisplay();
-                params.display = this.loading;
-                event = new mol.bus.Event('add-map-control', params);
-                this.bus.fireEvent(event);
+            
+            this.loading = new mol.map.LoadingDisplay();
+            params.display = this.loading;
+            event = new mol.bus.Event('add-map-control', params);
+            this.bus.fireEvent(event);
         },
         addEventHandlers : function () {
             var self = this;
@@ -968,16 +969,16 @@ mol.modules.map.loading = function(mol) {
                 'hide-loading-indicator',
                 function(event) {
                     var done = true;
-                    self.cache[event.source]="done";
+                    self.cache[event.source] = "done";
                     _.each(
                         self.cache,
                         function(source) {
-                             if(source=="loading") {
+                             if(source === "loading") {
                                  done = false;
                              }
                         }
-                    )
-                    if(done==true) {
+                    );
+                    if (done === true) {
                         self.loading.hide();
                     }
                 }
@@ -989,7 +990,7 @@ mol.modules.map.loading = function(mol) {
                 'show-loading-indicator',
                 function(event) {
                     self.loading.show();
-                    self.cache[event.source]="loading";
+                    self.cache[event.source] = "loading";
                 }
             );
         }
@@ -1009,10 +1010,9 @@ mol.modules.map.loading = function(mol) {
                         '   <img src="static/loading.gif">' +
                         '</div>';
             this._super(html);
-        },
-    }
-    );
-}
+        }
+    });
+};
 mol.modules.map.layers = function(mol) {
 
     mol.map.layers = {};
@@ -2255,7 +2255,7 @@ mol.modules.map.search = function(mol) {
                             $.getJSON(
                                 'api/autocomplete',
                                 {
-                                    key: 'ac-{0}'.format(request.term)
+                                    key: 'acn-{0}'.format(request.term)
                                 },
                                 function(names) {
                                     response(names);
@@ -2361,7 +2361,7 @@ mol.modules.map.search = function(mol) {
             search: function(term) {
                 var self = this,
                     sql = this.sql.format(term),
-                    params = {sql:sql, key: 'name-{0}'.format(term)},
+                    params = {sql:sql, key: 'acr-{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {term:term, response:response},
@@ -2649,7 +2649,12 @@ mol.modules.map.tiles = function(mol) {
                     },
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
-                        var extent = response.rows[0].st_extent,
+                        if (response.rows[0].st_extent === null) {
+                            console.log("No extent for {0}".format(layer.name));
+                            self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "extentquery"}));
+                            return;
+                        }
+                        var extent = response.rows[0].st_extent,                        
                             c = extent.replace('BOX(','').replace(')','').split(','),
                             coor1 = c[0].split(' '),
                             coor2 = c[1].split(' '),
@@ -2691,7 +2696,7 @@ mol.modules.map.tiles = function(mol) {
                         table_name: table,
                         query: sql.format(table, layer.name, layer.type),
                         tile_style: tile_style,
-                        map_style: true,
+                        map_style: false,
                         infowindow: true,
                         opacity: opacity
                     }

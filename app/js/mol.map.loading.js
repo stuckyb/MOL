@@ -17,16 +17,17 @@ mol.modules.map.loading = function(mol) {
          *  Build the loading display and add it as a control to the top center of the map display.
          */
         addLoadingDisplay : function() {
-                 var event,
-                    params = {
-                   display: null, // The loader gif display
-                   slot: mol.map.ControlDisplay.Slot.TOP,
-                   position: google.maps.ControlPosition.TOP_CENTER
+            var event,
+                params = {
+                    display: null, // The loader gif display
+                    slot: mol.map.ControlDisplay.Slot.TOP,
+                    position: google.maps.ControlPosition.TOP_CENTER
                 };
-                this.loading = new mol.map.LoadingDisplay();
-                params.display = this.loading;
-                event = new mol.bus.Event('add-map-control', params);
-                this.bus.fireEvent(event);
+            
+            this.loading = new mol.map.LoadingDisplay();
+            params.display = this.loading;
+            event = new mol.bus.Event('add-map-control', params);
+            this.bus.fireEvent(event);
         },
         addEventHandlers : function () {
             var self = this;
@@ -37,16 +38,16 @@ mol.modules.map.loading = function(mol) {
                 'hide-loading-indicator',
                 function(event) {
                     var done = true;
-                    self.cache[event.source]="done";
+                    self.cache[event.source] = "done";
                     _.each(
                         self.cache,
                         function(source) {
-                             if(source=="loading") {
+                             if(source === "loading") {
                                  done = false;
                              }
                         }
-                    )
-                    if(done==true) {
+                    );
+                    if (done === true) {
                         self.loading.hide();
                     }
                 }
@@ -58,7 +59,7 @@ mol.modules.map.loading = function(mol) {
                 'show-loading-indicator',
                 function(event) {
                     self.loading.show();
-                    self.cache[event.source]="loading";
+                    self.cache[event.source] = "loading";
                 }
             );
         }
@@ -78,7 +79,6 @@ mol.modules.map.loading = function(mol) {
                         '   <img src="static/loading.gif">' +
                         '</div>';
             this._super(html);
-        },
-    }
-    );
-}
+        }
+    });
+};

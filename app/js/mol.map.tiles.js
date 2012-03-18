@@ -245,7 +245,12 @@ mol.modules.map.tiles = function(mol) {
                     },
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
-                        var extent = response.rows[0].st_extent,
+                        if (response.rows[0].st_extent === null) {
+                            console.log("No extent for {0}".format(layer.name));
+                            self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "extentquery"}));
+                            return;
+                        }
+                        var extent = response.rows[0].st_extent,                        
                             c = extent.replace('BOX(','').replace(')','').split(','),
                             coor1 = c[0].split(' '),
                             coor2 = c[1].split(' '),
@@ -287,7 +292,7 @@ mol.modules.map.tiles = function(mol) {
                         table_name: table,
                         query: sql.format(table, layer.name, layer.type),
                         tile_style: tile_style,
-                        map_style: true,
+                        map_style: false,
                         infowindow: true,
                         opacity: opacity
                     }

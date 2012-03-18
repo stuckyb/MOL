@@ -72,16 +72,19 @@ mol.modules.map.query = function(mol) {
                 'species-list-query-click',
                 function (event) {
                     var listradius,
-                        constraints = $(self.display.classInput).val() + $(self.display.typeInput).val();
-                        className =  $("option:selected", $(self.display.classInput)).text();
+                        constraints = $(self.display.classInput).val() + $(self.display.typeInput).val(),
+                        className =  $("option:selected", $(self.display.classInput)).text(),
                         typeName = $("option:selected", $(self.display.typeInput)).text();
 
-                    if(self.enabled) {
-                        listradius =  new google.maps.Circle({
-                            map: event.map,
-                            radius: parseInt(self.display.radiusInput.val())*1000, // 50 km
-                            center: event.gmaps_event.latLng
-                        });
+                    if (self.enabled) {
+                        listradius = new google.maps.Circle(
+                            {
+                                map: event.map,
+                                radius: parseInt(self.display.radiusInput.val())*1000, // 50 km
+                                center: event.gmaps_event.latLng,
+                                strokeWeight: 0
+                            }
+                        );
                         self.bus.fireEvent( new mol.bus.Event('show-loading-indicator', {source : 'listradius'}));
                         self.getList(event.gmaps_event.latLng.lat(),event.gmaps_event.latLng.lng(),listradius, constraints, className, typeName);
                     }
@@ -227,10 +230,9 @@ mol.modules.map.query = function(mol) {
                         '       <option value="">All</option>' +
                         '       <option selected value="and type=\'range\' ">Range maps</option>' +
                         '       <option value=" and type=\'pa\'">Protected Areas</option>' +
-                        '       <option value=" and type=\'ecoregion\'">Ecoregions</option>'
+                        '       <option value=" and type=\'ecoregion\'">Ecoregions</option>' +
                         '       <option value=" and type=\'point\'">Point records</option>' +
                         '     </select>' +
-                        ''
                         '   </div>' +
                         //'   <div class="resultslist">Click on the map to find bird species within 50km of that point.</div>' +
                         '</div>';
