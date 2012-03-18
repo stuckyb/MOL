@@ -143,7 +143,7 @@ def load_names():
     names_map = collections.defaultdict(list)
     for row in csv_unicode.UnicodeDictReader(open('english_names.csv', 'r')):
         bi = row['binomial_index']
-        names_map[bi].extend(list(set(['%s:sci' % bi] + ['%s:eng' % x for x in row['commons_index'].split(',') if x])))
+        names_map[bi].extend(list(set(['%s:sci' % bi.capitalize()] + ['%s:eng' % x.capitalize() for x in row['commons_index'].split(',') if x])))
     open('names_map.json', 'w').write(json.dumps(names_map))
 
 #load_names()
@@ -157,15 +157,15 @@ def tokens(name):
         > name_keys('concolor')
         > ['con', 'conc', 'conco', 'concol', 'concolo', 'concolor']
     """
-    yield name.strip()
+    yield name.strip().lower()
     for n in name.split():
         name_len = len(n)
-        yield n
+        yield n.lower()
         if name_len > 3:
             indexes = range(3, name_len)
             indexes.reverse()
             for i in indexes:
-                yield n[:i]
+                yield n[:i].lower()
 
 def setup_cacheitem_db():
     conn = sqlite3.connect('cacheitem.sqlite3.db', check_same_thread=False)
