@@ -36,6 +36,7 @@ from google.appengine.ext.bulkload import transform
 
 # NDB modules
 from google.appengine.ext.ndb import model
+from google.appengine.ext import db
 
 def load_names():
     """Loads names.csv into a defaultdict with scientificname keys mapped to
@@ -63,6 +64,12 @@ def name_keys(name):
             indexes.reverse()
             for i in indexes:
                 yield n[:i]
+
+def create_text():
+    def wrapper(value, bulkload_state):
+        """Returns current_dictionary (a row in the CSV file) as JSON text."""
+        return db.Text(value)
+    return wrapper
 
 def create_key():
     def wrapper(value, bulkload_state):

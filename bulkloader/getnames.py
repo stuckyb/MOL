@@ -11,57 +11,110 @@ def names():
     response = urllib2.urlopen(url)
     rows = json.loads(response.read())['rows']
 
-    writer = csv_unicode.UnicodeDictWriter(open('names.csv', 'w'), ['keyname', 'scientificname'])
+    writer = csv_unicode.UnicodeDictWriter(open('names.csv', 'w'), 
+                                           ['scientificname', 'binomial', 'binomial_index', 'state', 'type'])
     writer.writeheader()
 
-    bad_writer = csv_unicode.UnicodeDictWriter(open('bad_names.csv', 'w'), ['keyname', 'scientificname'])
-    bad_writer.writeheader()
-
     for row in rows:
-        if row['scientificname'].strip() == '':
-            bad_writer.writerow(row)
-            continue
+        sn = row['scientificname'].strip()
+        row['scientificname'] = sn
+
+        if not sn:
+            row['state'] = 'NO_NAME'
+            writer.writerow(row)
+            continue        
+
+        if len(sn.split()) < 2:
+            row['type'] = 'MONOMIAL'
+
+        if len(sn.split()) > 2:
+            row['type'] = 'TRINOMIAL'
+
+        if len(sn.split()) == 2:
+            row['type'] = 'BINOMIAL'
+            
         values = []
-        for token in re.split('[^a-zA-Z0-9_]', row['scientificname']):
+        for token in re.split('[^a-zA-Z0-9_]', sn):
             if token.isalpha():
                 values.append(token.lower())
-        row['keyname'] = 'name-%s' % reduce(lambda x,y: '%s %s' % (x, y), values)
-        if len(values) != 2: # Binomials only
-            bad_writer.writerow(row)
-            continue
+            else:
+                row['state'] = 'BAD_ENCODING'
+                writer.writerow(row)
+                continue                        
+        row['binomial_index'] = reduce(lambda x,y: '%s %s' % (x, y), values[:2])
+        row['binomial'] = reduce(lambda x,y: '%s %s' % (x, y), sn.split()[:2])
+
         writer.writerow(row)
+
     print 'Done creating names.csv'
 
 def english_names():
     url = "http://mol.cartodb.com/api/v2/sql?q=SELECT%20scientific,%20common_names_eng%20as%20commons%20from%20master_taxonomy order by scientific"
     response = urllib2.urlopen(url)
     rows = json.loads(response.read())['rows']
-    writer = csv_unicode.UnicodeDictWriter(open('english_names.csv', 'w'), ['scientific', 'commons', 'commons_index', 'keywords'])
+
+    writer = csv_unicode.UnicodeDictWriter(open('english_names.csv', 'w'), 
+                                           ['scientific', 'binomial', 'binomial_index', 
+                                            'commons', 'commons_index', 'keywords', 'state', 'type'])
     writer.writeheader()
+
     for row in rows:
-        if row['scientific'].strip() == '':
+        sn = row['scientific'].strip()
+        row['scientific'] = sn
+
+        if not sn:
+            row['state'] = 'NO_SN'
+            writer.writerow(row)
             continue
-        if row['commons'].strip() == '':
+
+        commons = row['commons'].strip()
+        row['commons'] = commons
+
+        if not commons:
+            row['state'] = 'NO_COMMONS'
+            writer.writerow(row)
             continue
+
+        if len(sn.split()) < 2:
+            row['type'] = 'MONOMIAL'
+
+        if len(sn.split()) > 2:
+            row['type'] = 'TRINOMIAL'
+
+        if len(sn.split()) == 2:
+            row['type'] = 'BINOMIAL'
+
+        values = []
+        for token in re.split('[^a-zA-Z0-9_]', sn):
+            if token.isalpha():
+                values.append(token.strip().lower())
+            else:
+                row['state'] = 'BAD_ENCODING'
+                writer.writerow(row)
+                continue                        
+        row['binomial_index'] = reduce(lambda x,y: '%s %s' % (x, y), values[:2])
+        row['binomial'] = reduce(lambda x,y: '%s %s' % (x, y), sn.split()[:2])
+
         commons_index = set()
-        row['scientific'] = row['scientific'].strip()
-        row['commons'] = reduce(lambda x,y: '%s,%s' % (x.strip(), y.strip()), row['commons'].split(','))
+        row['commons'] = reduce(lambda x,y: '%s,%s' % (x.strip(), y.strip()), commons.split(','))
         for common in row['commons'].split(','):
             values = [x for x in re.split('[^a-zA-Z0-9_]', common) if x and len(x) >= 3]
             if len(values) > 0:
                 commons_index.add(reduce(
                         lambda x,y:'%s %s' % (x.lower(), y.lower()), 
                         values))
+            else:
+                row['state'] = 'BAD_ENCODING'
+
         if len(commons_index) > 0:
             row['commons_index'] = reduce(lambda x,y: '%s,%s' % (x.lower(), y.lower()), commons_index)        
+
         uniques = set([x for x in re.split('[^a-zA-Z0-9_]', row['commons']) if x and len(x) >= 3])
         if len(uniques) == 0:
             continue
         row['keywords'] = reduce(lambda x,y: '%s,%s' % (x.lower(), y.lower()), uniques)
-        try:
-            writer.writerow(row)
-        except:
-            print row
+
+        writer.writerow(row)
 
     print 'Done creating english_names.csv'
 
@@ -88,12 +141,13 @@ def load_names():
     global names_map
     names_map = collections.defaultdict(list)
     for row in csv_unicode.UnicodeDictReader(open('english_names.csv', 'r')):
-        names_map[row['scientific'].strip()].extend(list(set([x for x in row['commons_index'].split(',') if x])))
+        bi = row['binomial_index']
+        names_map[bi].extend(list(set(['%s:sci' % bi] + ['%s:eng' % x for x in row['commons_index'].split(',') if x])))
     open('names_map.json', 'w').write(json.dumps(names_map))
 
-load_names()
-print names_map['Puma concolor']
-print names_map['Alcelaphus buselaphus']
+#load_names()
+#print names_map['Puma concolor']
+#print names_map['Alcelaphus buselaphus']
 
 def tokens(name):
     """Generates name keys that are at least 3 characters long.
@@ -124,6 +178,38 @@ def setup_cacheitem_db():
     c.close()
     return conn
 
+def create_autocomplete_index():
+    load_names()
+    writer = csv_unicode.UnicodeDictWriter(open('ac.csv', 'w'), ['id', 'string'])
+    writer.writeheader()
+    conn = setup_cacheitem_db()
+    cur = conn.cursor()
+
+    count = 100
+    
+    for row in csv_unicode.UnicodeDictReader(open('names.csv', 'r')): 
+        if count == 0:
+            break
+        bi = row['binomial_index'] # puma_concolor
+        if not names_map.has_key(bi):
+            continue
+        all_names = names_map[bi] # [mountain lion, puma, puma concolor, deer lion]
+        for tagged_name in all_names:
+            name, tag = tagged_name.split(':')
+            for token in tokens(name): # split on ":" since names are tagged with sci or eng.
+                idname = 'ac-%s' % token.lower()
+                result = cur.execute('SELECT * FROM CacheItem WHERE id = ?', (idname,)).fetchone()
+                if result:
+                    all_names_updated = list(set([tagged_name] + json.loads(result[1])))
+                    cur.execute('UPDATE CacheItem SET string = ? WHERE id = ?', (json.dumps(all_names_updated), idname))
+                else:
+                    cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(all_names)))    
+        conn.commit()
+        count = count - 1
+    
+    for result in cur.execute('SELECT * FROM CacheItem').fetchall():
+        writer.writerow(dict(id=result[0], string=result[1]))
+        
 def build_autocomplete_csv():
     results = json.loads(open('results.json', 'r').read())
     names = names_map
@@ -148,9 +234,11 @@ def build_autocomplete_csv():
     #writer.writerow(row)
                
 if __name__ == '__main__':
-    names()
+    #names()
     #english_names()
     #build_autocomplete_csv()
+    #load_names()
+    create_autocomplete_index()
     pass
     
         
