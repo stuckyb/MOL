@@ -1,6 +1,7 @@
 import collections
 import json
 import urllib2
+import urllib
 import csv_unicode
 import sqlite3
 import re
@@ -179,6 +180,8 @@ def setup_cacheitem_db():
     return conn
 
 def create_autocomplete_index():
+    #names()
+    #english_names()
     load_names()
     writer = csv_unicode.UnicodeDictWriter(open('ac.csv', 'w'), ['id', 'string'])
     writer.writeheader()
@@ -190,20 +193,45 @@ def create_autocomplete_index():
     for row in csv_unicode.UnicodeDictReader(open('names.csv', 'r')): 
         if count == 0:
             break
-        bi = row['binomial_index'] # puma_concolor
+        if row['type'] == 'MONOMIAL':
+            continue
+        bi = row['binomial_index'] # puma concolor
         if not names_map.has_key(bi):
             continue
         all_names = names_map[bi] # [mountain lion, puma, puma concolor, deer lion]
+        
+        print row['binomial']
+
+        # Search result rows for binomial_index:
+        url = "http://mol.cartodb.com/api/v2/sql?%s" % urllib.urlencode(dict(q="SELECT sn.provider AS source, sn.scientificname AS name, sn.type AS type FROM scientificnames sn where scientificname = '%s'" % row['binomial']))
+        response = urllib2.urlopen(url)
+        rows = json.loads(response.read())['rows']
+
         for tagged_name in all_names:
             name, tag = tagged_name.split(':')
             for token in tokens(name): # split on ":" since names are tagged with sci or eng.
-                idname = 'ac-%s' % token.lower()
+                
+                # Build autocomplete index
+                idname = 'acn-%s' % token.lower() # auto complete names (acn)
                 result = cur.execute('SELECT * FROM CacheItem WHERE id = ?', (idname,)).fetchone()
                 if result:
                     all_names_updated = list(set([tagged_name] + json.loads(result[1])))
                     cur.execute('UPDATE CacheItem SET string = ? WHERE id = ?', (json.dumps(all_names_updated), idname))
                 else:
                     cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(all_names)))    
+
+                # Build search index                
+                idname = 'acr-%s' % token.lower() # auto complete results (acr)
+                result = cur.execute('SELECT * FROM CacheItem WHERE id = ?', (idname,)).fetchone()
+                if result:
+                    rows_updated = json.loads(result[1])['rows']
+                    for row in rows:
+                        if row not in rows_updated:
+                            rows_updated.append(row)
+                    cur.execute('UPDATE CacheItem SET string = ? WHERE id = ?', (json.dumps(dict(rows=rows_updated)), idname))
+                else:
+                    cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(dict(rows=rows))))    
+                                    
         conn.commit()
         count = count - 1
     
