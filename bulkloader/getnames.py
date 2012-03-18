@@ -180,8 +180,8 @@ def setup_cacheitem_db():
     return conn
 
 def create_autocomplete_index():
-    #names()
-    #english_names()
+    names()
+    english_names()
     load_names()
     writer = csv_unicode.UnicodeDictWriter(open('ac.csv', 'w'), ['id', 'string'])
     writer.writeheader()
