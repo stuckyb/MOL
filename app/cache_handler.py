@@ -6,6 +6,7 @@ __author__ = 'Aaron Steele'
 import cache
 
 # Standard Python imports
+import json
 import logging
 import urllib
 import webapp2
@@ -23,10 +24,10 @@ class GetHandler(webapp2.RequestHandler):
         sql = self.request.get('sql', None)
         value = cache.get(key)
         if not value and sql:
-            logging.info('Cache miss on %s' % key)
             url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
             value = urlfetch.fetch(url, deadline=60).content
-            cache.add(key, value)
+            if not json.loads(value).has_key('error'):
+                cache.add(key, value)
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(value)
                     

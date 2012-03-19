@@ -48,7 +48,7 @@ mol.modules.map.menu = function(mol) {
                 );
                 this.display.layersToggle.click(
                     function(event) {
-                        if(self.display.layersToggle[0].src == '/static/maps/layers/collapse.png')  {
+                        if(self.display.layersToggle[0].src.indexOf('collapse.png')>0)  {
                             self.bus.fireEvent(new mol.bus.Event('layer-display-toggle',{visible : false}));
                             self.display.layersToggle[0].src = '/static/maps/layers/expand.png';
                         } else {
@@ -128,6 +128,7 @@ mol.modules.map.menu = function(mol) {
                 this.dashboardItem = $(this).find('.dashboard');
                 this.speciesListItem = $(this).find('.list');
                 this.layersToggle = $(this).find('.layersToggle');
+
             }
         }
     );

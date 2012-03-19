@@ -567,7 +567,7 @@ mol.modules.map = function(mol) {
 
     mol.map = {};
 
-    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard', 'query'];
+    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard', 'query', 'legend'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
@@ -948,16 +948,17 @@ mol.modules.map.loading = function(mol) {
          *  Build the loading display and add it as a control to the top center of the map display.
          */
         addLoadingDisplay : function() {
-                 var event,
-                    params = {
-                   display: null, // The loader gif display
-                   slot: mol.map.ControlDisplay.Slot.TOP,
-                   position: google.maps.ControlPosition.TOP_CENTER
+            var event,
+                params = {
+                    display: null, // The loader gif display
+                    slot: mol.map.ControlDisplay.Slot.TOP,
+                    position: google.maps.ControlPosition.TOP_CENTER
                 };
-                this.loading = new mol.map.LoadingDisplay();
-                params.display = this.loading;
-                event = new mol.bus.Event('add-map-control', params);
-                this.bus.fireEvent(event);
+            
+            this.loading = new mol.map.LoadingDisplay();
+            params.display = this.loading;
+            event = new mol.bus.Event('add-map-control', params);
+            this.bus.fireEvent(event);
         },
         addEventHandlers : function () {
             var self = this;
@@ -968,16 +969,16 @@ mol.modules.map.loading = function(mol) {
                 'hide-loading-indicator',
                 function(event) {
                     var done = true;
-                    self.cache[event.source]="done";
+                    self.cache[event.source] = "done";
                     _.each(
                         self.cache,
                         function(source) {
-                             if(source=="loading") {
+                             if(source === "loading") {
                                  done = false;
                              }
                         }
-                    )
-                    if(done==true) {
+                    );
+                    if (done === true) {
                         self.loading.hide();
                     }
                 }
@@ -989,7 +990,7 @@ mol.modules.map.loading = function(mol) {
                 'show-loading-indicator',
                 function(event) {
                     self.loading.show();
-                    self.cache[event.source]="loading";
+                    self.cache[event.source] = "loading";
                 }
             );
         }
@@ -1009,19 +1010,19 @@ mol.modules.map.loading = function(mol) {
                         '   <img src="static/loading.gif">' +
                         '</div>';
             this._super(html);
-        },
-    }
-    );
-}
+        }
+    });
+};
 mol.modules.map.layers = function(mol) {
 
     mol.map.layers = {};
 
     mol.map.layers.LayerEngine = mol.mvp.Engine.extend(
         {
-            init: function(proxy, bus) {
+            init: function(proxy, bus, map) {
                 this.proxy = proxy;
                 this.bus = bus;
+                this.map = map;
             },
 
             start: function() {
@@ -1124,7 +1125,8 @@ mol.modules.map.layers = function(mol) {
                                     e = new mol.bus.Event('remove-layers', params);
                                 self.bus.fireEvent(e);
                                 l.remove();
-                                if(l.parent.length = 0) {
+                                // Hide the layer widge toggle in the main menu if no layers exist
+                                if(self.map.overlayMapTypes.length == 0) {
                                     self.bus.fireEvent(new mol.bus.Event('hide-layer-display-toggle'));
                                 }
                             }
@@ -1393,7 +1395,7 @@ mol.modules.map.menu = function(mol) {
                 );
                 this.display.layersToggle.click(
                     function(event) {
-                        if(self.display.layersToggle[0].src == '/static/maps/layers/collapse.png')  {
+                        if(self.display.layersToggle[0].src.indexOf('collapse.png')>0)  {
                             self.bus.fireEvent(new mol.bus.Event('layer-display-toggle',{visible : false}));
                             self.display.layersToggle[0].src = '/static/maps/layers/expand.png';
                         } else {
@@ -1473,6 +1475,7 @@ mol.modules.map.menu = function(mol) {
                 this.dashboardItem = $(this).find('.dashboard');
                 this.speciesListItem = $(this).find('.list');
                 this.layersToggle = $(this).find('.layersToggle');
+
             }
         }
     );
@@ -2197,13 +2200,8 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'SELECT ' +
-                    'p.provider as source, p.scientificname as name, p.type as type ' +
-                    'FROM polygons as p ' +
-                    'WHERE p.scientificname = \'{0}\' ' +
-                    'UNION SELECT ' +
-                    't.provider as source, t.scientificname as name, t.type as type ' +
-                    'FROM points as t ' +
-                    'WHERE t.scientificname = \'{1}\'';
+                    'provider as source, scientificname as name, type as type ' +
+                    'FROM scientificnames WHERE scientificname = \'{0}\'';
             },
 
             /**
@@ -2231,7 +2229,7 @@ mol.modules.map.search = function(mol) {
                         eng = '<a>{0}</a>'.format(name),
                         sci = '<a><i>{0}</i></a>'.format(name);
 
-                    item.label = kind === 'scientific' ? sci : eng;
+                    item.label = kind === 'sci' ? sci : eng;
                     item.value = name;
 
                     item.label = item.label.replace(
@@ -2251,17 +2249,13 @@ mol.modules.map.search = function(mol) {
             populateAutocomplete : function(action, response) {
                 $(this.display.searchBox).autocomplete(
                     {
-                        //RegEx: '\\b<term>[^\\b]*', //<term> gets
-                        //replaced by the search term.
-                        //RegEx:
                         minLength: 3,
                         delay: 0,
                         source: function(request, response) {
-                            // TODO: Refactor this using our proxy:
                             $.getJSON(
                                 'api/autocomplete',
                                 {
-                                    key: 'ac-{0}'.format(request.term)
+                                    key: 'acn-{0}'.format(request.term)
                                 },
                                 function(names) {
                                     response(names);
@@ -2308,7 +2302,7 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.goButton.click(
                     function(event) {
-                              $(self.display).autocomplete("close");
+                        $(self.display).autocomplete("close");
 						      self.search(self.display.searchBox.val());
                     }
                 );
@@ -2366,8 +2360,8 @@ mol.modules.map.search = function(mol) {
              */
             search: function(term) {
                 var self = this,
-                    sql = this.sql.format(term, term),
-                    params = {sql:null, key: 'name-{0}'.format(term)},
+                    sql = this.sql.format(term),
+                    params = {sql:sql, key: 'acr-{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {term:term, response:response},
@@ -2378,9 +2372,9 @@ mol.modules.map.search = function(mol) {
                     failure = function(action, response) {
                         self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search"}));
                     };
-                 self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search"}));
+                self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search"}));
                 this.proxy.execute(action, new mol.services.Callback(success, failure));
-                this.bus.fireEvent('search', new mol.bus.Event('search', term));
+                //this.bus.fireEvent('search', new mol.bus.Event('search', term));
             }
         }
     );
@@ -2389,16 +2383,11 @@ mol.modules.map.search = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<div class="mol-LayerControl-Search">' +
-                    '  <div class="searchContainer widgetTheme">' +
-                    '    <div class="title ui-autocomplete-input"">Search:</div>' +
+                    '<div class="mol-LayerControl-Search widgetTheme">' +
+                    '    <div class="title ui-autocomplete-input">Search:</div>' +
                     '    <input class="value" type="text" placeholder="Search by name">' +
                     '    <button class="execute">Go</button>' +
-                    '    <button class="cancel">' +
-                    '      <img src="/static/maps/search/cancel.png">' +
-                    '    </button>' +
-                    '  </div>' +
-                    '  <img class="loading" src="/static/loading.gif">' +
+                    '    <button class="cancel">&nbsp;</button>' +
                     '</div>';
 
                 this._super(html);
@@ -2638,7 +2627,8 @@ mol.modules.map.tiles = function(mol) {
                     break;
                 case 'polygon':
                 case 'range':
-                case 'expert opinion range map':
+                case 'ecoregion':
+                case 'protectedarea':
                     new mol.map.tiles.CartoDbTile(layer, 'polygons', this.map);
                     break;
                 }
@@ -2659,7 +2649,12 @@ mol.modules.map.tiles = function(mol) {
                     },
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
-                        var extent = response.rows[0].st_extent,
+                        if (response.rows[0].st_extent === null) {
+                            console.log("No extent for {0}".format(layer.name));
+                            self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "extentquery"}));
+                            return;
+                        }
+                        var extent = response.rows[0].st_extent,                        
                             c = extent.replace('BOX(','').replace(')','').split(','),
                             coor1 = c[0].split(' '),
                             coor2 = c[1].split(' '),
@@ -2684,7 +2679,7 @@ mol.modules.map.tiles = function(mol) {
     mol.map.tiles.CartoDbTile = Class.extend(
         {
             init: function(layer, table, map) {
-                var sql =  "SELECT * FROM {0} where scientificname = '{1}'",
+                var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type='{2}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
                     tile_style = opacity ? "#{0}{polygon-fill:#99cc00;polygon-opacity:{1};}".format(table, opacity) : null,
                     hostname = window.location.hostname;
@@ -2699,9 +2694,9 @@ mol.modules.map.tiles = function(mol) {
                         map: map,
                         user_name: 'mol',
                         table_name: table,
-                        query: sql.format(table, layer.name),
+                        query: sql.format(table, layer.name, layer.type),
                         tile_style: tile_style,
-                        map_style: true,
+                        map_style: false,
                         infowindow: true,
                         opacity: opacity
                     }
@@ -2817,10 +2812,10 @@ mol.modules.map.dashboard = function(mol) {
                     '    </tr>' +
                     '    <tr>' +
                     '      <td>GBIF points</td>' +
-                    '      <td>500 species with records</td>' +
-                    '      <td>1,500 species with 30,000 records</td>' +
-                    '      <td>152 species with 88,246 records</td>' +
-                    '      <td>800 species with 100,000 records</td>' +
+                    '      <td>5,662 species with 1,794,441 records</td>' +
+                    '      <td>13,000 species with 132,412,174 records</td>' +
+                    '      <td>14,095 species with 4,351,065 records</td>' +
+                    '      <td>11,445 species with 1,695,170 records</td>' +
                     '      <td></td>' +
                     '   <tr>' +
                     '       <td>Jetz range maps</td>' +
@@ -2878,7 +2873,7 @@ mol.modules.map.query = function(mol) {
         addQueryDisplay : function() {
                 var params = {
                     display: null,
-                    slot: mol.map.ControlDisplay.Slot.LAST,
+                    slot: mol.map.ControlDisplay.Slot.BOTTOM,
                     position: google.maps.ControlPosition.RIGHT_BOTTOM
                  };
                 this.bus.fireEvent(new mol.bus.Event('register-list-click'));
@@ -2888,13 +2883,13 @@ mol.modules.map.query = function(mol) {
                 params.display = this.display;
                 this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
         },
-        getList: function(lat, lng, listradius, constraints, className) {
+        getList: function(lat, lng, listradius, constraints, className, typeName) {
                 var self = this,
                     sql = this.sql.format((lng+' '+lat), listradius.radius, constraints),
                     params = {sql:sql, key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius+constraints))},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
-                        var results = {listradius:listradius, className : className, constraints: constraints, response:response},
+                        var results = {listradius:listradius, className : className, typeName : typeName, constraints: constraints, response:response},
                         event = new mol.bus.Event('species-list-query-results', results);
                         self.bus.fireEvent(event);
                     },
@@ -2923,8 +2918,9 @@ mol.modules.map.query = function(mol) {
                 'species-list-query-click',
                 function (event) {
                     var listradius,
-                        constraints = $(self.display.classInput).val(),
+                        constraints = $(self.display.classInput).val() + $(self.display.typeInput).val();
                         className =  $("option:selected", $(self.display.classInput)).text();
+                        typeName = $("option:selected", $(self.display.typeInput)).text();
 
                     if(self.enabled) {
                         listradius =  new google.maps.Circle({
@@ -2933,7 +2929,7 @@ mol.modules.map.query = function(mol) {
                             center: event.gmaps_event.latLng
                         });
                         self.bus.fireEvent( new mol.bus.Event('show-loading-indicator', {source : 'listradius'}));
-                        self.getList(event.gmaps_event.latLng.lat(),event.gmaps_event.latLng.lng(),listradius, constraints, className);
+                        self.getList(event.gmaps_event.latLng.lat(),event.gmaps_event.latLng.lng(),listradius, constraints, className, typeName);
                     }
                  }
             );
@@ -2946,13 +2942,19 @@ mol.modules.map.query = function(mol) {
                     //self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'listradius'}));
                     if(!event.response.error) {
                         var listradius = event.listradius,
-                            className = event.className;
+                            className = event.className.toLowerCase(),
+                            typeName = event.typeName,
+                            typeStr = '';
+
+                        typeStr = ' with ' + typeName.replace(/maps/i, '').toLowerCase() + ' maps ';
                         //fill in the results
                         //$(self.display.resultslist).html('');
                         content=  event.response.total_rows +
                                 ' ' +
                                 className +
-                                ' species found within ' +
+                                ' species ' +
+                                typeStr +
+                                'found within ' +
                                 listradius.radius/1000 + ' km of ' +
                                 Math.round(listradius.center.lat()*1000)/1000 + '&deg; Latitude ' +
                                 Math.round(listradius.center.lng()*1000)/1000 + '&deg; Longitude' +
@@ -3034,10 +3036,15 @@ mol.modules.map.query = function(mol) {
                     }
                 }
             );
-            this.display.radiusInput.keyup(
+            this.display.radiusInput.blur(
                 function(event) {
                     if(this.value>1000) {
                         this.value=1000;
+                        alert('Please choose a radius between 50 km and 1000 km.');
+                    }
+                    if(this.value<50) {
+                        this.value=50;
+                        alert('Please choose a radius between 50 km and 1000 km.');
                     }
                 }
             );
@@ -3055,19 +3062,21 @@ mol.modules.map.query = function(mol) {
                         '     Search Radius (km) <input type="text" class="radius" size="5" value="50">' +
                         '     Class <select class="class" value="and class=\'aves\' and polygonres=\'1000\'">' +
                         '       <option value="">All</option>' +
-                        '       <option selected value="and class=\'aves\' and polygonres=\'1000\'">Bird (course)</option>' +
-                        '       <option value="and class=\'aves\' and polygonres=\'100\'">Bird (fine)</option>' +
-                        '       <option value="and class=\' osteichthyes\'">Fish</option>' +
-                        '       <option value="and class=\'reptilia\'">Reptile</option>' +
-                        '       <option value="and class=\'amphibia\'">Amphibian</option>' +
-                        '       <option value="and class=\'mammalia\'">Mammal</option>' +
+                        '       <option selected value="and class=\'aves\' and polygonres=\'1000\'">Bird (coarse)</option>' +
+                        '       <option value=" and class=\'aves\' and polygonres=\'100\'">Bird (fine)</option>' +
+                        '       <option value=" and class=\' osteichthyes\'">Fish</option>' +
+                        '       <option value=" and class=\'reptilia\'">Reptile</option>' +
+                        '       <option value=" and class=\'amphibia\'">Amphibian</option>' +
+                        '       <option value=" and class=\'mammalia\'">Mammal</option>' +
                         '     </select>' +
- /*                       '     Feature type <select class="type" value="polygons">' +
+                        '     Type <select class="type" value="">' +
                         '       <option value="">All</option>' +
                         '       <option selected value="and type=\'range\' ">Range maps</option>' +
-                        '       <option value="and type=\'pa\'">Presence/absence Maps</option>' +
-                        '       <option value="and class=\'point\'">Point records</option>' +
-                        '     </select>' +*/
+                        '       <option value=" and type=\'pa\'">Protected Areas</option>' +
+                        '       <option value=" and type=\'ecoregion\'">Ecoregions</option>'
+                        '       <option value=" and type=\'point\'">Point records</option>' +
+                        '     </select>' +
+                        ''
                         '   </div>' +
                         //'   <div class="resultslist">Click on the map to find bird species within 50km of that point.</div>' +
                         '</div>';
@@ -3092,4 +3101,57 @@ mol.modules.map.query = function(mol) {
         }
     }
     );
+};
+mol.modules.map.legend = function(mol) {
+
+    mol.map.legend = {};
+
+    mol.map.legend.LegendEngine = mol.mvp.Engine.extend(
+    {
+        init : function(proxy, bus, map) {
+                this.proxy = proxy;
+                this.bus = bus;
+                this.map = map;
+        },
+        start : function() {
+            this.addLegendDisplay();
+            this.addEventHandlers();
+        },
+        /*
+         *  Build the legend display and add it as a control to the bottom right of the map display.
+         */
+        addLegendDisplay : function() {
+                var params = {
+                    display: null,
+                    slot: mol.map.ControlDisplay.Slot.TOP,
+                    position: google.maps.ControlPosition.RIGHT_BOTTOM
+                 };
+                this.display = new mol.map.LegendDisplay();
+                params.display = this.display;
+                this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
+        },
+        addEventHandlers : function () {
+            var self = this;
+        }
+    }
+    );
+
+    mol.map.LegendDisplay = mol.mvp.View.extend(
+    {
+        init : function(names) {
+            var className = 'mol-Map-LegendDisplay',
+                html = '' +
+                        '<div class="' + className + ' widgetTheme">' +
+                        '       Seasonality Key' +
+                        '       <div class="legendRow"><div class="seasonality1 legendItem"></div> Resident</div>' +
+                        '       <div class="legendRow"><div class="seasonality2 legendItem"></div> Breeding Season</div>' +
+                        '       <div class="legendRow"><div class="seasonality3 legendItem"></div> Non-breeding Season</div>' +
+                        '       <div class="legendRow"><div class="seasonality4 legendItem"></div> Passage</div>' +
+                        '       <div class="legendRow"><div class="seasonality5 legendItem"></div> Seasonality Uncertain</div>' +
+                        '</div>';
+
+            this._super(html);
+        }
+    }
+   );
 };

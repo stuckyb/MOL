@@ -23,21 +23,6 @@ import logging
 import json
 import webapp2
 
-class AutocompleteName(model.Model):
-    """Model for autocompleted names. Each entity key is a substring of a 
-    scientificname with a list of matching names. 
-    """
-    names = model.StringProperty('n', repeated=True)
-    names_json = model.ComputedProperty(lambda self: json.dumps(self.names))
-    created = model.DateTimeProperty('c', auto_now_add=True)
-    @classmethod
-    def get(cls, key):
-        return model.Key(cls.__name__, key.strip().lower()).get()
-
-    @classmethod
-    def create(cls, key):
-        return cls(id=key.strip().lower())
-
 class AutocompleteHandler(webapp2.RequestHandler):
     """Handler for the autocomplete request. Expects a key parameter. Returns 
     a list of all matching names or an empty list as JSON.
