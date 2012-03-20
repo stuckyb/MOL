@@ -143,7 +143,7 @@ def load_names():
     names_map = collections.defaultdict(list)
     for row in csv_unicode.UnicodeDictReader(open('english_names.csv', 'r')):
         bi = row['binomial_index']
-        names_map[bi].extend(list(set(['%s:sci' % bi] + ['%s:eng' % x for x in row['commons_index'].split(',') if x])))
+        names_map[bi].extend(list(set(['%s:sci' % bi.capitalize()] + ['%s:eng' % x.capitalize() for x in row['commons_index'].split(',') if x])))
     open('names_map.json', 'w').write(json.dumps(names_map))
 
 #load_names()
@@ -157,22 +157,22 @@ def tokens(name):
         > name_keys('concolor')
         > ['con', 'conc', 'conco', 'concol', 'concolo', 'concolor']
     """
-    yield name.strip()
+    yield name.strip().lower()
     for n in name.split():
         name_len = len(n)
-        yield n
+        yield n.lower()
         if name_len > 3:
             indexes = range(3, name_len)
             indexes.reverse()
             for i in indexes:
-                yield n[:i]
+                yield n[:i].lower()
 
 def setup_cacheitem_db():
     conn = sqlite3.connect('cacheitem.sqlite3.db', check_same_thread=False)
     c = conn.cursor()
     # Creates the cache table:
     c.execute('create table if not exists CacheItem '
-              '(id text, ' +
+              '(id string primary key, ' +
               'string text)')
     # Clears all records from the table.
     c.execute('delete from CacheItem')
@@ -188,25 +188,31 @@ def create_autocomplete_index():
     conn = setup_cacheitem_db()
     cur = conn.cursor()
 
-    count = 100
-    
+    continue_indexing = False
+
     for row in csv_unicode.UnicodeDictReader(open('names.csv', 'r')): 
-        if count == 0:
-            break
         if row['type'] == 'MONOMIAL':
             continue
         bi = row['binomial_index'] # puma concolor
         if not names_map.has_key(bi):
             continue
         all_names = names_map[bi] # [mountain lion, puma, puma concolor, deer lion]
-        
-        print row['binomial']
+
+        binomial = row['binomial']  
+        if binomial == 'Ramphomicron microrhynchum':
+            continue_indexing = True
+        if not continue_indexing:
+            continue
+
+        print binomial
 
         # Search result rows for binomial_index:
         url = "http://mol.cartodb.com/api/v2/sql?%s" % urllib.urlencode(dict(q="SELECT sn.provider AS source, sn.scientificname AS name, sn.type AS type FROM scientificnames sn where scientificname = '%s'" % row['binomial']))
         response = urllib2.urlopen(url)
         rows = json.loads(response.read())['rows']
-
+        
+        print 'CartoDB response received'
+        
         for tagged_name in all_names:
             name, tag = tagged_name.split(':')
             for token in tokens(name): # split on ":" since names are tagged with sci or eng.
@@ -219,7 +225,8 @@ def create_autocomplete_index():
                     cur.execute('UPDATE CacheItem SET string = ? WHERE id = ?', (json.dumps(all_names_updated), idname))
                 else:
                     cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(all_names)))    
-
+                print idname + ' auto-complete index built'
+                    
                 # Build search index                
                 idname = 'acr-%s' % token.lower() # auto complete results (acr)
                 result = cur.execute('SELECT * FROM CacheItem WHERE id = ?', (idname,)).fetchone()
@@ -231,36 +238,13 @@ def create_autocomplete_index():
                     cur.execute('UPDATE CacheItem SET string = ? WHERE id = ?', (json.dumps(dict(rows=rows_updated)), idname))
                 else:
                     cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(dict(rows=rows))))    
-                                    
+                print idname + ' search index built'
+
         conn.commit()
-        count = count - 1
     
     for result in cur.execute('SELECT * FROM CacheItem').fetchall():
         writer.writerow(dict(id=result[0], string=result[1]))
         
-def build_autocomplete_csv():
-    results = json.loads(open('results.json', 'r').read())
-    names = names_map
-    writer = csv_unicode.UnicodeDictWriter(open('ac.csv', 'w'), ['id', 'string'])
-    writer.writeheader()
-    conn = setup_cacheitem_db()
-    cur = conn.cursor()
-    
-    for sciname, record in names.iteritems(): 
-       all_names = ['%s:sci' % sciname] + ['%s:eng' % x for x in record[0]['commons'].split(',')]
-       for name in [sciname.lower()] + record[0]['commons_index'].split(','):
-           for token in tokens(name):
-               idname = 'ac-%s' % token.lower()
-               result = cur.execute('SELECT * FROM CacheItem WHERE id = ?', (idname,)).fetchone()
-               if result:
-                   all_names = list(set(all_names + json.loads(result[1])))
-                   cur.execute('UPDATE CacheItem SET string = ? WHERE id = ?', (json.dumps(all_names), idname))
-               else:
-                   cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(all_names)))    
-       conn.commit()
-    #row = dict(id=idname, string=json.dumps(all_names))
-    #writer.writerow(row)
-               
 if __name__ == '__main__':
     #names()
     #english_names()
