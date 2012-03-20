@@ -217,10 +217,10 @@ mol.modules.map.query = function(mol) {
                         '<div class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
                         '     Search Radius (km) <input type="text" class="radius" size="5" value="50">' +
-                        '     Class <select class="class" value="and class=\'aves\' and polygonres=\'1000\'">' +
+                        '     Class <select class="class" value="">' +
                         '       <option value="">All</option>' +
                         '       <option selected value="and class=\'aves\' and polygonres=\'1000\'">Bird (coarse)</option>' +
-                        '       <option value=" and class=\'aves\' and polygonres=\'100\'">Bird (fine)</option>' +
+                        '       <option value=" and class=\'aves\' and polygonres<>\'1000\'">Bird (fine)</option>' +
                         '       <option value=" and class=\' osteichthyes\'">Fish</option>' +
                         '       <option value=" and class=\'reptilia\'">Reptile</option>' +
                         '       <option value=" and class=\'amphibia\'">Amphibian</option>' +
@@ -229,7 +229,7 @@ mol.modules.map.query = function(mol) {
                         '     Type <select class="type" value="">' +
                         '       <option value="">All</option>' +
                         '       <option selected value="and type=\'range\' ">Range maps</option>' +
-                        '       <option value=" and type=\'pa\'">Protected Areas</option>' +
+                        '       <option value=" and type=\'protectedarea\'">Protected Areas</option>' +
                         '       <option value=" and type=\'ecoregion\'">Ecoregions</option>' +
                         '       <option value=" and type=\'point\'">Point records</option>' +
                         '     </select>' +

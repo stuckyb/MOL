@@ -23,7 +23,6 @@
     color: rgb(240, 240, 260);
 }
 button{
-    display:inline-block;
     width: auto;
     margin: 2px;
     font-size: 1.1em;
@@ -182,7 +181,8 @@ button:hover{
 }
 .mol-LayerControl-Layers .layer .layerName{
     float: left;
-    #width: 60%;
+    white-space:normal;
+    width: 30%;
     margin-left: 5px;
     margin-right: 5px;
     pointer-events: none;
@@ -197,26 +197,31 @@ button:hover{
 }
 .mol-LayerControl-Layers .layer .type{
     float: left;
-    width: 10%;
-    padding-top: 2px;
-    padding-bottom: 2px;
+    text-align: center;
+    width: 20px;
+    height: 20px;
+    padding: 0px;
+
 }
 .mol-LayerControl-Layers .layer .source{
     float: left;
-    width: 10%;
-    padding-top: 2px;
-    padding-bottom: 2px;
+    text-align: center;
+    width: 20px;
+    height: 20px;
+    padding: 0px;
+
 }
-.mol-LayerControl-Layers .layer img.type{
-    height: 18px;
-    width: 18px;
+.mol-LayerControl-Layers .layer .type img{
+    height: 16px;
+    width: 16px;
 }
-.mol-LayerControl-Layers .layer img.source{
-    height: 18px;
-    width: 18px;
+.mol-LayerControl-Layers .layer .source img{
+    height: 16px;
+    width: 16px;
 }
 .mol-LayerControl-Layers .layer .buttonContainer {
-    width: 21%;
+    width: 20px;
+    height: 20px;
     float: right;
     position: relative;
     margin-right: 5px;

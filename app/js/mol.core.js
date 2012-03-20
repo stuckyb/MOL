@@ -9,9 +9,9 @@ mol.modules.core = function(mol) {
      * Retunrs a layer id string given a layer {name, type, source}.
      */
     mol.core.getLayerId = function(layer) {
-        var name = $.trim(layer.name).replace(/ /g, "_"),
-            type = $.trim(layer.type).replace(/ /g, "_"),
-            source = $.trim(layer.source).replace(/ /g, "_");
+        var name = $.trim(layer.name.toLowerCase()).replace(/ /g, "_"),
+            type = $.trim(layer.type.toLowerCase()).replace(/ /g, "_"),
+            source = $.trim(layer.source.toLowerCase()).replace(/ /g, "_");
 
         return 'layer-{0}-{1}-{2}'.format(name, type, source);
     };
@@ -24,6 +24,10 @@ mol.modules.core = function(mol) {
             name = tokens[1].replace(/_/g, " "),
             type = tokens[2].replace(/_/g, " "),
             source = tokens[3].replace(/_/g, " ");
+
+        name = name.charAt(0).toUpperCase()+name.slice(1).toLowerCase();
+        source = source.toLowerCase();
+        type = type.toLowerCase();
 
         return {
             id: id,
