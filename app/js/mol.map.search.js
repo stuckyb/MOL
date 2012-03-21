@@ -66,8 +66,8 @@ mol.modules.map.search = function(mol) {
                         source: function(request, response) {
                             $.getJSON(
                                 //'api/autocomplete',
-                                "http://mol.cartodb.com/api/v2/sql?q=SELECT scientificname, vernacularName from scientificnames where " +
-                                "scientificname ~* '\\m" + request.term + "' OR vernacularName ~* '\\m" + request.term + "' LIMIT 100",
+                                "http://mol.cartodb.com/api/v2/sql?q=SELECT DISTINCT CONCAT(scientificname, ':sci') as name from scientificnames where " +
+                                "scientificname ~* '\\m" + request.term + "' UNION SELECT DISTINCT CONCAT(vernacularName, ':eng') as name FROM scientificnames WHERE vernacularName ~* '\\m" + request.term + "' ORDER BY name asc LIMIT 100",
                                 {
                                     key: 'acn-{0}'.format(request.term)
                                 },
@@ -76,11 +76,8 @@ mol.modules.map.search = function(mol) {
                                     _.each (
                                         json.rows,
                                         function(row) {
-                                            if(row.scientificname != '') {
-                                                names.push(row.scientificname+':scientific');
-                                            }
-                                            if(row.vernacularname != '') {
-                                                names.push(row.vernacularname+':english');
+                                            if(row.name != null) {
+                                                names.push(row.name);
                                             }
                                         }
                                     );
