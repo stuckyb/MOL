@@ -65,11 +65,25 @@ mol.modules.map.search = function(mol) {
                         delay: 0,
                         source: function(request, response) {
                             $.getJSON(
-                                'api/autocomplete',
+                                //'api/autocomplete',
+                                "http://mol.cartodb.com/api/v2/sql?q=SELECT scientificname, vernacularName from scientificnames where " +
+                                "scientificname ~* '\\m" + request.term + "' OR vernacularName ~* '\\m" + request.term + "' LIMIT 100",
                                 {
                                     key: 'acn-{0}'.format(request.term)
                                 },
-                                function(names) {
+                                function(json) {
+                                    var names = [];
+                                    _.each (
+                                        json.rows,
+                                        function(row) {
+                                            if(row.scientificname != '') {
+                                                names.push(row.scientificname+':scientific');
+                                            }
+                                            if(row.vernacularname != '') {
+                                                names.push(row.vernacularname+':english');
+                                            }
+                                        }
+                                    );
                                     response(names);
                                 }
                             );
