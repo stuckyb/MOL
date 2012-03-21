@@ -219,7 +219,7 @@ mol.modules.map.tiles = function(mol) {
 
                 switch (type) {
                 case 'points':
-                    new mol.map.tiles.CartoDbTile(layer, 'points', this.map);
+                    new mol.map.tiles.CartoDbTile(layer, 'gbif_import', this.map);
                     break;
                 case 'polygon':
                 case 'range':
@@ -237,7 +237,7 @@ mol.modules.map.tiles = function(mol) {
 	         zoomToExtent: function(layer) {
                 var self = this,
                     sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE scientificname='{1}'",
-                    table = layer.type === 'points' ? 'points' : 'polygons',
+                    table = layer.type === 'points' ? 'gbif_import' : 'polygons',
                     query = sql.format(table, layer.name),
                     params = {
                         sql: query,
@@ -280,6 +280,14 @@ mol.modules.map.tiles = function(mol) {
                     tile_style = opacity ? "#{0}{polygon-fill:#99cc00;polygon-opacity:{1};}".format(table, opacity) : null,
                     hostname = window.location.hostname;
 
+                if (layer.type === 'points') {
+                    sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator " +
+                        "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name);
+                    table = 'names_old';
+                } else {
+                    sql = sql.format(table, layer.name, layer.type);
+                }
+                    
                 hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
 
                 this.layer = new google.maps.CartoDBLayer(
@@ -290,7 +298,7 @@ mol.modules.map.tiles = function(mol) {
                         map: map,
                         user_name: 'mol',
                         table_name: table,
-                        query: sql.format(table, layer.name, layer.type),
+                        query: sql,
                         tile_style: tile_style,
                         map_style: false,
                         infowindow: true,

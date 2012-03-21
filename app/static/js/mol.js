@@ -80,9 +80,9 @@ mol.modules.core = function(mol) {
      * Retunrs a layer id string given a layer {name, type, source}.
      */
     mol.core.getLayerId = function(layer) {
-        var name = $.trim(layer.name).replace(/ /g, "_"),
-            type = $.trim(layer.type).replace(/ /g, "_"),
-            source = $.trim(layer.source).replace(/ /g, "_");
+        var name = $.trim(layer.name.toLowerCase()).replace(/ /g, "_"),
+            type = $.trim(layer.type.toLowerCase()).replace(/ /g, "_"),
+            source = $.trim(layer.source.toLowerCase()).replace(/ /g, "_");
 
         return 'layer-{0}-{1}-{2}'.format(name, type, source);
     };
@@ -95,6 +95,10 @@ mol.modules.core = function(mol) {
             name = tokens[1].replace(/_/g, " "),
             type = tokens[2].replace(/_/g, " "),
             source = tokens[3].replace(/_/g, " ");
+
+        name = name.charAt(0).toUpperCase()+name.slice(1).toLowerCase();
+        source = source.toLowerCase();
+        type = type.toLowerCase();
 
         return {
             id: id,
@@ -301,25 +305,25 @@ mol.modules.mvp = function(mol) {
     );
 };
 mol.modules.services.cartodb = function(mol) {
-    
+
     mol.services.cartodb = {};
-    
+
     mol.services.cartodb.SqlApi = Class.extend(
         {
             init: function(user, host) {
                 this.user = user;
                 this.host = host;
-                this.url = 'https://{0}.{1}/api/v2/sql?q={2}';  
+                this.url = 'https://{0}.{1}/api/v2/sql?q={2}';
                 this.cache = '/cache/get';
             },
 
-            query: function(key, sql, callback) {                
+            query: function(key, sql, callback) {
                   var data = {
                           key: key,
                           sql: sql
                       },
                       xhr = $.post(this.cache, data);
-                
+
                 xhr.success(
                     function(response) {
                         callback.success(response);
@@ -334,35 +338,35 @@ mol.modules.services.cartodb = function(mol) {
             }
         }
     );
-    
+
     mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi('mol', 'cartodb.com');
-    
+
     mol.services.cartodb.query = function(key, sql, callback) {
         mol.services.cartodb.sqlApi.query(key, sql, callback);
     };
 
     /**
      * Converts a CartoDB SQL response to a search profile response.
-     * 
+     *
      */
-    mol.services.cartodb.Converter = Class.extend(    
+    mol.services.cartodb.Converter = Class.extend(
         {
             init: function() {
             },
-            
+
             convert: function(response) {
                 this.response = response;
                 return {
 
-                    "layers": this.getLayers(this.response), 
-                    "names": this.genNames(this.response), 
-                    "sources": this.genSources(this.response), 
+                    "layers": this.getLayers(this.response),
+                    "names": this.genNames(this.response),
+                    "sources": this.genSources(this.response),
                     "types": this.genTypes(this.response)
                 };
             },
 
             /**
-             * Returns an array of unique values in the response. Key value is 
+             * Returns an array of unique values in the response. Key value is
              * name, source, or type.
              */
             uniques: function(key, response) {
@@ -388,58 +392,58 @@ mol.modules.services.cartodb = function(mol) {
 
             /**
              * Returns the top level names profile object.
-             *  
+             *
              * {"name": "types":[], "sources":[], "layers":[]}
-             * 
+             *
              */
             genNames: function(response) {
                 var names = this.uniques('name', response),
                 name = null,
                 profile = {};
-                
+
                 for (i in names) {
                     name = names[i];
                     profile[name] = this.getNameProfile(name, response);
                 }
-                
+
                 return profile;
             },
-            
+
             /**
              * Returns the top level types profile object.
-             *  
+             *
              * {"type": "names":[], "sources":[], "layers":[]}
-             * 
+             *
              */
             genTypes: function(response) {
                 var types = this.uniques('type', response),
                 type = null,
                 profile = {};
-                
+
                 for (i in types) {
                     type = types[i];
                     profile[type] = this.getTypeProfile(type, response);
                 }
-                
+
                 return profile;
             },
 
             /**
              * Returns the top level source profile object.
-             *  
+             *
              * {"source": "names":[], "types":[], "layers":[]}
-             * 
+             *
              */
             genSources: function(response) {
                 var sources = this.uniques('source', response),
                 source = null,
                 profile = {};
-                
+
                 for (i in sources) {
                     source = sources[i];
                     profile[source] = this.getSourceProfile(source, response);
                 }
-                
+
                 return profile;
             },
 
@@ -451,7 +455,7 @@ mol.modules.services.cartodb = function(mol) {
                 sources = [],
                 types = [],
                 row = null;
-                
+
                 for (i in response.rows) {
                     row = response.rows[i];
                     if (name === row.name) {
@@ -475,7 +479,7 @@ mol.modules.services.cartodb = function(mol) {
                 names = [],
                 types = [],
                 row = null;
-                
+
                 for (i in response.rows) {
                     row = response.rows[i];
                     if (source === row.source) {
@@ -499,7 +503,7 @@ mol.modules.services.cartodb = function(mol) {
                 sources = [],
                 names = [],
                 row = null;
-                
+
                 for (i in response.rows) {
                     row = response.rows[i];
                     if (type === row.type) {
@@ -514,7 +518,7 @@ mol.modules.services.cartodb = function(mol) {
                     "names": _.uniq(names)
                 };
             },
-            
+
             /**
              * Returns the layers profile.
              */
@@ -528,9 +532,9 @@ mol.modules.services.cartodb = function(mol) {
                     row = rows[i];
                     key = i + '';
                     layers[key] = {
-                        name: row.name,
-                        source: row.source,
-                        type: row.type
+                        name: row.name.charAt(0).toUpperCase()+row.name.slice(1).toLowerCase(),
+                        source: row.source.toLowerCase(),
+                        type: row.type.toLowerCase()
                         //extent: this.getExtent(row.extent)
                     };
                 }
@@ -540,19 +544,19 @@ mol.modules.services.cartodb = function(mol) {
             /**
              * Returns an array of coordinate arrays:
              * [[1, 2], ...]
-             *  
+             *
              * @param polygon POLYGON((34.073597 36.393648,34.073597 36.467531,
              *                         34.140662 36.467531,34.140662 36.393648,
              *                         34.073597 36.393648))
              */
             getExtent: function(polygon) {
                 return _.map(
-                    polygon.split('POLYGON((')[1].split('))')[0].split(','), 
+                    polygon.split('POLYGON((')[1].split('))')[0].split(','),
                     function(x) {
-                        var pair = x.split(' '); 
+                        var pair = x.split(' ');
                         return [parseFloat(pair[0]), parseFloat(pair[1])];
                     }
-                );                
+                );
             }
         }
     );
@@ -1206,21 +1210,22 @@ mol.modules.map.layers = function(mol) {
                 var html = '' +
                     '<li class="layerContainer">' +
                     '  <div class="layer widgetTheme">' +
-                    '    <button><img class="type" src="/static/maps/search/{0}.png"></button>' +
+                    '    <button class="source" title="Layer Source: {0}"><img src="/static/maps/search/{0}.png"></button>' +
+                    '    <button class="type" title="Layer Type: {1}"><img src="/static/maps/search/{1}.png"></button>' +
                     '    <div class="layerName">' +
-                    '        <div class="layerNomial">{1}</div>' +
+                    '        <div class="layerNomial">{2}</div>' +
                     '    </div>' +
+                    '    <button class="close">x</button>' +
+                    '    <button class="zoom">z</button>' +
                     '    <div class="buttonContainer">' +
                     '        <input class="toggle" type="checkbox">' +
                     '        <span class="customCheck"></span> ' +
                     '    </div>' +
-                    '    <button class="close">x</button>' +
-                    '    <button class="zoom">z</button>' +
                     '    <input type="range" class="opacity" min=".25" max="1.0" step=".25" />' +
                     '  </div>' +
                     '</li>';
 
-                this._super(html.format(layer.type, layer.name));
+                this._super(html.format(layer.source, layer.type, layer.name));
                 this.attr('id', layer.id);
                 this.opacity = $(this).find('.opacity');
                 /* IE8 Doesnt support sliders */
@@ -1231,7 +1236,8 @@ mol.modules.map.layers = function(mol) {
                 this.zoom = $(this).find('.zoom');
                 this.info = $(this).find('.info');
                 this.close = $(this).find('.close');
-                this.typePng = $(this).find('.type');
+                this.type = $(this).find('.type');
+                this.source = $(this).find('.source');
             }
         }
     );
@@ -1267,10 +1273,8 @@ mol.modules.map.layers = function(mol) {
 
             addLayer: function(layer) {
                 var ld = new mol.map.layers.LayerDisplay(layer);
-                ld.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
-                ld.typePng[0].title = 'Layer Type: '+layer.type;
                 this.list.append(ld);
-				    this.layers.push(layer);
+				this.layers.push(layer);
                 return ld;
             },
 
@@ -1846,11 +1850,10 @@ mol.modules.map.results = function(mol) {
                     function(layer) {
                         var id = layer.id,
                             name = layer.name,
-                            result = new mol.map.results.ResultDisplay(name, id);
-                            result.sourcePng[0].src = 'static/maps/search/'+layer.source.replace(/ /g,"_")+'.png';
-                            result.sourcePng[0].title = 'Layer Source: ' + layer.source;
-                            result.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
-                            result.typePng[0].title = 'Layer Type: ' + layer.type;
+                            source = layer.source,
+                            type = layer.type,
+                            result = new mol.map.results.ResultDisplay(name, id, source, type);
+
                         this.resultList.append(result);
                         return result;
                     },
@@ -1916,14 +1919,14 @@ mol.modules.map.results = function(mol) {
      */
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
-            init: function(name, id) {
+            init: function(name, id, source, type) {
                 var html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
-                    '<div class="resultSource"><button><img class="source" src=""></button></div>' +
-                    '<div class="resultType" ><button ><img class="type" src=""></button></div>' +
-                    '<div class="resultName">{1}' +
-                    '  <div class="resultNomial" ></div>' +
+                    '<div class="resultSource"><button><img class="source" src="/static/maps/search/{2}.png"></button></div>' +
+                    '<div class="resultType" ><button ><img class="type" src="/static/maps/search/{3}.png"></button></div>' +
+                    '<div class="resultName">' +
+                    '  <div class="resultNomial">{1}</div>' +
                     '  <div class="resultAuthor"></div>' +
                     '</div>' +
                     '<div class="buttonContainer"> ' +
@@ -1934,7 +1937,7 @@ mol.modules.map.results = function(mol) {
                     '<div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(id, name));
+                this._super(html.format(id, name, source, type));
 
                 this.infoLink = $(this).find('.info');
                 this.nameBox = $(this).find('.resultName');
@@ -2253,11 +2256,22 @@ mol.modules.map.search = function(mol) {
                         delay: 0,
                         source: function(request, response) {
                             $.getJSON(
-                                'api/autocomplete',
+                                //'api/autocomplete',
+                                "http://mol.cartodb.com/api/v2/sql?q=SELECT DISTINCT CONCAT(scientificname, ':sci') as name from scientificnames where " +
+                                "scientificname ~* '\\m" + request.term + "' UNION SELECT DISTINCT CONCAT(vernacularName, ':eng') as name FROM scientificnames WHERE vernacularName ~* '\\m" + request.term + "' ORDER BY name asc LIMIT 100",
                                 {
                                     key: 'acn-{0}'.format(request.term)
                                 },
-                                function(names) {
+                                function(json) {
+                                    var names = [];
+                                    _.each (
+                                        json.rows,
+                                        function(row) {
+                                            if(row.name != null) {
+                                                names.push(row.name);
+                                            }
+                                        }
+                                    );
                                     response(names);
                                 }
                             );
@@ -2623,7 +2637,7 @@ mol.modules.map.tiles = function(mol) {
 
                 switch (type) {
                 case 'points':
-                    new mol.map.tiles.CartoDbTile(layer, 'points', this.map);
+                    new mol.map.tiles.CartoDbTile(layer, 'gbif_import', this.map);
                     break;
                 case 'polygon':
                 case 'range':
@@ -2641,7 +2655,7 @@ mol.modules.map.tiles = function(mol) {
 	         zoomToExtent: function(layer) {
                 var self = this,
                     sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE scientificname='{1}'",
-                    table = layer.type === 'points' ? 'points' : 'polygons',
+                    table = layer.type === 'points' ? 'gbif_import' : 'polygons',
                     query = sql.format(table, layer.name),
                     params = {
                         sql: query,
@@ -2684,6 +2698,14 @@ mol.modules.map.tiles = function(mol) {
                     tile_style = opacity ? "#{0}{polygon-fill:#99cc00;polygon-opacity:{1};}".format(table, opacity) : null,
                     hostname = window.location.hostname;
 
+                if (layer.type === 'points') {
+                    sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator " +
+                        "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name);
+                    table = 'names_old';
+                } else {
+                    sql = sql.format(table, layer.name, layer.type);
+                }
+                    
                 hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
 
                 this.layer = new google.maps.CartoDBLayer(
@@ -2694,7 +2716,7 @@ mol.modules.map.tiles = function(mol) {
                         map: map,
                         user_name: 'mol',
                         table_name: table,
-                        query: sql.format(table, layer.name, layer.type),
+                        query: sql,
                         tile_style: tile_style,
                         map_style: false,
                         infowindow: true,
@@ -2781,12 +2803,12 @@ mol.modules.map.dashboard = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: false,
-					         width: 800,
-					         buttons: {
+					    width: 800
+					         /*buttons: {
 						          "Ok": function() {
 							           $(this).dialog("close");
 						          }
-					         }
+					         }*/
                     }
                 );
             }
@@ -2918,16 +2940,19 @@ mol.modules.map.query = function(mol) {
                 'species-list-query-click',
                 function (event) {
                     var listradius,
-                        constraints = $(self.display.classInput).val() + $(self.display.typeInput).val();
-                        className =  $("option:selected", $(self.display.classInput)).text();
+                        constraints = $(self.display.classInput).val() + $(self.display.typeInput).val(),
+                        className =  $("option:selected", $(self.display.classInput)).text(),
                         typeName = $("option:selected", $(self.display.typeInput)).text();
 
-                    if(self.enabled) {
-                        listradius =  new google.maps.Circle({
-                            map: event.map,
-                            radius: parseInt(self.display.radiusInput.val())*1000, // 50 km
-                            center: event.gmaps_event.latLng
-                        });
+                    if (self.enabled) {
+                        listradius = new google.maps.Circle(
+                            {
+                                map: event.map,
+                                radius: parseInt(self.display.radiusInput.val())*1000, // 50 km
+                                center: event.gmaps_event.latLng,
+                                strokeWeight: 0
+                            }
+                        );
                         self.bus.fireEvent( new mol.bus.Event('show-loading-indicator', {source : 'listradius'}));
                         self.getList(event.gmaps_event.latLng.lat(),event.gmaps_event.latLng.lng(),listradius, constraints, className, typeName);
                     }
@@ -2990,12 +3015,8 @@ mol.modules.map.query = function(mol) {
                              listradius : listradius,
                              infoWindow : infoWindow
                          };
-                        //var marker = new google.maps.Marker({
-                        //             position: self.listradius.center,
-                        //             map: self.map
-                        //});
+
                         infoWindow.open(self.map);
-                        //$(self.resultsdisplay).show();
                     } else {
                         //TODO -- What if nothing comes back?
                     }
@@ -3020,8 +3041,6 @@ mol.modules.map.query = function(mol) {
                                 feature.infoWindow.setMap(self.map);
                             }
                         );
-                        //self.bus.fireEvent( new mol.bus.Event('layer-display-toggle',{visible: false}));
-                        //self.bus.fireEvent( new mol.bus.Event('search-display-toggle',{visible: true}));
                     } else {
                         $(self.display).hide();
                         _.each(
@@ -3031,9 +3050,7 @@ mol.modules.map.query = function(mol) {
                                 feature.infoWindow.setMap(null);
                             }
                         );
-                      //  self.bus.fireEvent( new mol.bus.Event('layer-display-toggle',{visible: true}));
-                        //self.bus.fireEvent( new mol.bus.Event('search-display-toggle',{visible: false}));
-                    }
+                   }
                 }
             );
             this.display.radiusInput.blur(
@@ -3060,10 +3077,10 @@ mol.modules.map.query = function(mol) {
                         '<div class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
                         '     Search Radius (km) <input type="text" class="radius" size="5" value="50">' +
-                        '     Class <select class="class" value="and class=\'aves\' and polygonres=\'1000\'">' +
+                        '     Class <select class="class" value="">' +
                         '       <option value="">All</option>' +
                         '       <option selected value="and class=\'aves\' and polygonres=\'1000\'">Bird (coarse)</option>' +
-                        '       <option value=" and class=\'aves\' and polygonres=\'100\'">Bird (fine)</option>' +
+                        '       <option value=" and class=\'aves\' and polygonres<>\'1000\'">Bird (fine)</option>' +
                         '       <option value=" and class=\' osteichthyes\'">Fish</option>' +
                         '       <option value=" and class=\'reptilia\'">Reptile</option>' +
                         '       <option value=" and class=\'amphibia\'">Amphibian</option>' +
@@ -3072,11 +3089,10 @@ mol.modules.map.query = function(mol) {
                         '     Type <select class="type" value="">' +
                         '       <option value="">All</option>' +
                         '       <option selected value="and type=\'range\' ">Range maps</option>' +
-                        '       <option value=" and type=\'pa\'">Protected Areas</option>' +
-                        '       <option value=" and type=\'ecoregion\'">Ecoregions</option>'
+                        '       <option value=" and type=\'protectedarea\'">Protected Areas</option>' +
+                        '       <option value=" and type=\'ecoregion\'">Ecoregions</option>' +
                         '       <option value=" and type=\'point\'">Point records</option>' +
                         '     </select>' +
-                        ''
                         '   </div>' +
                         //'   <div class="resultslist">Click on the map to find bird species within 50km of that point.</div>' +
                         '</div>';
@@ -3094,15 +3110,13 @@ mol.modules.map.query = function(mol) {
     {
         init : function(scientificname) {
             var className = 'mol-Map-QueryResultDisplay',
-                //html = '<class="' + className + '">{0}</div>';
-                html = '{0}';
+                 html = '{0}';
             this._super(html.format(scientificname));
 
         }
     }
     );
-};
-mol.modules.map.legend = function(mol) {
+};mol.modules.map.legend = function(mol) {
 
     mol.map.legend = {};
 
