@@ -418,9 +418,18 @@ div#footer #footer_links a { font-size: 1.1em; color: #aaa; padding-right: 8px; 
     float: right;
 }
 
+#footer_imgs #sponsors img {
+    padding-left: 5px;
+}
+
 #footer_imgs #partners {
     float: left;
 }
+
+#footer_imgs #partners img {
+    padding-right: 5px;
+}
+
 
 #footer_imgs img{ 
     float: right; 
