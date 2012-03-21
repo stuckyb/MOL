@@ -147,12 +147,8 @@ mol.modules.map.query = function(mol) {
                              listradius : listradius,
                              infoWindow : infoWindow
                          };
-                        //var marker = new google.maps.Marker({
-                        //             position: self.listradius.center,
-                        //             map: self.map
-                        //});
+
                         infoWindow.open(self.map);
-                        //$(self.resultsdisplay).show();
                     } else {
                         //TODO -- What if nothing comes back?
                     }
@@ -177,8 +173,6 @@ mol.modules.map.query = function(mol) {
                                 feature.infoWindow.setMap(self.map);
                             }
                         );
-                        //self.bus.fireEvent( new mol.bus.Event('layer-display-toggle',{visible: false}));
-                        //self.bus.fireEvent( new mol.bus.Event('search-display-toggle',{visible: true}));
                     } else {
                         $(self.display).hide();
                         _.each(
@@ -188,9 +182,7 @@ mol.modules.map.query = function(mol) {
                                 feature.infoWindow.setMap(null);
                             }
                         );
-                      //  self.bus.fireEvent( new mol.bus.Event('layer-display-toggle',{visible: true}));
-                        //self.bus.fireEvent( new mol.bus.Event('search-display-toggle',{visible: false}));
-                    }
+                   }
                 }
             );
             this.display.radiusInput.blur(
@@ -250,8 +242,7 @@ mol.modules.map.query = function(mol) {
     {
         init : function(scientificname) {
             var className = 'mol-Map-QueryResultDisplay',
-                //html = '<class="' + className + '">{0}</div>';
-                html = '{0}';
+                 html = '{0}';
             this._super(html.format(scientificname));
 
         }
