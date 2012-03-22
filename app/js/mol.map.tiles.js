@@ -19,6 +19,7 @@ mol.modules.map.tiles = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.map = map;
+                this.gmap_events = []
                 this.addEventHandlers();
             },
 
@@ -75,12 +76,30 @@ mol.modules.map.tiles = function(mol) {
                         var layer = event.layer,
                             opacity = event.opacity;
 
+                        if(self.gmap_events[layer] != null) {
+                            google.maps.event.removeListener(self.gmap_events[layer]);
+                        }
+                        self.gmap_events[layer] =  google.maps.event.addListener(
+                            self.map,
+                            "idle",
+                            function(event) {
+                                var params = { opacity : opacity, layer : layer};
+                                self.bus.fireEvent(new mol.bus.Event('layer-opacity',params));
+                            }
+                        );
+
                         self.map.overlayMapTypes.forEach(
                             function(maptype, index) {
                                 if (maptype.name === layer.id) {
-                                    self.map.overlayMapTypes.removeAt(index);
-                                    layer.opacity = opacity;
-                                    self.renderTiles([layer]);
+                                    _.each(
+                                        self.map.overlayMapTypes.getArray()[index].cache,
+                                        function(img) {
+                                            img.style.opacity = opacity;
+                                        }
+                                     )
+                                    //self.map.overlayMapTypes.removeAt(index);
+                                    //layer.opacity = opacity;
+                                    //self.renderTiles([layer]);
                                 }
                             }
                         );
@@ -250,7 +269,7 @@ mol.modules.map.tiles = function(mol) {
                             self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "extentquery"}));
                             return;
                         }
-                        var extent = response.rows[0].st_extent,                        
+                        var extent = response.rows[0].st_extent,
                             c = extent.replace('BOX(','').replace(')','').split(','),
                             coor1 = c[0].split(' '),
                             coor2 = c[1].split(' '),
@@ -277,7 +296,7 @@ mol.modules.map.tiles = function(mol) {
             init: function(layer, table, map) {
                 var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type='{2}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
-                    tile_style = opacity ? "#{0}{polygon-fill:#99cc00;polygon-opacity:{1};}".format(table, opacity) : null,
+                    tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
                     hostname = window.location.hostname;
 
                 hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
@@ -294,7 +313,7 @@ mol.modules.map.tiles = function(mol) {
                         tile_style: tile_style,
                         map_style: false,
                         infowindow: true,
-                        opacity: opacity
+                        //opacity: opacity
                     }
                 );
             }
