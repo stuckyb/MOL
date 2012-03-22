@@ -13,7 +13,7 @@ mol.modules.map.search = function(mol) {
                 this.sql = '' +
                     'SELECT ' +
                     'provider as source, scientificname as name, type as type ' +
-                    'FROM scientificnames WHERE {1} = \'{0}\'';
+                    'FROM scientificnames WHERE scientificname = \'{0}\'';
             },
 
             /**
@@ -120,8 +120,7 @@ mol.modules.map.search = function(mol) {
                 this.display.goButton.click(
                     function(event) {
                         $(self.display).autocomplete("close");
-						      self.search(self.display.searchBox.data().autocomplete.selectedItem.value, 
-                                    self.display.searchBox.data().autocomplete.selectedItem.type);                        
+						      self.search(self.display.searchBox.val());
                     }
                 );
 
@@ -176,9 +175,9 @@ mol.modules.map.search = function(mol) {
              *
              * @param term the search term (scientific name)
              */
-            search: function(term, type) {
+            search: function(term) {
                 var self = this,
-                    sql = this.sql.format(term,type),
+                    sql = this.sql.format(term),
                     params = {sql:sql, key: 'acr-{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {

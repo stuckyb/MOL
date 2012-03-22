@@ -1103,9 +1103,9 @@ mol.modules.map.layers = function(mol) {
                         self = this;
                         self.bus.fireEvent(new mol.bus.Event('show-layer-display-toggle'));
 
-                        if (layer.type === 'points') {
-                            l.opacity.hide();
-                        } else {
+                        //if (layer.type === 'points') {
+                        //    l.opacity.hide();
+                        //} else {
                             // Opacity slider change handler.
                             l.opacity.change(
                                 function(event) {
@@ -1118,7 +1118,7 @@ mol.modules.map.layers = function(mol) {
                                     self.bus.fireEvent(e);
                                 }
                             );
-                        }
+                        //}
 
                         // Close handler for x button fires a 'remove-layers' event.
                         l.close.click(
@@ -1221,7 +1221,7 @@ mol.modules.map.layers = function(mol) {
                     '        <input class="toggle" type="checkbox">' +
                     '        <span class="customCheck"></span> ' +
                     '    </div>' +
-                    '    <input type="range" class="opacity" min=".25" max="1.0" step=".25" />' +
+                    '    <input type="range" class="opacity" min="0" max="1.0" step=".01" />' +
                     '  </div>' +
                     '</li>';
 
@@ -2204,7 +2204,7 @@ mol.modules.map.search = function(mol) {
                 this.sql = '' +
                     'SELECT ' +
                     'provider as source, scientificname as name, type as type ' +
-                    'FROM scientificnames WHERE {1} = \'{0}\'';
+                    'FROM scientificnames WHERE scientificname = \'{0}\'';
             },
 
             /**
@@ -2311,9 +2311,7 @@ mol.modules.map.search = function(mol) {
                 this.display.goButton.click(
                     function(event) {
                         $(self.display).autocomplete("close");
-						      self.search(
-                            self.display.searchBox.data().autocomplete.selectedItem.value, 
-                            self.display.searchBox.data().autocomplete.selectedItem.type);
+						      self.search(self.display.searchBox.val());
                     }
                 );
 
@@ -2368,9 +2366,9 @@ mol.modules.map.search = function(mol) {
              *
              * @param term the search term (scientific name)
              */
-            search: function(term, type) {
+            search: function(term) {
                 var self = this,
-                    sql = this.sql.format(term,type),
+                    sql = this.sql.format(term),
                     params = {sql:sql, key: 'acr-{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
@@ -2433,6 +2431,7 @@ mol.modules.map.tiles = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.map = map;
+                this.gmap_events = []
                 this.addEventHandlers();
             },
 
@@ -2489,12 +2488,30 @@ mol.modules.map.tiles = function(mol) {
                         var layer = event.layer,
                             opacity = event.opacity;
 
+                        if(self.gmap_events[layer] != null) {
+                            google.maps.event.removeListener(self.gmap_events[layer]);
+                        }
+                        self.gmap_events[layer] =  google.maps.event.addListener(
+                            self.map,
+                            "idle",
+                            function(event) {
+                                var params = { opacity : opacity, layer : layer};
+                                self.bus.fireEvent(new mol.bus.Event('layer-opacity',params));
+                            }
+                        );
+
                         self.map.overlayMapTypes.forEach(
                             function(maptype, index) {
                                 if (maptype.name === layer.id) {
-                                    self.map.overlayMapTypes.removeAt(index);
-                                    layer.opacity = opacity;
-                                    self.renderTiles([layer]);
+                                    _.each(
+                                        self.map.overlayMapTypes.getArray()[index].cache,
+                                        function(img) {
+                                            img.style.opacity = opacity;
+                                        }
+                                     )
+                                    //self.map.overlayMapTypes.removeAt(index);
+                                    //layer.opacity = opacity;
+                                    //self.renderTiles([layer]);
                                 }
                             }
                         );
@@ -2664,7 +2681,7 @@ mol.modules.map.tiles = function(mol) {
                             self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "extentquery"}));
                             return;
                         }
-                        var extent = response.rows[0].st_extent,                        
+                        var extent = response.rows[0].st_extent,
                             c = extent.replace('BOX(','').replace(')','').split(','),
                             coor1 = c[0].split(' '),
                             coor2 = c[1].split(' '),
@@ -2691,7 +2708,7 @@ mol.modules.map.tiles = function(mol) {
             init: function(layer, table, map) {
                 var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type='{2}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
-                    tile_style = opacity ? "#{0}{polygon-fill:#99cc00;polygon-opacity:{1};}".format(table, opacity) : null,
+                    tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
                     hostname = window.location.hostname;
 
                 if (layer.type === 'points') {
@@ -2716,7 +2733,7 @@ mol.modules.map.tiles = function(mol) {
                         tile_style: tile_style,
                         map_style: false,
                         infowindow: true,
-                        opacity: opacity
+                        //opacity: opacity
                     }
                 );
             }
