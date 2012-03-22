@@ -84,9 +84,9 @@ mol.modules.map.layers = function(mol) {
                         self = this;
                         self.bus.fireEvent(new mol.bus.Event('show-layer-display-toggle'));
 
-                        if (layer.type === 'points') {
-                            l.opacity.hide();
-                        } else {
+                        //if (layer.type === 'points') {
+                        //    l.opacity.hide();
+                        //} else {
                             // Opacity slider change handler.
                             l.opacity.change(
                                 function(event) {
@@ -99,7 +99,7 @@ mol.modules.map.layers = function(mol) {
                                     self.bus.fireEvent(e);
                                 }
                             );
-                        }
+                        //}
 
                         // Close handler for x button fires a 'remove-layers' event.
                         l.close.click(
@@ -202,7 +202,7 @@ mol.modules.map.layers = function(mol) {
                     '        <input class="toggle" type="checkbox">' +
                     '        <span class="customCheck"></span> ' +
                     '    </div>' +
-                    '    <input type="range" class="opacity" min=".25" max="1.0" step=".25" />' +
+                    '    <input type="range" class="opacity" min="0" max="1.0" step=".01" />' +
                     '  </div>' +
                     '</li>';
 
