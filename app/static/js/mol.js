@@ -1229,9 +1229,9 @@ mol.modules.map.layers = function(mol) {
                 this.attr('id', layer.id);
                 this.opacity = $(this).find('.opacity');
                 /* IE8 Doesnt support sliders */
-                if(this.opacity[0].type == "text") {
-                    $(this.opacity[0]).hide();
-                }
+                //if(this.opacity[0].type == "text") {
+                //    $(this.opacity[0]).hide();
+               // }
                 this.toggle = $(this).find('.toggle');
                 this.zoom = $(this).find('.zoom');
                 this.info = $(this).find('.info');
