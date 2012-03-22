@@ -236,11 +236,11 @@ mol.modules.map.tiles = function(mol) {
              */
 	         zoomToExtent: function(layer) {
                 var self = this,
-                    sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE scientificname='{1}'",
+                    points_sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE lower(scientificname)='{1}'",
+                    polygons_sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE scientificname='{1}'",
                     table = layer.type === 'points' ? 'gbif_import' : 'polygons',
-                    query = sql.format(table, layer.name),
                     params = {
-                        sql: query,
+                        sql: table === 'gbif_import' ? points_sql.format(table, layer.name.toLowerCase()) : polygons_sql.format(table, layer.name),
                         key: 'extent-{0}-{1}-{2}'.format(layer.source, layer.type, layer.name)
                     },
                     action = new mol.services.Action('cartodb-sql-query', params),
@@ -282,7 +282,7 @@ mol.modules.map.tiles = function(mol) {
 
                 if (layer.type === 'points') {
                     sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator " +
-                        "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name);
+                        "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                     table = 'names_old';
                 } else {
                     sql = sql.format(table, layer.name, layer.type);

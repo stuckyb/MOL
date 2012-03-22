@@ -2204,7 +2204,7 @@ mol.modules.map.search = function(mol) {
                 this.sql = '' +
                     'SELECT ' +
                     'provider as source, scientificname as name, type as type ' +
-                    'FROM scientificnames WHERE scientificname = \'{0}\'';
+                    'FROM scientificnames WHERE {1} = \'{0}\'';
             },
 
             /**
@@ -2234,6 +2234,11 @@ mol.modules.map.search = function(mol) {
 
                     item.label = kind === 'sci' ? sci : eng;
                     item.value = name;
+                    if(kind == 'sci') {
+                        item.type = 'scientificname';
+                    } else {
+                        item.type =  'vernacularname';
+                    }
 
                     item.label = item.label.replace(
                         new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
@@ -2256,22 +2261,11 @@ mol.modules.map.search = function(mol) {
                         delay: 0,
                         source: function(request, response) {
                             $.getJSON(
-                                //'api/autocomplete',
-                                "http://mol.cartodb.com/api/v2/sql?q=SELECT DISTINCT CONCAT(scientificname, ':sci') as name from scientificnames where " +
-                                "scientificname ~* '\\m" + request.term + "' UNION SELECT DISTINCT CONCAT(vernacularName, ':eng') as name FROM scientificnames WHERE vernacularName ~* '\\m" + request.term + "' ORDER BY name asc LIMIT 100",
+                                'api/autocomplete',
                                 {
                                     key: 'acn-{0}'.format(request.term)
                                 },
-                                function(json) {
-                                    var names = [];
-                                    _.each (
-                                        json.rows,
-                                        function(row) {
-                                            if(row.name != null) {
-                                                names.push(row.name);
-                                            }
-                                        }
-                                    );
+                                function(names) {
                                     response(names);
                                 }
                             );
@@ -2317,7 +2311,9 @@ mol.modules.map.search = function(mol) {
                 this.display.goButton.click(
                     function(event) {
                         $(self.display).autocomplete("close");
-						      self.search(self.display.searchBox.val());
+						      self.search(
+                            self.display.searchBox.data().autocomplete.selectedItem.value, 
+                            self.display.searchBox.data().autocomplete.selectedItem.type);
                     }
                 );
 
@@ -2372,9 +2368,9 @@ mol.modules.map.search = function(mol) {
              *
              * @param term the search term (scientific name)
              */
-            search: function(term) {
+            search: function(term, type) {
                 var self = this,
-                    sql = this.sql.format(term),
+                    sql = this.sql.format(term,type),
                     params = {sql:sql, key: 'acr-{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
@@ -2654,11 +2650,11 @@ mol.modules.map.tiles = function(mol) {
              */
 	         zoomToExtent: function(layer) {
                 var self = this,
-                    sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE scientificname='{1}'",
+                    points_sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE lower(scientificname)='{1}'",
+                    polygons_sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE scientificname='{1}'",
                     table = layer.type === 'points' ? 'gbif_import' : 'polygons',
-                    query = sql.format(table, layer.name),
                     params = {
-                        sql: query,
+                        sql: table === 'gbif_import' ? points_sql.format(table, layer.name.toLowerCase()) : polygons_sql.format(table, layer.name),
                         key: 'extent-{0}-{1}-{2}'.format(layer.source, layer.type, layer.name)
                     },
                     action = new mol.services.Action('cartodb-sql-query', params),
@@ -2700,7 +2696,7 @@ mol.modules.map.tiles = function(mol) {
 
                 if (layer.type === 'points') {
                     sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator " +
-                        "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name);
+                        "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                     table = 'names_old';
                 } else {
                     sql = sql.format(table, layer.name, layer.type);

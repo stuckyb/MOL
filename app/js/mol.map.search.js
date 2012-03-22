@@ -70,22 +70,11 @@ mol.modules.map.search = function(mol) {
                         delay: 0,
                         source: function(request, response) {
                             $.getJSON(
-                                //'api/autocomplete',
-                                "http://mol.cartodb.com/api/v2/sql?q=SELECT DISTINCT CONCAT(scientificname, ':sci') as name from scientificnames where " +
-                                "scientificname ~* '\\m" + request.term + "' UNION SELECT DISTINCT CONCAT(vernacularName, ':eng') as name FROM scientificnames WHERE vernacularName ~* '\\m" + request.term + "' ORDER BY name asc LIMIT 100",
+                                'api/autocomplete',
                                 {
                                     key: 'acn-{0}'.format(request.term)
                                 },
-                                function(json) {
-                                    var names = [];
-                                    _.each (
-                                        json.rows,
-                                        function(row) {
-                                            if(row.name != null) {
-                                                names.push(row.name);
-                                            }
-                                        }
-                                    );
+                                function(names) {
                                     response(names);
                                 }
                             );
@@ -131,7 +120,8 @@ mol.modules.map.search = function(mol) {
                 this.display.goButton.click(
                     function(event) {
                         $(self.display).autocomplete("close");
-						self.search(self.display.searchBox.data().autocomplete.selectedItem.value, self.display.searchBox.data().autocomplete.selectedItem.type);
+						      self.search(self.display.searchBox.data().autocomplete.selectedItem.value, 
+                                    self.display.searchBox.data().autocomplete.selectedItem.type);                        
                     }
                 );
 
@@ -186,7 +176,7 @@ mol.modules.map.search = function(mol) {
              *
              * @param term the search term (scientific name)
              */
-            search: function(term,type) {
+            search: function(term, type) {
                 var self = this,
                     sql = this.sql.format(term,type),
                     params = {sql:sql, key: 'acr-{0}'.format(term)},
