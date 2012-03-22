@@ -147,6 +147,9 @@ button:hover{
     visibility:hidden;
 }
 
+.mol-LayerControl-Layers {
+    pointer-events:auto;
+}
 
 .mol-LayerControl-Layers ::-webkit-scrollbar {
     width: 11px;
