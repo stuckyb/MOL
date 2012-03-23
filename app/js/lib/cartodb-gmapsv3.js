@@ -7,15 +7,15 @@
  *               href="http://opensource.org/licenses/mit-license.php">MIT</a>
  *               license.<br/> This library lets you use CartoDB with google
  *               maps v3.
- *                 
+ *
  */
 /**
  * @name google
- * @class The fundamental namespace for Google APIs 
+ * @class The fundamental namespace for Google APIs
  */
 /**
  * @name google.maps
- * @class The fundamental namespace for Google Maps V3 API 
+ * @class The fundamental namespace for Google Maps V3 API
  */
  /*
  *  - Map style of cartodb
@@ -78,12 +78,12 @@ var CartoDB = CartoDB || {};
                 var bounds = new google.maps.LatLngBounds();
 
                 // Check bounds
-                if (coor1[0] >  180 || coor1[0] < -180 || coor1[1] >  90 || coor1[1] < -90 
+                if (coor1[0] >  180 || coor1[0] < -180 || coor1[1] >  90 || coor1[1] < -90
                   || coor2[0] >  180 || coor2[0] < -180 || coor2[1] >  90  || coor2[1] < -90) {
                   coor1[0] = '-30';
-                  coor1[1] = '-50'; 
-                  coor2[0] = '110'; 
-                  coor2[1] =  '80'; 
+                  coor1[1] = '-50';
+                  coor2[0] = '110';
+                  coor2[1] =  '80';
                 }
 
                 bounds.extend(new google.maps.LatLng(coor1[1],coor1[0]));
@@ -178,9 +178,9 @@ var CartoDB = CartoDB || {};
           },
           clickAction: 'full'
         };
-        
+
         params.layer = new wax.g.connector(params.tilejson);
-  
+
         params.map.overlayMapTypes.insertAt(0,params.layer);
         params.interaction = wax.g.interaction(params.map, params.tilejson, params.waxOptions);
       }
@@ -191,17 +191,17 @@ var CartoDB = CartoDB || {};
           params.cache_buster++;
           params.query = sql;
           params.tilejson = generateTileJson(params);
-  
+
           // Remove old wax
           removeOldLayer(params.map,params.layer);
-  
+
           // Setup new wax
           params.tilejson.grids = wax.util.addUrlData(params.tilejson.grids_base,  'cache_buster=' + params.cache_buster);
-  
+
           // Add map tiles
           params.layer = new wax.g.connector(params.tilejson);
           params.map.overlayMapTypes.insertAt(0,params.layer);
-  
+
           // Add interaction
           params.interaction.remove();
           params.interaction = wax.g.interaction(params.map, params.tilejson, params.waxOptions);
@@ -224,7 +224,7 @@ var CartoDB = CartoDB || {};
             },
             tileSize: new google.maps.Size(256, 256),
             name: params.tile_name,
-            description: false
+            description: false,
           };
 
           params.layer = new google.maps.ImageMapType(cartodb_layer);
@@ -262,7 +262,7 @@ var CartoDB = CartoDB || {};
         // Build up the tileJSON
         // TODO: make a blankImage a real 'empty tile' image
         return {
-          blankImage: 'blank_tile.png', 
+          blankImage: 'blank_tile.png',
           tilejson: '1.0.0',
           scheme: 'xyz',
           tiles: [tile_url],
@@ -271,6 +271,7 @@ var CartoDB = CartoDB || {};
           grids_base: grid_url,
           name: params.tile_name,
           description: true,
+          opacity: params.opacity,
           formatter: function(options, data) {
             currentCartoDbId = data.cartodb_id;
             return data.cartodb_id;
@@ -290,17 +291,17 @@ var CartoDB = CartoDB || {};
               pos = i;
             }
           });
-          if (pos!=-1) 
+          if (pos!=-1)
             map.overlayMapTypes.removeAt(pos);
           layer = null;
         }
       }
-      
+
 
       // Update tiles & interactivity layer;
       google.maps.CartoDBLayer.prototype.update = function(sql) {
         // Hide the infowindow
-        if (this.params.infowindow) 
+        if (this.params.infowindow)
           this.params.infowindow.hide();
         // Refresh wax
         refreshWax(this.params,sql);
@@ -310,7 +311,7 @@ var CartoDB = CartoDB || {};
         this.params.active = true;
         this.params.visible = true;
       };
-  
+
       // Destroy layers from the map
       google.maps.CartoDBLayer.prototype.destroy = function() {
         // First remove previous cartodb - tiles.
@@ -324,7 +325,7 @@ var CartoDB = CartoDB || {};
 
         this.params.active = false;
       };
-  
+
       // Hide layers from the map
       google.maps.CartoDBLayer.prototype.hide = function() {
         this.destroy();
@@ -409,7 +410,7 @@ var CartoDB = CartoDB || {};
   };
 
   CartoDB.Infowindow.prototype.setPosition = function() {
-    if (this.div_) { 
+    if (this.div_) {
        var div = this.div_;
        var pixPosition = this.getProjection().fromLatLngToDivPixel(this.latlng_);
        if (pixPosition) {
@@ -442,7 +443,7 @@ var CartoDB = CartoDB || {};
         positionateInfowindow(result.rows[0],latlng);
       },
       error: function(e,msg) {
-        that.params_.debug && console.debug('Error retrieving infowindow variables: ' + msg);  
+        that.params_.debug && console.debug('Error retrieving infowindow variables: ' + msg);
       }
     });
 

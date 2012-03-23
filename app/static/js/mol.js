@@ -1229,9 +1229,9 @@ mol.modules.map.layers = function(mol) {
                 this.attr('id', layer.id);
                 this.opacity = $(this).find('.opacity');
                 /* IE8 Doesnt support sliders */
-                if(this.opacity[0].type == "text") {
-                    $(this.opacity[0]).hide();
-                }
+                //if(this.opacity[0].type == "text") {
+                //    $(this.opacity[0]).hide();
+               // }
                 this.toggle = $(this).find('.toggle');
                 this.zoom = $(this).find('.zoom');
                 this.info = $(this).find('.info');
@@ -2601,9 +2601,11 @@ mol.modules.map.tiles = function(mol) {
                     function(layer) {
                         tiles.push(self.getTile(layer, self.map));
                         self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : "overlays"}));
+
                         $("img",self.map.overlayMapTypes).imagesLoaded(
                             function(images,proper,broken) {
                                 self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "overlays"}));
+                                self.bus.fireEvent(new mol.bus.Event("layer-opacity",{layer : layer, opacity : 0.5}));
                             }
                          );
                     },
@@ -2718,7 +2720,7 @@ mol.modules.map.tiles = function(mol) {
                 } else {
                     sql = sql.format(table, layer.name, layer.type);
                 }
-                    
+
                 hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
 
                 this.layer = new google.maps.CartoDBLayer(
