@@ -43,6 +43,11 @@ mol.modules.map.search = function(mol) {
 
                     item.label = kind === 'sci' ? sci : eng;
                     item.value = name;
+                    if(kind == 'sci') {
+                        item.type = 'scientificname';
+                    } else {
+                        item.type =  'vernacularname';
+                    }
 
                     item.label = item.label.replace(
                         new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +

@@ -119,8 +119,6 @@ mol.modules.map.query = function(mol) {
                         _.each(
                             event.response.rows,
                             function(name) {
-                                //var result = new mol.map.QueryResultDisplay(name.scientificname);
-                                //content.append(result);
                                 scientificnames.push(name.scientificname);
                             }
                         );
@@ -147,12 +145,8 @@ mol.modules.map.query = function(mol) {
                              listradius : listradius,
                              infoWindow : infoWindow
                          };
-                        //var marker = new google.maps.Marker({
-                        //             position: self.listradius.center,
-                        //             map: self.map
-                        //});
+
                         infoWindow.open(self.map);
-                        //$(self.resultsdisplay).show();
                     } else {
                         //TODO -- What if nothing comes back?
                     }
@@ -177,8 +171,6 @@ mol.modules.map.query = function(mol) {
                                 feature.infoWindow.setMap(self.map);
                             }
                         );
-                        //self.bus.fireEvent( new mol.bus.Event('layer-display-toggle',{visible: false}));
-                        //self.bus.fireEvent( new mol.bus.Event('search-display-toggle',{visible: true}));
                     } else {
                         $(self.display).hide();
                         _.each(
@@ -188,9 +180,7 @@ mol.modules.map.query = function(mol) {
                                 feature.infoWindow.setMap(null);
                             }
                         );
-                      //  self.bus.fireEvent( new mol.bus.Event('layer-display-toggle',{visible: true}));
-                        //self.bus.fireEvent( new mol.bus.Event('search-display-toggle',{visible: false}));
-                    }
+                   }
                 }
             );
             this.display.radiusInput.blur(
@@ -217,11 +207,11 @@ mol.modules.map.query = function(mol) {
                         '<div class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
                         '     Search Radius (km) <input type="text" class="radius" size="5" value="50">' +
-                        '     Class <select class="class" value="and class=\'aves\' and polygonres=\'1000\'">' +
+                        '     Class <select class="class" value="">' +
                         '       <option value="">All</option>' +
                         '       <option selected value="and class=\'aves\' and polygonres=\'1000\'">Bird (coarse)</option>' +
-                        '       <option value=" and class=\'aves\' and polygonres=\'100\'">Bird (fine)</option>' +
-                        '       <option value=" and class=\' osteichthyes\'">Fish</option>' +
+                        '       <option value=" and class=\'aves\' and polygonres<>\'1000\'">Bird (fine)</option>' +
+                        '       <option value=" and class=\' osteichthyes\'">Fish</option>' + //note the space, leaving till we can clean up polygons
                         '       <option value=" and class=\'reptilia\'">Reptile</option>' +
                         '       <option value=" and class=\'amphibia\'">Amphibian</option>' +
                         '       <option value=" and class=\'mammalia\'">Mammal</option>' +
@@ -229,7 +219,7 @@ mol.modules.map.query = function(mol) {
                         '     Type <select class="type" value="">' +
                         '       <option value="">All</option>' +
                         '       <option selected value="and type=\'range\' ">Range maps</option>' +
-                        '       <option value=" and type=\'pa\'">Protected Areas</option>' +
+                        '       <option value=" and type=\'protectedarea\'">Protected Areas</option>' +
                         '       <option value=" and type=\'ecoregion\'">Ecoregions</option>' +
                         '       <option value=" and type=\'point\'">Point records</option>' +
                         '     </select>' +
@@ -250,8 +240,7 @@ mol.modules.map.query = function(mol) {
     {
         init : function(scientificname) {
             var className = 'mol-Map-QueryResultDisplay',
-                //html = '<class="' + className + '">{0}</div>';
-                html = '{0}';
+                 html = '{0}';
             this._super(html.format(scientificname));
 
         }

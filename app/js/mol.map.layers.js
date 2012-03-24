@@ -84,9 +84,9 @@ mol.modules.map.layers = function(mol) {
                         self = this;
                         self.bus.fireEvent(new mol.bus.Event('show-layer-display-toggle'));
 
-                        if (layer.type === 'points') {
-                            l.opacity.hide();
-                        } else {
+                        //if (layer.type === 'points') {
+                        //    l.opacity.hide();
+                        //} else {
                             // Opacity slider change handler.
                             l.opacity.change(
                                 function(event) {
@@ -99,7 +99,7 @@ mol.modules.map.layers = function(mol) {
                                     self.bus.fireEvent(e);
                                 }
                             );
-                        }
+                        //}
 
                         // Close handler for x button fires a 'remove-layers' event.
                         l.close.click(
@@ -191,32 +191,34 @@ mol.modules.map.layers = function(mol) {
                 var html = '' +
                     '<li class="layerContainer">' +
                     '  <div class="layer widgetTheme">' +
-                    '    <button><img class="type" src="/static/maps/search/{0}.png"></button>' +
+                    '    <button class="source" title="Layer Source: {0}"><img src="/static/maps/search/{0}.png"></button>' +
+                    '    <button class="type" title="Layer Type: {1}"><img src="/static/maps/search/{1}.png"></button>' +
                     '    <div class="layerName">' +
-                    '        <div class="layerNomial">{1}</div>' +
+                    '        <div class="layerNomial">{2}</div>' +
                     '    </div>' +
+                    '    <button class="close">x</button>' +
+                    '    <button class="zoom">z</button>' +
                     '    <div class="buttonContainer">' +
                     '        <input class="toggle" type="checkbox">' +
                     '        <span class="customCheck"></span> ' +
                     '    </div>' +
-                    '    <button class="close">x</button>' +
-                    '    <button class="zoom">z</button>' +
-                    '    <input type="range" class="opacity" min=".25" max="1.0" step=".25" />' +
+                    '    <input type="range" class="opacity" min="0" max="1.0" step=".01" />' +
                     '  </div>' +
                     '</li>';
 
-                this._super(html.format(layer.type, layer.name));
+                this._super(html.format(layer.source, layer.type, layer.name));
                 this.attr('id', layer.id);
                 this.opacity = $(this).find('.opacity');
                 /* IE8 Doesnt support sliders */
-                if(this.opacity[0].type == "text") {
-                    $(this.opacity[0]).hide();
-                }
+                //if(this.opacity[0].type == "text") {
+                //    $(this.opacity[0]).hide();
+               // }
                 this.toggle = $(this).find('.toggle');
                 this.zoom = $(this).find('.zoom');
                 this.info = $(this).find('.info');
                 this.close = $(this).find('.close');
-                this.typePng = $(this).find('.type');
+                this.type = $(this).find('.type');
+                this.source = $(this).find('.source');
             }
         }
     );
@@ -252,10 +254,8 @@ mol.modules.map.layers = function(mol) {
 
             addLayer: function(layer) {
                 var ld = new mol.map.layers.LayerDisplay(layer);
-                ld.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
-                ld.typePng[0].title = 'Layer Type: '+layer.type;
                 this.list.append(ld);
-				    this.layers.push(layer);
+				this.layers.push(layer);
                 return ld;
             },
 

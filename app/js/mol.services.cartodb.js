@@ -1,23 +1,23 @@
 mol.modules.services.cartodb = function(mol) {
-    
+
     mol.services.cartodb = {};
-    
+
     mol.services.cartodb.SqlApi = Class.extend(
         {
             init: function(user, host) {
                 this.user = user;
                 this.host = host;
-                this.url = 'https://{0}.{1}/api/v2/sql?q={2}';  
+                this.url = 'https://{0}.{1}/api/v2/sql?q={2}';
                 this.cache = '/cache/get';
             },
 
-            query: function(key, sql, callback) {                
+            query: function(key, sql, callback) {
                   var data = {
                           key: key,
                           sql: sql
                       },
                       xhr = $.post(this.cache, data);
-                
+
                 xhr.success(
                     function(response) {
                         callback.success(response);
@@ -32,35 +32,35 @@ mol.modules.services.cartodb = function(mol) {
             }
         }
     );
-    
+
     mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi('mol', 'cartodb.com');
-    
+
     mol.services.cartodb.query = function(key, sql, callback) {
         mol.services.cartodb.sqlApi.query(key, sql, callback);
     };
 
     /**
      * Converts a CartoDB SQL response to a search profile response.
-     * 
+     *
      */
-    mol.services.cartodb.Converter = Class.extend(    
+    mol.services.cartodb.Converter = Class.extend(
         {
             init: function() {
             },
-            
+
             convert: function(response) {
                 this.response = response;
                 return {
 
-                    "layers": this.getLayers(this.response), 
-                    "names": this.genNames(this.response), 
-                    "sources": this.genSources(this.response), 
+                    "layers": this.getLayers(this.response),
+                    "names": this.genNames(this.response),
+                    "sources": this.genSources(this.response),
                     "types": this.genTypes(this.response)
                 };
             },
 
             /**
-             * Returns an array of unique values in the response. Key value is 
+             * Returns an array of unique values in the response. Key value is
              * name, source, or type.
              */
             uniques: function(key, response) {
@@ -86,58 +86,58 @@ mol.modules.services.cartodb = function(mol) {
 
             /**
              * Returns the top level names profile object.
-             *  
+             *
              * {"name": "types":[], "sources":[], "layers":[]}
-             * 
+             *
              */
             genNames: function(response) {
                 var names = this.uniques('name', response),
                 name = null,
                 profile = {};
-                
+
                 for (i in names) {
                     name = names[i];
                     profile[name] = this.getNameProfile(name, response);
                 }
-                
+
                 return profile;
             },
-            
+
             /**
              * Returns the top level types profile object.
-             *  
+             *
              * {"type": "names":[], "sources":[], "layers":[]}
-             * 
+             *
              */
             genTypes: function(response) {
                 var types = this.uniques('type', response),
                 type = null,
                 profile = {};
-                
+
                 for (i in types) {
                     type = types[i];
                     profile[type] = this.getTypeProfile(type, response);
                 }
-                
+
                 return profile;
             },
 
             /**
              * Returns the top level source profile object.
-             *  
+             *
              * {"source": "names":[], "types":[], "layers":[]}
-             * 
+             *
              */
             genSources: function(response) {
                 var sources = this.uniques('source', response),
                 source = null,
                 profile = {};
-                
+
                 for (i in sources) {
                     source = sources[i];
                     profile[source] = this.getSourceProfile(source, response);
                 }
-                
+
                 return profile;
             },
 
@@ -149,7 +149,7 @@ mol.modules.services.cartodb = function(mol) {
                 sources = [],
                 types = [],
                 row = null;
-                
+
                 for (i in response.rows) {
                     row = response.rows[i];
                     if (name === row.name) {
@@ -173,7 +173,7 @@ mol.modules.services.cartodb = function(mol) {
                 names = [],
                 types = [],
                 row = null;
-                
+
                 for (i in response.rows) {
                     row = response.rows[i];
                     if (source === row.source) {
@@ -197,7 +197,7 @@ mol.modules.services.cartodb = function(mol) {
                 sources = [],
                 names = [],
                 row = null;
-                
+
                 for (i in response.rows) {
                     row = response.rows[i];
                     if (type === row.type) {
@@ -212,7 +212,7 @@ mol.modules.services.cartodb = function(mol) {
                     "names": _.uniq(names)
                 };
             },
-            
+
             /**
              * Returns the layers profile.
              */
@@ -226,9 +226,9 @@ mol.modules.services.cartodb = function(mol) {
                     row = rows[i];
                     key = i + '';
                     layers[key] = {
-                        name: row.name,
-                        source: row.source,
-                        type: row.type
+                        name: row.name.charAt(0).toUpperCase()+row.name.slice(1).toLowerCase(),
+                        source: row.source.toLowerCase(),
+                        type: row.type.toLowerCase()
                         //extent: this.getExtent(row.extent)
                     };
                 }
@@ -238,19 +238,19 @@ mol.modules.services.cartodb = function(mol) {
             /**
              * Returns an array of coordinate arrays:
              * [[1, 2], ...]
-             *  
+             *
              * @param polygon POLYGON((34.073597 36.393648,34.073597 36.467531,
              *                         34.140662 36.467531,34.140662 36.393648,
              *                         34.073597 36.393648))
              */
             getExtent: function(polygon) {
                 return _.map(
-                    polygon.split('POLYGON((')[1].split('))')[0].split(','), 
+                    polygon.split('POLYGON((')[1].split('))')[0].split(','),
                     function(x) {
-                        var pair = x.split(' '); 
+                        var pair = x.split(' ');
                         return [parseFloat(pair[0]), parseFloat(pair[1])];
                     }
-                );                
+                );
             }
         }
     );

@@ -19,6 +19,7 @@ mol.modules.map.tiles = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.map = map;
+                this.gmap_events = []
                 this.addEventHandlers();
             },
 
@@ -78,9 +79,7 @@ mol.modules.map.tiles = function(mol) {
                         self.map.overlayMapTypes.forEach(
                             function(maptype, index) {
                                 if (maptype.name === layer.id) {
-                                    self.map.overlayMapTypes.removeAt(index);
-                                    layer.opacity = opacity;
-                                    self.renderTiles([layer]);
+                                    maptype.setOpacity(opacity);
                                 }
                             }
                         );
@@ -170,6 +169,7 @@ mol.modules.map.tiles = function(mol) {
                     function(layer) {
                         tiles.push(self.getTile(layer, self.map));
                         self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : "overlays"}));
+
                         $("img",self.map.overlayMapTypes).imagesLoaded(
                             function(images,proper,broken) {
                                 self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "overlays"}));
@@ -219,7 +219,7 @@ mol.modules.map.tiles = function(mol) {
 
                 switch (type) {
                 case 'points':
-                    new mol.map.tiles.CartoDbTile(layer, 'points', this.map);
+                    new mol.map.tiles.CartoDbTile(layer, 'gbif_import', this.map);
                     break;
                 case 'polygon':
                 case 'range':
@@ -236,11 +236,11 @@ mol.modules.map.tiles = function(mol) {
              */
 	         zoomToExtent: function(layer) {
                 var self = this,
-                    sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE scientificname='{1}'",
-                    table = layer.type === 'points' ? 'points' : 'polygons',
-                    query = sql.format(table, layer.name),
+                    points_sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE lower(scientificname)='{1}'",
+                    polygons_sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE scientificname='{1}'",
+                    table = layer.type === 'points' ? 'gbif_import' : 'polygons',
                     params = {
-                        sql: query,
+                        sql: table === 'gbif_import' ? points_sql.format(table, layer.name.toLowerCase()) : polygons_sql.format(table, layer.name),
                         key: 'extent-{0}-{1}-{2}'.format(layer.source, layer.type, layer.name)
                     },
                     action = new mol.services.Action('cartodb-sql-query', params),
@@ -250,7 +250,7 @@ mol.modules.map.tiles = function(mol) {
                             self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "extentquery"}));
                             return;
                         }
-                        var extent = response.rows[0].st_extent,                        
+                        var extent = response.rows[0].st_extent,
                             c = extent.replace('BOX(','').replace(')','').split(','),
                             coor1 = c[0].split(' '),
                             coor2 = c[1].split(' '),
@@ -277,8 +277,16 @@ mol.modules.map.tiles = function(mol) {
             init: function(layer, table, map) {
                 var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type='{2}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
-                    tile_style = opacity ? "#{0}{polygon-fill:#99cc00;polygon-opacity:{1};}".format(table, opacity) : null,
+                    tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
                     hostname = window.location.hostname;
+
+                if (layer.type === 'points') {
+                    sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator " +
+                        "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
+                    table = 'names_old';
+                } else {
+                    sql = sql.format(table, layer.name, layer.type);
+                }
 
                 hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
 
@@ -290,7 +298,7 @@ mol.modules.map.tiles = function(mol) {
                         map: map,
                         user_name: 'mol',
                         table_name: table,
-                        query: sql.format(table, layer.name, layer.type),
+                        query: sql,
                         tile_style: tile_style,
                         map_style: false,
                         infowindow: true,
