@@ -76,30 +76,10 @@ mol.modules.map.tiles = function(mol) {
                         var layer = event.layer,
                             opacity = event.opacity;
 
-                        if(self.gmap_events[layer] != null) {
-                            google.maps.event.removeListener(self.gmap_events[layer]);
-                        }
-                        self.gmap_events[layer] =  google.maps.event.addListener(
-                            self.map,
-                            "idle",
-                            function(event) {
-                                var params = { opacity : opacity, layer : layer};
-                                self.bus.fireEvent(new mol.bus.Event('layer-opacity',params));
-                            }
-                        );
-
                         self.map.overlayMapTypes.forEach(
                             function(maptype, index) {
                                 if (maptype.name === layer.id) {
-                                    _.each(
-                                        self.map.overlayMapTypes.getArray()[index].cache,
-                                        function(img) {
-                                            img.style.opacity = opacity;
-                                        }
-                                     )
-                                    //self.map.overlayMapTypes.removeAt(index);
-                                    //layer.opacity = opacity;
-                                    //self.renderTiles([layer]);
+                                    maptype.setOpacity(opacity);
                                 }
                             }
                         );
@@ -193,7 +173,6 @@ mol.modules.map.tiles = function(mol) {
                         $("img",self.map.overlayMapTypes).imagesLoaded(
                             function(images,proper,broken) {
                                 self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "overlays"}));
-                                self.bus.fireEvent(new mol.bus.Event("layer-opacity",{layer : layer, opacity : 0.5}));
                             }
                          );
                     },
@@ -323,7 +302,7 @@ mol.modules.map.tiles = function(mol) {
                         tile_style: tile_style,
                         map_style: false,
                         infowindow: true,
-                        //opacity: opacity
+                        opacity: opacity
                     }
                 );
             }

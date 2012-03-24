@@ -6,16 +6,16 @@
     pointer-events: none;
 }
 .TOP {
-pointer-events: none;
+    pointer-events: none;
 }
 .MIDDLE {
     pointer-events: none;
 }
 .BOTTOM {
-pointer-events: none;
+    pointer-events: none;
 }
 .LAST {
-pointer-events: none;
+    pointer-events: none;
 }
 .widgetTheme{
     background-image: -webkit-gradient(
@@ -732,6 +732,7 @@ button:hover{
     padding-left:6px;
     padding-right:6px;
     margin: 2px;
+    pointer-events:auto;
 }
 .mol-Map-ListQueryInfoWindowResults {
      font-size: 12px;

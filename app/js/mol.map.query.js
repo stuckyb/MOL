@@ -119,8 +119,6 @@ mol.modules.map.query = function(mol) {
                         _.each(
                             event.response.rows,
                             function(name) {
-                                //var result = new mol.map.QueryResultDisplay(name.scientificname);
-                                //content.append(result);
                                 scientificnames.push(name.scientificname);
                             }
                         );
@@ -213,7 +211,7 @@ mol.modules.map.query = function(mol) {
                         '       <option value="">All</option>' +
                         '       <option selected value="and class=\'aves\' and polygonres=\'1000\'">Bird (coarse)</option>' +
                         '       <option value=" and class=\'aves\' and polygonres<>\'1000\'">Bird (fine)</option>' +
-                        '       <option value=" and class=\' osteichthyes\'">Fish</option>' +
+                        '       <option value=" and class=\' osteichthyes\'">Fish</option>' + //note the space, leaving till we can clean up polygons
                         '       <option value=" and class=\'reptilia\'">Reptile</option>' +
                         '       <option value=" and class=\'amphibia\'">Amphibian</option>' +
                         '       <option value=" and class=\'mammalia\'">Mammal</option>' +
