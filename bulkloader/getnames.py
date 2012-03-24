@@ -188,30 +188,45 @@ def create_autocomplete_index():
     conn = setup_cacheitem_db()
     cur = conn.cursor()
 
-    continue_indexing = False
+    #count = 100
 
     for row in csv_unicode.UnicodeDictReader(open('names.csv', 'r')): 
-        if row['type'] == 'MONOMIAL':
-            continue
-        bi = row['binomial_index'] # puma concolor
-        if not names_map.has_key(bi):
-            continue
-        all_names = names_map[bi] # [mountain lion, puma, puma concolor, deer lion]
 
         binomial = row['binomial']  
-        if binomial == 'Ramphomicron microrhynchum':
-            continue_indexing = True
-        if not continue_indexing:
+
+        if row['type'] == 'MONOMIAL':
+            print 'skipping %s MONOMIAL' % binomial
             continue
 
-        print binomial
+        print 'processing %s BINOMIAL' % binomial
+
+        bi = row['binomial_index'] # puma concolor
+
+        if not names_map.has_key(bi):
+            print '%s NO_COMMONS' % binomial
+            all_names = ['%s:sci' % bi.capitalize()] 
+        else:
+            all_names = names_map[bi] # [mountain lion, puma, puma concolor, deer lion]
 
         # Search result rows for binomial_index:
         url = "http://mol.cartodb.com/api/v2/sql?%s" % urllib.urlencode(dict(q="SELECT sn.provider AS source, sn.scientificname AS name, sn.type AS type FROM scientificnames sn where scientificname = '%s'" % row['binomial']))
-        response = urllib2.urlopen(url)
-        rows = json.loads(response.read())['rows']
-        
-        print 'CartoDB response received'
+
+        try:
+            response = urllib2.urlopen(url)
+            if response.code != 200:
+                print 'skipping %s CartoDB response error %s' % (binomial, response.code)
+                continue
+            rows = json.loads(response.read())['rows']
+            print 'CartoDB response received for %s' % binomial
+        except urllib2.HTTPError, e:
+            print 'skipping because of HTTPError code: %s, url: %s' % (e.code, url)
+            continue
+        except urllib2.URLError, e:
+            print 'skipping because of URLError reason: %s, url: %s ' % (e.reason, url)
+            continue
+        except:
+            print 'skipping because of unknown cdb error. url: %s' % url
+            continue
         
         for tagged_name in all_names:
             name, tag = tagged_name.split(':')
@@ -225,7 +240,6 @@ def create_autocomplete_index():
                     cur.execute('UPDATE CacheItem SET string = ? WHERE id = ?', (json.dumps(all_names_updated), idname))
                 else:
                     cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(all_names)))    
-                print idname + ' auto-complete index built'
                     
                 # Build search index                
                 idname = 'acr-%s' % token.lower() # auto complete results (acr)
@@ -238,9 +252,14 @@ def create_autocomplete_index():
                     cur.execute('UPDATE CacheItem SET string = ? WHERE id = ?', (json.dumps(dict(rows=rows_updated)), idname))
                 else:
                     cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(dict(rows=rows))))    
-                print idname + ' search index built'
 
+        print '%s SUCCESS' % binomial
         conn.commit()
+        #if count == 0:
+        #    return
+        #else:
+        #    count = count - 1
+
     
     for result in cur.execute('SELECT * FROM CacheItem').fetchall():
         writer.writerow(dict(id=result[0], string=result[1]))
