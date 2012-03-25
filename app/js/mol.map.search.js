@@ -75,7 +75,12 @@ mol.modules.map.search = function(mol) {
                                     key: 'acn-{0}'.format(request.term)
                                 },
                                 function(names) {
-                                    response(names);
+                                    response(
+                                        _.sortBy(names,  // Alphabetical sort.
+                                                 function(x) {
+                                                     return x;
+                                                 })                                        
+                                    );
                                 }
                             );
                         },

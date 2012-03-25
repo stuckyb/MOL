@@ -1037,14 +1037,34 @@ mol.modules.map.layers = function(mol) {
             },
 
             /**
-             * Handles an 'add-layers' event by adding them to the layer list.
-             * The event is expected to have a property named 'layers' which
-             * is an arry of layer objects, each with a 'name' and 'type' property.
-             * This function ignores layers that are already represented
-             * as widgets.
+             * Handler a layer-opacity event. This handler only does something
+             * when the event.opacity is undefined. This is to support layer
+             * toggling with opacity only (instead of removing overlays from
+             * the map). In this case, the opacity from the layer widget is
+             * bubbled to a new layer-opacity event that gets fired on the bus.
              */
             addEventHandlers: function() {
                 var self = this;
+                
+                this.bus.addHandler(
+                    'layer-opacity',
+                    function(event) {
+                        var layer = event.layer,
+                            l = self.display.getLayer(layer),
+                            opacity = event.opacity,
+                            params = {},
+                            e = null;
+                            
+                        if (opacity === undefined) {
+                            params = {
+                                layer: layer,
+                                opacity: parseFloat(l.find('.opacity').val())
+                            },                    
+                            e = new mol.bus.Event('layer-opacity', params);                    
+                            self.bus.fireEvent(e);                            
+                        }                        
+                    }
+                );
 
                 this.bus.addHandler(
                     'add-layers',
@@ -1090,43 +1110,112 @@ mol.modules.map.layers = function(mol) {
 
                 this.bus.fireEvent(event);
             },
+            
+            /**
+             * Sorts layers so that they're grouped by name. Within each named  
+             * group, they are sorted by type: points, protectedarea, range, 
+             * ecoregion.
+             * 
+             * @layers array of layer objects {name, type}
+             */
+            sortLayers: function(layers) {                
+                var sorted = [],
+                    names_map = {};
+                
+                _.sortBy( // Layer names sorted alphabetically.
+                    _.each(layers, 
+                          function(layer) {
+                              names_map[layer.name] = layer.name; // Gather unique names.
+                          })
+                );
+                
+                _.each(_.keys(names_map),
+                       function(name) {
+                           var group = _.groupBy(_.groupBy(layers, "name")[name], "type");
+                           
+                           _.each(
+                               ['points', 'protectedarea', 'range', 'ecoregion'],
+                               function(type) {
+                                   if (group[type]) {
+                                       sorted.push(group[type][0]);
+                                   }
+                               }
+                           );
+                       });
+                
+                return sorted;
+                
+            },
+            
+            /**
+             * Handler for layer opacity changes via UI. It fires a layer-opacity 
+             * event on the bus, passing in the layer object and its opacity.
+             */
+            opacityHandler: function(layer, l) {
+                return function(event) {
+                    var params = {},
+                        e = null;
 
+                    params = {
+                        layer: layer,
+                        opacity: parseFloat(l.opacity.val())
+                    },
+                    
+                    e = new mol.bus.Event('layer-opacity', params);
+                    
+                    self.bus.fireEvent(e);
+                };
+            },
+            
             /**
              * Adds layer widgets to the map. The layers parameter is an array
              * of layer objects {id, name, type, source}.
              */
             addLayers: function(layers) {
+                var all = [],
+                    layerIds = [],
+                    sortedLayers = this.sortLayers(layers);
+                
                 _.each(
-                    layers,
+                    sortedLayers,
                     function(layer) {
                         var l = this.display.addLayer(layer),
-                        self = this;
+                            self = this,
+                            opacity = null;
+                        
                         self.bus.fireEvent(new mol.bus.Event('show-layer-display-toggle'));
+        
+                        // Set initial opacity based on layer type.
+                        switch (layer.type) {
+                        case 'points':                                    
+                            opacity = 1.0;
+                            break;
+                        case 'ecoregion':
+                            opacity = .25;
+                            break;
+                        case 'protectedarea':
+                            opacity = 1.0;
+                            break;
+                        case 'range':
+                            opacity = .5;
+                            break;
+                        }                        
+                        
+                        // Hack so that at the end we can fire opacity event with all layers.
+                        all.push({layer:layer, l:l, opacity:opacity});
 
-                        //if (layer.type === 'points') {
-                        //    l.opacity.hide();
-                        //} else {
-                            // Opacity slider change handler.
-                            l.opacity.change(
-                                function(event) {
-                                    var params = {
-                                            layer: layer,
-                                            opacity: parseFloat(l.opacity.val())
-                                        },
-                                        e = new mol.bus.Event('layer-opacity', params);
-
-                                    self.bus.fireEvent(e);
-                                }
-                            );
-                        //}
-
+                        // Opacity slider change handler.
+                        l.opacity.change(self.opacityHandler(layer, l));
+                        l.opacity.val(opacity);
+                        
                         // Close handler for x button fires a 'remove-layers' event.
                         l.close.click(
                             function(event) {
                                 var params = {
-                                        layers: [layer]
+                                      layers: [layer]
                                     },
                                     e = new mol.bus.Event('remove-layers', params);
+                                
                                 self.bus.fireEvent(e);
                                 l.remove();
                                 // Hide the layer widge toggle in the main menu if no layers exist
@@ -1167,6 +1256,24 @@ mol.modules.map.layers = function(mol) {
                                 self.bus.fireEvent(e);
                             }
                         );
+                    },
+                    this
+                );
+                
+                // All of this stuff ensures layer orders are correct on map.
+                layerIds = _.map(
+                    sortedLayers,
+                    function(layer) {
+                        return layer.id;
+                    },
+                    this);
+                this.bus.fireEvent(new mol.bus.Event('reorder-layers', {layers:layerIds}));
+                
+                // And this stuff ensures correct initial layer opacities on the map.
+                _.each(
+                    all.reverse(), // Reverse so that layers on top get rendered on top. 
+                    function(item) {
+                        this.opacityHandler(item.layer, item.l)(); 
                     },
                     this
                 );
@@ -1923,8 +2030,8 @@ mol.modules.map.results = function(mol) {
                 var html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
-                    '<div class="resultSource"><button><img class="source" src="/static/maps/search/{2}.png"></button></div>' +
-                    '<div class="resultType" ><button ><img class="type" src="/static/maps/search/{3}.png"></button></div>' +
+                    '<div class="resultSource"><button><img class="source" title="Layer Source: {2}" src="/static/maps/search/{2}.png"></button></div>' +
+                    '<div class="resultType" ><button ><img class="type" title="Layer Type: {3}" src="/static/maps/search/{3}.png"></button></div>' +
                     '<div class="resultName">' +
                     '  <div class="resultNomial">{1}</div>' +
                     '  <div class="resultAuthor"></div>' +
@@ -2266,7 +2373,12 @@ mol.modules.map.search = function(mol) {
                                     key: 'acn-{0}'.format(request.term)
                                 },
                                 function(names) {
-                                    response(names);
+                                    response(
+                                        _.sortBy(names,  // Alphabetical sort.
+                                                 function(x) {
+                                                     return x;
+                                                 })                                        
+                                    );
                                 }
                             );
                         },
@@ -2431,7 +2543,7 @@ mol.modules.map.tiles = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.map = map;
-                this.gmap_events = []
+                this.gmap_events = [];
                 this.addEventHandlers();
             },
 
@@ -2448,15 +2560,35 @@ mol.modules.map.tiles = function(mol) {
                     'layer-toggle',
                     function(event) {
                         var showing = event.showing,
-                            layer = event.layer;
+                            layer = event.layer,
+                            params = null,
+                            e = null;
 
                         if (showing) {
+                            self.map.overlayMapTypes.forEach(
+                                function(maptype, index) {
+                                    if ((maptype != undefined) && (maptype.name === layer.id)) {
+                                        params = {
+                                            layer: layer
+                                        };                                       
+                                        e = new mol.bus.Event('layer-opacity', params);                                        
+                                        self.bus.fireEvent(e);                                        
+                                        return;
+                                    }
+                                }
+                            );
                             self.renderTiles([layer]);
                         } else { // Remove layer from map.
                             self.map.overlayMapTypes.forEach(
                                 function(maptype, index) {
-                                    if (maptype !=undefined && maptype.name === layer.id) {
-                                        self.map.overlayMapTypes.removeAt(index);
+                                    if ((maptype != undefined) && (maptype.name === layer.id)) {
+                                        params = {
+                                            layer: layer,
+                                            opacity: 0
+                                        };                                       
+                                        e = new mol.bus.Event('layer-opacity', params);                                        
+                                        self.bus.fireEvent(e);                                        
+                                        //self.map.overlayMapTypes.removeAt(index);
                                     }
                                 }
                             );
@@ -2477,41 +2609,24 @@ mol.modules.map.tiles = function(mol) {
                 );
 
                 /**
-                 * Hanlder for changing layer opacity. Note that this only works
-                 * for polygon layers since point layers are rendered using image
-                 * sprites for performance. The event.opacity is a number between
-                 * 0 and 1.0 and the event.layer is an object {id, name, source, type}.
+                 * Handler for changing layer opacity. The event.opacity is a 
+                 * number between 0 and 1.0 and the event.layer is an object 
+                 * {id, name, source, type}.
                  */
                 this.bus.addHandler(
                     'layer-opacity',
                     function(event) {
                         var layer = event.layer,
                             opacity = event.opacity;
-
-                        if(self.gmap_events[layer] != null) {
-                            google.maps.event.removeListener(self.gmap_events[layer]);
+                        
+                        if (opacity === undefined) {
+                            return;
                         }
-                        self.gmap_events[layer] =  google.maps.event.addListener(
-                            self.map,
-                            "idle",
-                            function(event) {
-                                var params = { opacity : opacity, layer : layer};
-                                self.bus.fireEvent(new mol.bus.Event('layer-opacity',params));
-                            }
-                        );
 
                         self.map.overlayMapTypes.forEach(
                             function(maptype, index) {
                                 if (maptype.name === layer.id) {
-                                    _.each(
-                                        self.map.overlayMapTypes.getArray()[index].cache,
-                                        function(img) {
-                                            img.style.opacity = opacity;
-                                        }
-                                     )
-                                    //self.map.overlayMapTypes.removeAt(index);
-                                    //layer.opacity = opacity;
-                                    //self.renderTiles([layer]);
+                                    maptype.setOpacity(opacity);
                                 }
                             }
                         );
@@ -2603,9 +2718,8 @@ mol.modules.map.tiles = function(mol) {
                         self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : "overlays"}));
 
                         $("img",self.map.overlayMapTypes).imagesLoaded(
-                            function(images,proper,broken) {
+                            function(images, proper, broken) {
                                 self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "overlays"}));
-                                self.bus.fireEvent(new mol.bus.Event("layer-opacity",{layer : layer, opacity : 0.5}));
                             }
                          );
                     },
@@ -2735,7 +2849,7 @@ mol.modules.map.tiles = function(mol) {
                         tile_style: tile_style,
                         map_style: false,
                         infowindow: true,
-                        //opacity: opacity
+                        opacity: opacity
                     }
                 );
             }
@@ -3002,8 +3116,6 @@ mol.modules.map.query = function(mol) {
                         _.each(
                             event.response.rows,
                             function(name) {
-                                //var result = new mol.map.QueryResultDisplay(name.scientificname);
-                                //content.append(result);
                                 scientificnames.push(name.scientificname);
                             }
                         );
@@ -3096,7 +3208,7 @@ mol.modules.map.query = function(mol) {
                         '       <option value="">All</option>' +
                         '       <option selected value="and class=\'aves\' and polygonres=\'1000\'">Bird (coarse)</option>' +
                         '       <option value=" and class=\'aves\' and polygonres<>\'1000\'">Bird (fine)</option>' +
-                        '       <option value=" and class=\' osteichthyes\'">Fish</option>' +
+                        '       <option value=" and class=\' osteichthyes\'">Fish</option>' + //note the space, leaving till we can clean up polygons
                         '       <option value=" and class=\'reptilia\'">Reptile</option>' +
                         '       <option value=" and class=\'amphibia\'">Amphibian</option>' +
                         '       <option value=" and class=\'mammalia\'">Mammal</option>' +

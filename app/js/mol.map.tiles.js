@@ -19,7 +19,7 @@ mol.modules.map.tiles = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.map = map;
-                this.gmap_events = []
+                this.gmap_events = [];
                 this.addEventHandlers();
             },
 
@@ -36,15 +36,35 @@ mol.modules.map.tiles = function(mol) {
                     'layer-toggle',
                     function(event) {
                         var showing = event.showing,
-                            layer = event.layer;
+                            layer = event.layer,
+                            params = null,
+                            e = null;
 
                         if (showing) {
+                            self.map.overlayMapTypes.forEach(
+                                function(maptype, index) {
+                                    if ((maptype != undefined) && (maptype.name === layer.id)) {
+                                        params = {
+                                            layer: layer
+                                        };                                       
+                                        e = new mol.bus.Event('layer-opacity', params);                                        
+                                        self.bus.fireEvent(e);                                        
+                                        return;
+                                    }
+                                }
+                            );
                             self.renderTiles([layer]);
                         } else { // Remove layer from map.
                             self.map.overlayMapTypes.forEach(
                                 function(maptype, index) {
-                                    if (maptype !=undefined && maptype.name === layer.id) {
-                                        self.map.overlayMapTypes.removeAt(index);
+                                    if ((maptype != undefined) && (maptype.name === layer.id)) {
+                                        params = {
+                                            layer: layer,
+                                            opacity: 0
+                                        };                                       
+                                        e = new mol.bus.Event('layer-opacity', params);                                        
+                                        self.bus.fireEvent(e);                                        
+                                        //self.map.overlayMapTypes.removeAt(index);
                                     }
                                 }
                             );
@@ -65,16 +85,19 @@ mol.modules.map.tiles = function(mol) {
                 );
 
                 /**
-                 * Hanlder for changing layer opacity. Note that this only works
-                 * for polygon layers since point layers are rendered using image
-                 * sprites for performance. The event.opacity is a number between
-                 * 0 and 1.0 and the event.layer is an object {id, name, source, type}.
+                 * Handler for changing layer opacity. The event.opacity is a 
+                 * number between 0 and 1.0 and the event.layer is an object 
+                 * {id, name, source, type}.
                  */
                 this.bus.addHandler(
                     'layer-opacity',
                     function(event) {
                         var layer = event.layer,
                             opacity = event.opacity;
+                        
+                        if (opacity === undefined) {
+                            return;
+                        }
 
                         self.map.overlayMapTypes.forEach(
                             function(maptype, index) {
@@ -171,7 +194,7 @@ mol.modules.map.tiles = function(mol) {
                         self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : "overlays"}));
 
                         $("img",self.map.overlayMapTypes).imagesLoaded(
-                            function(images,proper,broken) {
+                            function(images, proper, broken) {
                                 self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "overlays"}));
                             }
                          );
