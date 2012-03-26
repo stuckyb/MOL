@@ -308,7 +308,27 @@ mol.modules.map = function(mol) {
                           { lightness: -15 },
                           { gamma: 0.83 }
                         ]
+                      },
+                      {
+                        featureType: "transit",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
                       },{
+                        featureType: "administrative",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "administrative.country",
+                        stylers: [
+                          { visibility: "on" }
+                        ]
+                      },{
+                        featureType: "administrative.province",
+                       stylers: [
+                          { visibility: "on" }
+                        ]
                       }
                     ]
                 };
