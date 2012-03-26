@@ -276,7 +276,26 @@ mol.modules.map = function(mol) {
                         stylers: [
                           { visibility: "simplified" }
                         ]
-                      },{
+                      },
+                      {
+                        featureType: "administrative.locality",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },
+                      {
+                        featureType: "landscape",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },
+                      {
+                        featureType: "road",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },
+                      {
                         featureType: "poi",
                         stylers: [
                           { visibility: "off" }
