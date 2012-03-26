@@ -271,30 +271,26 @@ mol.modules.map = function(mol) {
                     center: new google.maps.LatLng(0,0),
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     styles: [
-                        {
-                            "featureType":"all",
-                            "elementType":"all",
-                            "stylers":[
-                                {
-                                    "lightness":43
-                                },
-                                {
-                                    "visibility":"simplified"
-                                },
-                                {
-                                    "saturation":-59
-                                }
-                            ]
-                        },
-                        {
-                            "elementType":"labels",
-                            "stylers":[
-                                {
-                                    "visibility":"on"
-                                }
-                            ]
-                        }
-
+                      {
+                        featureType: "administrative",
+                        stylers: [
+                          { visibility: "simplified" }
+                        ]
+                      },{
+                        featureType: "poi",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "water",
+                        stylers: [
+                          { visibility: "on" },
+                          { saturation: -65 },
+                          { lightness: -15 },
+                          { gamma: 0.83 }
+                        ]
+                      },{
+                      }
                     ]
                 };
 
