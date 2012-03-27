@@ -2364,7 +2364,7 @@ mol.modules.map.search = function(mol) {
             populateAutocomplete : function(action, response) {
                 $(this.display.searchBox).autocomplete(
                     {
-                        minLength: 3,
+                        minLength: 3, // Note: Auto-complete indexes are min length 3.
                         delay: 0,
                         source: function(request, response) {
                             $.getJSON(
@@ -2374,7 +2374,7 @@ mol.modules.map.search = function(mol) {
                                 },
                                 function(names) {
                                     response(
-                                        _.sortBy(names,  // Alphabetical sort.
+                                        _.sortBy(names,  // Alphabetical sort on auto-complete results.
                                                  function(x) {
                                                      return x;
                                                  })                                        
