@@ -734,14 +734,22 @@ button:hover{
     margin: 2px;
     pointer-events:auto;
 }
-.mol-Map-ListQueryInfoWindowResults {
+.mol-Map-ListQueryRadius {
+     pointer-events:none;
+}
+.mol-Map-ListQueryInfoWindow {
      font-size: 12px;
-     font-style:normal
-     font-weight:normal
+     font-style:normal;
+     font-weight:normal;
+     height:220px;
+     width:600px;
+     overflow-y:scroll;
+     overflow-x:hidden;
+     margin:5px
 }
 
 .mol-Map-LegendDisplay {
-    display: table-cell;
+    display: none;
     float:right;
     -moz-border-radius: 3px;
     border-radius: 3px;
