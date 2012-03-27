@@ -3049,7 +3049,7 @@ mol.modules.map.query = function(mol) {
                 this.bus = bus;
                 this.map = map;
                 this.sql = "" +
-                        "SELECT DISTINCT p.scientificname as scientificname, t.common_names_eng as english, t._order as order, t.Family as family, t.red_list_status as redlist " +
+                        "SELECT DISTINCT p.scientificname as scientificname, t.common_names_eng as english, t._order as order, t.Family as family, t.red_list_status as redlist, CONCAT(initcap(t.class),' assessed in ', t.year_assessed) as year_assessed " +
                         "FROM polygons p LEFT JOIN master_taxonomy t ON p.scientificname = t.scientific " +
                         "WHERE ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " +
                         //"WHERE ST_DWithin(the_geom,ST_PointFromText('POINT({0})',4326),0.1) " +
@@ -3134,6 +3134,7 @@ mol.modules.map.query = function(mol) {
                 'species-list-query-results',
                 function (event) {
                     var content,
+                        contentHeader,
                         listradius  = event.listradius,
                         className,
                         typeName,
@@ -3144,6 +3145,9 @@ mol.modules.map.query = function(mol) {
                         latHem,
                         lngHem,
                         redlistCt = {},
+                        yearassessed = {},
+                        speciesthreatened = 0,
+                        speciesdd = 0,
                         infoDiv;
 
                     if(!event.response.error) {
@@ -3155,7 +3159,7 @@ mol.modules.map.query = function(mol) {
                         latHem = (listradius.center.lat() > 0) ? 'North' : 'South';
                         lngHem = (listradius.center.lng() > 0) ? 'East' : 'West';
 
-                        content='<div class="mol-Map-ListQueryInfoWindow">' +
+                        contentHeader='<div class="mol-Map-ListQueryInfoWindow">' +
                                 '   <div> ' +
                                 event.response.total_rows +
                                 '       ' +
@@ -3165,9 +3169,9 @@ mol.modules.map.query = function(mol) {
                                 '       found within ' +
                                 listradius.radius/1000 + ' km of ' +
                                 Math.abs(Math.round(listradius.center.lat()*1000)/1000) + '&deg;&nbsp;' + latHem + '&nbsp;' +
-                                Math.abs(Math.round(listradius.center.lng()*1000)/1000) + '&deg;&nbsp;' + lngHem + '<br>' +
+                                Math.abs(Math.round(listradius.center.lng()*1000)/1000) + '&deg;&nbsp;' + lngHem + '<br>';
 
-                                '   </div>'+
+                        content = '   </div>'+
                                 '   <div>' +
                                 '       <table class="tablesorter">' +
                                 '           <thead><tr><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>Red List Status</th></tr></thead><tbody>';
@@ -3181,15 +3185,25 @@ mol.modules.map.query = function(mol) {
                                     name.family + "</td><td>" +
                                     name.redlist + "</td></tr>";
 
-                                 redlistCt[name.redlist] = (redlistCt[name.redlist] == undefined)  ? 1 : redlistCt[name.redlist] + 1;
+                                 speciesthreatened += (name.redlist == 'RN' || name.redlist == 'VU' || name.redlist == 'CR' )  ? 1 : 0;
+                                 speciesdd += (name.redlist == 'DD')  ? 1 : 0;
+                                 yearassessed[name.year_assessed] = name.year_assessed;
                             }
                         );
                         content += '        <tbody>' +
                                    '    </table></div>' +
                                    '</div>';
 
+                        stats = (speciesthreatened > 0) ? (speciesthreatened+" species threatened.<br>") : "";
+                        stats += (speciesdd > 0) ? (speciesdd+" species data deficient.<br>") : "";
+                        _.each(
+                            yearassessed,
+                            function(yearstr) {
+                                stats+=yearstr;
+                            }
+                        )
                         infoWindow= new google.maps.InfoWindow( {
-                            content: $(content)[0],
+                            content: $(contentHeader+stats+content)[0],
                             position: listradius.center
                         });
 
