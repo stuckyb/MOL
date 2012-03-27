@@ -840,30 +840,65 @@ mol.modules.map = function(mol) {
                     center: new google.maps.LatLng(0,0),
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     styles: [
-                        {
-                            "featureType":"all",
-                            "elementType":"all",
-                            "stylers":[
-                                {
-                                    "lightness":43
-                                },
-                                {
-                                    "visibility":"simplified"
-                                },
-                                {
-                                    "saturation":-59
-                                }
-                            ]
-                        },
-                        {
-                            "elementType":"labels",
-                            "stylers":[
-                                {
-                                    "visibility":"on"
-                                }
-                            ]
-                        }
-
+                      {
+                        featureType: "administrative",
+                        stylers: [
+                          { visibility: "simplified" }
+                        ]
+                      },
+                      {
+                        featureType: "administrative.locality",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },
+                      {
+                        featureType: "landscape",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },
+                      {
+                        featureType: "road",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },
+                      {
+                        featureType: "poi",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "water",
+                        stylers: [
+                          { visibility: "on" },
+                          { saturation: -65 },
+                          { lightness: -15 },
+                          { gamma: 0.83 }
+                        ]
+                      },
+                      {
+                        featureType: "transit",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "administrative",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "administrative.country",
+                        stylers: [
+                          { visibility: "on" }
+                        ]
+                      },{
+                        featureType: "administrative.province",
+                       stylers: [
+                          { visibility: "on" }
+                        ]
+                      }
                     ]
                 };
 
@@ -1499,6 +1534,12 @@ mol.modules.map.menu = function(mol) {
                             new mol.bus.Event('search-display-toggle'));
                     }
                 );
+                this.display.legendItem.click(
+                    function(event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('legend-display-toggle'));
+                    }
+                );
                 this.display.speciesListItem.click(
                     function(event) {
                         self.bus.fireEvent(new mol.bus.Event('species-list-tool-toggle'));
@@ -1571,6 +1612,7 @@ mol.modules.map.menu = function(mol) {
                     '    </div>' +
                     '    <div title="Toggle taxonomy dashboard." class="widgetTheme dashboard button">Dashboard</div>' +
                     '    <div title="Toggle layer search tools." class="widgetTheme search button">Search</div>' +
+                    '    <div title="Toggle map legend." class="widgetTheme legend button">Legend</div>' +
                     '    <div title="Toggle species list radius tool (right-click to use)" class="widgetTheme list button">Species&nbsp;Lists</div>' +
                     '</div>' +
                     '<div class="mol-LayerControl-Layers">' +
@@ -1583,6 +1625,7 @@ mol.modules.map.menu = function(mol) {
 
                 this._super(html);
                 this.searchItem = $(this).find('.search');
+                this.legendItem = $(this).find('.legend');
                 this.dashboardItem = $(this).find('.dashboard');
                 this.speciesListItem = $(this).find('.list');
                 this.layersToggle = $(this).find('.layersToggle');
@@ -3006,12 +3049,11 @@ mol.modules.map.query = function(mol) {
                 this.bus = bus;
                 this.map = map;
                 this.sql = "" +
-                        "SET STATEMENT_TIMEOUT TO 0;" +
-                        "SELECT DISTINCT scientificname " +
-                        "FROM polygons " +
-                        "WHERE ST_DWithin(the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " +
+                        "SELECT DISTINCT p.scientificname as scientificname, t.common_names_eng as english, t._order as order, t.Family as family, t.red_list_status as redlist " +
+                        "FROM polygons p LEFT JOIN master_taxonomy t ON p.scientificname = t.scientific " +
+                        "WHERE ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " +
                         //"WHERE ST_DWithin(the_geom,ST_PointFromText('POINT({0})',4326),0.1) " +
-                        " {2} ORDER BY scientificname";
+                        " {2} ORDER BY \"order\", scientificname";
 
         },
         start : function() {
@@ -3079,7 +3121,8 @@ mol.modules.map.query = function(mol) {
                                 map: event.map,
                                 radius: parseInt(self.display.radiusInput.val())*1000, // 50 km
                                 center: event.gmaps_event.latLng,
-                                strokeWeight: 0
+                                strokeWeight: 0,
+                                clickable:false
                             }
                         );
                         self.bus.fireEvent( new mol.bus.Event('show-loading-indicator', {source : 'listradius'}));
@@ -3091,37 +3134,62 @@ mol.modules.map.query = function(mol) {
                 'species-list-query-results',
                 function (event) {
                     var content,
+                        listradius  = event.listradius,
+                        className,
+                        typeName,
+                        typeStr,
+                        content,
                         scientificnames = [],
-                        infoWindow;
-                    //self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'listradius'}));
+                        infoWindow,
+                        latHem,
+                        lngHem,
+                        redlistCt = {},
+                        infoDiv;
+
                     if(!event.response.error) {
-                        var listradius = event.listradius,
                             className = event.className.toLowerCase(),
                             typeName = event.typeName,
                             typeStr = '';
 
                         typeStr = ' with ' + typeName.replace(/maps/i, '').toLowerCase() + ' maps ';
-                        //fill in the results
-                        //$(self.display.resultslist).html('');
-                        content=  event.response.total_rows +
-                                ' ' +
+                        latHem = (listradius.center.lat() > 0) ? 'North' : 'South';
+                        lngHem = (listradius.center.lng() > 0) ? 'East' : 'West';
+
+                        content='<div class="mol-Map-ListQueryInfoWindow">' +
+                                '   <div> ' +
+                                event.response.total_rows +
+                                '       ' +
                                 className +
-                                ' species ' +
+                                '       species ' +
                                 typeStr +
-                                'found within ' +
+                                '       found within ' +
                                 listradius.radius/1000 + ' km of ' +
-                                Math.round(listradius.center.lat()*1000)/1000 + '&deg; Latitude ' +
-                                Math.round(listradius.center.lng()*1000)/1000 + '&deg; Longitude' +
-                                '<div class="mol-Map-ListQueryInfoWindowResults">';
+                                Math.abs(Math.round(listradius.center.lat()*1000)/1000) + '&deg;&nbsp;' + latHem + '&nbsp;' +
+                                Math.abs(Math.round(listradius.center.lng()*1000)/1000) + '&deg;&nbsp;' + lngHem + '<br>' +
+
+                                '   </div>'+
+                                '   <div>' +
+                                '       <table class="tablesorter">' +
+                                '           <thead><tr><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>Red List Status</th></tr></thead><tbody>';
                         _.each(
                             event.response.rows,
                             function(name) {
-                                scientificnames.push(name.scientificname);
+                                 content += "<tr><td class='scientificname' >" +
+                                    name.scientificname + "</td><td>" +
+                                    name.english + "</td><td>" +
+                                    name.order + "</td><td>" +
+                                    name.family + "</td><td>" +
+                                    name.redlist + "</td></tr>";
+
+                                 redlistCt[name.redlist] = (redlistCt[name.redlist] == undefined)  ? 1 : redlistCt[name.redlist] + 1;
                             }
                         );
+                        content += '        <tbody>' +
+                                   '    </table></div>' +
+                                   '</div>';
 
                         infoWindow= new google.maps.InfoWindow( {
-                            content: content+scientificnames.join(', ')+'</div>',
+                            content: $(content)[0],
                             position: listradius.center
                         });
 
@@ -3144,9 +3212,13 @@ mol.modules.map.query = function(mol) {
                          };
 
                         infoWindow.open(self.map);
-                    } else {
-                        //TODO -- What if nothing comes back?
-                    }
+                        $(".tablesorter", $(infoWindow.content)
+                         ).tablesorter({widthFixed: true}
+                         )
+                        } else {
+                            listradius.setMap(null);
+                            delete(self.features[listradius.center.toString()+listradius.radius]);
+                        }
                     self.bus.fireEvent( new mol.bus.Event('hide-loading-indicator', {source : 'listradius'}));
 
                 }
@@ -3203,22 +3275,26 @@ mol.modules.map.query = function(mol) {
                 html = '' +
                         '<div class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
-                        '     Search Radius (km) <input type="text" class="radius" size="5" value="50">' +
+                        '     Search Radius <select class="radius">' +
+                        '       <option selected value="50">50 km</option>' +
+                        '       <option value="100">100 km</option>' +
+                        '       <option value="500">500 km</option>' +
+                        '       <option value="1000">1000 km</option>' +
+                        '     </select>' +
                         '     Class <select class="class" value="">' +
                         '       <option value="">All</option>' +
-                        '       <option selected value="and class=\'aves\' and polygonres=\'1000\'">Bird (coarse)</option>' +
-                        '       <option value=" and class=\'aves\' and polygonres<>\'1000\'">Bird (fine)</option>' +
-                        '       <option value=" and class=\' osteichthyes\'">Fish</option>' + //note the space, leaving till we can clean up polygons
-                        '       <option value=" and class=\'reptilia\'">Reptile</option>' +
-                        '       <option value=" and class=\'amphibia\'">Amphibian</option>' +
-                        '       <option value=" and class=\'mammalia\'">Mammal</option>' +
+                        '       <option selected value=" and p.class=\'aves\'">Bird</option>' +
+                        '       <option value=" and p.class=\' osteichthyes\'">Fish</option>' + //note the space, leaving till we can clean up polygons
+                        '       <option value=" and p.class=\'reptilia\'">Reptile</option>' +
+                        '       <option value=" and p.class=\'amphibia\'">Amphibian</option>' +
+                        '       <option value=" and p.class=\'mammalia\'">Mammal</option>' +
                         '     </select>' +
                         '     Type <select class="type" value="">' +
                         '       <option value="">All</option>' +
-                        '       <option selected value="and type=\'range\' ">Range maps</option>' +
-                        '       <option value=" and type=\'protectedarea\'">Protected Areas</option>' +
-                        '       <option value=" and type=\'ecoregion\'">Ecoregions</option>' +
-                        '       <option value=" and type=\'point\'">Point records</option>' +
+                        '       <option selected value="and p.type=\'range\' ">Range maps</option>' +
+                        '       <option value=" and p.type=\'protectedarea\'">Protected Areas</option>' +
+                        '       <option value=" and p.type=\'ecoregion\'">Ecoregions</option>' +
+                        '       <option value=" and p.type=\'point\'">Point records</option>' +
                         '     </select>' +
                         '   </div>' +
                         //'   <div class="resultslist">Click on the map to find bird species within 50km of that point.</div>' +
@@ -3227,7 +3303,7 @@ mol.modules.map.query = function(mol) {
             this._super(html);
             this.resultslist=$(this).find('.resultslist');
             this.radiusInput=$(this).find('.radius');
-            $(this.radiusInput).numeric({negative : false, decimal : false});
+            //$(this.radiusInput).numeric({negative : false, decimal : false});
             this.classInput=$(this).find('.class');
             this.typeInput=$(this).find('.type');
         }
@@ -3273,6 +3349,28 @@ mol.modules.map.query = function(mol) {
         },
         addEventHandlers : function () {
             var self = this;
+            /**
+             * Callback that toggles the search display visibility. The
+             * event is expected to have the following properties:
+             *
+             *   event.visible - true to show the display, false to hide it.
+             *
+             * @param event mol.bus.Event
+             */
+             this.bus.addHandler(
+                'legend-display-toggle',
+                function(event) {
+                    var params = {},
+                        e = null;
+
+                    if (event.visible === undefined) {
+                        self.display.toggle();
+                        params = {visible: self.display.is(':visible')};
+                    } else {
+                        self.display.toggle(event.visible);
+                    }
+                }
+            );
         }
     }
     );

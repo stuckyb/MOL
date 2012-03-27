@@ -9,7 +9,7 @@ mol.modules.map.query = function(mol) {
                 this.bus = bus;
                 this.map = map;
                 this.sql = "" +
-                        "SELECT DISTINCT p.scientificname as scientificname, t.common_names_eng as english, t._order as order, t.Family as family, t.red_list_status as redlist, CONCAT(t.class,' assessed in ', t.year_assessed) as year_assessed " +
+                        "SELECT DISTINCT p.scientificname as scientificname, t.common_names_eng as english, t._order as order, t.Family as family, t.red_list_status as redlist, CONCAT(initcap(t.class),' assessed in ', t.year_assessed) as year_assessed " +
                         "FROM polygons p LEFT JOIN master_taxonomy t ON p.scientificname = t.scientific " +
                         "WHERE ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " +
                         //"WHERE ST_DWithin(the_geom,ST_PointFromText('POINT({0})',4326),0.1) " +
@@ -105,7 +105,7 @@ mol.modules.map.query = function(mol) {
                         latHem,
                         lngHem,
                         redlistCt = {},
-                        yearAssessed = {},
+                        yearassessed = {},
                         speciesthreatened = 0,
                         speciesdd = 0,
                         infoDiv;
@@ -147,17 +147,23 @@ mol.modules.map.query = function(mol) {
 
                                  speciesthreatened += (name.redlist == 'RN' || name.redlist == 'VU' || name.redlist == 'CR' )  ? 1 : 0;
                                  speciesdd += (name.redlist == 'DD')  ? 1 : 0;
+                                 yearassessed[name.year_assessed] = name.year_assessed;
                             }
                         );
                         content += '        <tbody>' +
                                    '    </table></div>' +
                                    '</div>';
 
-                        redliststats = (speciesthreatened > 0) ? (speciesthreatened+" species threatened.<br>") : "";
-                        redliststats += (speciesdd > 0) ? (speciesdd+" species data deficient.<br>") : "";
-
+                        stats = (speciesthreatened > 0) ? (speciesthreatened+" species threatened.<br>") : "";
+                        stats += (speciesdd > 0) ? (speciesdd+" species data deficient.<br>") : "";
+                        _.each(
+                            yearassessed,
+                            function(yearstr) {
+                                stats+=yearstr;
+                            }
+                        )
                         infoWindow= new google.maps.InfoWindow( {
-                            content: $(contentHeader+redliststats+content)[0],
+                            content: $(contentHeader+stats+content)[0],
                             position: listradius.center
                         });
 
