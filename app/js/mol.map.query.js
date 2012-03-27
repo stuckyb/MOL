@@ -111,7 +111,7 @@ mol.modules.map.query = function(mol) {
                         infoDiv;
 
                     if(!event.response.error) {
-                            className = event.className.toLowerCase(),
+                            className = (event.className != "All") ? event.className.toLowerCase() : "",
                             typeName = event.typeName,
                             typeStr = '';
 
@@ -190,11 +190,11 @@ mol.modules.map.query = function(mol) {
                          ).tablesorter({widthFixed: true}
                          );
 
-                         _each(
+                         _.each(
                              $('.scientificname',$(infoWindow.content)),
                              function(cell) {
-                                 cell.click = function(event) {
-                                     self.bus.fireEvent('search', new mol.bus.Event('search',cell.innerText));
+                                 cell.onclick = function(event) {
+                                     self.bus.fireEvent(new mol.bus.Event('search',{term:$(cell).text()}));
                                  }
                              }
                          );

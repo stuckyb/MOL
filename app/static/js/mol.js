@@ -2420,7 +2420,7 @@ mol.modules.map.search = function(mol) {
                                         _.sortBy(names,  // Alphabetical sort.
                                                  function(x) {
                                                      return x;
-                                                 })                                        
+                                                 })
                                     );
                                 }
                             );
@@ -2459,7 +2459,14 @@ mol.modules.map.search = function(mol) {
                         self.bus.fireEvent(e);
                     }
                 );
-
+                this.bus.addHandler(
+                    'search',
+                    function(event) {
+                        if (event.term != undefined) {
+                            self.search(event.term);
+                        }
+                   }
+               );
                 /**
                  * Clicking the go button executes a search.
                  */
@@ -3049,7 +3056,7 @@ mol.modules.map.query = function(mol) {
                 this.bus = bus;
                 this.map = map;
                 this.sql = "" +
-                        "SELECT DISTINCT p.scientificname as scientificname, t.common_names_eng as english, t._order as order, t.Family as family, t.red_list_status as redlist, CONCAT(initcap(t.class),' assessed in ', t.year_assessed) as year_assessed " +
+                        "SELECT DISTINCT p.scientificname as scientificname, t.common_names_eng as english, t._order as order, t.Family as family, t.red_list_status as redlist, CASE WHEN t.class is not null THEN CONCAT('The ', initcap(t.class), ' class was assessed in ', t.year_assessed, '. ') ELSE '' END as year_assessed " +
                         "FROM polygons p LEFT JOIN master_taxonomy t ON p.scientificname = t.scientific " +
                         "WHERE ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " +
                         //"WHERE ST_DWithin(the_geom,ST_PointFromText('POINT({0})',4326),0.1) " +
@@ -3151,7 +3158,7 @@ mol.modules.map.query = function(mol) {
                         infoDiv;
 
                     if(!event.response.error) {
-                            className = event.className.toLowerCase(),
+                            className = (event.className != "All") ? event.className.toLowerCase() : "",
                             typeName = event.typeName,
                             typeStr = '';
 
@@ -3194,12 +3201,12 @@ mol.modules.map.query = function(mol) {
                                    '    </table></div>' +
                                    '</div>';
 
-                        stats = (speciesthreatened > 0) ? (speciesthreatened+" species threatened.<br>") : "";
-                        stats += (speciesdd > 0) ? (speciesdd+" species data deficient.<br>") : "";
+                        stats = (speciesthreatened > 0) ? (speciesthreatened+" species are threatened (IUCN Red List codes RN, VU, or CR).<br>") : "";
+                        stats += (speciesdd > 0) ? (speciesdd+" species are data deficient (IUCN Red LIst code DD).<br>") : "";
                         _.each(
                             yearassessed,
                             function(yearstr) {
-                                stats+=yearstr;
+                                stats+=yearstr + '<br>';
                             }
                         )
                         infoWindow= new google.maps.InfoWindow( {
@@ -3228,11 +3235,21 @@ mol.modules.map.query = function(mol) {
                         infoWindow.open(self.map);
                         $(".tablesorter", $(infoWindow.content)
                          ).tablesorter({widthFixed: true}
-                         )
+                         );
+
+                         _.each(
+                             $('.scientificname',$(infoWindow.content)),
+                             function(cell) {
+                                 cell.onclick = function(event) {
+                                     self.bus.fireEvent(new mol.bus.Event('search',{term:$(cell).text()}));
+                                 }
+                             }
+                         );
                         } else {
                             listradius.setMap(null);
                             delete(self.features[listradius.center.toString()+listradius.radius]);
                         }
+
                     self.bus.fireEvent( new mol.bus.Event('hide-loading-indicator', {source : 'listradius'}));
 
                 }

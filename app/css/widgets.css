@@ -747,6 +747,9 @@ button:hover{
      overflow-x:hidden;
      margin:5px
 }
+.mol-Map-ListQueryInfoWindow .scientificname{
+        cursor: pointer;
+ }
 
 .mol-Map-LegendDisplay {
     display: none;

@@ -79,7 +79,7 @@ mol.modules.map.search = function(mol) {
                                         _.sortBy(names,  // Alphabetical sort.
                                                  function(x) {
                                                      return x;
-                                                 })                                        
+                                                 })
                                     );
                                 }
                             );
@@ -118,7 +118,14 @@ mol.modules.map.search = function(mol) {
                         self.bus.fireEvent(e);
                     }
                 );
-
+                this.bus.addHandler(
+                    'search',
+                    function(event) {
+                        if (event.term != undefined) {
+                            self.search(event.term);
+                        }
+                   }
+               );
                 /**
                  * Clicking the go button executes a search.
                  */
