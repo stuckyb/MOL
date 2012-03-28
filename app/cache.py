@@ -37,12 +37,17 @@ class CacheItem(model.Model):
         item = model.Key(cls.__name__, key.strip().lower()).get()
         if item:            
             if value_type == 'string':
+                data = item._to_dict()['string']
                 if loads:
-                    value = json.loads(item.string)
+                    try:
+                        value = json.loads(data)
+                    except:
+                        value = data
                 else:
-                    value = item.string
+                    value = data
             elif value_type == 'blob':
                 value = item.blob
+
         return value
 
     @classmethod

@@ -460,7 +460,7 @@ var html = (function (html4) {
     quot : '"',
     apos : '\''
   };
-  
+
   // Schemes on which to defer to uripolicy. Urls with other schemes are denied
   var WHITELISTED_SCHEMES = /^(?:https?|mailto|data)$/i;
 
@@ -2510,7 +2510,7 @@ wax.g.interaction = function(map, tilejson, options) {
             this.eventHandlers.mousemove = google.maps.event.addListener(map, 'mousemove',
                 this.onMove());
 
-            this.eventHandlers.click = google.maps.event.addListener(map, 'click', 
+            this.eventHandlers.click = google.maps.event.addListener(map, 'click',
                 this.click());
 
             return this;
@@ -2624,7 +2624,7 @@ wax.g.interaction = function(map, tilejson, options) {
                         if (feature) {
                             // Stop propagation of the click event to avoid fire more wax clicks!!!
                             // @vizzuality change!
-                            
+
                             // For Firefox browser that doesn't recognize window.event
                             if (!window.event) {
                               window.event = {};
@@ -2632,7 +2632,7 @@ wax.g.interaction = function(map, tilejson, options) {
                                 window.event = null;
                               },150);
                             }
-                            
+
                             window.event.cancelBubble = true;
 
                             switch (this.clickAction) {
@@ -2732,10 +2732,20 @@ wax.g.connector.prototype.getTile = function(coord, zoom, ownerDocument) {
         var img = this.cache[key] = new Image(256, 256);
         this.cache[key].src = this.getTileUrl(coord, zoom);
         this.cache[key].setAttribute('gTileKey', key);
+        this.cache[key].style.opacity = this.opacity;
         this.cache[key].onerror = function() { img.style.display = 'none'; };
     }
     return this.cache[key];
 };
+
+//change the layer opacity
+wax.g.connector.prototype.setOpacity = function(opacity) {
+            var key;
+            this.opacity = opacity;
+            for (key in this.cache) {
+                this.cache[key].style.opacity = opacity;
+            }
+}
 
 // Remove a tile that has fallen out of the map's viewport.
 //

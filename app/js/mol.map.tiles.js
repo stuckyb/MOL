@@ -19,6 +19,7 @@ mol.modules.map.tiles = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.map = map;
+                this.gmap_events = [];
                 this.addEventHandlers();
             },
 
@@ -35,15 +36,35 @@ mol.modules.map.tiles = function(mol) {
                     'layer-toggle',
                     function(event) {
                         var showing = event.showing,
-                            layer = event.layer;
+                            layer = event.layer,
+                            params = null,
+                            e = null;
 
                         if (showing) {
+                            self.map.overlayMapTypes.forEach(
+                                function(maptype, index) {
+                                    if ((maptype != undefined) && (maptype.name === layer.id)) {
+                                        params = {
+                                            layer: layer
+                                        };                                       
+                                        e = new mol.bus.Event('layer-opacity', params);                                        
+                                        self.bus.fireEvent(e);                                        
+                                        return;
+                                    }
+                                }
+                            );
                             self.renderTiles([layer]);
                         } else { // Remove layer from map.
                             self.map.overlayMapTypes.forEach(
                                 function(maptype, index) {
-                                    if (maptype !=undefined && maptype.name === layer.id) {
-                                        self.map.overlayMapTypes.removeAt(index);
+                                    if ((maptype != undefined) && (maptype.name === layer.id)) {
+                                        params = {
+                                            layer: layer,
+                                            opacity: 0
+                                        };                                       
+                                        e = new mol.bus.Event('layer-opacity', params);                                        
+                                        self.bus.fireEvent(e);                                        
+                                        //self.map.overlayMapTypes.removeAt(index);
                                     }
                                 }
                             );
@@ -64,23 +85,24 @@ mol.modules.map.tiles = function(mol) {
                 );
 
                 /**
-                 * Hanlder for changing layer opacity. Note that this only works
-                 * for polygon layers since point layers are rendered using image
-                 * sprites for performance. The event.opacity is a number between
-                 * 0 and 1.0 and the event.layer is an object {id, name, source, type}.
+                 * Handler for changing layer opacity. The event.opacity is a 
+                 * number between 0 and 1.0 and the event.layer is an object 
+                 * {id, name, source, type}.
                  */
                 this.bus.addHandler(
                     'layer-opacity',
                     function(event) {
                         var layer = event.layer,
                             opacity = event.opacity;
+                        
+                        if (opacity === undefined) {
+                            return;
+                        }
 
                         self.map.overlayMapTypes.forEach(
                             function(maptype, index) {
                                 if (maptype.name === layer.id) {
-                                    self.map.overlayMapTypes.removeAt(index);
-                                    layer.opacity = opacity;
-                                    self.renderTiles([layer]);
+                                    maptype.setOpacity(opacity);
                                 }
                             }
                         );
@@ -170,8 +192,9 @@ mol.modules.map.tiles = function(mol) {
                     function(layer) {
                         tiles.push(self.getTile(layer, self.map));
                         self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : "overlays"}));
+
                         $("img",self.map.overlayMapTypes).imagesLoaded(
-                            function(images,proper,broken) {
+                            function(images, proper, broken) {
                                 self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "overlays"}));
                             }
                          );
@@ -219,11 +242,12 @@ mol.modules.map.tiles = function(mol) {
 
                 switch (type) {
                 case 'points':
-                    new mol.map.tiles.CartoDbTile(layer, 'points', this.map);
+                    new mol.map.tiles.CartoDbTile(layer, 'gbif_import', this.map);
                     break;
                 case 'polygon':
                 case 'range':
-                case 'expert opinion range map':
+                case 'ecoregion':
+                case 'protectedarea':
                     new mol.map.tiles.CartoDbTile(layer, 'polygons', this.map);
                     break;
                 }
@@ -235,15 +259,20 @@ mol.modules.map.tiles = function(mol) {
              */
 	         zoomToExtent: function(layer) {
                 var self = this,
-                    sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE scientificname='{1}'",
-                    table = layer.type === 'points' ? 'points' : 'polygons',
-                    query = sql.format(table, layer.name),
+                    points_sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE lower(scientificname)='{1}'",
+                    polygons_sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE scientificname='{1}'",
+                    table = layer.type === 'points' ? 'gbif_import' : 'polygons',
                     params = {
-                        sql: query,
+                        sql: table === 'gbif_import' ? points_sql.format(table, layer.name.toLowerCase()) : polygons_sql.format(table, layer.name),
                         key: 'extent-{0}-{1}-{2}'.format(layer.source, layer.type, layer.name)
                     },
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
+                        if (response.rows[0].st_extent === null) {
+                            console.log("No extent for {0}".format(layer.name));
+                            self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "extentquery"}));
+                            return;
+                        }
                         var extent = response.rows[0].st_extent,
                             c = extent.replace('BOX(','').replace(')','').split(','),
                             coor1 = c[0].split(' '),
@@ -269,10 +298,18 @@ mol.modules.map.tiles = function(mol) {
     mol.map.tiles.CartoDbTile = Class.extend(
         {
             init: function(layer, table, map) {
-                var sql =  "SELECT * FROM {0} where scientificname = '{1}'",
+                var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type='{2}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
-                    tile_style = opacity ? "#{0}{polygon-fill:#99cc00;polygon-opacity:{1};}".format(table, opacity) : null,
+                    tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
                     hostname = window.location.hostname;
+
+                if (layer.type === 'points') {
+                    sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator " +
+                        "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
+                    table = 'names_old';
+                } else {
+                    sql = sql.format(table, layer.name, layer.type);
+                }
 
                 hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
 
@@ -284,9 +321,9 @@ mol.modules.map.tiles = function(mol) {
                         map: map,
                         user_name: 'mol',
                         table_name: table,
-                        query: sql.format(table, layer.name),
+                        query: sql,
                         tile_style: tile_style,
-                        map_style: true,
+                        map_style: false,
                         infowindow: true,
                         opacity: opacity
                     }

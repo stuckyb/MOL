@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="../../../css/widgets.css">
     <!--<link rel="stylesheet" href="../../../css/metadata.css">-->
     <link rel="stylesheet" href="../../../css/cartodb.css">
+    <link rel="stylesheet" href="../../../css/tablesorter.css">
     <link rel="stylesheet" href="../../../js/lib/jquery/css/ui-lightness/jquery-ui-1.8.17.custom.css">
 
     <!-- <link rel="stylesheet" href="../../../css/wri-style.css"> -->
@@ -20,22 +21,24 @@
     <script type="text/javascript" src="../../../js/lib/jquery.ui.sortable.js"></script>
     <script type="text/javascript" src="../../../js/lib/jquery.ui.position.js"></script>
     <script type="text/javascript" src="../../../js/lib/jquery.ui.draggable.js"></script>
-     <script type="text/javascript" src="../../../js/lib/jquery.ui.resizable.js"></script>
-     <script type="text/javascript" src="../../../js/lib/jquery.ui.autocomplete.js"></script>
-     <script type="text/javascript" src="../../../js/lib/jquery.ui.autocomplete.regexp.js"></script>
-     <script type="text/javascript" src="../../../js/lib/jquery.imagesloaded.js"></script>
-     <script type="text/javascript" src="../../../js/lib/jquery.ui.dialog.js"></script>
+    <script type="text/javascript" src="../../../js/lib/jquery.ui.resizable.js"></script>
+    <script type="text/javascript" src="../../../js/lib/jquery.ui.autocomplete.js"></script>
+    <script type="text/javascript" src="../../../js/lib/jquery.ui.autocomplete.regexp.js"></script>
+    <script type="text/javascript" src="../../../js/lib/jquery.imagesloaded.js"></script>
+    <script type="text/javascript" src="../../../js/lib/jquery.tablesorter.js"></script>
+    <script type="text/javascript" src="../../../js/lib/jquery.ui.dialog.js"></script>
     <!--  <script type="text/javascript" src="../../../js/lib/jquery-ui-1.8.10.custom.min.js"></script> -->
     <!--  <script type="text/javascript" src="../../../js/lib/jquery-ui.min.js"></script> -->
-     <script type="text/javascript" src="../../../js/lib/underscore-min.js"></script>
-     <script type="text/javascript" src="../../../js/lib/backbone-min.js"></script>
-     <script type="text/javascript" src="../../../js/lib/class.js"></script>
+    <script type="text/javascript" src="../../../js/lib/underscore-min.js"></script>
+    <script type="text/javascript" src="../../../js/lib/backbone-min.js"></script>
+    <script type="text/javascript" src="../../../js/lib/class.js"></script>
 
-     <script type="text/javascript" src="../../../js/lib/cartodb-gmapsv3.js?v=1"></script>
-     <script type="text/javascript" src="../../../js/lib/wax.g.js"></script>
+    <script type="text/javascript" src="../../../js/lib/cartodb-gmapsv3.js?v=1"></script>
+    <script type="text/javascript" src="../../../js/lib/wax.g.js"></script>
+    <script type="text/javascript" src="../../../js/lib/html5slider.js"></script>
 
     {% if prod %}
-     <script type="text/javascript" src="../../../static/js/mol.js?r={{ r }}"></script>
+    <script type="text/javascript" src="../../../static/js/mol.js?r={{ r }}"></script>
     {% else %}
      <script type="text/javascript" src="../../../js/mol.js"></script>
      <script type="text/javascript" src="../../../js/mol.core.js"></script>
@@ -52,6 +55,7 @@
      <script type="text/javascript" src="../../../js/mol.map.loading.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.dashboard.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.query.js"></script>
+     <script type="text/javascript" src="../../../js/mol.map.legend.js"></script>
     {% endif %}
 
     <meta charset="utf-8" />
@@ -75,7 +79,7 @@
 	         se.start(null)
 	         te = new env.map.tiles.TileEngine(proxy, bus, me.display.map)
 	         te.start()
-	         le = new env.map.layers.LayerEngine(proxy, bus)
+	         le = new env.map.layers.LayerEngine(proxy, bus, me.display.map)
 	         le.start()
 	         re = new env.map.results.ResultsEngine(proxy, bus)
 	         re.start()
@@ -83,10 +87,12 @@
 	         ne.start()
 	         le = new env.map.loading.LoadingEngine(proxy, bus)
              le.start()
-             de = new env.map.dashboard.DashboardEngine(proxy, bus);
+             de = new env.map.dashboard.DashboardEngine(proxy, bus)
              de.start()
-             qe = new env.map.query.QueryEngine(proxy, bus, me.display.map);
+             qe = new env.map.query.QueryEngine(proxy, bus, me.display.map)
              qe.start()
+             lge = new env.map.legend.LegendEngine(proxy, bus)
+             lge.start()
           });
           {% else %}
           env = mol(function(env) {
@@ -98,7 +104,7 @@
 	         se.start(null)
 	         te = new env.map.tiles.TileEngine(proxy, bus, me.display.map)
 	         te.start()
-	         le = new env.map.layers.LayerEngine(proxy, bus)
+	         le = new env.map.layers.LayerEngine(proxy, bus, me.display.map)
 	         le.start()
 	         re = new env.map.results.ResultsEngine(proxy, bus)
 	         re.start()
@@ -110,6 +116,8 @@
              de.start()
              qe = new env.map.query.QueryEngine(proxy, bus, me.display.map);
              qe.start()
+             lge = new env.map.legend.LegendEngine(proxy, bus)
+             lge.start()
           });
           {% endif %}
       });

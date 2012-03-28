@@ -8,17 +8,9 @@ mol.modules.map.legend = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.map = map;
-                //this.sql = "" +
-                        "SET STATEMENT_TIMEOUT TO 0;" +
-                        "SELECT DISTINCT scientificname " +
-                        "FROM polygons " +
-                        "WHERE ST_DWithin(the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " +
-                        //"WHERE ST_DWithin(the_geom,ST_PointFromText('POINT({0})',4326),0.1) " +
-                        " {2} ORDER BY scientificname";
-
         },
         start : function() {
-            this.addQueryDisplay();
+            this.addLegendDisplay();
             this.addEventHandlers();
         },
         /*
@@ -27,15 +19,37 @@ mol.modules.map.legend = function(mol) {
         addLegendDisplay : function() {
                 var params = {
                     display: null,
-                    slot: mol.map.ControlDisplay.Slot.LAST,
+                    slot: mol.map.ControlDisplay.Slot.TOP,
                     position: google.maps.ControlPosition.RIGHT_BOTTOM
                  };
-                this.display = new mol.map.QueryDisplay();
+                this.display = new mol.map.LegendDisplay();
                 params.display = this.display;
                 this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
         },
         addEventHandlers : function () {
             var self = this;
+            /**
+             * Callback that toggles the search display visibility. The
+             * event is expected to have the following properties:
+             *
+             *   event.visible - true to show the display, false to hide it.
+             *
+             * @param event mol.bus.Event
+             */
+             this.bus.addHandler(
+                'legend-display-toggle',
+                function(event) {
+                    var params = {},
+                        e = null;
+
+                    if (event.visible === undefined) {
+                        self.display.toggle();
+                        params = {visible: self.display.is(':visible')};
+                    } else {
+                        self.display.toggle(event.visible);
+                    }
+                }
+            );
         }
     }
     );
@@ -46,16 +60,15 @@ mol.modules.map.legend = function(mol) {
             var className = 'mol-Map-LegendDisplay',
                 html = '' +
                         '<div class="' + className + ' widgetTheme">' +
-                        '   <ul>' +
-                        '       <li></li>' +
-                        '' +
+                        '       Seasonality Key' +
+                        '       <div class="legendRow"><div class="seasonality1 legendItem"></div> Resident</div>' +
+                        '       <div class="legendRow"><div class="seasonality2 legendItem"></div> Breeding Season</div>' +
+                        '       <div class="legendRow"><div class="seasonality3 legendItem"></div> Non-breeding Season</div>' +
+                        '       <div class="legendRow"><div class="seasonality4 legendItem"></div> Passage</div>' +
+                        '       <div class="legendRow"><div class="seasonality5 legendItem"></div> Seasonality Uncertain</div>' +
                         '</div>';
 
             this._super(html);
-            this.resultslist=$(this).find('.resultslist');
-            this.radiusInput=$(this).find('.radius');
-            $(this.radiusInput).numeric({negative : false, decimal : false});
-            this.classInput=$(this).find('.class');
         }
     }
    );
