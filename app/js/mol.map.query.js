@@ -9,11 +9,23 @@ mol.modules.map.query = function(mol) {
                 this.bus = bus;
                 this.map = map;
                 this.sql = "" +
-                        "SELECT DISTINCT p.scientificname as scientificname, t.common_names_eng as english, t._order as order, t.Family as family, t.red_list_status as redlist, CASE WHEN t.class is not null THEN CONCAT('The ', initcap(t.class), ' class was assessed in ', t.year_assessed, '. ') ELSE '' END as year_assessed " +
-                        "FROM polygons p LEFT JOIN master_taxonomy t ON p.scientificname = t.scientific " +
-                        "WHERE ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " +
-                        //"WHERE ST_DWithin(the_geom,ST_PointFromText('POINT({0})',4326),0.1) " +
-                        " {2} ORDER BY \"order\", scientificname";
+                        "SELECT DISTINCT "+
+                        "   p.scientificname as scientificname, "+
+                        "   t.common_names_eng as english, "+
+                        "   t._order as order, " +
+                        "   t.Family as family, " +
+                        "   t.red_list_status as redlist, " +
+                        "   t.class as className, " +
+                        "   p.type as type, " +
+                        "   p.provider as provider, " +
+                        "   t.year_assessed as year_assessed " +
+                        "FROM polygons p " +
+                        "LEFT JOIN (SELECT scientific, string_agg(common_names_eng, ',') as common_names_eng, MIN(class) as class, MIN(_order) as _order, MIN(family) as family, string_agg(red_list_status,',') as red_list_status, string_agg(year_assessed,',') as year_assessed  from master_taxonomy group by scientific) t " +
+                        "ON p.scientificname = t.scientific " +
+                        "WHERE " +
+                        "   ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " + //radius test
+                        "   {2} " + //other constraints
+                        "ORDER BY \"order\", scientificname";
 
         },
         start : function() {
@@ -99,71 +111,94 @@ mol.modules.map.query = function(mol) {
                         className,
                         typeName,
                         typeStr,
+                        tablerows = [],
+                        providers = [],
                         content,
-                        scientificnames = [],
+                        scientificnames = {},
+                        years = [],
                         infoWindow,
                         latHem,
                         lngHem,
                         redlistCt = {},
-                        yearassessed = {},
+                        speciestotal = 0,
                         speciesthreatened = 0,
                         speciesdd = 0,
                         infoDiv;
 
                     if(!event.response.error) {
-                            className = (event.className != "All") ? event.className.toLowerCase() : "",
+                            className = (event.className != "All") ? event.className + ' ' : "",
                             typeName = event.typeName,
                             typeStr = '';
 
-                        typeStr = ' with ' + typeName.replace(/maps/i, '').toLowerCase() + ' maps ';
-                        latHem = (listradius.center.lat() > 0) ? 'North' : 'South';
-                        lngHem = (listradius.center.lng() > 0) ? 'East' : 'West';
+                        typeStr = typeName.replace(/maps/i, '').toLowerCase() + ' maps ';
+                        latHem = (listradius.center.lat() > 0) ? 'N' : 'S';
+                        lngHem = (listradius.center.lng() > 0) ? 'E' : 'W';
 
-                        contentHeader='<div class="mol-Map-ListQueryInfoWindow">' +
-                                '   <div> ' +
-                                event.response.total_rows +
-                                '       ' +
-                                className +
-                                '       species ' +
-                                typeStr +
-                                '       found within ' +
-                                listradius.radius/1000 + ' km of ' +
-                                Math.abs(Math.round(listradius.center.lat()*1000)/1000) + '&deg;&nbsp;' + latHem + '&nbsp;' +
-                                Math.abs(Math.round(listradius.center.lng()*1000)/1000) + '&deg;&nbsp;' + lngHem + '<br>';
 
-                        content = '   </div>'+
-                                '   <div>' +
-                                '       <table class="tablesorter">' +
-                                '           <thead><tr><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>Red List Status</th></tr></thead><tbody>';
+
                         _.each(
-                            event.response.rows,
-                            function(name) {
-                                 content += "<tr><td class='scientificname' >" +
-                                    name.scientificname + "</td><td>" +
-                                    name.english + "</td><td>" +
-                                    name.order + "</td><td>" +
-                                    name.family + "</td><td>" +
-                                    name.redlist + "</td></tr>";
+                           event.response.rows,
+                            function(row) {
+                                    var english = (row.english != null) ? _.uniq(row.english.split(',')).join(',') : '',
+                                        year = (row.year_assessed != null) ? _.uniq(row.year_assessed.split(',')).join(',') : '',
+                                        redlist = (row.redlist != null) ? _.uniq(row.redlist.split(',')).join(',') : '';
 
-                                 speciesthreatened += (name.redlist == 'RN' || name.redlist == 'VU' || name.redlist == 'CR' )  ? 1 : 0;
-                                 speciesdd += (name.redlist == 'DD')  ? 1 : 0;
-                                 yearassessed[name.year_assessed] = name.year_assessed;
+                                    tablerows.push("<tr><td class='scientificname' >" +
+                                        row.scientificname + "</td><td class='english'>" +
+                                        english + "</td><td>" +
+                                        row.order + "</td><td>" +
+                                        row.family + "</td><td>" +
+                                        row.redlist + "</td></tr>");
+                                    providers.push(row.type.charAt(0).toUpperCase()+row.type.substr(1,row.type.length) + ' maps/' + row.provider);
+                                    if (year != null && year != '') {
+                                        years.push(year)
+                                    }
+                                    scientificnames[row.scientificname]=redlist;
                             }
                         );
-                        content += '        <tbody>' +
-                                   '    </table></div>' +
-                                   '</div>';
 
-                        stats = (speciesthreatened > 0) ? (speciesthreatened+" species are threatened (IUCN Red List codes RN, VU, or CR).<br>") : "";
-                        stats += (speciesdd > 0) ? (speciesdd+" species are data deficient (IUCN Red LIst code DD).<br>") : "";
+                        tablerows = _.uniq(tablerows);
+                        providers = _.uniq(providers);
+
+                        years = _.sortBy(_.uniq(years), function(val) {return val});
+                        years[years.length-1] = (years.length > 1) ? ' and '+years[years.length-1] : years[years.length-1];
+
                         _.each(
-                            yearassessed,
-                            function(yearstr) {
-                                stats+=yearstr + '<br>';
+                            scientificnames,
+                            function(red_list_status) {
+                                speciestotal++;
+                                speciesthreatened += ((red_list_status.indexOf('RN')>=0) || (red_list_status.indexOf('VU')>=0) || (red_list_status.indexOf('CR')>=0) )  ? 1 : 0;
+                                speciesdd += (red_list_status.indexOf('DD')>0)  ? 1 : 0;
                             }
                         )
+
+                        stats = (speciesthreatened > 0) ? ('('+speciesthreatened+' considered threatened by <a href="http://www.iucnredlist.org" target="_iucn">IUCN</a> '+years.join(',')+')') : '';
+
+
+                        content=$('<div class="mol-Map-ListQueryInfoWindow">' +
+                                '   <div> ' +
+                                        (className + 'species ').charAt(0).toUpperCase() + (className + 'species ').substr(1,(className + ' species ').length) +
+                                        listradius.radius/1000 + ' km around ' +
+                                        Math.abs(Math.round(listradius.center.lat()*1000)/1000) + '&deg;&nbsp;' + latHem + '&nbsp;' +
+                                        Math.abs(Math.round(listradius.center.lng()*1000)/1000) + '&deg;&nbsp;' + lngHem + ':<br>' +
+                                        speciestotal + ' '+
+                                        stats +
+                                       '<br>' +
+                                       'Data type/source:&nbsp;' + providers.join(', ') +
+                                '   </div> ' +
+                                '   <div> ' +
+                                '       <table class="tablesorter">' +
+                                '           <thead><tr><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>Red List Status</th></tr></thead>' +
+                                '           <tbody>' +
+                                                tablerows.join('') +
+                                '           </tbody>' +
+                                '       </table>' +
+                                '   </div>' +
+                                '</div>');
+                        // stats += (speciesdd > 0) ? (speciesdd+" species are considereddata deficient (IUCN Red LIst code DD).<br>") : "";
+
                         infoWindow= new google.maps.InfoWindow( {
-                            content: $(contentHeader+stats+content)[0],
+                            content: content[0],
                             position: listradius.center
                         });
 
