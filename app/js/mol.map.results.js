@@ -89,10 +89,14 @@ mol.modules.map.results = function(mol) {
                 this.bus.addHandler(
                     'results-display-toggle',
                     function(event) {
-                        if (event.visible === undefined) {
-                            self.display.toggle();
+                        if(self.results == undefined) {
+                            self.display.toggle(false);
                         } else {
-                            self.display.toggle(event.visible);
+                            if (event.visible === undefined) {
+                                self.display.toggle();
+                            } else {
+                                self.display.toggle(event.visible);
+                            }
                         }
                     }
                 );
