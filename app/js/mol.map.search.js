@@ -123,6 +123,10 @@ mol.modules.map.search = function(mol) {
                     function(event) {
                         if (event.term != undefined) {
                             self.search(event.term);
+                            if(self.display.searchBox.val()=='') {
+                                self.display.searchBox.val(event.term)
+                            }
+
                         }
                    }
                );
