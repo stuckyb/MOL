@@ -122,7 +122,11 @@ mol.modules.map.search = function(mol) {
                     'search',
                     function(event) {
                         if (event.term != undefined) {
+                            if(!self.display.is(':visible')) {
+                                self.bus.fireEvent(new mol.bus.Event('search-display-toggle',{visible : true}));
+                            }
                             self.search(event.term);
+
                             if(self.display.searchBox.val()=='') {
                                 self.display.searchBox.val(event.term)
                             }
