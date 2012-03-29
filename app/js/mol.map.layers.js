@@ -26,7 +26,7 @@ mol.modules.map.layers = function(mol) {
              */
             addEventHandlers: function() {
                 var self = this;
-                
+
                 this.bus.addHandler(
                     'layer-opacity',
                     function(event) {
@@ -35,15 +35,15 @@ mol.modules.map.layers = function(mol) {
                             opacity = event.opacity,
                             params = {},
                             e = null;
-                            
+
                         if (opacity === undefined) {
                             params = {
                                 layer: layer,
                                 opacity: parseFloat(l.find('.opacity').val())
-                            },                    
-                            e = new mol.bus.Event('layer-opacity', params);                    
-                            self.bus.fireEvent(e);                            
-                        }                        
+                            },
+                            e = new mol.bus.Event('layer-opacity', params);
+                            self.bus.fireEvent(e);
+                        }
                     }
                 );
 
@@ -91,29 +91,29 @@ mol.modules.map.layers = function(mol) {
 
                 this.bus.fireEvent(event);
             },
-            
+
             /**
-             * Sorts layers so that they're grouped by name. Within each named  
-             * group, they are sorted by type: points, protectedarea, range, 
+             * Sorts layers so that they're grouped by name. Within each named
+             * group, they are sorted by type: points, protectedarea, range,
              * ecoregion.
-             * 
+             *
              * @layers array of layer objects {name, type}
              */
-            sortLayers: function(layers) {                
+            sortLayers: function(layers) {
                 var sorted = [],
                     names_map = {};
-                
+
                 _.sortBy( // Layer names sorted alphabetically.
-                    _.each(layers, 
+                    _.each(layers,
                           function(layer) {
                               names_map[layer.name] = layer.name; // Gather unique names.
                           })
                 );
-                
+
                 _.each(_.keys(names_map),
                        function(name) {
                            var group = _.groupBy(_.groupBy(layers, "name")[name], "type");
-                           
+
                            _.each(
                                ['points', 'protectedarea', 'range', 'ecoregion'],
                                function(type) {
@@ -123,13 +123,13 @@ mol.modules.map.layers = function(mol) {
                                }
                            );
                        });
-                
+
                 return sorted;
-                
+
             },
-            
+
             /**
-             * Handler for layer opacity changes via UI. It fires a layer-opacity 
+             * Handler for layer opacity changes via UI. It fires a layer-opacity
              * event on the bus, passing in the layer object and its opacity.
              */
             opacityHandler: function(layer, l) {
@@ -139,15 +139,15 @@ mol.modules.map.layers = function(mol) {
 
                     params = {
                         layer: layer,
-                        opacity: parseFloat(l.opacity.val())
+                        opacity: parseFloat(l.opacity.slider("value"))
                     },
-                    
+
                     e = new mol.bus.Event('layer-opacity', params);
-                    
+
                     self.bus.fireEvent(e);
                 };
             },
-            
+
             /**
              * Adds layer widgets to the map. The layers parameter is an array
              * of layer objects {id, name, type, source}.
@@ -156,19 +156,19 @@ mol.modules.map.layers = function(mol) {
                 var all = [],
                     layerIds = [],
                     sortedLayers = this.sortLayers(layers);
-                
+
                 _.each(
                     sortedLayers,
                     function(layer) {
                         var l = this.display.addLayer(layer),
                             self = this,
                             opacity = null;
-                        
+
                         self.bus.fireEvent(new mol.bus.Event('show-layer-display-toggle'));
-        
+
                         // Set initial opacity based on layer type.
                         switch (layer.type) {
-                        case 'points':                                    
+                        case 'points':
                             opacity = 1.0;
                             break;
                         case 'ecoregion':
@@ -180,15 +180,15 @@ mol.modules.map.layers = function(mol) {
                         case 'range':
                             opacity = .5;
                             break;
-                        }                        
-                        
+                        }
+
                         // Hack so that at the end we can fire opacity event with all layers.
                         all.push({layer:layer, l:l, opacity:opacity});
 
                         // Opacity slider change handler.
-                        l.opacity.change(self.opacityHandler(layer, l));
-                        l.opacity.val(opacity);
-                        
+                        l.opacity.bind("slide",self.opacityHandler(layer, l));
+                        l.opacity.slider("value",opacity);
+
                         // Close handler for x button fires a 'remove-layers' event.
                         l.close.click(
                             function(event) {
@@ -196,7 +196,7 @@ mol.modules.map.layers = function(mol) {
                                       layers: [layer]
                                     },
                                     e = new mol.bus.Event('remove-layers', params);
-                                
+
                                 self.bus.fireEvent(e);
                                 l.remove();
                                 // Hide the layer widge toggle in the main menu if no layers exist
@@ -240,7 +240,7 @@ mol.modules.map.layers = function(mol) {
                     },
                     this
                 );
-                
+
                 // All of this stuff ensures layer orders are correct on map.
                 layerIds = _.map(
                     sortedLayers,
@@ -249,12 +249,12 @@ mol.modules.map.layers = function(mol) {
                     },
                     this);
                 this.bus.fireEvent(new mol.bus.Event('reorder-layers', {layers:layerIds}));
-                
+
                 // And this stuff ensures correct initial layer opacities on the map.
                 _.each(
-                    all.reverse(), // Reverse so that layers on top get rendered on top. 
+                    all.reverse(), // Reverse so that layers on top get rendered on top.
                     function(item) {
-                        this.opacityHandler(item.layer, item.l)(); 
+                        this.opacityHandler(item.layer, item.l)();
                     },
                     this
                 );
@@ -309,17 +309,13 @@ mol.modules.map.layers = function(mol) {
                     '        <input class="toggle" type="checkbox">' +
                     '        <span class="customCheck"></span> ' +
                     '    </div>' +
-                    '    <input type="range" class="opacity" min="0" max="1.0" step=".01" />' +
+                    '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
                     '</li>';
 
                 this._super(html.format(layer.source, layer.type, layer.name));
                 this.attr('id', layer.id);
-                this.opacity = $(this).find('.opacity');
-                /* IE8 Doesnt support sliders */
-                //if(this.opacity[0].type == "text") {
-                //    $(this.opacity[0]).hide();
-               // }
+                this.opacity = $(this).find('.opacity').slider({value: 0.5, min: 0, max:1, step: 0.02, animate:"slow"});
                 this.toggle = $(this).find('.toggle');
                 this.zoom = $(this).find('.zoom');
                 this.info = $(this).find('.info');

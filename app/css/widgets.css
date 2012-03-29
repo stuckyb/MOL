@@ -261,7 +261,7 @@ button:hover{
     height: 20px;
     float: right;
     position: relative;
-    margin-right: 5px;
+    margin-right: 10px;
 }
 
 .mol-LayerControl-Layers .layer .toggle {
@@ -315,14 +315,22 @@ button:hover{
     height: 24px;
 }
 
-.mol-LayerControl-Layers .layer .opacity {
+.mol-LayerControl-Layers .layer .opacityContainer {
     float: right;
     position: relative;
     width: 20%;
-    font-style: italic;
-    font-size: 1.2em;
     height: 24px;
     margin-right: 35px;
+}
+.mol-LayerControl-Layers .layer .opacity  {
+    position: absolute;
+    top: 50%;
+    width: 100%;
+    height: 3px;
+}
+.mol-LayerControl-Layers .layer .opacity .ui-slider-handle {
+    width: 8px;
+    height: 11px;
 }
 
 .mol-LayerControl-Layers .layer .zoom {
@@ -741,19 +749,24 @@ button:hover{
      font-size: 12px;
      font-style:normal;
      font-weight:normal;
-     max-height:250px;
+     height:100px;
      width:650px;
-     overflow-y:scroll;
-     overflow-x:hidden;
+     overflow:auto;
      margin:5px
 }
-.mol-Map-ListQueryInfoWindow .scientificname{
+.mol-Map-ListQueryInfoWindow td{
         cursor: pointer;
  }
 .mol-Map-ListQueryInfoWindow .english{
         max-width: 150px;
         overflow: hidden;
         text-overflow:ellipsis;
+ }
+ .mol-Map-ListQueryEmptyInfoWindow {
+     margin:5px;
+     font-size: 14px;
+     font-style:normal;
+     font-weight:normal;
  }
 
 .mol-Map-LegendDisplay {
