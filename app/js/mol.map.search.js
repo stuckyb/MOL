@@ -43,6 +43,11 @@ mol.modules.map.search = function(mol) {
 
                     item.label = kind === 'sci' ? sci : eng;
                     item.value = name;
+                    if(kind == 'sci') {
+                        item.type = 'scientificname';
+                    } else {
+                        item.type =  'vernacularname';
+                    }
 
                     item.label = item.label.replace(
                         new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
@@ -70,7 +75,12 @@ mol.modules.map.search = function(mol) {
                                     key: 'acn-{0}'.format(request.term)
                                 },
                                 function(names) {
-                                    response(names);
+                                    response(
+                                        _.sortBy(names,  // Alphabetical sort.
+                                                 function(x) {
+                                                     return x;
+                                                 })
+                                    );
                                 }
                             );
                         },
@@ -108,7 +118,14 @@ mol.modules.map.search = function(mol) {
                         self.bus.fireEvent(e);
                     }
                 );
-
+                this.bus.addHandler(
+                    'search',
+                    function(event) {
+                        if (event.term != undefined) {
+                            self.search(event.term);
+                        }
+                   }
+               );
                 /**
                  * Clicking the go button executes a search.
                  */

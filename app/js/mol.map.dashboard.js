@@ -74,12 +74,12 @@ mol.modules.map.dashboard = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: false,
-					         width: 800,
-					         buttons: {
+					    width: 800
+					         /*buttons: {
 						          "Ok": function() {
 							           $(this).dialog("close");
 						          }
-					         }
+					         }*/
                     }
                 );
             }

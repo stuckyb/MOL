@@ -361,11 +361,10 @@ mol.modules.map.results = function(mol) {
                     function(layer) {
                         var id = layer.id,
                             name = layer.name,
-                            result = new mol.map.results.ResultDisplay(name, id);
-                            result.sourcePng[0].src = 'static/maps/search/'+layer.source.replace(/ /g,"_")+'.png';
-                            result.sourcePng[0].title = 'Layer Source: ' + layer.source;
-                            result.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
-                            result.typePng[0].title = 'Layer Type: ' + layer.type;
+                            source = layer.source,
+                            type = layer.type,
+                            result = new mol.map.results.ResultDisplay(name, id, source, type);
+
                         this.resultList.append(result);
                         return result;
                     },
@@ -431,14 +430,14 @@ mol.modules.map.results = function(mol) {
      */
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
-            init: function(name, id) {
+            init: function(name, id, source, type) {
                 var html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
-                    '<div class="resultSource"><button><img class="source" src=""></button></div>' +
-                    '<div class="resultType" ><button ><img class="type" src=""></button></div>' +
-                    '<div class="resultName">{1}' +
-                    '  <div class="resultNomial" ></div>' +
+                    '<div class="resultSource"><button><img class="source" title="Layer Source: {2}" src="/static/maps/search/{2}.png"></button></div>' +
+                    '<div class="resultType" ><button ><img class="type" title="Layer Type: {3}" src="/static/maps/search/{3}.png"></button></div>' +
+                    '<div class="resultName">' +
+                    '  <div class="resultNomial">{1}</div>' +
                     '  <div class="resultAuthor"></div>' +
                     '</div>' +
                     '<div class="buttonContainer"> ' +
@@ -449,7 +448,7 @@ mol.modules.map.results = function(mol) {
                     '<div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(id, name));
+                this._super(html.format(id, name, source, type));
 
                 this.infoLink = $(this).find('.info');
                 this.nameBox = $(this).find('.resultName');

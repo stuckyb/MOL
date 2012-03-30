@@ -28,6 +28,28 @@ mol.modules.map.legend = function(mol) {
         },
         addEventHandlers : function () {
             var self = this;
+            /**
+             * Callback that toggles the search display visibility. The
+             * event is expected to have the following properties:
+             *
+             *   event.visible - true to show the display, false to hide it.
+             *
+             * @param event mol.bus.Event
+             */
+             this.bus.addHandler(
+                'legend-display-toggle',
+                function(event) {
+                    var params = {},
+                        e = null;
+
+                    if (event.visible === undefined) {
+                        self.display.toggle();
+                        params = {visible: self.display.is(':visible')};
+                    } else {
+                        self.display.toggle(event.visible);
+                    }
+                }
+            );
         }
     }
     );

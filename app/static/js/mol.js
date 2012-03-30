@@ -80,9 +80,9 @@ mol.modules.core = function(mol) {
      * Retunrs a layer id string given a layer {name, type, source}.
      */
     mol.core.getLayerId = function(layer) {
-        var name = $.trim(layer.name).replace(/ /g, "_"),
-            type = $.trim(layer.type).replace(/ /g, "_"),
-            source = $.trim(layer.source).replace(/ /g, "_");
+        var name = $.trim(layer.name.toLowerCase()).replace(/ /g, "_"),
+            type = $.trim(layer.type.toLowerCase()).replace(/ /g, "_"),
+            source = $.trim(layer.source.toLowerCase()).replace(/ /g, "_");
 
         return 'layer-{0}-{1}-{2}'.format(name, type, source);
     };
@@ -95,6 +95,10 @@ mol.modules.core = function(mol) {
             name = tokens[1].replace(/_/g, " "),
             type = tokens[2].replace(/_/g, " "),
             source = tokens[3].replace(/_/g, " ");
+
+        name = name.charAt(0).toUpperCase()+name.slice(1).toLowerCase();
+        source = source.toLowerCase();
+        type = type.toLowerCase();
 
         return {
             id: id,
@@ -301,25 +305,25 @@ mol.modules.mvp = function(mol) {
     );
 };
 mol.modules.services.cartodb = function(mol) {
-    
+
     mol.services.cartodb = {};
-    
+
     mol.services.cartodb.SqlApi = Class.extend(
         {
             init: function(user, host) {
                 this.user = user;
                 this.host = host;
-                this.url = 'https://{0}.{1}/api/v2/sql?q={2}';  
+                this.url = 'https://{0}.{1}/api/v2/sql?q={2}';
                 this.cache = '/cache/get';
             },
 
-            query: function(key, sql, callback) {                
+            query: function(key, sql, callback) {
                   var data = {
                           key: key,
                           sql: sql
                       },
                       xhr = $.post(this.cache, data);
-                
+
                 xhr.success(
                     function(response) {
                         callback.success(response);
@@ -334,35 +338,35 @@ mol.modules.services.cartodb = function(mol) {
             }
         }
     );
-    
+
     mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi('mol', 'cartodb.com');
-    
+
     mol.services.cartodb.query = function(key, sql, callback) {
         mol.services.cartodb.sqlApi.query(key, sql, callback);
     };
 
     /**
      * Converts a CartoDB SQL response to a search profile response.
-     * 
+     *
      */
-    mol.services.cartodb.Converter = Class.extend(    
+    mol.services.cartodb.Converter = Class.extend(
         {
             init: function() {
             },
-            
+
             convert: function(response) {
                 this.response = response;
                 return {
 
-                    "layers": this.getLayers(this.response), 
-                    "names": this.genNames(this.response), 
-                    "sources": this.genSources(this.response), 
+                    "layers": this.getLayers(this.response),
+                    "names": this.genNames(this.response),
+                    "sources": this.genSources(this.response),
                     "types": this.genTypes(this.response)
                 };
             },
 
             /**
-             * Returns an array of unique values in the response. Key value is 
+             * Returns an array of unique values in the response. Key value is
              * name, source, or type.
              */
             uniques: function(key, response) {
@@ -388,58 +392,58 @@ mol.modules.services.cartodb = function(mol) {
 
             /**
              * Returns the top level names profile object.
-             *  
+             *
              * {"name": "types":[], "sources":[], "layers":[]}
-             * 
+             *
              */
             genNames: function(response) {
                 var names = this.uniques('name', response),
                 name = null,
                 profile = {};
-                
+
                 for (i in names) {
                     name = names[i];
                     profile[name] = this.getNameProfile(name, response);
                 }
-                
+
                 return profile;
             },
-            
+
             /**
              * Returns the top level types profile object.
-             *  
+             *
              * {"type": "names":[], "sources":[], "layers":[]}
-             * 
+             *
              */
             genTypes: function(response) {
                 var types = this.uniques('type', response),
                 type = null,
                 profile = {};
-                
+
                 for (i in types) {
                     type = types[i];
                     profile[type] = this.getTypeProfile(type, response);
                 }
-                
+
                 return profile;
             },
 
             /**
              * Returns the top level source profile object.
-             *  
+             *
              * {"source": "names":[], "types":[], "layers":[]}
-             * 
+             *
              */
             genSources: function(response) {
                 var sources = this.uniques('source', response),
                 source = null,
                 profile = {};
-                
+
                 for (i in sources) {
                     source = sources[i];
                     profile[source] = this.getSourceProfile(source, response);
                 }
-                
+
                 return profile;
             },
 
@@ -451,7 +455,7 @@ mol.modules.services.cartodb = function(mol) {
                 sources = [],
                 types = [],
                 row = null;
-                
+
                 for (i in response.rows) {
                     row = response.rows[i];
                     if (name === row.name) {
@@ -475,7 +479,7 @@ mol.modules.services.cartodb = function(mol) {
                 names = [],
                 types = [],
                 row = null;
-                
+
                 for (i in response.rows) {
                     row = response.rows[i];
                     if (source === row.source) {
@@ -499,7 +503,7 @@ mol.modules.services.cartodb = function(mol) {
                 sources = [],
                 names = [],
                 row = null;
-                
+
                 for (i in response.rows) {
                     row = response.rows[i];
                     if (type === row.type) {
@@ -514,7 +518,7 @@ mol.modules.services.cartodb = function(mol) {
                     "names": _.uniq(names)
                 };
             },
-            
+
             /**
              * Returns the layers profile.
              */
@@ -528,9 +532,9 @@ mol.modules.services.cartodb = function(mol) {
                     row = rows[i];
                     key = i + '';
                     layers[key] = {
-                        name: row.name,
-                        source: row.source,
-                        type: row.type
+                        name: row.name.charAt(0).toUpperCase()+row.name.slice(1).toLowerCase(),
+                        source: row.source.toLowerCase(),
+                        type: row.type.toLowerCase()
                         //extent: this.getExtent(row.extent)
                     };
                 }
@@ -540,19 +544,19 @@ mol.modules.services.cartodb = function(mol) {
             /**
              * Returns an array of coordinate arrays:
              * [[1, 2], ...]
-             *  
+             *
              * @param polygon POLYGON((34.073597 36.393648,34.073597 36.467531,
              *                         34.140662 36.467531,34.140662 36.393648,
              *                         34.073597 36.393648))
              */
             getExtent: function(polygon) {
                 return _.map(
-                    polygon.split('POLYGON((')[1].split('))')[0].split(','), 
+                    polygon.split('POLYGON((')[1].split('))')[0].split(','),
                     function(x) {
-                        var pair = x.split(' '); 
+                        var pair = x.split(' ');
                         return [parseFloat(pair[0]), parseFloat(pair[1])];
                     }
-                );                
+                );
             }
         }
     );
@@ -836,30 +840,65 @@ mol.modules.map = function(mol) {
                     center: new google.maps.LatLng(0,0),
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     styles: [
-                        {
-                            "featureType":"all",
-                            "elementType":"all",
-                            "stylers":[
-                                {
-                                    "lightness":43
-                                },
-                                {
-                                    "visibility":"simplified"
-                                },
-                                {
-                                    "saturation":-59
-                                }
-                            ]
-                        },
-                        {
-                            "elementType":"labels",
-                            "stylers":[
-                                {
-                                    "visibility":"on"
-                                }
-                            ]
-                        }
-
+                      {
+                        featureType: "administrative",
+                        stylers: [
+                          { visibility: "simplified" }
+                        ]
+                      },
+                      {
+                        featureType: "administrative.locality",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },
+                      {
+                        featureType: "landscape",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },
+                      {
+                        featureType: "road",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },
+                      {
+                        featureType: "poi",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "water",
+                        stylers: [
+                          { visibility: "on" },
+                          { saturation: -65 },
+                          { lightness: -15 },
+                          { gamma: 0.83 }
+                        ]
+                      },
+                      {
+                        featureType: "transit",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "administrative",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "administrative.country",
+                        stylers: [
+                          { visibility: "on" }
+                        ]
+                      },{
+                        featureType: "administrative.province",
+                       stylers: [
+                          { visibility: "on" }
+                        ]
+                      }
                     ]
                 };
 
@@ -1033,14 +1072,34 @@ mol.modules.map.layers = function(mol) {
             },
 
             /**
-             * Handles an 'add-layers' event by adding them to the layer list.
-             * The event is expected to have a property named 'layers' which
-             * is an arry of layer objects, each with a 'name' and 'type' property.
-             * This function ignores layers that are already represented
-             * as widgets.
+             * Handler a layer-opacity event. This handler only does something
+             * when the event.opacity is undefined. This is to support layer
+             * toggling with opacity only (instead of removing overlays from
+             * the map). In this case, the opacity from the layer widget is
+             * bubbled to a new layer-opacity event that gets fired on the bus.
              */
             addEventHandlers: function() {
                 var self = this;
+                
+                this.bus.addHandler(
+                    'layer-opacity',
+                    function(event) {
+                        var layer = event.layer,
+                            l = self.display.getLayer(layer),
+                            opacity = event.opacity,
+                            params = {},
+                            e = null;
+                            
+                        if (opacity === undefined) {
+                            params = {
+                                layer: layer,
+                                opacity: parseFloat(l.find('.opacity').val())
+                            },                    
+                            e = new mol.bus.Event('layer-opacity', params);                    
+                            self.bus.fireEvent(e);                            
+                        }                        
+                    }
+                );
 
                 this.bus.addHandler(
                     'add-layers',
@@ -1086,43 +1145,112 @@ mol.modules.map.layers = function(mol) {
 
                 this.bus.fireEvent(event);
             },
+            
+            /**
+             * Sorts layers so that they're grouped by name. Within each named  
+             * group, they are sorted by type: points, protectedarea, range, 
+             * ecoregion.
+             * 
+             * @layers array of layer objects {name, type}
+             */
+            sortLayers: function(layers) {                
+                var sorted = [],
+                    names_map = {};
+                
+                _.sortBy( // Layer names sorted alphabetically.
+                    _.each(layers, 
+                          function(layer) {
+                              names_map[layer.name] = layer.name; // Gather unique names.
+                          })
+                );
+                
+                _.each(_.keys(names_map),
+                       function(name) {
+                           var group = _.groupBy(_.groupBy(layers, "name")[name], "type");
+                           
+                           _.each(
+                               ['points', 'protectedarea', 'range', 'ecoregion'],
+                               function(type) {
+                                   if (group[type]) {
+                                       sorted.push(group[type][0]);
+                                   }
+                               }
+                           );
+                       });
+                
+                return sorted;
+                
+            },
+            
+            /**
+             * Handler for layer opacity changes via UI. It fires a layer-opacity 
+             * event on the bus, passing in the layer object and its opacity.
+             */
+            opacityHandler: function(layer, l) {
+                return function(event) {
+                    var params = {},
+                        e = null;
 
+                    params = {
+                        layer: layer,
+                        opacity: parseFloat(l.opacity.val())
+                    },
+                    
+                    e = new mol.bus.Event('layer-opacity', params);
+                    
+                    self.bus.fireEvent(e);
+                };
+            },
+            
             /**
              * Adds layer widgets to the map. The layers parameter is an array
              * of layer objects {id, name, type, source}.
              */
             addLayers: function(layers) {
+                var all = [],
+                    layerIds = [],
+                    sortedLayers = this.sortLayers(layers);
+                
                 _.each(
-                    layers,
+                    sortedLayers,
                     function(layer) {
                         var l = this.display.addLayer(layer),
-                        self = this;
+                            self = this,
+                            opacity = null;
+                        
                         self.bus.fireEvent(new mol.bus.Event('show-layer-display-toggle'));
+        
+                        // Set initial opacity based on layer type.
+                        switch (layer.type) {
+                        case 'points':                                    
+                            opacity = 1.0;
+                            break;
+                        case 'ecoregion':
+                            opacity = .25;
+                            break;
+                        case 'protectedarea':
+                            opacity = 1.0;
+                            break;
+                        case 'range':
+                            opacity = .5;
+                            break;
+                        }                        
+                        
+                        // Hack so that at the end we can fire opacity event with all layers.
+                        all.push({layer:layer, l:l, opacity:opacity});
 
-                        if (layer.type === 'points') {
-                            l.opacity.hide();
-                        } else {
-                            // Opacity slider change handler.
-                            l.opacity.change(
-                                function(event) {
-                                    var params = {
-                                            layer: layer,
-                                            opacity: parseFloat(l.opacity.val())
-                                        },
-                                        e = new mol.bus.Event('layer-opacity', params);
-
-                                    self.bus.fireEvent(e);
-                                }
-                            );
-                        }
-
+                        // Opacity slider change handler.
+                        l.opacity.change(self.opacityHandler(layer, l));
+                        l.opacity.val(opacity);
+                        
                         // Close handler for x button fires a 'remove-layers' event.
                         l.close.click(
                             function(event) {
                                 var params = {
-                                        layers: [layer]
+                                      layers: [layer]
                                     },
                                     e = new mol.bus.Event('remove-layers', params);
+                                
                                 self.bus.fireEvent(e);
                                 l.remove();
                                 // Hide the layer widge toggle in the main menu if no layers exist
@@ -1166,6 +1294,24 @@ mol.modules.map.layers = function(mol) {
                     },
                     this
                 );
+                
+                // All of this stuff ensures layer orders are correct on map.
+                layerIds = _.map(
+                    sortedLayers,
+                    function(layer) {
+                        return layer.id;
+                    },
+                    this);
+                this.bus.fireEvent(new mol.bus.Event('reorder-layers', {layers:layerIds}));
+                
+                // And this stuff ensures correct initial layer opacities on the map.
+                _.each(
+                    all.reverse(), // Reverse so that layers on top get rendered on top. 
+                    function(item) {
+                        this.opacityHandler(item.layer, item.l)(); 
+                    },
+                    this
+                );
             },
 
 			   /**
@@ -1206,32 +1352,34 @@ mol.modules.map.layers = function(mol) {
                 var html = '' +
                     '<li class="layerContainer">' +
                     '  <div class="layer widgetTheme">' +
-                    '    <button><img class="type" src="/static/maps/search/{0}.png"></button>' +
+                    '    <button class="source" title="Layer Source: {0}"><img src="/static/maps/search/{0}.png"></button>' +
+                    '    <button class="type" title="Layer Type: {1}"><img src="/static/maps/search/{1}.png"></button>' +
                     '    <div class="layerName">' +
-                    '        <div class="layerNomial">{1}</div>' +
+                    '        <div class="layerNomial">{2}</div>' +
                     '    </div>' +
+                    '    <button class="close">x</button>' +
+                    '    <button class="zoom">z</button>' +
                     '    <div class="buttonContainer">' +
                     '        <input class="toggle" type="checkbox">' +
                     '        <span class="customCheck"></span> ' +
                     '    </div>' +
-                    '    <button class="close">x</button>' +
-                    '    <button class="zoom">z</button>' +
-                    '    <input type="range" class="opacity" min=".25" max="1.0" step=".25" />' +
+                    '    <input type="range" class="opacity" min="0" max="1.0" step=".01" />' +
                     '  </div>' +
                     '</li>';
 
-                this._super(html.format(layer.type, layer.name));
+                this._super(html.format(layer.source, layer.type, layer.name));
                 this.attr('id', layer.id);
                 this.opacity = $(this).find('.opacity');
                 /* IE8 Doesnt support sliders */
-                if(this.opacity[0].type == "text") {
-                    $(this.opacity[0]).hide();
-                }
+                //if(this.opacity[0].type == "text") {
+                //    $(this.opacity[0]).hide();
+               // }
                 this.toggle = $(this).find('.toggle');
                 this.zoom = $(this).find('.zoom');
                 this.info = $(this).find('.info');
                 this.close = $(this).find('.close');
-                this.typePng = $(this).find('.type');
+                this.type = $(this).find('.type');
+                this.source = $(this).find('.source');
             }
         }
     );
@@ -1267,10 +1415,8 @@ mol.modules.map.layers = function(mol) {
 
             addLayer: function(layer) {
                 var ld = new mol.map.layers.LayerDisplay(layer);
-                ld.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
-                ld.typePng[0].title = 'Layer Type: '+layer.type;
                 this.list.append(ld);
-				    this.layers.push(layer);
+				this.layers.push(layer);
                 return ld;
             },
 
@@ -1388,6 +1534,12 @@ mol.modules.map.menu = function(mol) {
                             new mol.bus.Event('search-display-toggle'));
                     }
                 );
+                this.display.legendItem.click(
+                    function(event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('legend-display-toggle'));
+                    }
+                );
                 this.display.speciesListItem.click(
                     function(event) {
                         self.bus.fireEvent(new mol.bus.Event('species-list-tool-toggle'));
@@ -1460,6 +1612,7 @@ mol.modules.map.menu = function(mol) {
                     '    </div>' +
                     '    <div title="Toggle taxonomy dashboard." class="widgetTheme dashboard button">Dashboard</div>' +
                     '    <div title="Toggle layer search tools." class="widgetTheme search button">Search</div>' +
+                    '    <div title="Toggle map legend." class="widgetTheme legend button">Legend</div>' +
                     '    <div title="Toggle species list radius tool (right-click to use)" class="widgetTheme list button">Species&nbsp;Lists</div>' +
                     '</div>' +
                     '<div class="mol-LayerControl-Layers">' +
@@ -1472,6 +1625,7 @@ mol.modules.map.menu = function(mol) {
 
                 this._super(html);
                 this.searchItem = $(this).find('.search');
+                this.legendItem = $(this).find('.legend');
                 this.dashboardItem = $(this).find('.dashboard');
                 this.speciesListItem = $(this).find('.list');
                 this.layersToggle = $(this).find('.layersToggle');
@@ -1846,11 +2000,10 @@ mol.modules.map.results = function(mol) {
                     function(layer) {
                         var id = layer.id,
                             name = layer.name,
-                            result = new mol.map.results.ResultDisplay(name, id);
-                            result.sourcePng[0].src = 'static/maps/search/'+layer.source.replace(/ /g,"_")+'.png';
-                            result.sourcePng[0].title = 'Layer Source: ' + layer.source;
-                            result.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
-                            result.typePng[0].title = 'Layer Type: ' + layer.type;
+                            source = layer.source,
+                            type = layer.type,
+                            result = new mol.map.results.ResultDisplay(name, id, source, type);
+
                         this.resultList.append(result);
                         return result;
                     },
@@ -1916,14 +2069,14 @@ mol.modules.map.results = function(mol) {
      */
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
-            init: function(name, id) {
+            init: function(name, id, source, type) {
                 var html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
-                    '<div class="resultSource"><button><img class="source" src=""></button></div>' +
-                    '<div class="resultType" ><button ><img class="type" src=""></button></div>' +
-                    '<div class="resultName">{1}' +
-                    '  <div class="resultNomial" ></div>' +
+                    '<div class="resultSource"><button><img class="source" title="Layer Source: {2}" src="/static/maps/search/{2}.png"></button></div>' +
+                    '<div class="resultType" ><button ><img class="type" title="Layer Type: {3}" src="/static/maps/search/{3}.png"></button></div>' +
+                    '<div class="resultName">' +
+                    '  <div class="resultNomial">{1}</div>' +
                     '  <div class="resultAuthor"></div>' +
                     '</div>' +
                     '<div class="buttonContainer"> ' +
@@ -1934,7 +2087,7 @@ mol.modules.map.results = function(mol) {
                     '<div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(id, name));
+                this._super(html.format(id, name, source, type));
 
                 this.infoLink = $(this).find('.info');
                 this.nameBox = $(this).find('.resultName');
@@ -2231,6 +2384,11 @@ mol.modules.map.search = function(mol) {
 
                     item.label = kind === 'sci' ? sci : eng;
                     item.value = name;
+                    if(kind == 'sci') {
+                        item.type = 'scientificname';
+                    } else {
+                        item.type =  'vernacularname';
+                    }
 
                     item.label = item.label.replace(
                         new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
@@ -2258,7 +2416,12 @@ mol.modules.map.search = function(mol) {
                                     key: 'acn-{0}'.format(request.term)
                                 },
                                 function(names) {
-                                    response(names);
+                                    response(
+                                        _.sortBy(names,  // Alphabetical sort.
+                                                 function(x) {
+                                                     return x;
+                                                 })
+                                    );
                                 }
                             );
                         },
@@ -2296,7 +2459,14 @@ mol.modules.map.search = function(mol) {
                         self.bus.fireEvent(e);
                     }
                 );
-
+                this.bus.addHandler(
+                    'search',
+                    function(event) {
+                        if (event.term != undefined) {
+                            self.search(event.term);
+                        }
+                   }
+               );
                 /**
                  * Clicking the go button executes a search.
                  */
@@ -2423,6 +2593,7 @@ mol.modules.map.tiles = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.map = map;
+                this.gmap_events = [];
                 this.addEventHandlers();
             },
 
@@ -2439,15 +2610,35 @@ mol.modules.map.tiles = function(mol) {
                     'layer-toggle',
                     function(event) {
                         var showing = event.showing,
-                            layer = event.layer;
+                            layer = event.layer,
+                            params = null,
+                            e = null;
 
                         if (showing) {
+                            self.map.overlayMapTypes.forEach(
+                                function(maptype, index) {
+                                    if ((maptype != undefined) && (maptype.name === layer.id)) {
+                                        params = {
+                                            layer: layer
+                                        };                                       
+                                        e = new mol.bus.Event('layer-opacity', params);                                        
+                                        self.bus.fireEvent(e);                                        
+                                        return;
+                                    }
+                                }
+                            );
                             self.renderTiles([layer]);
                         } else { // Remove layer from map.
                             self.map.overlayMapTypes.forEach(
                                 function(maptype, index) {
-                                    if (maptype !=undefined && maptype.name === layer.id) {
-                                        self.map.overlayMapTypes.removeAt(index);
+                                    if ((maptype != undefined) && (maptype.name === layer.id)) {
+                                        params = {
+                                            layer: layer,
+                                            opacity: 0
+                                        };                                       
+                                        e = new mol.bus.Event('layer-opacity', params);                                        
+                                        self.bus.fireEvent(e);                                        
+                                        //self.map.overlayMapTypes.removeAt(index);
                                     }
                                 }
                             );
@@ -2468,23 +2659,24 @@ mol.modules.map.tiles = function(mol) {
                 );
 
                 /**
-                 * Hanlder for changing layer opacity. Note that this only works
-                 * for polygon layers since point layers are rendered using image
-                 * sprites for performance. The event.opacity is a number between
-                 * 0 and 1.0 and the event.layer is an object {id, name, source, type}.
+                 * Handler for changing layer opacity. The event.opacity is a 
+                 * number between 0 and 1.0 and the event.layer is an object 
+                 * {id, name, source, type}.
                  */
                 this.bus.addHandler(
                     'layer-opacity',
                     function(event) {
                         var layer = event.layer,
                             opacity = event.opacity;
+                        
+                        if (opacity === undefined) {
+                            return;
+                        }
 
                         self.map.overlayMapTypes.forEach(
                             function(maptype, index) {
                                 if (maptype.name === layer.id) {
-                                    self.map.overlayMapTypes.removeAt(index);
-                                    layer.opacity = opacity;
-                                    self.renderTiles([layer]);
+                                    maptype.setOpacity(opacity);
                                 }
                             }
                         );
@@ -2574,8 +2766,9 @@ mol.modules.map.tiles = function(mol) {
                     function(layer) {
                         tiles.push(self.getTile(layer, self.map));
                         self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : "overlays"}));
+
                         $("img",self.map.overlayMapTypes).imagesLoaded(
-                            function(images,proper,broken) {
+                            function(images, proper, broken) {
                                 self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "overlays"}));
                             }
                          );
@@ -2623,7 +2816,7 @@ mol.modules.map.tiles = function(mol) {
 
                 switch (type) {
                 case 'points':
-                    new mol.map.tiles.CartoDbTile(layer, 'points', this.map);
+                    new mol.map.tiles.CartoDbTile(layer, 'gbif_import', this.map);
                     break;
                 case 'polygon':
                 case 'range':
@@ -2640,11 +2833,11 @@ mol.modules.map.tiles = function(mol) {
              */
 	         zoomToExtent: function(layer) {
                 var self = this,
-                    sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE scientificname='{1}'",
-                    table = layer.type === 'points' ? 'points' : 'polygons',
-                    query = sql.format(table, layer.name),
+                    points_sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE lower(scientificname)='{1}'",
+                    polygons_sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE scientificname='{1}'",
+                    table = layer.type === 'points' ? 'gbif_import' : 'polygons',
                     params = {
-                        sql: query,
+                        sql: table === 'gbif_import' ? points_sql.format(table, layer.name.toLowerCase()) : polygons_sql.format(table, layer.name),
                         key: 'extent-{0}-{1}-{2}'.format(layer.source, layer.type, layer.name)
                     },
                     action = new mol.services.Action('cartodb-sql-query', params),
@@ -2654,7 +2847,7 @@ mol.modules.map.tiles = function(mol) {
                             self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "extentquery"}));
                             return;
                         }
-                        var extent = response.rows[0].st_extent,                        
+                        var extent = response.rows[0].st_extent,
                             c = extent.replace('BOX(','').replace(')','').split(','),
                             coor1 = c[0].split(' '),
                             coor2 = c[1].split(' '),
@@ -2681,8 +2874,16 @@ mol.modules.map.tiles = function(mol) {
             init: function(layer, table, map) {
                 var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type='{2}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
-                    tile_style = opacity ? "#{0}{polygon-fill:#99cc00;polygon-opacity:{1};}".format(table, opacity) : null,
+                    tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
                     hostname = window.location.hostname;
+
+                if (layer.type === 'points') {
+                    sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator " +
+                        "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
+                    table = 'names_old';
+                } else {
+                    sql = sql.format(table, layer.name, layer.type);
+                }
 
                 hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
 
@@ -2694,7 +2895,7 @@ mol.modules.map.tiles = function(mol) {
                         map: map,
                         user_name: 'mol',
                         table_name: table,
-                        query: sql.format(table, layer.name, layer.type),
+                        query: sql,
                         tile_style: tile_style,
                         map_style: false,
                         infowindow: true,
@@ -2781,12 +2982,12 @@ mol.modules.map.dashboard = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: false,
-					         width: 800,
-					         buttons: {
+					    width: 800
+					         /*buttons: {
 						          "Ok": function() {
 							           $(this).dialog("close");
 						          }
-					         }
+					         }*/
                     }
                 );
             }
@@ -2855,12 +3056,11 @@ mol.modules.map.query = function(mol) {
                 this.bus = bus;
                 this.map = map;
                 this.sql = "" +
-                        "SET STATEMENT_TIMEOUT TO 0;" +
-                        "SELECT DISTINCT scientificname " +
-                        "FROM polygons " +
-                        "WHERE ST_DWithin(the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " +
+                        "SELECT DISTINCT p.scientificname as scientificname, t.common_names_eng as english, t._order as order, t.Family as family, t.red_list_status as redlist, CASE WHEN t.class is not null THEN CONCAT('The ', initcap(t.class), ' class was assessed in ', t.year_assessed, '. ') ELSE '' END as year_assessed " +
+                        "FROM polygons p LEFT JOIN master_taxonomy t ON p.scientificname = t.scientific " +
+                        "WHERE ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " +
                         //"WHERE ST_DWithin(the_geom,ST_PointFromText('POINT({0})',4326),0.1) " +
-                        " {2} ORDER BY scientificname";
+                        " {2} ORDER BY \"order\", scientificname";
 
         },
         start : function() {
@@ -2918,16 +3118,20 @@ mol.modules.map.query = function(mol) {
                 'species-list-query-click',
                 function (event) {
                     var listradius,
-                        constraints = $(self.display.classInput).val() + $(self.display.typeInput).val();
-                        className =  $("option:selected", $(self.display.classInput)).text();
+                        constraints = $(self.display.classInput).val() + $(self.display.typeInput).val(),
+                        className =  $("option:selected", $(self.display.classInput)).text(),
                         typeName = $("option:selected", $(self.display.typeInput)).text();
 
-                    if(self.enabled) {
-                        listradius =  new google.maps.Circle({
-                            map: event.map,
-                            radius: parseInt(self.display.radiusInput.val())*1000, // 50 km
-                            center: event.gmaps_event.latLng
-                        });
+                    if (self.enabled) {
+                        listradius = new google.maps.Circle(
+                            {
+                                map: event.map,
+                                radius: parseInt(self.display.radiusInput.val())*1000, // 50 km
+                                center: event.gmaps_event.latLng,
+                                strokeWeight: 0,
+                                clickable:false
+                            }
+                        );
                         self.bus.fireEvent( new mol.bus.Event('show-loading-indicator', {source : 'listradius'}));
                         self.getList(event.gmaps_event.latLng.lat(),event.gmaps_event.latLng.lng(),listradius, constraints, className, typeName);
                     }
@@ -2937,39 +3141,76 @@ mol.modules.map.query = function(mol) {
                 'species-list-query-results',
                 function (event) {
                     var content,
+                        contentHeader,
+                        listradius  = event.listradius,
+                        className,
+                        typeName,
+                        typeStr,
+                        content,
                         scientificnames = [],
-                        infoWindow;
-                    //self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'listradius'}));
+                        infoWindow,
+                        latHem,
+                        lngHem,
+                        redlistCt = {},
+                        yearassessed = {},
+                        speciesthreatened = 0,
+                        speciesdd = 0,
+                        infoDiv;
+
                     if(!event.response.error) {
-                        var listradius = event.listradius,
-                            className = event.className.toLowerCase(),
+                            className = (event.className != "All") ? event.className.toLowerCase() : "",
                             typeName = event.typeName,
                             typeStr = '';
 
                         typeStr = ' with ' + typeName.replace(/maps/i, '').toLowerCase() + ' maps ';
-                        //fill in the results
-                        //$(self.display.resultslist).html('');
-                        content=  event.response.total_rows +
-                                ' ' +
+                        latHem = (listradius.center.lat() > 0) ? 'North' : 'South';
+                        lngHem = (listradius.center.lng() > 0) ? 'East' : 'West';
+
+                        contentHeader='<div class="mol-Map-ListQueryInfoWindow">' +
+                                '   <div> ' +
+                                event.response.total_rows +
+                                '       ' +
                                 className +
-                                ' species ' +
+                                '       species ' +
                                 typeStr +
-                                'found within ' +
+                                '       found within ' +
                                 listradius.radius/1000 + ' km of ' +
-                                Math.round(listradius.center.lat()*1000)/1000 + '&deg; Latitude ' +
-                                Math.round(listradius.center.lng()*1000)/1000 + '&deg; Longitude' +
-                                '<div class="mol-Map-ListQueryInfoWindowResults">';
+                                Math.abs(Math.round(listradius.center.lat()*1000)/1000) + '&deg;&nbsp;' + latHem + '&nbsp;' +
+                                Math.abs(Math.round(listradius.center.lng()*1000)/1000) + '&deg;&nbsp;' + lngHem + '<br>';
+
+                        content = '   </div>'+
+                                '   <div>' +
+                                '       <table class="tablesorter">' +
+                                '           <thead><tr><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>Red List Status</th></tr></thead><tbody>';
                         _.each(
                             event.response.rows,
                             function(name) {
-                                //var result = new mol.map.QueryResultDisplay(name.scientificname);
-                                //content.append(result);
-                                scientificnames.push(name.scientificname);
+                                 content += "<tr><td class='scientificname' >" +
+                                    name.scientificname + "</td><td>" +
+                                    name.english + "</td><td>" +
+                                    name.order + "</td><td>" +
+                                    name.family + "</td><td>" +
+                                    name.redlist + "</td></tr>";
+
+                                 speciesthreatened += (name.redlist == 'RN' || name.redlist == 'VU' || name.redlist == 'CR' )  ? 1 : 0;
+                                 speciesdd += (name.redlist == 'DD')  ? 1 : 0;
+                                 yearassessed[name.year_assessed] = name.year_assessed;
                             }
                         );
+                        content += '        <tbody>' +
+                                   '    </table></div>' +
+                                   '</div>';
 
+                        stats = (speciesthreatened > 0) ? (speciesthreatened+" species are threatened (IUCN Red List codes RN, VU, or CR).<br>") : "";
+                        stats += (speciesdd > 0) ? (speciesdd+" species are data deficient (IUCN Red LIst code DD).<br>") : "";
+                        _.each(
+                            yearassessed,
+                            function(yearstr) {
+                                stats+=yearstr + '<br>';
+                            }
+                        )
                         infoWindow= new google.maps.InfoWindow( {
-                            content: content+scientificnames.join(', ')+'</div>',
+                            content: $(contentHeader+stats+content)[0],
                             position: listradius.center
                         });
 
@@ -2990,15 +3231,25 @@ mol.modules.map.query = function(mol) {
                              listradius : listradius,
                              infoWindow : infoWindow
                          };
-                        //var marker = new google.maps.Marker({
-                        //             position: self.listradius.center,
-                        //             map: self.map
-                        //});
+
                         infoWindow.open(self.map);
-                        //$(self.resultsdisplay).show();
-                    } else {
-                        //TODO -- What if nothing comes back?
-                    }
+                        $(".tablesorter", $(infoWindow.content)
+                         ).tablesorter({widthFixed: true}
+                         );
+
+                         _.each(
+                             $('.scientificname',$(infoWindow.content)),
+                             function(cell) {
+                                 cell.onclick = function(event) {
+                                     self.bus.fireEvent(new mol.bus.Event('search',{term:$(cell).text()}));
+                                 }
+                             }
+                         );
+                        } else {
+                            listradius.setMap(null);
+                            delete(self.features[listradius.center.toString()+listradius.radius]);
+                        }
+
                     self.bus.fireEvent( new mol.bus.Event('hide-loading-indicator', {source : 'listradius'}));
 
                 }
@@ -3020,8 +3271,6 @@ mol.modules.map.query = function(mol) {
                                 feature.infoWindow.setMap(self.map);
                             }
                         );
-                        //self.bus.fireEvent( new mol.bus.Event('layer-display-toggle',{visible: false}));
-                        //self.bus.fireEvent( new mol.bus.Event('search-display-toggle',{visible: true}));
                     } else {
                         $(self.display).hide();
                         _.each(
@@ -3031,9 +3280,7 @@ mol.modules.map.query = function(mol) {
                                 feature.infoWindow.setMap(null);
                             }
                         );
-                      //  self.bus.fireEvent( new mol.bus.Event('layer-display-toggle',{visible: true}));
-                        //self.bus.fireEvent( new mol.bus.Event('search-display-toggle',{visible: false}));
-                    }
+                   }
                 }
             );
             this.display.radiusInput.blur(
@@ -3059,24 +3306,27 @@ mol.modules.map.query = function(mol) {
                 html = '' +
                         '<div class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
-                        '     Search Radius (km) <input type="text" class="radius" size="5" value="50">' +
-                        '     Class <select class="class" value="and class=\'aves\' and polygonres=\'1000\'">' +
+                        '     Search Radius <select class="radius">' +
+                        '       <option selected value="50">50 km</option>' +
+                        '       <option value="100">100 km</option>' +
+                        '       <option value="500">500 km</option>' +
+                        '       <option value="1000">1000 km</option>' +
+                        '     </select>' +
+                        '     Class <select class="class" value="">' +
                         '       <option value="">All</option>' +
-                        '       <option selected value="and class=\'aves\' and polygonres=\'1000\'">Bird (coarse)</option>' +
-                        '       <option value=" and class=\'aves\' and polygonres=\'100\'">Bird (fine)</option>' +
-                        '       <option value=" and class=\' osteichthyes\'">Fish</option>' +
-                        '       <option value=" and class=\'reptilia\'">Reptile</option>' +
-                        '       <option value=" and class=\'amphibia\'">Amphibian</option>' +
-                        '       <option value=" and class=\'mammalia\'">Mammal</option>' +
+                        '       <option selected value=" and p.class=\'aves\'">Bird</option>' +
+                        '       <option value=" and p.class=\' osteichthyes\'">Fish</option>' + //note the space, leaving till we can clean up polygons
+                        '       <option value=" and p.class=\'reptilia\'">Reptile</option>' +
+                        '       <option value=" and p.class=\'amphibia\'">Amphibian</option>' +
+                        '       <option value=" and p.class=\'mammalia\'">Mammal</option>' +
                         '     </select>' +
                         '     Type <select class="type" value="">' +
                         '       <option value="">All</option>' +
-                        '       <option selected value="and type=\'range\' ">Range maps</option>' +
-                        '       <option value=" and type=\'pa\'">Protected Areas</option>' +
-                        '       <option value=" and type=\'ecoregion\'">Ecoregions</option>'
-                        '       <option value=" and type=\'point\'">Point records</option>' +
+                        '       <option selected value="and p.type=\'range\' ">Range maps</option>' +
+                        '       <option value=" and p.type=\'protectedarea\'">Protected Areas</option>' +
+                        '       <option value=" and p.type=\'ecoregion\'">Ecoregions</option>' +
+                        '       <option value=" and p.type=\'point\'">Point records</option>' +
                         '     </select>' +
-                        ''
                         '   </div>' +
                         //'   <div class="resultslist">Click on the map to find bird species within 50km of that point.</div>' +
                         '</div>';
@@ -3084,7 +3334,7 @@ mol.modules.map.query = function(mol) {
             this._super(html);
             this.resultslist=$(this).find('.resultslist');
             this.radiusInput=$(this).find('.radius');
-            $(this.radiusInput).numeric({negative : false, decimal : false});
+            //$(this.radiusInput).numeric({negative : false, decimal : false});
             this.classInput=$(this).find('.class');
             this.typeInput=$(this).find('.type');
         }
@@ -3094,15 +3344,13 @@ mol.modules.map.query = function(mol) {
     {
         init : function(scientificname) {
             var className = 'mol-Map-QueryResultDisplay',
-                //html = '<class="' + className + '">{0}</div>';
-                html = '{0}';
+                 html = '{0}';
             this._super(html.format(scientificname));
 
         }
     }
     );
-};
-mol.modules.map.legend = function(mol) {
+};mol.modules.map.legend = function(mol) {
 
     mol.map.legend = {};
 
@@ -3132,6 +3380,28 @@ mol.modules.map.legend = function(mol) {
         },
         addEventHandlers : function () {
             var self = this;
+            /**
+             * Callback that toggles the search display visibility. The
+             * event is expected to have the following properties:
+             *
+             *   event.visible - true to show the display, false to hide it.
+             *
+             * @param event mol.bus.Event
+             */
+             this.bus.addHandler(
+                'legend-display-toggle',
+                function(event) {
+                    var params = {},
+                        e = null;
+
+                    if (event.visible === undefined) {
+                        self.display.toggle();
+                        params = {visible: self.display.is(':visible')};
+                    } else {
+                        self.display.toggle(event.visible);
+                    }
+                }
+            );
         }
     }
     );
