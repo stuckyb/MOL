@@ -39,7 +39,7 @@ mol.modules.map.layers = function(mol) {
                         if (opacity === undefined) {
                             params = {
                                 layer: layer,
-                                opacity: parseFloat(l.find('.opacity').val())
+                                opacity: parseFloat(l.find('.opacity').slider("value"))
                             },
                             e = new mol.bus.Event('layer-opacity', params);
                             self.bus.fireEvent(e);
@@ -305,10 +305,10 @@ mol.modules.map.layers = function(mol) {
                     '    </div>' +
                     '    <button class="close">x</button>' +
                     '    <button class="zoom">z</button>' +
-                    '    <div class="buttonContainer">' +
-                    '        <input class="toggle" type="checkbox">' +
-                    '        <span class="customCheck"></span> ' +
-                    '    </div>' +
+                    //'    <div class="buttonContainer">' +
+                    '       <label class="buttonContainer"><input class="toggle" type="checkbox" /> <span class="customCheck"></span></label>' +
+                    //'      ' +
+                    //'    </div>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
                     '</li>';
@@ -316,7 +316,7 @@ mol.modules.map.layers = function(mol) {
                 this._super(html.format(layer.source, layer.type, layer.name));
                 this.attr('id', layer.id);
                 this.opacity = $(this).find('.opacity').slider({value: 0.5, min: 0, max:1, step: 0.02, animate:"slow"});
-                this.toggle = $(this).find('.toggle');
+                this.toggle = $(this).find('.toggle').button();
                 this.zoom = $(this).find('.zoom');
                 this.info = $(this).find('.info');
                 this.close = $(this).find('.close');

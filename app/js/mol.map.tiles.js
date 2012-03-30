@@ -46,14 +46,15 @@ mol.modules.map.tiles = function(mol) {
                                     if ((maptype != undefined) && (maptype.name === layer.id)) {
                                         params = {
                                             layer: layer
-                                        };                                       
-                                        e = new mol.bus.Event('layer-opacity', params);                                        
-                                        self.bus.fireEvent(e);                                        
+                                        };
+                                        e = new mol.bus.Event('layer-opacity', params);
+                                        self.bus.fireEvent(e);
+                                        maptype.interaction.add();
                                         return;
                                     }
                                 }
                             );
-                            self.renderTiles([layer]);
+                            //self.renderTiles([layer]);
                         } else { // Remove layer from map.
                             self.map.overlayMapTypes.forEach(
                                 function(maptype, index) {
@@ -61,9 +62,10 @@ mol.modules.map.tiles = function(mol) {
                                         params = {
                                             layer: layer,
                                             opacity: 0
-                                        };                                       
-                                        e = new mol.bus.Event('layer-opacity', params);                                        
-                                        self.bus.fireEvent(e);                                        
+                                        };
+                                        e = new mol.bus.Event('layer-opacity', params);
+                                        self.bus.fireEvent(e);
+                                        maptype.interaction.remove();
                                         //self.map.overlayMapTypes.removeAt(index);
                                     }
                                 }
@@ -85,8 +87,8 @@ mol.modules.map.tiles = function(mol) {
                 );
 
                 /**
-                 * Handler for changing layer opacity. The event.opacity is a 
-                 * number between 0 and 1.0 and the event.layer is an object 
+                 * Handler for changing layer opacity. The event.opacity is a
+                 * number between 0 and 1.0 and the event.layer is an object
                  * {id, name, source, type}.
                  */
                 this.bus.addHandler(
@@ -94,7 +96,7 @@ mol.modules.map.tiles = function(mol) {
                     function(event) {
                         var layer = event.layer,
                             opacity = event.opacity;
-                        
+
                         if (opacity === undefined) {
                             return;
                         }
@@ -140,6 +142,7 @@ mol.modules.map.tiles = function(mol) {
                                     function(mt, index) { // "mt" is short for map type.
                                         if ((mt != undefined) && (mt.name === lid)) {
                                             mapTypes.removeAt(index);
+                                            mt.interaction.remove();
                                         }
                                     }
                                 );

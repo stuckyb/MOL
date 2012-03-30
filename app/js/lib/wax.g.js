@@ -2743,7 +2743,11 @@ wax.g.connector.prototype.setOpacity = function(opacity) {
             var key;
             this.opacity = opacity;
             for (key in this.cache) {
-                this.cache[key].style.opacity = opacity;
+                if(this.cache[key].style.opacity != undefined) {
+                    this.cache[key].style.opacity = opacity;
+                } else if (this.cache[key].filters != undefined) {
+                    this.cache[key].filters.item("DXImageTransform.Microsoft.Alpha").opacity=opacity*100;
+                }
             }
 }
 
