@@ -1360,7 +1360,7 @@ mol.modules.map.layers = function(mol) {
                     '    <button class="close">x</button>' +
                     '    <button class="zoom">z</button>' +
                     //'    <div class="buttonContainer">' +
-                    '       <label class="buttonContainer"><input class="toggle" type="checkbox" /> <span class="customCheck"></span></label>' +
+                    '       <label class="buttonContainer"><input class="toggle" type="checkbox"><span class="customCheck"></span></label>' +
                     //'      ' +
                     //'    </div>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +

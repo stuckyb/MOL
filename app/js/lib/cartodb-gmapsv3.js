@@ -225,7 +225,7 @@ var CartoDB = CartoDB || {};
             },
             tileSize: new google.maps.Size(256, 256),
             name: params.tile_name,
-            description: false,
+            description: false
           };
 
           params.layer = new google.maps.ImageMapType(cartodb_layer);
