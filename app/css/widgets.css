@@ -424,7 +424,7 @@ button:hover{
     position: relative;
     padding: 0px;
     margin: 0px;
-    pointer-events: auto;
+    pointer-events: none;
 }
 
 .mol-LayerControl-Results ::-webkit-scrollbar {
@@ -523,7 +523,7 @@ button:hover{
     font-size: 12px;
     -moz-border-radius: 3px;
     border-radius: 3px;
-
+    pointer-events: auto;
 }
 .mol-LayerControl-Results .filters .filter .options{
     max-height: 125px;
@@ -563,6 +563,7 @@ button:hover{
     position: relative;
     -moz-border-radius: 3px;
     border-radius: 3px;
+    pointer-events: auto;
 }
 
 .mol-LayerControl-Results .searchResults .selectAll {
