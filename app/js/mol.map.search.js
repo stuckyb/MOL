@@ -12,8 +12,16 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'SELECT ' +
-                    'provider as source, scientificname as name, type as type ' +
-                    'FROM scientificnames WHERE scientificname = \'{0}\'';
+                    'provider as source, scientificname as name, type as type, english ' +
+                    'FROM scientificnames s ' +
+                    'LEFT JOIN (' +
+                    '   SELECT ' +
+                    '   scientific, array_to_string(array_sort(array_agg(common_names_eng)),', ') as english ' +
+                    '   FROM master_taxonomy ' +
+                    '   GROUP BY scientific ' +
+                    ') n '+
+                    'ON s.scientificname = n.scientific ' +
+                    'WHERE scientificname = \'{0}\'';
             },
 
             /**
@@ -79,7 +87,7 @@ mol.modules.map.search = function(mol) {
                                         _.sortBy(names,  // Alphabetical sort on auto-complete results.
                                                  function(x) {
                                                      return x;
-                                                 })                                        
+                                                 })
                                     );
                                 }
                             );
@@ -113,12 +121,27 @@ mol.modules.map.search = function(mol) {
                         } else {
                             self.display.toggle(event.visible);
                         }
-						params.visible = false;
+
                         e = new mol.bus.Event('results-display-toggle', params);
                         self.bus.fireEvent(e);
                     }
                 );
+                this.bus.addHandler(
+                    'search',
+                    function(event) {
+                        if (event.term != undefined) {
+                            if(!self.display.is(':visible')) {
+                                self.bus.fireEvent(new mol.bus.Event('search-display-toggle',{visible : true}));
+                            }
+                            self.search(event.term);
 
+                            if(self.display.searchBox.val()=='') {
+                                self.display.searchBox.val(event.term)
+                            }
+
+                        }
+                   }
+               );
                 /**
                  * Clicking the go button executes a search.
                  */

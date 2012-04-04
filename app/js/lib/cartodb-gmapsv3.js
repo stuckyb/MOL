@@ -180,9 +180,10 @@ var CartoDB = CartoDB || {};
         };
 
         params.layer = new wax.g.connector(params.tilejson);
+        params.layer.interaction = wax.g.interaction(params.map, params.tilejson, params.waxOptions);
 
         params.map.overlayMapTypes.insertAt(0,params.layer);
-        params.interaction = wax.g.interaction(params.map, params.tilejson, params.waxOptions);
+
       }
 
       // Refresh wax interaction
@@ -224,7 +225,7 @@ var CartoDB = CartoDB || {};
             },
             tileSize: new google.maps.Size(256, 256),
             name: params.tile_name,
-            description: false,
+            description: false
           };
 
           params.layer = new google.maps.ImageMapType(cartodb_layer);
