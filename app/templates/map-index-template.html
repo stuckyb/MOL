@@ -18,7 +18,8 @@
     <script type="text/javascript" src="../../../js/lib/jquery/js/jquery-ui-1.8.18.custom.min.js"></script>
     <script type="text/javascript" src="../../../js/lib/jquery.imagesloaded.js"></script>
     <script type="text/javascript" src="../../../js/lib/jquery.tablesorter.js"></script>
-
+    <script type="text/javascript" src="../../../js/lib/jquery.jscrollpane.min.js"></script>
+    <script type="text/javascript" src="../../../js/lib/jquery.mousewheel.js"></script>
     <script type="text/javascript" src="../../../js/lib/underscore-min.js"></script>
     <script type="text/javascript" src="../../../js/lib/backbone-min.js"></script>
     <script type="text/javascript" src="../../../js/lib/class.js"></script>
@@ -45,6 +46,7 @@
      <script type="text/javascript" src="../../../js/mol.map.dashboard.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.query.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.legend.js"></script>
+     <script type="text/javascript" src="../../../js/mol.map.basemap.js"></script>
     {% endif %}
 
     <meta charset="utf-8" />
@@ -82,6 +84,8 @@
              qe.start()
              lge = new env.map.legend.LegendEngine(proxy, bus)
              lge.start()
+             bme = new env.map.basemap.BaseMapEngine(proxy, bus, me.display.map)
+             bme.start()
           });
           {% else %}
           env = mol(function(env) {
@@ -107,6 +111,8 @@
              qe.start()
              lge = new env.map.legend.LegendEngine(proxy, bus)
              lge.start()
+             bme = new env.map.basemap.BaseMapEngine(proxy, bus, me.display.map)
+             bme.start()
           });
           {% endif %}
       });

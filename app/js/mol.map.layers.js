@@ -221,7 +221,21 @@ mol.modules.map.layers = function(mol) {
                                 self.bus.fireEvent(le);
                             }
                         );
+                        // Click handler for info button fires 'layer-info'
+                        // and 'show-loading-indicator' events.
+                        l.info.click(
+                            function(event) {
+                                var params = {
+                                        layer: layer,
+                                        auto_bound: true
+                                    },
+                                    e = new mol.bus.Event('layer-info', params),
+                                    le = new mol.bus.Event('show-loading-indicator',{source : "info"});
 
+                                self.bus.fireEvent(e);
+                                self.bus.fireEvent(le);
+                            }
+                        );
                         l.toggle.attr('checked', true);
 
                         // Click handler for the toggle button.
@@ -303,12 +317,10 @@ mol.modules.map.layers = function(mol) {
                     '    <div class="layerName">' +
                     '        <div class="layerNomial">{2}</div>' +
                     '    </div>' +
-                    '    <button class="close">x</button>' +
-                    '    <button class="zoom">z</button>' +
-                    //'    <div class="buttonContainer">' +
-                    '       <label class="buttonContainer"><input class="toggle" type="checkbox"><span class="customCheck"></span></label>' +
-                    //'      ' +
-                    //'    </div>' +
+                    '    <button title="Remove layer." class="close">x</button>' +
+                    '    <button title="Zoom to layer extent." class="zoom">z</button>' +
+                    '    <button title="Layer metadata info." class="info">i</button>' +
+                    '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span class="customCheck"></span></label>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
                     '</li>';
@@ -331,13 +343,10 @@ mol.modules.map.layers = function(mol) {
             init: function() {
                 var html = '' +
                     '<div class="mol-LayerControl-Layers">' +
-                    /*'  <div class="staticLink widgetTheme" style="display: none; ">' +
-                    '    <input type="text" class="linkText">' +
-                    '  </div>' +*/
-                    '  <div class="scrollContainer" style="">' +
-                    '    <ul id="sortable">' +
-                    '    </ul>' +
-                    '  </div>' +
+                    '   <div class="scrollContainer">' +
+                    '      <ul id="sortable">' +
+                    '      </ul>' +
+                    '   </div>' +
                     '</div>';
 
                 this._super(html);
@@ -345,6 +354,7 @@ mol.modules.map.layers = function(mol) {
                 this.open = false;
                 this.views = {};
                 this.layers = [];
+
             },
 
             getLayer: function(layer) {

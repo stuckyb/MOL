@@ -2,7 +2,7 @@ mol.modules.map = function(mol) {
 
     mol.map = {};
 
-    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard', 'query', 'legend'];
+    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard', 'query', 'legend', 'basemap'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
@@ -267,7 +267,8 @@ mol.modules.map = function(mol) {
                     minZoom: 2,
                     minLat: -85,
                     maxLat: 85,
-                    mapTypeControlOptions: { position: google.maps.ControlPosition.BOTTOM_LEFT},
+                    mapTypeControl: false,
+                    //mapTypeControlOptions: {position: google.maps.ControlPosition.BOTTOM_LEFT},
                     center: new google.maps.LatLng(0,0),
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     styles: [

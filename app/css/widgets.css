@@ -36,6 +36,7 @@
     -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
     box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     color: rgb(240, 240, 260);
+    pointer-events: auto;
 }
 button{
     width: auto;
@@ -88,6 +89,7 @@ button:hover{
     list-style-type: none;
     font-size: 0.8em;
     pointer-events: auto;
+    border-radius: 3px;
 }
 .mol-LayerControl-Menu .button:hover{
     color: #FFF;
@@ -135,6 +137,12 @@ button:hover{
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF191919', endColorstr='#FF191919');
 
 }
+.mol-LayerControl-Menu div.list {
+    -moz-border-radius-bottomleft: 3px;
+    border-bottom-left-radius: 3px;
+    -moz-border-radius-topleft: 3px;
+    border-top-left-radius: 3px;
+}
 .mol-LayerControl-Menu div.label img{
     float: right;
     height: 16px;
@@ -151,15 +159,18 @@ button:hover{
 
 .mol-LayerControl-Layers {
     pointer-events:auto;
+    padding-top: 3px;
+    max-height: 800px;
 }
 
 .mol-LayerControl-Layers ::-webkit-scrollbar {
     width: 11px;
     height: 0px;
+    border: 1px solid black;
 }
 .mol-LayerControl-Layers ::-webkit-scrollbar-button:vertical {
     background-color: white;
-    border: 1px solid white;
+    border: 1px solid black;
 }
 .mol-LayerControl-Layers ::-webkit-scrollbar-button:start:decrement,
 ::-webkit-scrollbar-button:end:increment {
@@ -175,12 +186,12 @@ button:hover{
 .mol-LayerControl-Layers ::-webkit-scrollbar-thumb:vertical {
     height: 50px;
     background-color: white;
+    border: 1px solid black;
 }
-.mol-LayerControl-Layers .scrollContainer{
-    max-height: 400px;
+.mol-LayerControl-Layers .scrollContainer {
     width: 100%;
-    overflow-y: auto;
-    overflow-x: visible;
+
+    margin: 0px;
 }
 
 .mol-LayerControl-Layers .layer, .staticLink{
@@ -321,9 +332,9 @@ button:hover{
 .mol-LayerControl-Layers .layer .opacityContainer {
     float: right;
     position: relative;
-    width: 20%;
+    width: 15%;
     height: 24px;
-    margin-right: 35px;
+    margin-right: 5px;
 }
 .mol-LayerControl-Layers .layer .opacity  {
     position: absolute;
@@ -430,10 +441,11 @@ button:hover{
 .mol-LayerControl-Results ::-webkit-scrollbar {
     width: 11px;
     height: 0px;
+    border: 1px solid black;
 }
 .mol-LayerControl-Results ::-webkit-scrollbar-button:vertical {
     background-color: white;
-    border: 1px solid white;
+    border: 1px solid black;
 }
 .mol-LayerControl-Results ::-webkit-scrollbar-button:start:decrement,
 ::-webkit-scrollbar-button:end:increment {
@@ -451,6 +463,7 @@ button:hover{
 .mol-LayerControl-Results ::-webkit-scrollbar-thumb:vertical {
     height: 50px;
     background-color: white;
+    border: 1px solid black;
 }
 
 .mol-LayerControl-Results .noresults {
@@ -807,4 +820,59 @@ button:hover{
 }
 .mol-Map-LegendDisplay .seasonality5 {
       background-color:#E25B5B
+}
+.mol-BaseMapControl {
+    list-style-type: none;
+    font-size: 0.8em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    white-space: nowrap;
+}
+.mol-BaseMapControl .button:hover{
+    color: #FFF;
+    cursor: pointer;
+}
+.mol-BaseMapControl div{
+    display: inline-block;
+    text-align: center;
+    padding: 5px;
+    margin: 0px;
+}
+.mol-BaseMapControl div:first-child{
+    -moz-border-radius-bottomleft: 3px;
+    border-bottom-left-radius: 3px;
+    -moz-border-radius-topleft: 3px;
+    border-top-left-radius: 3px;
+}
+.mol-BaseMapControl div:last-child{
+    -moz-border-radius-bottomright: 3px;
+    border-bottom-right-radius: 3px;
+    -moz-border-radius-topright: 3px;
+    border-top-right-radius: 3px;
+}
+.mol-BaseMapControl div.label{
+    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
+    -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
+    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
+    background-image: -ms-linear-gradient(rgba(35, 35, 35,0.85) 37%,rgba(66,66,66,0.85) 69%);
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.37, rgba(35, 35, 35,0.85)),
+        color-stop(0.69, rgba(66,66,66,0.85))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(35, 35, 35,0.85) 37%,
+        rgba(66,66,66,0.85) 69%
+    );
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    padding-bottom: 5px;
+
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF191919', endColorstr='#FF191919');
+    pointer-events: none;
 }

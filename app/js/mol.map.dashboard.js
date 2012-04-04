@@ -96,6 +96,7 @@ mol.modules.map.dashboard = function(mol) {
                     '  <div class="subtitle">Statistics for data served by the Map of Life</div>' +
                     '  <table>' +
                     '    <tr>' +
+                    '      <td width="50px"><b>Type</b></td>' +
                     '      <td width="100px"><b>Source</b></td>' +
                     '      <td><b>Amphibians</b></td>' +
                     '      <td><b>Birds</b></td>' +
@@ -104,25 +105,46 @@ mol.modules.map.dashboard = function(mol) {
                     '      <td><b>Fish</b></td>' +
                     '    </tr>' +
                     '    <tr>' +
-                    '      <td>GBIF points</td>' +
-                    '      <td>5,662 species with 1,794,441 records</td>' +
-                    '      <td>13,000 species with 132,412,174 records</td>' +
-                    '      <td>14,095 species with 4,351,065 records</td>' +
-                    '      <td>11,445 species with 1,695,170 records</td>' +
+                    '      <td>Points</td>' +
+                    '      <td>GBIF</td>' +
+                    '      <td>5,662 species names with 1,794,441 records</td>' +
+                    '      <td>13,000 species names with 132,412,174 records</td>' +
+                    '      <td>14,095 species names with 4,351,065 records</td>' +
+                    '      <td>11,445 species names with 1,695,170 records</td>' +
                     '      <td></td>' +
                     '   <tr>' +
-                    '       <td>Jetz range maps</td>' +
+                    '       <td>Expert maps</td>' +
+                    '       <td>User-uploaded</td>' +
                     '       <td></td>' +
-                    '       <td>9,869 species with 28,019 records</td>' +
+                    '       <td>Jetz et al. 2012: 9,869 species with 28,019 records</td>' +
                     '       <td></td>' +
                     '       <td></td>' +
-                    '       <td>723 species with 9,755 records</td>' +
+                    '       <td>Page and Burr, 2011: 723 species with 9,755 records</td>' +
                     '   </tr>' +
                     '   <tr>' +
-                    '       <td>IUCN range maps</td>' +
+                    '       <td>Expert maps</td>' +
+                    '       <td>IUCN</td>' +
                     '       <td>5,966 species with 18,852 records</td>' +
                     '       <td></td>' +
                     '       <td>4,081 species with 38,673 records</td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '   </tr>' +
+                    '   <tr>' +
+                    '       <td>Local Inventories</td>' +
+                    '       <td>Misc. sources</td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '   </tr>' +
+                    '   <tr>' +
+                    '       <td>Regional checklists</td>' +
+                    '       <td>WWF</td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
                     '       <td></td>' +
                     '       <td></td>' +
                     '   </tr>' +
