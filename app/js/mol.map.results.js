@@ -566,21 +566,21 @@ mol.modules.map.results = function(mol) {
                                 this.exists(type, nameProfile.types)) {
                                 return _.intersect(
                                     nameProfile.layers,
-                                    this.getLayers(name, source, type, 'sourceProfile'));
+                                    this.getLayers(name, source, type, englishname, 'sourceProfile'));
                             }
                         }
                         if (source && !type) {
                             if (this.exists(source, nameProfile.sources)) {
                                 return _.intersect(
                                     nameProfile.layers,
-                                    this.getLayers(name, source, type, 'sourceProfile'));
+                                    this.getLayers(name, source, type, englishname, 'sourceProfile'));
                             }
                         }
                         if (!source && type) {
                             if (this.exists(type, nameProfile.types)) {
                                 return _.intersect(
                                     nameProfile.layers,
-                                    this.getLayers(name, source, type, 'typeProfile'));
+                                    this.getLayers(name, source, type, englishname, 'typeProfile'));
                             }
                         }
                     }
@@ -588,7 +588,7 @@ mol.modules.map.results = function(mol) {
 
                 case 'sourceProfile':
                     if (!source) {
-                        return this.getLayers(name, source, type, 'typeProfile');
+                        return this.getLayers(name, source, type, englishname,'typeProfile');
                     }
 
                     if (sourceProfile) {
@@ -600,7 +600,7 @@ mol.modules.map.results = function(mol) {
                                 this.exists(type, sourceProfile.types)) {
                                 return _.intersect(
                                     sourceProfile.layers,
-                                    this.getLayers(name, source, type, 'typeProfile'));
+                                    this.getLayers(name, source, type, englishname,'typeProfile'));
                             }
                         }
                         if (name && !type) {
@@ -612,43 +612,12 @@ mol.modules.map.results = function(mol) {
                             if (this.exists(type, sourceProfile.types)) {
                                 return _.intersect(
                                     sourceProfile.layers,
-                                    this.getLayers(name, source, type, 'typeProfile'));
+                                    this.getLayers(name, source, type, englishname, 'typeProfile'));
                             }
                         }
                     }
                     return [];
-                /* TODO FIX THIS case */
-                case 'englishnameProfile':
-                    if (!englishname) {
-                        return this.getLayers(name, source, type, englishname, 'typeProfile');
-                    }
-
-                    if (englishnameProfile) {
-                        if (!name && !type) {
-                            return sourceProfile.layers;
-                        }
-                        if (name && type) {
-                            if (this.exists(name, sourceProfile.names) &&
-                                this.exists(type, sourceProfile.types)) {
-                                return _.intersect(
-                                    sourceProfile.layers,
-                                    this.getLayers(name, source, type, 'typeProfile'));
-                            }
-                        }
-                        if (name && !type) {
-                            if (this.exists(name, sourceProfile.names)) {
-                                return sourceProfile.layers;
-                            }
-                        }
-                        if (!name && type) {
-                            if (this.exists(type, sourceProfile.types)) {
-                                return _.intersect(
-                                    sourceProfile.layers,
-                                    this.getLayers(name, source, type, 'typeProfile'));
-                            }
-                        }
-                    }
-                    return [];
+                /*TODO englishname profile */
 
                 case 'typeProfile':
                     if (!type) {
