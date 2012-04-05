@@ -77,24 +77,25 @@ mol.modules.core = function(mol) {
     mol.core = {};
 
     /**
-     * Retunrs a layer id string given a layer {name, type, source}.
+     * Retunrs a layer id string given a layer {name, type, source, englishname}.
      */
     mol.core.getLayerId = function(layer) {
         var name = $.trim(layer.name.toLowerCase()).replace(/ /g, "_"),
             type = $.trim(layer.type.toLowerCase()).replace(/ /g, "_"),
             source = $.trim(layer.source.toLowerCase()).replace(/ /g, "_");
-
-        return 'layer-{0}-{1}-{2}'.format(name, type, source);
+            englishname = $.trim(layer.englishname).replace(/ /g, "_");
+        return 'layer--{0}--{1}--{2}--{3}--'.format(name, type, source, englishname);
     };
 
     /**
-     * @param id The layer id of the form "layer-{name}-{type}-{source}".
+     * @param id The layer id of the form "layer--{name}--{type}--{source}--{englishname}".
      */
     mol.core.getLayerFromId = function(id) {
-        var tokens = id.split('-'),
+        var tokens = id.split('--'),
             name = tokens[1].replace(/_/g, " "),
             type = tokens[2].replace(/_/g, " "),
             source = tokens[3].replace(/_/g, " ");
+            englishname = tokens[4].replace(/_/g, " ");
 
         name = name.charAt(0).toUpperCase()+name.slice(1).toLowerCase();
         source = source.toLowerCase();
@@ -104,7 +105,8 @@ mol.modules.core = function(mol) {
             id: id,
             name: name,
             type: type,
-            source: source
+            source: source,
+            englishname: englishname
         };
     };
 };
@@ -361,7 +363,8 @@ mol.modules.services.cartodb = function(mol) {
                     "layers": this.getLayers(this.response),
                     "names": this.genNames(this.response),
                     "sources": this.genSources(this.response),
-                    "types": this.genTypes(this.response)
+                    "types": this.genTypes(this.response),
+                    "englishnames": this.genEnglishNames(this.response)
                 };
             },
 
@@ -384,6 +387,9 @@ mol.modules.services.cartodb = function(mol) {
                         break;
                     case 'source':
                         results.push(row.source);
+                        break;
+                    case 'englishname':
+                        results.push(row.englishname);
                         break;
                     }
                 }
@@ -446,7 +452,24 @@ mol.modules.services.cartodb = function(mol) {
 
                 return profile;
             },
+            /**
+             * Returns the top level english profile object.
+             *
+             * {"source": "names":[], "types":[], "layers":[], "englishnames":[]}
+             *
+             */
+            genEnglishNames: function(response) {
+                var englishnames = this.uniques('englishname', response),
+                englishname = null,
+                profile = {};
 
+                for (i in englishnames) {
+                    englishname = englishnames[i];
+                    profile[englishname] = this.getEnglishNameProfile(englishname, response);
+                }
+
+                return profile;
+            },
             /**
              * Returns a profile for a single name.
              */
@@ -454,6 +477,7 @@ mol.modules.services.cartodb = function(mol) {
                 var layers = [],
                 sources = [],
                 types = [],
+                englishnames =[],
                 row = null;
 
                 for (i in response.rows) {
@@ -467,7 +491,8 @@ mol.modules.services.cartodb = function(mol) {
                 return {
                     "layers": _.uniq(layers),
                     "sources" : _.uniq(sources),
-                    "types": _.uniq(types)
+                    "types": _.uniq(types),
+                    "englishnames": _.uniq(englishnames)
                 };
             },
 
@@ -478,6 +503,7 @@ mol.modules.services.cartodb = function(mol) {
                 var layers = [],
                 names = [],
                 types = [],
+                englishnames = [],
                 row = null;
 
                 for (i in response.rows) {
@@ -491,7 +517,8 @@ mol.modules.services.cartodb = function(mol) {
                 return {
                     "layers": _.uniq(layers),
                     "names" : _.uniq(names),
-                    "types": _.uniq(types)
+                    "types": _.uniq(types),
+                    "englishnames": _.uniq(englishnames)
                 };
             },
 
@@ -502,6 +529,7 @@ mol.modules.services.cartodb = function(mol) {
                 var layers = [],
                 sources = [],
                 names = [],
+                englishnames =[],
                 row = null;
 
                 for (i in response.rows) {
@@ -510,12 +538,40 @@ mol.modules.services.cartodb = function(mol) {
                         layers.push(i + '');
                         sources.push(row.source);
                         names.push(row.name);
+                        englishnames.push(row.englishname);
                     }
                 }
                 return {
                     "layers": _.uniq(layers),
                     "sources" : _.uniq(sources),
-                    "names": _.uniq(names)
+                    "names": _.uniq(names),
+                    "englishnames": _.uniq(englishnames)
+                };
+            },
+            /**
+             * Returns a profile for a single english name.
+             */
+            getEnglishNameProfile: function(englishname, response) {
+                var layers = [],
+                sources = [],
+                names = [],
+                types =[],
+                row = null;
+
+                for (i in response.rows) {
+                    row = response.rows[i];
+                    if (englishname === row.englishname) {
+                        layers.push(i + '');
+                        sources.push(row.source);
+                        names.push(row.name);
+                        types.push(row.type);
+                    }
+                }
+                return {
+                    "layers": _.uniq(layers),
+                    "sources" : _.uniq(sources),
+                    "names": _.uniq(names),
+                    "types": _.uniq(types)
                 };
             },
 
@@ -534,7 +590,8 @@ mol.modules.services.cartodb = function(mol) {
                     layers[key] = {
                         name: row.name.charAt(0).toUpperCase()+row.name.slice(1).toLowerCase(),
                         source: row.source.toLowerCase(),
-                        type: row.type.toLowerCase()
+                        type: row.type.toLowerCase(),
+                        englishname: (row.englishname != undefined) ? _.uniq(row.englishname.split(', ')).join(', ') : '' //this removes duplicates
                         //extent: this.getExtent(row.extent)
                     };
                 }
@@ -1370,17 +1427,17 @@ mol.modules.map.layers = function(mol) {
                     '    <button class="source" title="Layer Source: {0}"><img src="/static/maps/search/{0}.png"></button>' +
                     '    <button class="type" title="Layer Type: {1}"><img src="/static/maps/search/{1}.png"></button>' +
                     '    <div class="layerName">' +
-                    '        <div class="layerNomial">{2}</div>' +
+                    '        <div class="layerNomial" title="Common Names: {3}">{2}</div>' +
                     '    </div>' +
                     '    <button title="Remove layer." class="close">x</button>' +
                     '    <button title="Zoom to layer extent." class="zoom">z</button>' +
                     '    <button title="Layer metadata info." class="info">i</button>' +
-                    '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span class="customCheck"></span></label>' +
+                    '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span title="Toggle layer visibility." class="customCheck"></span></label>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
                     '</li>';
 
-                this._super(html.format(layer.source, layer.type, layer.name));
+                this._super(html.format(layer.source, layer.type, layer.name, layer.englishname));
                 this.attr('id', layer.id);
                 this.opacity = $(this).find('.opacity').slider({value: 0.5, min: 0, max:1, step: 0.02, animate:"slow"});
                 this.toggle = $(this).find('.toggle').button();
@@ -2013,7 +2070,8 @@ mol.modules.map.results = function(mol) {
                             name = layer.name,
                             source = layer.source,
                             type = layer.type,
-                            result = new mol.map.results.ResultDisplay(name, id, source, type);
+                            englishname = layer.englishname,
+                            result = new mol.map.results.ResultDisplay(name, id, source, type, englishname);
 
                         this.resultList.append(result);
                         return result;
@@ -2080,7 +2138,7 @@ mol.modules.map.results = function(mol) {
      */
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
-            init: function(name, id, source, type) {
+            init: function(name, id, source, type, englishname) {
                 var html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
@@ -2088,22 +2146,24 @@ mol.modules.map.results = function(mol) {
                     '<div class="resultType" ><button ><img class="type" title="Layer Type: {3}" src="/static/maps/search/{3}.png"></button></div>' +
                     '<div class="resultName">' +
                     '  <div class="resultNomial">{1}</div>' +
+                    '  <div class="resultEnglishName" title="{4}">{4}</div>' +
                     '  <div class="resultAuthor"></div>' +
                     '</div>' +
-                    '<div class="buttonContainer"> ' +
-                    '  <input type="checkbox" class="checkbox" /> ' +
-                    '  <span class="customCheck"></span> ' +
-                    '</div> ' +
+                    '<label class="buttonContainer">' +
+                    '   <input type="checkbox" class="checkbox" />' +
+                    '   <span class="customCheck"></span>' +
+                    '</label> ' +
                     '</ul>' +
                     '<div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(id, name, source, type));
+                this._super(html.format(id, name, source, type, englishname));
 
                 this.infoLink = $(this).find('.info');
                 this.nameBox = $(this).find('.resultName');
                 this.sourcePng = $(this).find('.source');
                 this.typePng = $(this).find('.type');
+                this.checkbox = $(this).find('.checkbox').button();
             }
         }
     );
@@ -2164,8 +2224,8 @@ mol.modules.map.results = function(mol) {
              * @param profile the profile to test
              *
              */
-            getNewLayers: function(name, source, type, profile) {
-                var layers = this.getLayers(name, source, type, profile);
+            getNewLayers: function(name, source, type, englishname, profile) {
+                var layers = this.getLayers(name, source, type, englishname, profile);
 
                 return _.map(
                     layers,
@@ -2176,15 +2236,16 @@ mol.modules.map.results = function(mol) {
                 );
             },
 
-            getLayers: function(name, source, type, profile) {
+            getLayers: function(name, source, type, englishname, profile) {
                 var response = this.response,
                 currentProfile = profile ? profile : 'nameProfile',
                 nameProfile = name ? response.names[name] : null,
                 sourceProfile = source ? response.sources[source] : null,
                 typeProfile = type ? response.types[type] : null,
+                englishnameProfile = englishname ? response.englishnames[englishname] : null,
                 profileSatisfied = false;
 
-                if (!name && !type && !source){
+                if (!name && !type && !source && !englishname){
                     var keys = new Array();
                     for (i in response.layers) {
                         keys.push(i);
@@ -2196,7 +2257,7 @@ mol.modules.map.results = function(mol) {
 
                 case 'nameProfile':
                     if (!name) {
-                        return this.getLayers(name, source, type, 'sourceProfile');
+                        return this.getLayers(name, source, type, englishname, 'sourceProfile');
                     }
 
                     if (nameProfile) {
@@ -2259,6 +2320,38 @@ mol.modules.map.results = function(mol) {
                         }
                     }
                     return [];
+                /* TODO FIX THIS case */
+                case 'englishnameProfile':
+                    if (!englishname) {
+                        return this.getLayers(name, source, type, englishname, 'typeProfile');
+                    }
+
+                    if (englishnameProfile) {
+                        if (!name && !type) {
+                            return sourceProfile.layers;
+                        }
+                        if (name && type) {
+                            if (this.exists(name, sourceProfile.names) &&
+                                this.exists(type, sourceProfile.types)) {
+                                return _.intersect(
+                                    sourceProfile.layers,
+                                    this.getLayers(name, source, type, 'typeProfile'));
+                            }
+                        }
+                        if (name && !type) {
+                            if (this.exists(name, sourceProfile.names)) {
+                                return sourceProfile.layers;
+                            }
+                        }
+                        if (!name && type) {
+                            if (this.exists(type, sourceProfile.types)) {
+                                return _.intersect(
+                                    sourceProfile.layers,
+                                    this.getLayers(name, source, type, 'typeProfile'));
+                            }
+                        }
+                    }
+                    return [];
 
                 case 'typeProfile':
                     if (!type) {
@@ -2287,6 +2380,7 @@ mol.modules.map.results = function(mol) {
                         }
                     }
                     return [];
+
                 }
                 return [];
             },
@@ -2306,6 +2400,9 @@ mol.modules.map.results = function(mol) {
                     break;
                 case "names":
                     res = this.response.names;
+                    break;
+                case "englishnames":
+                    res = this.response.englishnames;
                     break;
                 }
                 return _.keys(res);
@@ -2340,7 +2437,15 @@ mol.modules.map.results = function(mol) {
             getName: function(name) {
                 return this.response.names[name];
             },
+            getEnglishNameKeys: function() {
+                var x = this.englishnameKeys,
+                englishnames = this.response.englishnames;
+                return x ? x : (this.englishnameKeys = _.keys(englishnames));
+            },
 
+            getEnglishName: function(englishname) {
+                return this.response.englishnames[englishname];
+            },
             /**
              * Returns true if the name exists in the array, false otherwise.
              */
@@ -2364,11 +2469,11 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'SELECT ' +
-                    'provider as source, scientificname as name, type as type, english ' +
+                    'provider as source, scientificname as name, type as type, englishname ' +
                     'FROM scientificnames s ' +
                     'LEFT JOIN (' +
                     '   SELECT ' +
-                    '   scientific, array_to_string(array_sort(array_agg(common_names_eng)),', ') as english ' +
+                    '   scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),\', \'))) as englishname ' +
                     '   FROM master_taxonomy ' +
                     '   GROUP BY scientific ' +
                     ') n '+
@@ -2908,9 +3013,11 @@ mol.modules.map.tiles = function(mol) {
                     hostname = window.location.hostname,
                     style_table_name = table,
                     info_query = sql;
+                    tile_style =  null,
+                    hostname = window.location.hostname;
 
                 if (layer.type === 'points') {
-                    sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator " +
+                    sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, identifier " +
                         "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                     table = 'gbif_import';
                     style_table_name = 'names_old';
@@ -2936,7 +3043,7 @@ mol.modules.map.tiles = function(mol) {
                         tile_style: tile_style,
                         map_style: false,
                         infowindow: true,
-                        opacity: opacity
+                        opacity: 0.5
                     }
                 );
             }
@@ -3019,12 +3126,8 @@ mol.modules.map.dashboard = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: false,
-					    width: 800
-					         /*buttons: {
-						          "Ok": function() {
-							           $(this).dialog("close");
-						          }
-					         }*/
+					    width: 1000,
+					    dialogClass: "mol-Dashboard"
                     }
                 );
             }
@@ -3035,7 +3138,7 @@ mol.modules.map.dashboard = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<div id="dialog" class="mol-LayerControl-Results">' +
+                    '<div id="dialog">' +
                     '  <div class="dashboard">' +
                     '  <div class="title">Dashboard</div>' +
                     '  <div class="subtitle">Statistics for data served by the Map of Life</div>' +
@@ -3078,25 +3181,26 @@ mol.modules.map.dashboard = function(mol) {
                     '   <tr>' +
                     '       <td>Local Inventories</td>' +
                     '       <td>Misc. sources</td>' +
-                    '       <td></td>' +
-                    '       <td></td>' +
-                    '       <td></td>' +
+                    '       <td>727 species with 1,820 records</td>' +
+                    '       <td>4,042 species with 48,000 records</td>' +
+                    '       <td>1,411 species with 9,895 records</td>' +
                     '       <td></td>' +
                     '       <td></td>' +
                     '   </tr>' +
                     '   <tr>' +
                     '       <td>Regional checklists</td>' +
                     '       <td>WWF</td>' +
-                    '       <td></td>' +
-                    '       <td></td>' +
-                    '       <td></td>' +
-                    '       <td></td>' +
+                    '       <td>3,081 species with 12,296 records</td>' +
+                    '       <td>8,755 species with 201,418 records</td>' +
+                    '       <td>4,224 species with 67,533 records</td>' +
+                    '       <td>6,830 species with 67,533 records</td>' +
                     '       <td></td>' +
                     '   </tr>' +
                     '  </table>' +
                     '</div>  ';
 
                 this._super(html);
+
             }
         }
     );
@@ -3594,8 +3698,128 @@ mol.modules.map.basemap = function(mol) {
             },
 
             setBaseMap: function(type) {
-                    if(type=="Basic") {
-                        type="ROADMAP";
+                    switch(type) {
+                        case "Roadmap" :
+                            this.map.setOptions({styles:null});
+                            break;
+
+                        case "Basic":
+                            type="ROADMAP";
+                            this.map.setOptions({styles: [
+                                {
+                                    featureType: "administrative",
+                                    stylers: [
+                                     { visibility: "simplified" }
+                                    ]
+                                },
+                                {
+                                    featureType: "administrative.locality",
+                                    stylers: [
+                                      { visibility: "off" }
+                                  ]
+                                },
+                                 {
+                                   featureType: "landscape",
+                                 stylers: [
+                                   { visibility: "off" }
+                                   ]
+                                 },
+                                 {
+                                 featureType: "road",
+                                 stylers: [
+                                   { visibility: "off" }
+                                   ]
+                                },
+                                 {
+                                 featureType: "poi",
+                                 stylers: [
+                                   { visibility: "off" }
+                                 ]
+                               },{
+                                    featureType: "water",
+                                  stylers: [
+                                    { visibility: "on" },
+                                    { saturation: -65 },
+                                    { lightness: -15 },
+                                   { gamma: 0.83 }
+                                    ]
+                                  },
+                               {
+                                  featureType: "transit",
+                                 stylers: [
+                                      { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "administrative",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "administrative.country",
+                        stylers: [
+                          { visibility: "on" }
+                        ]
+                      },{
+                        featureType: "administrative.province",
+                       stylers: [
+                          { visibility: "on" }
+                        ]
+                      }
+                    ]});
+                        break;
+                        case 'Political' :
+                        this.map.setOptions({styles : [
+                            {
+featureType: "administrative.country",
+stylers: [
+{ visibility: "simplified" }
+]
+},{
+featureType: "administrative.locality",
+stylers: [
+{ visibility: "off" }
+]
+},{
+featureType: "road",
+stylers: [
+{ visibility: "off" }
+]
+},{
+featureType: "administrative.province",
+stylers: [
+{ visibility: "off" }
+]
+},{
+featureType: "poi",
+stylers: [
+{ visibility: "off" }
+]
+},{
+featureType: "landscape",
+stylers: [
+{ visibility: "off" }
+]
+},{
+featureType: "water",
+stylers: [
+{ visibility: "simplified" }
+]
+},{
+featureType: "water",
+stylers: [
+{ gamma: 0.21 }
+]
+},{
+featureType: "landscape",
+stylers: [
+{ gamma: 0.99 },
+{ lightness: 65 }
+]
+},{
+}
+]});
+                    type='ROADMAP';
+                    break;
                     }
                     this.map.setMapTypeId(google.maps.MapTypeId[type.toUpperCase()])
             },
@@ -3657,8 +3881,9 @@ mol.modules.map.basemap = function(mol) {
                     '<div class="mol-BaseMapControl">' +
                         '<div class="label">Base Map:</div>' +
                         '<div title="Basic Base Map (water and boundaries only)" class="widgetTheme button">Basic</div>' +
-                        //'<div title="Road Base Map" class="widgetTheme button">Roads</div>' +
-                        '<div title="Terrain Base Map" class="widgetTheme button">Terrain</div>' +
+                        '<div title="Road Base Map" class="widgetTheme button">Political</div>' +
+                        '<div title="Political boundaries." class="widgetTheme button">Roadmap</div>' +
+                        '<div title="Topographic Base Map" class="widgetTheme button">Terrain</div>' +
                         '<div title="Satellite Base Map" class="widgetTheme button">Satellite</div>' +
                     '</div>';
 

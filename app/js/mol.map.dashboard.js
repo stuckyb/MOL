@@ -74,12 +74,8 @@ mol.modules.map.dashboard = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: false,
-					    width: 800
-					         /*buttons: {
-						          "Ok": function() {
-							           $(this).dialog("close");
-						          }
-					         }*/
+					    width: 1000,
+					    dialogClass: "mol-Dashboard"
                     }
                 );
             }
@@ -90,7 +86,7 @@ mol.modules.map.dashboard = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<div id="dialog" class="mol-LayerControl-Results">' +
+                    '<div id="dialog">' +
                     '  <div class="dashboard">' +
                     '  <div class="title">Dashboard</div>' +
                     '  <div class="subtitle">Statistics for data served by the Map of Life</div>' +
@@ -133,25 +129,26 @@ mol.modules.map.dashboard = function(mol) {
                     '   <tr>' +
                     '       <td>Local Inventories</td>' +
                     '       <td>Misc. sources</td>' +
-                    '       <td></td>' +
-                    '       <td></td>' +
-                    '       <td></td>' +
+                    '       <td>727 species with 1,820 records</td>' +
+                    '       <td>4,042 species with 48,000 records</td>' +
+                    '       <td>1,411 species with 9,895 records</td>' +
                     '       <td></td>' +
                     '       <td></td>' +
                     '   </tr>' +
                     '   <tr>' +
                     '       <td>Regional checklists</td>' +
                     '       <td>WWF</td>' +
-                    '       <td></td>' +
-                    '       <td></td>' +
-                    '       <td></td>' +
-                    '       <td></td>' +
+                    '       <td>3,081 species with 12,296 records</td>' +
+                    '       <td>8,755 species with 201,418 records</td>' +
+                    '       <td>4,224 species with 67,533 records</td>' +
+                    '       <td>6,830 species with 67,533 records</td>' +
                     '       <td></td>' +
                     '   </tr>' +
                     '  </table>' +
                     '</div>  ';
 
                 this._super(html);
+
             }
         }
     );

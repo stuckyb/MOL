@@ -22,8 +22,128 @@ mol.modules.map.basemap = function(mol) {
             },
 
             setBaseMap: function(type) {
-                    if(type=="Basic") {
-                        type="ROADMAP";
+                    switch(type) {
+                        case "Roadmap" :
+                            this.map.setOptions({styles:null});
+                            break;
+
+                        case "Basic":
+                            type="ROADMAP";
+                            this.map.setOptions({styles: [
+                                {
+                                    featureType: "administrative",
+                                    stylers: [
+                                     { visibility: "simplified" }
+                                    ]
+                                },
+                                {
+                                    featureType: "administrative.locality",
+                                    stylers: [
+                                      { visibility: "off" }
+                                  ]
+                                },
+                                 {
+                                   featureType: "landscape",
+                                 stylers: [
+                                   { visibility: "off" }
+                                   ]
+                                 },
+                                 {
+                                 featureType: "road",
+                                 stylers: [
+                                   { visibility: "off" }
+                                   ]
+                                },
+                                 {
+                                 featureType: "poi",
+                                 stylers: [
+                                   { visibility: "off" }
+                                 ]
+                               },{
+                                    featureType: "water",
+                                  stylers: [
+                                    { visibility: "on" },
+                                    { saturation: -65 },
+                                    { lightness: -15 },
+                                   { gamma: 0.83 }
+                                    ]
+                                  },
+                               {
+                                  featureType: "transit",
+                                 stylers: [
+                                      { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "administrative",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "administrative.country",
+                        stylers: [
+                          { visibility: "on" }
+                        ]
+                      },{
+                        featureType: "administrative.province",
+                       stylers: [
+                          { visibility: "on" }
+                        ]
+                      }
+                    ]});
+                        break;
+                        case 'Political' :
+                        this.map.setOptions({styles : [
+                            {
+featureType: "administrative.country",
+stylers: [
+{ visibility: "simplified" }
+]
+},{
+featureType: "administrative.locality",
+stylers: [
+{ visibility: "off" }
+]
+},{
+featureType: "road",
+stylers: [
+{ visibility: "off" }
+]
+},{
+featureType: "administrative.province",
+stylers: [
+{ visibility: "off" }
+]
+},{
+featureType: "poi",
+stylers: [
+{ visibility: "off" }
+]
+},{
+featureType: "landscape",
+stylers: [
+{ visibility: "off" }
+]
+},{
+featureType: "water",
+stylers: [
+{ visibility: "simplified" }
+]
+},{
+featureType: "water",
+stylers: [
+{ gamma: 0.21 }
+]
+},{
+featureType: "landscape",
+stylers: [
+{ gamma: 0.99 },
+{ lightness: 65 }
+]
+},{
+}
+]});
+                    type='ROADMAP';
+                    break;
                     }
                     this.map.setMapTypeId(google.maps.MapTypeId[type.toUpperCase()])
             },
@@ -85,8 +205,9 @@ mol.modules.map.basemap = function(mol) {
                     '<div class="mol-BaseMapControl">' +
                         '<div class="label">Base Map:</div>' +
                         '<div title="Basic Base Map (water and boundaries only)" class="widgetTheme button">Basic</div>' +
-                        //'<div title="Road Base Map" class="widgetTheme button">Roads</div>' +
-                        '<div title="Terrain Base Map" class="widgetTheme button">Terrain</div>' +
+                        '<div title="Road Base Map" class="widgetTheme button">Political</div>' +
+                        '<div title="Political boundaries." class="widgetTheme button">Roadmap</div>' +
+                        '<div title="Topographic Base Map" class="widgetTheme button">Terrain</div>' +
                         '<div title="Satellite Base Map" class="widgetTheme button">Satellite</div>' +
                     '</div>';
 

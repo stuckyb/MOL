@@ -37,6 +37,12 @@
     box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     color: rgb(240, 240, 260);
     pointer-events: auto;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 button{
     width: auto;
@@ -235,7 +241,7 @@ button:hover{
     width: 30%;
     margin-left: 5px;
     margin-right: 5px;
-    pointer-events: none;
+
 }
 .mol-LayerControl-Layers .layer .layerNomial{
     float: left;
@@ -470,8 +476,31 @@ button:hover{
     text-align: center;
 }
 
-.mol-LayerControl-Results .dashboard {
 
+.mol-Dashboard .dashboard table tr td {
+    border-top: 1px solid #CCC;
+    border: 1px solid #CCC;
+    text-align: left;
+    margin: 0;
+    padding: 6px 13px;
+    font-style: normal;
+    font-size: 12px;
+}
+
+.mol-Dashboard #dialog .dashboard .title {
+    font-weight:bold;
+    font-size: 18px;
+}
+
+.mol-Dashboard #dialog .dashboard .subtitle {
+    font-size: 14px;
+    font-style: italic;
+    padding-bottom: 10px;
+}
+
+.mol-Dashboard .ui-dialog-titlebar, .ui-widget-header, .dashboard{
+    background: none;
+    background-image: -ms-linear-gradient(rgba(29,43,82,0.65) 89%, rgba(29,43,82,0.75) 57%);
     background-image: -webkit-gradient(
         linear,
         left bottom,
@@ -484,42 +513,22 @@ button:hover{
         rgba(29,43,82,0.65) 89%,
         rgba(29,43,82,0.75) 57%
     );
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#A51D2B52', endColorstr='#BF1D2B52');
     -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
     box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     color: rgb(240, 240, 260);
-
-    padding: 5px;
-    margin: 0px;
-    width: 100%;
-    float: left;
-    padding-top: 10px;
-    position: relative;
-    -moz-border-radius: 3px;
+    pointer-events: auto;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    border: none;
     border-radius: 3px;
-    font-style:normal;
-    font-weight: normal;
-}
-
-.mol-LayerControl-Results .dashboard table tr td {
-    border-top: 1px solid #CCC;
-    border: 1px solid #CCC;
-    text-align: left;
-    margin: 0;
-    padding: 6px 13px;
-    font-style: normal;
-    font-size: 12px;
-}
-
-.mol-LayerControl-Results .dashboard .title {
-    font-weight:bold;
-    font-size: 18px;
-}
-
-.mol-LayerControl-Results .dashboard .subtitle {
-    font-size: 14px;
-    font-style: italic;
-    padding-bottom: 10px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
 }
 
 .mol-LayerControl-Results .filters{
@@ -602,7 +611,12 @@ button:hover{
     max-height: 380px;
     overflow-y: auto;
 }
-
+.mol-LayerControl-Results .resultEnglishName {
+    font-size: 0.6em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
 
 .mol-LayerControl-Results ul {
     padding-left: 0px;
@@ -624,7 +638,7 @@ button:hover{
     height: 16px;
 }
 .mol-LayerControl-Results .result div.resultName{
-    width: 55%;
+    width: 70%;
     display:inline-block;
     margin-left: 4px;
 }

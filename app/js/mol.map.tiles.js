@@ -307,9 +307,11 @@ mol.modules.map.tiles = function(mol) {
                     hostname = window.location.hostname,
                     style_table_name = table,
                     info_query = sql;
+                    tile_style =  null,
+                    hostname = window.location.hostname;
 
                 if (layer.type === 'points') {
-                    sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator " +
+                    sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, identifier " +
                         "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                     table = 'gbif_import';
                     style_table_name = 'names_old';
@@ -335,7 +337,7 @@ mol.modules.map.tiles = function(mol) {
                         tile_style: tile_style,
                         map_style: false,
                         infowindow: true,
-                        opacity: opacity
+                        opacity: 0.5
                     }
                 );
             }

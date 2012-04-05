@@ -315,17 +315,17 @@ mol.modules.map.layers = function(mol) {
                     '    <button class="source" title="Layer Source: {0}"><img src="/static/maps/search/{0}.png"></button>' +
                     '    <button class="type" title="Layer Type: {1}"><img src="/static/maps/search/{1}.png"></button>' +
                     '    <div class="layerName">' +
-                    '        <div class="layerNomial">{2}</div>' +
+                    '        <div class="layerNomial" title="Common Names: {3}">{2}</div>' +
                     '    </div>' +
                     '    <button title="Remove layer." class="close">x</button>' +
                     '    <button title="Zoom to layer extent." class="zoom">z</button>' +
                     '    <button title="Layer metadata info." class="info">i</button>' +
-                    '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span class="customCheck"></span></label>' +
+                    '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span title="Toggle layer visibility." class="customCheck"></span></label>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
                     '</li>';
 
-                this._super(html.format(layer.source, layer.type, layer.name));
+                this._super(html.format(layer.source, layer.type, layer.name, layer.englishname));
                 this.attr('id', layer.id);
                 this.opacity = $(this).find('.opacity').slider({value: 0.5, min: 0, max:1, step: 0.02, animate:"slow"});
                 this.toggle = $(this).find('.toggle').button();

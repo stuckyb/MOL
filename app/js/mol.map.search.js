@@ -12,11 +12,11 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'SELECT ' +
-                    'provider as source, scientificname as name, type as type, english ' +
+                    'provider as source, scientificname as name, type as type, englishname ' +
                     'FROM scientificnames s ' +
                     'LEFT JOIN (' +
                     '   SELECT ' +
-                    '   scientific, array_to_string(array_sort(array_agg(common_names_eng)),', ') as english ' +
+                    '   scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),\', \'))) as englishname ' +
                     '   FROM master_taxonomy ' +
                     '   GROUP BY scientific ' +
                     ') n '+
