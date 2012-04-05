@@ -304,14 +304,19 @@ mol.modules.map.tiles = function(mol) {
                 var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type='{2}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
                     tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
-                    hostname = window.location.hostname;
+                    hostname = window.location.hostname,
+                    style_table_name = table,
+                    info_query = sql;
 
                 if (layer.type === 'points') {
                     sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator " +
                         "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
-                    table = 'names_old';
+                    table = 'gbif_import';
+                    style_table_name = 'names_old';
+                    info_query = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, 'GBIF' || '' AS source, 'point' || '' AS type, 'http://data.gbif.org/ws/rest/occurrence/get/' || identifier as URL, scientificname AS name FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                 } else {
                     sql = sql.format(table, layer.name, layer.type);
+                    info_query = sql;
                 }
 
                 hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
@@ -324,7 +329,9 @@ mol.modules.map.tiles = function(mol) {
                         map: map,
                         user_name: 'mol',
                         table_name: table,
+                        style_table_name: style_table_name,
                         query: sql,
+                        info_query: info_query,
                         tile_style: tile_style,
                         map_style: false,
                         infowindow: true,

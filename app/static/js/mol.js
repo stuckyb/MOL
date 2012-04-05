@@ -571,7 +571,7 @@ mol.modules.map = function(mol) {
 
     mol.map = {};
 
-    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard', 'query', 'legend'];
+    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard', 'query', 'legend', 'basemap'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
@@ -836,7 +836,8 @@ mol.modules.map = function(mol) {
                     minZoom: 2,
                     minLat: -85,
                     maxLat: 85,
-                    mapTypeControlOptions: { position: google.maps.ControlPosition.BOTTOM_LEFT},
+                    mapTypeControl: false,
+                    //mapTypeControlOptions: {position: google.maps.ControlPosition.BOTTOM_LEFT},
                     center: new google.maps.LatLng(0,0),
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     styles: [
@@ -1275,7 +1276,21 @@ mol.modules.map.layers = function(mol) {
                                 self.bus.fireEvent(le);
                             }
                         );
+                        // Click handler for info button fires 'layer-info'
+                        // and 'show-loading-indicator' events.
+                        l.info.click(
+                            function(event) {
+                                var params = {
+                                        layer: layer,
+                                        auto_bound: true
+                                    },
+                                    e = new mol.bus.Event('layer-info', params),
+                                    le = new mol.bus.Event('show-loading-indicator',{source : "info"});
 
+                                self.bus.fireEvent(e);
+                                self.bus.fireEvent(le);
+                            }
+                        );
                         l.toggle.attr('checked', true);
 
                         // Click handler for the toggle button.
@@ -1357,12 +1372,10 @@ mol.modules.map.layers = function(mol) {
                     '    <div class="layerName">' +
                     '        <div class="layerNomial">{2}</div>' +
                     '    </div>' +
-                    '    <button class="close">x</button>' +
-                    '    <button class="zoom">z</button>' +
-                    //'    <div class="buttonContainer">' +
-                    '       <label class="buttonContainer"><input class="toggle" type="checkbox"><span class="customCheck"></span></label>' +
-                    //'      ' +
-                    //'    </div>' +
+                    '    <button title="Remove layer." class="close">x</button>' +
+                    '    <button title="Zoom to layer extent." class="zoom">z</button>' +
+                    '    <button title="Layer metadata info." class="info">i</button>' +
+                    '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span class="customCheck"></span></label>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
                     '</li>';
@@ -1385,13 +1398,10 @@ mol.modules.map.layers = function(mol) {
             init: function() {
                 var html = '' +
                     '<div class="mol-LayerControl-Layers">' +
-                    /*'  <div class="staticLink widgetTheme" style="display: none; ">' +
-                    '    <input type="text" class="linkText">' +
-                    '  </div>' +*/
-                    '  <div class="scrollContainer" style="">' +
-                    '    <ul id="sortable">' +
-                    '    </ul>' +
-                    '  </div>' +
+                    '   <div class="scrollContainer">' +
+                    '      <ul id="sortable">' +
+                    '      </ul>' +
+                    '   </div>' +
                     '</div>';
 
                 this._super(html);
@@ -1399,6 +1409,7 @@ mol.modules.map.layers = function(mol) {
                 this.open = false;
                 this.views = {};
                 this.layers = [];
+
             },
 
             getLayer: function(layer) {
@@ -2353,8 +2364,16 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'SELECT ' +
-                    'provider as source, scientificname as name, type as type ' +
-                    'FROM scientificnames WHERE scientificname = \'{0}\'';
+                    'provider as source, scientificname as name, type as type, english ' +
+                    'FROM scientificnames s ' +
+                    'LEFT JOIN (' +
+                    '   SELECT ' +
+                    '   scientific, array_to_string(array_sort(array_agg(common_names_eng)),', ') as english ' +
+                    '   FROM master_taxonomy ' +
+                    '   GROUP BY scientific ' +
+                    ') n '+
+                    'ON s.scientificname = n.scientific ' +
+                    'WHERE scientificname = \'{0}\'';
             },
 
             /**
@@ -2886,14 +2905,19 @@ mol.modules.map.tiles = function(mol) {
                 var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type='{2}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
                     tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
-                    hostname = window.location.hostname;
+                    hostname = window.location.hostname,
+                    style_table_name = table,
+                    info_query = sql;
 
                 if (layer.type === 'points') {
                     sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator " +
                         "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
-                    table = 'names_old';
+                    table = 'gbif_import';
+                    style_table_name = 'names_old';
+                    info_query = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, 'GBIF' || '' AS source, 'point' || '' AS type, 'http://data.gbif.org/ws/rest/occurrence/get/' || identifier as URL, scientificname AS name FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                 } else {
                     sql = sql.format(table, layer.name, layer.type);
+                    info_query = sql;
                 }
 
                 hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
@@ -2906,7 +2930,9 @@ mol.modules.map.tiles = function(mol) {
                         map: map,
                         user_name: 'mol',
                         table_name: table,
+                        style_table_name: style_table_name,
                         query: sql,
+                        info_query: info_query,
                         tile_style: tile_style,
                         map_style: false,
                         infowindow: true,
@@ -3015,6 +3041,7 @@ mol.modules.map.dashboard = function(mol) {
                     '  <div class="subtitle">Statistics for data served by the Map of Life</div>' +
                     '  <table>' +
                     '    <tr>' +
+                    '      <td width="50px"><b>Type</b></td>' +
                     '      <td width="100px"><b>Source</b></td>' +
                     '      <td><b>Amphibians</b></td>' +
                     '      <td><b>Birds</b></td>' +
@@ -3023,25 +3050,46 @@ mol.modules.map.dashboard = function(mol) {
                     '      <td><b>Fish</b></td>' +
                     '    </tr>' +
                     '    <tr>' +
-                    '      <td>GBIF points</td>' +
-                    '      <td>5,662 species with 1,794,441 records</td>' +
-                    '      <td>13,000 species with 132,412,174 records</td>' +
-                    '      <td>14,095 species with 4,351,065 records</td>' +
-                    '      <td>11,445 species with 1,695,170 records</td>' +
+                    '      <td>Points</td>' +
+                    '      <td>GBIF</td>' +
+                    '      <td>5,662 species names with 1,794,441 records</td>' +
+                    '      <td>13,000 species names with 132,412,174 records</td>' +
+                    '      <td>14,095 species names with 4,351,065 records</td>' +
+                    '      <td>11,445 species names with 1,695,170 records</td>' +
                     '      <td></td>' +
                     '   <tr>' +
-                    '       <td>Jetz range maps</td>' +
+                    '       <td>Expert maps</td>' +
+                    '       <td>User-uploaded</td>' +
                     '       <td></td>' +
-                    '       <td>9,869 species with 28,019 records</td>' +
+                    '       <td>Jetz et al. 2012: 9,869 species with 28,019 records</td>' +
                     '       <td></td>' +
                     '       <td></td>' +
-                    '       <td>723 species with 9,755 records</td>' +
+                    '       <td>Page and Burr, 2011: 723 species with 9,755 records</td>' +
                     '   </tr>' +
                     '   <tr>' +
-                    '       <td>IUCN range maps</td>' +
+                    '       <td>Expert maps</td>' +
+                    '       <td>IUCN</td>' +
                     '       <td>5,966 species with 18,852 records</td>' +
                     '       <td></td>' +
                     '       <td>4,081 species with 38,673 records</td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '   </tr>' +
+                    '   <tr>' +
+                    '       <td>Local Inventories</td>' +
+                    '       <td>Misc. sources</td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '   </tr>' +
+                    '   <tr>' +
+                    '       <td>Regional checklists</td>' +
+                    '       <td>WWF</td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
                     '       <td></td>' +
                     '       <td></td>' +
                     '   </tr>' +
@@ -3453,23 +3501,28 @@ mol.modules.map.query = function(mol) {
                 this.bus = bus;
                 this.map = map;
         },
+
         start : function() {
             this.addLegendDisplay();
             this.addEventHandlers();
         },
+
         /*
          *  Build the legend display and add it as a control to the bottom right of the map display.
          */
         addLegendDisplay : function() {
-                var params = {
-                    display: null,
-                    slot: mol.map.ControlDisplay.Slot.TOP,
-                    position: google.maps.ControlPosition.RIGHT_BOTTOM
-                 };
-                this.display = new mol.map.LegendDisplay();
-                params.display = this.display;
-                this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
+            var params = {
+                  display: null,
+                  slot: mol.map.ControlDisplay.Slot.TOP,
+                  position: google.maps.ControlPosition.RIGHT_BOTTOM
+                };
+
+            this.display = new mol.map.LegendDisplay();
+            this.display.toggle(false);
+            params.display = this.display;
+            this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
         },
+
         addEventHandlers : function () {
             var self = this;
             /**
@@ -3517,3 +3570,104 @@ mol.modules.map.query = function(mol) {
     }
    );
 };
+mol.modules.map.basemap = function(mol) {
+
+    mol.map.basemap = {};
+
+    mol.map.basemap.BaseMapEngine = mol.mvp.Engine.extend(
+        {
+            init: function(proxy, bus, map) {
+                this.proxy = proxy;
+                this.bus = bus;
+                this.map = map;
+            },
+
+            /**
+             * Starts the MenuEngine. Note that the container parameter is
+             * ignored.
+             */
+            start: function() {
+                this.display = new mol.map.basemap.BaseMapControlDisplay();
+                this.display.toggle(true);
+                this.addEventHandlers();
+                this.fireEvents();
+            },
+
+            setBaseMap: function(type) {
+                    if(type=="Basic") {
+                        type="ROADMAP";
+                    }
+                    this.map.setMapTypeId(google.maps.MapTypeId[type.toUpperCase()])
+            },
+            /**
+             * Adds a handler for the 'search-display-toggle' event which
+             * controls display visibility. Also adds UI event handlers for the
+             * display.
+             */
+            addEventHandlers: function() {
+                var self = this;
+                _.each(
+                    $(this.display).find(".button"),
+                    function(button) {
+                        $(button).click(
+                            function(event) {
+                                self.setBaseMap($(this).text());
+                            }
+                        );
+                    }
+                );
+
+                this.bus.addHandler(
+                    'basemap-display-toggle',
+                    function(event) {
+                        var params = null,
+                        e = null;
+
+                        if (event.visible === undefined) {
+                            self.display.toggle();
+                            params = {visible: self.display.is(':visible')};
+                        } else {
+                            self.display.toggle(event.visible);
+                        }
+                    }
+                );
+            },
+
+            /**
+             * Fires the 'add-map-control' event. The mol.map.MapEngine handles
+             * this event and adds the display to the map.
+             */
+            fireEvents: function() {
+                var params = {
+                        display: this.display,
+                        slot: mol.map.ControlDisplay.Slot.FIRST,
+                        position: google.maps.ControlPosition.BOTTOM_LEFT
+                    },
+                    event = new mol.bus.Event('add-map-control', params);
+
+                this.bus.fireEvent(event);
+            }
+        }
+    );
+
+    mol.map.basemap.BaseMapControlDisplay = mol.mvp.View.extend(
+        {
+            init: function() {
+                var html = '' +
+                    '<div class="mol-BaseMapControl">' +
+                        '<div class="label">Base Map:</div>' +
+                        '<div title="Basic Base Map (water and boundaries only)" class="widgetTheme button">Basic</div>' +
+                        //'<div title="Road Base Map" class="widgetTheme button">Roads</div>' +
+                        '<div title="Terrain Base Map" class="widgetTheme button">Terrain</div>' +
+                        '<div title="Satellite Base Map" class="widgetTheme button">Satellite</div>' +
+                    '</div>';
+
+                this._super(html);
+
+            }
+        }
+    );
+};
+
+
+

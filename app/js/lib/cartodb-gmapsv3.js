@@ -235,7 +235,7 @@ var CartoDB = CartoDB || {};
 
       function generateTileJson(params) {
         var core_url = 'http://' + params.hostname;
-        var base_url = core_url + '/tiles/' + params.table_name + '/{z}/{x}/{y}';
+        var base_url = core_url + '/tiles/' + params.style_table_name + '/{z}/{x}/{y}';
         var tile_url = base_url + '.png?cache_buster=0';
         var grid_url = base_url + '.grid.json';
 
@@ -243,7 +243,7 @@ var CartoDB = CartoDB || {};
         if (params.query) {
           var query = 'sql=' + params.query;
           tile_url = wax.util.addUrlData(tile_url, query);
-          grid_url = wax.util.addUrlData(grid_url, query);
+          grid_url = wax.util.addUrlData(grid_url, 'sql=' + params.info_query);
         }
 
         // Map key ?
@@ -428,6 +428,10 @@ var CartoDB = CartoDB || {};
     var that = this
       , infowindow_sql = 'SELECT contact, provider, scientificname, seasonality, type FROM ' + this.params_.table_name + ' WHERE cartodb_id=' + feature;
     that.feature_ = feature;
+
+    if (this.params_.table_name == 'gbif_import') {
+          infowindow_sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, 'GBIF' || '' AS source, 'point' || '' AS type, 'http://data.gbif.org/ws/rest/occurrence/get/' || identifier as URL, scientificname AS name FROM {0} WHERE cartodb_id='{1}'".format("gbif_import", feature);
+    }
 
     // If the table is private, you can't run any api methods
     if (this.params_.feature!=true) {
