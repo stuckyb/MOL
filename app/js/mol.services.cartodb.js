@@ -55,7 +55,8 @@ mol.modules.services.cartodb = function(mol) {
                     "layers": this.getLayers(this.response),
                     "names": this.genNames(this.response),
                     "sources": this.genSources(this.response),
-                    "types": this.genTypes(this.response)
+                    "types": this.genTypes(this.response),
+                    "englishnames": this.genEnglishNames(this.response)
                 };
             },
 
@@ -78,6 +79,9 @@ mol.modules.services.cartodb = function(mol) {
                         break;
                     case 'source':
                         results.push(row.source);
+                        break;
+                    case 'englishname':
+                        results.push(row.englishname);
                         break;
                     }
                 }
@@ -140,7 +144,24 @@ mol.modules.services.cartodb = function(mol) {
 
                 return profile;
             },
+            /**
+             * Returns the top level english profile object.
+             *
+             * {"source": "names":[], "types":[], "layers":[], "englishnames":[]}
+             *
+             */
+            genEnglishNames: function(response) {
+                var englishnames = this.uniques('englishname', response),
+                englishname = null,
+                profile = {};
 
+                for (i in englishnames) {
+                    englishname = englishnames[i];
+                    profile[englishname] = this.getEnglishNameProfile(englishname, response);
+                }
+
+                return profile;
+            },
             /**
              * Returns a profile for a single name.
              */
@@ -148,6 +169,7 @@ mol.modules.services.cartodb = function(mol) {
                 var layers = [],
                 sources = [],
                 types = [],
+                englishnames =[],
                 row = null;
 
                 for (i in response.rows) {
@@ -161,7 +183,8 @@ mol.modules.services.cartodb = function(mol) {
                 return {
                     "layers": _.uniq(layers),
                     "sources" : _.uniq(sources),
-                    "types": _.uniq(types)
+                    "types": _.uniq(types),
+                    "englishnames": _.uniq(englishnames)
                 };
             },
 
@@ -172,6 +195,7 @@ mol.modules.services.cartodb = function(mol) {
                 var layers = [],
                 names = [],
                 types = [],
+                englishnames = [],
                 row = null;
 
                 for (i in response.rows) {
@@ -185,7 +209,8 @@ mol.modules.services.cartodb = function(mol) {
                 return {
                     "layers": _.uniq(layers),
                     "names" : _.uniq(names),
-                    "types": _.uniq(types)
+                    "types": _.uniq(types),
+                    "englishnames": _.uniq(englishnames)
                 };
             },
 
@@ -196,6 +221,7 @@ mol.modules.services.cartodb = function(mol) {
                 var layers = [],
                 sources = [],
                 names = [],
+                englishnames =[],
                 row = null;
 
                 for (i in response.rows) {
@@ -204,12 +230,40 @@ mol.modules.services.cartodb = function(mol) {
                         layers.push(i + '');
                         sources.push(row.source);
                         names.push(row.name);
+                        englishnames.push(row.englishname);
                     }
                 }
                 return {
                     "layers": _.uniq(layers),
                     "sources" : _.uniq(sources),
-                    "names": _.uniq(names)
+                    "names": _.uniq(names),
+                    "englishnames": _.uniq(englishnames)
+                };
+            },
+            /**
+             * Returns a profile for a single english name.
+             */
+            getEnglishNameProfile: function(englishname, response) {
+                var layers = [],
+                sources = [],
+                names = [],
+                types =[],
+                row = null;
+
+                for (i in response.rows) {
+                    row = response.rows[i];
+                    if (englishname === row.englishname) {
+                        layers.push(i + '');
+                        sources.push(row.source);
+                        names.push(row.name);
+                        types.push(row.type);
+                    }
+                }
+                return {
+                    "layers": _.uniq(layers),
+                    "sources" : _.uniq(sources),
+                    "names": _.uniq(names),
+                    "types": _.uniq(types)
                 };
             },
 
@@ -228,7 +282,8 @@ mol.modules.services.cartodb = function(mol) {
                     layers[key] = {
                         name: row.name.charAt(0).toUpperCase()+row.name.slice(1).toLowerCase(),
                         source: row.source.toLowerCase(),
-                        type: row.type.toLowerCase()
+                        type: row.type.toLowerCase(),
+                        englishname: (row.englishname != undefined) ? _.uniq(row.englishname.split(', ')).join(', ') : '' //this removes duplicates
                         //extent: this.getExtent(row.extent)
                     };
                 }

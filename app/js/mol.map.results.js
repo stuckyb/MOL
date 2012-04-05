@@ -367,7 +367,8 @@ mol.modules.map.results = function(mol) {
                             name = layer.name,
                             source = layer.source,
                             type = layer.type,
-                            result = new mol.map.results.ResultDisplay(name, id, source, type);
+                            englishname = layer.englishname,
+                            result = new mol.map.results.ResultDisplay(name, id, source, type, englishname);
 
                         this.resultList.append(result);
                         return result;
@@ -434,7 +435,7 @@ mol.modules.map.results = function(mol) {
      */
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
-            init: function(name, id, source, type) {
+            init: function(name, id, source, type, englishname) {
                 var html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
@@ -442,22 +443,24 @@ mol.modules.map.results = function(mol) {
                     '<div class="resultType" ><button ><img class="type" title="Layer Type: {3}" src="/static/maps/search/{3}.png"></button></div>' +
                     '<div class="resultName">' +
                     '  <div class="resultNomial">{1}</div>' +
+                    '  <div class="resultEnglishName" title="{4}">{4}</div>' +
                     '  <div class="resultAuthor"></div>' +
                     '</div>' +
-                    '<div class="buttonContainer"> ' +
-                    '  <input type="checkbox" class="checkbox" /> ' +
-                    '  <span class="customCheck"></span> ' +
-                    '</div> ' +
+                    '<label class="buttonContainer">' +
+                    '   <input type="checkbox" class="checkbox" />' +
+                    '   <span class="customCheck"></span>' +
+                    '</label> ' +
                     '</ul>' +
                     '<div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(id, name, source, type));
+                this._super(html.format(id, name, source, type, englishname));
 
                 this.infoLink = $(this).find('.info');
                 this.nameBox = $(this).find('.resultName');
                 this.sourcePng = $(this).find('.source');
                 this.typePng = $(this).find('.type');
+                this.checkbox = $(this).find('.checkbox').button();
             }
         }
     );
@@ -518,8 +521,8 @@ mol.modules.map.results = function(mol) {
              * @param profile the profile to test
              *
              */
-            getNewLayers: function(name, source, type, profile) {
-                var layers = this.getLayers(name, source, type, profile);
+            getNewLayers: function(name, source, type, englishname, profile) {
+                var layers = this.getLayers(name, source, type, englishname, profile);
 
                 return _.map(
                     layers,
@@ -530,15 +533,16 @@ mol.modules.map.results = function(mol) {
                 );
             },
 
-            getLayers: function(name, source, type, profile) {
+            getLayers: function(name, source, type, englishname, profile) {
                 var response = this.response,
                 currentProfile = profile ? profile : 'nameProfile',
                 nameProfile = name ? response.names[name] : null,
                 sourceProfile = source ? response.sources[source] : null,
                 typeProfile = type ? response.types[type] : null,
+                englishnameProfile = englishname ? response.englishnames[englishname] : null,
                 profileSatisfied = false;
 
-                if (!name && !type && !source){
+                if (!name && !type && !source && !englishname){
                     var keys = new Array();
                     for (i in response.layers) {
                         keys.push(i);
@@ -550,7 +554,7 @@ mol.modules.map.results = function(mol) {
 
                 case 'nameProfile':
                     if (!name) {
-                        return this.getLayers(name, source, type, 'sourceProfile');
+                        return this.getLayers(name, source, type, englishname, 'sourceProfile');
                     }
 
                     if (nameProfile) {
@@ -613,6 +617,38 @@ mol.modules.map.results = function(mol) {
                         }
                     }
                     return [];
+                /* TODO FIX THIS case */
+                case 'englishnameProfile':
+                    if (!englishname) {
+                        return this.getLayers(name, source, type, englishname, 'typeProfile');
+                    }
+
+                    if (englishnameProfile) {
+                        if (!name && !type) {
+                            return sourceProfile.layers;
+                        }
+                        if (name && type) {
+                            if (this.exists(name, sourceProfile.names) &&
+                                this.exists(type, sourceProfile.types)) {
+                                return _.intersect(
+                                    sourceProfile.layers,
+                                    this.getLayers(name, source, type, 'typeProfile'));
+                            }
+                        }
+                        if (name && !type) {
+                            if (this.exists(name, sourceProfile.names)) {
+                                return sourceProfile.layers;
+                            }
+                        }
+                        if (!name && type) {
+                            if (this.exists(type, sourceProfile.types)) {
+                                return _.intersect(
+                                    sourceProfile.layers,
+                                    this.getLayers(name, source, type, 'typeProfile'));
+                            }
+                        }
+                    }
+                    return [];
 
                 case 'typeProfile':
                     if (!type) {
@@ -641,6 +677,7 @@ mol.modules.map.results = function(mol) {
                         }
                     }
                     return [];
+
                 }
                 return [];
             },
@@ -660,6 +697,9 @@ mol.modules.map.results = function(mol) {
                     break;
                 case "names":
                     res = this.response.names;
+                    break;
+                case "englishnames":
+                    res = this.response.englishnames;
                     break;
                 }
                 return _.keys(res);
@@ -694,7 +734,15 @@ mol.modules.map.results = function(mol) {
             getName: function(name) {
                 return this.response.names[name];
             },
+            getEnglishNameKeys: function() {
+                var x = this.englishnameKeys,
+                englishnames = this.response.englishnames;
+                return x ? x : (this.englishnameKeys = _.keys(englishnames));
+            },
 
+            getEnglishName: function(englishname) {
+                return this.response.englishnames[englishname];
+            },
             /**
              * Returns true if the name exists in the array, false otherwise.
              */
