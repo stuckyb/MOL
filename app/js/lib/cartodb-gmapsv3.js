@@ -430,7 +430,7 @@ var CartoDB = CartoDB || {};
     that.feature_ = feature;
 
     if (this.params_.table_name == 'gbif_import') {
-          infowindow_sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, 'GBIF' || '' AS source, 'point' || '' AS type, 'http://data.gbif.org/ws/rest/occurrence/get/' || identifier as URL, scientificname AS name FROM {0} WHERE cartodb_id='{1}'".format("gbif_import", feature);
+          infowindow_sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, 'GBIF' || '' AS source, 'point' || '' AS type, 'http://data.gbif.org/ws/rest/occurrence/get/' || identifier as URL, scientificname AS name FROM {0} WHERE cartodb_id={1}".format("gbif_import", feature);
     }
 
     // If the table is private, you can't run any api methods
