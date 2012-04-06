@@ -2990,7 +2990,7 @@ mol.modules.map.tiles = function(mol) {
                         "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                     table = 'gbif_import';
                     style_table_name = 'names_old';
-                    info_query = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, \'GBIF\' AS source, \'point\' AS type, CONCAT(\'<a href=\"\',(\'http://data.gbif.org/ws/rest/occurrence/get/\',identifier),\'\">\',identifier),\'</a>\') AS 'GBIF_Occurence_ID', scientificname AS \'name\' FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
+                    info_query = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, 'GBIF' || '' AS source, 'point' || '' AS type, 'http://data.gbif.org/ws/rest/occurrence/get/' || identifier as URL, scientificname AS name FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                 } else {
                     sql = sql.format(table, layer.name, layer.type);
                     info_query = sql;
