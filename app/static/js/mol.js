@@ -2269,21 +2269,21 @@ mol.modules.map.results = function(mol) {
                                 this.exists(type, nameProfile.types)) {
                                 return _.intersect(
                                     nameProfile.layers,
-                                    this.getLayers(name, source, type, 'sourceProfile'));
+                                    this.getLayers(name, source, type, englishname, 'sourceProfile'));
                             }
                         }
                         if (source && !type) {
                             if (this.exists(source, nameProfile.sources)) {
                                 return _.intersect(
                                     nameProfile.layers,
-                                    this.getLayers(name, source, type, 'sourceProfile'));
+                                    this.getLayers(name, source, type, englishname, 'sourceProfile'));
                             }
                         }
                         if (!source && type) {
                             if (this.exists(type, nameProfile.types)) {
                                 return _.intersect(
                                     nameProfile.layers,
-                                    this.getLayers(name, source, type, 'typeProfile'));
+                                    this.getLayers(name, source, type, englishname, 'typeProfile'));
                             }
                         }
                     }
@@ -2291,7 +2291,7 @@ mol.modules.map.results = function(mol) {
 
                 case 'sourceProfile':
                     if (!source) {
-                        return this.getLayers(name, source, type, 'typeProfile');
+                        return this.getLayers(name, source, type, englishname,'typeProfile');
                     }
 
                     if (sourceProfile) {
@@ -2303,7 +2303,7 @@ mol.modules.map.results = function(mol) {
                                 this.exists(type, sourceProfile.types)) {
                                 return _.intersect(
                                     sourceProfile.layers,
-                                    this.getLayers(name, source, type, 'typeProfile'));
+                                    this.getLayers(name, source, type, englishname,'typeProfile'));
                             }
                         }
                         if (name && !type) {
@@ -2315,43 +2315,12 @@ mol.modules.map.results = function(mol) {
                             if (this.exists(type, sourceProfile.types)) {
                                 return _.intersect(
                                     sourceProfile.layers,
-                                    this.getLayers(name, source, type, 'typeProfile'));
+                                    this.getLayers(name, source, type, englishname, 'typeProfile'));
                             }
                         }
                     }
                     return [];
-                /* TODO FIX THIS case */
-                case 'englishnameProfile':
-                    if (!englishname) {
-                        return this.getLayers(name, source, type, englishname, 'typeProfile');
-                    }
-
-                    if (englishnameProfile) {
-                        if (!name && !type) {
-                            return sourceProfile.layers;
-                        }
-                        if (name && type) {
-                            if (this.exists(name, sourceProfile.names) &&
-                                this.exists(type, sourceProfile.types)) {
-                                return _.intersect(
-                                    sourceProfile.layers,
-                                    this.getLayers(name, source, type, 'typeProfile'));
-                            }
-                        }
-                        if (name && !type) {
-                            if (this.exists(name, sourceProfile.names)) {
-                                return sourceProfile.layers;
-                            }
-                        }
-                        if (!name && type) {
-                            if (this.exists(type, sourceProfile.types)) {
-                                return _.intersect(
-                                    sourceProfile.layers,
-                                    this.getLayers(name, source, type, 'typeProfile'));
-                            }
-                        }
-                    }
-                    return [];
+                /*TODO englishname profile */
 
                 case 'typeProfile':
                     if (!type) {
@@ -3020,7 +2989,7 @@ mol.modules.map.tiles = function(mol) {
                     sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, identifier " +
                         "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                     table = 'gbif_import';
-                    style_table_name = 'styles';
+                    style_table_name = 'names_old';
                     info_query = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, 'GBIF' || '' AS source, 'point' || '' AS type, 'http://data.gbif.org/ws/rest/occurrence/get/' || identifier as URL, scientificname AS name FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                 } else {
                     sql = sql.format(table, layer.name, layer.type);
