@@ -121,13 +121,6 @@ mol.modules.map.menu = function(mol) {
                     '    <div title="Toggle layer search tools." class="widgetTheme search button">Search</div>' +
                     '    <div title="Toggle map legend." class="widgetTheme legend button">Legend</div>' +
                     '    <div title="Toggle species list radius tool (right-click to use)" class="widgetTheme list button">Species&nbsp;Lists</div>' +
-                    '</div>' +
-                    '<div class="mol-LayerControl-Layers">' +
-                    /*'      <div class="staticLink widgetTheme" >' +
-                    '          <input type="text" class="linkText" />' +
-                    '      </div>' +*/
-                    '   <div class="scrollContainer">' +
-                    '   </div>' +
                     '</div>';
 
                 this._super(html);

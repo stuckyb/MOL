@@ -293,7 +293,7 @@ mol.modules.map.layers = function(mol) {
 						          params = {},
                             e = null;
 
-						          $(display.list).find('li').each(
+						          $(display.list).find('.layerContainer').each(
                                 function(i, el) {
 							               layers.push($(el).attr('id'));
 						              }
@@ -318,7 +318,8 @@ mol.modules.map.layers = function(mol) {
                     '    <button class="source" title="Layer Source: {0}"><img src="/static/maps/search/{0}.png"></button>' +
                     '    <button class="type" title="Layer Type: {1}"><img src="/static/maps/search/{1}.png"></button>' +
                     '    <div class="layerName">' +
-                    '        <div class="layerNomial" title="Common Names: {3}">{2}</div>' +
+                    '        <div class="layerNomial">{2}</div>' +
+                    '        <div class="layerEnglishName">{3}</div>' +
                     '    </div>' +
                     '    <button title="Remove layer." class="close">x</button>' +
                     '    <button title="Zoom to layer extent." class="zoom">z</button>' +
@@ -347,8 +348,19 @@ mol.modules.map.layers = function(mol) {
             init: function() {
                 var html = '' +
                     '<div class="mol-LayerControl-Layers widgetTheme">' +
-                    '   <div class="scrollContainer">' +
-                    '       <div id="sortable">' +
+                    '   <div class="layers">' +
+                    '       <div class="layersHeader">' +
+                    '           Layers ' +
+                    '           <a href="#" class="selectNone">none</a>' +
+                    '           <a href="#" class="selectAll">all</a>' +
+                    '       </div>' +
+                    '       <div class="scrollContainer">' +
+                    '           <div id="sortable">' +
+                    '           </div>' +
+                    '       </div>' +
+                    '       <div class="pageNavigation">' +
+                    '           <button class="remove">Remove Selected Layers</button>' +
+                    '           <button class="toggle">Toggle Selected Layers</button>' +
                     '       </div>' +
                     '   </div>' +
                     '</div>';
