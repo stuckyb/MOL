@@ -3020,7 +3020,7 @@ mol.modules.map.tiles = function(mol) {
                     sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, identifier " +
                         "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                     table = 'gbif_import';
-                    style_table_name = 'names_old';
+                    style_table_name = 'styles';
                     info_query = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, 'GBIF' || '' AS source, 'point' || '' AS type, 'http://data.gbif.org/ws/rest/occurrence/get/' || identifier as URL, scientificname AS name FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                 } else {
                     sql = sql.format(table, layer.name, layer.type);
