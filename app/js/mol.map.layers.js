@@ -318,8 +318,9 @@ mol.modules.map.layers = function(mol) {
                     '    <button class="source" title="Layer Source: {0}"><img src="/static/maps/search/{0}.png"></button>' +
                     '    <button class="type" title="Layer Type: {1}"><img src="/static/maps/search/{1}.png"></button>' +
                     '    <div class="layerName">' +
-                    '        <div class="layerNomial">{2}</div>' +
-                    '        <div class="layerEnglishName">{3}</div>' +
+                    '        <div class="layerRecords">{4} records</div>' +
+                    '        <div title="{2}" class="layerNomial">{2}</div>' +
+                    '        <div title="{3}" class="layerEnglishName">{3}</div>' +
                     '    </div>' +
                     '    <button title="Remove layer." class="close">x</button>' +
                     '    <button title="Zoom to layer extent." class="zoom">z</button>' +
@@ -330,7 +331,7 @@ mol.modules.map.layers = function(mol) {
                     '  <div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(layer.source, layer.type, layer.name, layer.englishname));
+                this._super(html.format(layer.source, layer.type, layer.name, layer.englishname, layer.records));
                 this.attr('id', layer.id);
                 this.opacity = $(this).find('.opacity').slider({value: 0.5, min: 0, max:1, step: 0.02, animate:"slow"});
                 this.toggle = $(this).find('.toggle').button();

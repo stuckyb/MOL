@@ -283,8 +283,8 @@ mol.modules.services.cartodb = function(mol) {
                         name: row.name.charAt(0).toUpperCase()+row.name.slice(1).toLowerCase(),
                         source: row.source.toLowerCase(),
                         type: row.type.toLowerCase(),
-                        englishname: (row.englishname != undefined) ? _.uniq(row.englishname.split(', ')).join(', ') : '' //this removes duplicates
-                        //extent: this.getExtent(row.extent)
+                        englishname: (row.englishname != undefined) ? _.uniq(row.englishname.split(', ')).join(', ') : '', //this removes duplicates
+                        records: row.records
                     };
                 }
                 return layers;
