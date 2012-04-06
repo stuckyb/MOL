@@ -308,17 +308,19 @@ mol.modules.map.tiles = function(mol) {
                     style_table_name = table,
                     info_query = sql;
                     tile_style =  null,
-                    hostname = window.location.hostname;
+                    hostname = window.location.hostname,
+                    infowindow = false;
 
                 if (layer.type === 'points') {
                     sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, identifier " +
                         "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                     table = 'gbif_import';
                     style_table_name = 'names_old';
-                    info_query = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, 'GBIF' || '' AS source, 'point' || '' AS type, 'http://data.gbif.org/ws/rest/occurrence/get/' || identifier as URL, scientificname AS name FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
+                    info_query = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
+                    infowindow = true;
                 } else {
                     sql = sql.format(table, layer.name, layer.type);
-                    info_query = sql;
+                    info_query = ''; //sql;
                 }
 
                 hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
@@ -336,7 +338,7 @@ mol.modules.map.tiles = function(mol) {
                         info_query: info_query,
                         tile_style: tile_style,
                         map_style: false,
-                        infowindow: true,
+                        infowindow: infowindow,
                         opacity: 0.5
                     }
                 );

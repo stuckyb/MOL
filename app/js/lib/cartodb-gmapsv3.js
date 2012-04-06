@@ -379,7 +379,6 @@ var CartoDB = CartoDB || {};
                         '</div>'+
                       '</div>'+
                       '<div class="bottom">'+
-                        '<label>id:1</label>'+
                       '</div>';
 
       $(div).find('a.close').click(function(ev){
@@ -430,7 +429,14 @@ var CartoDB = CartoDB || {};
     that.feature_ = feature;
 
     if (this.params_.table_name == 'gbif_import') {
-          infowindow_sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, 'GBIF' || '' AS source, 'point' || '' AS type, 'http://data.gbif.org/ws/rest/occurrence/get/' || identifier as URL, scientificname AS name FROM {0} WHERE cartodb_id={1}".format("gbif_import", feature);
+          infowindow_sql = "SELECT  " +
+            "'Point' AS \"Type\", " +
+            "'GBIF' AS \"Source\", " +
+            "scientificname AS  \"Species name\", " +
+            "CollectionID AS \"Collection\", " +
+            "CONCAT('<a target=\"_gbif\" onclick=\"window.open(this.href)\" href=\"http://data.gbif.org/occurrences/',identifier,'\">',identifier, '</a>') as \"Source ID\", " +
+            "SurveyStartDate as \"Observed on\" " +
+            "FROM {0} WHERE cartodb_id={1}".format("gbif_import", feature);
     }
 
     // If the table is private, you can't run any api methods
@@ -470,9 +476,9 @@ var CartoDB = CartoDB || {};
         }
 
         // Show cartodb_id?
-        if (variables['cartodb_id']) {
-          $('div.cartodb_infowindow div.bottom label').html('id: <strong>'+feature+'</strong>');
-        }
+       // if (variables['cartodb_id']) {
+        //  $('div.cartodb_infowindow div.bottom label').html('id: <strong>'+feature+'</strong>');
+       // }
 
         that.moveMaptoOpen();
         that.setPosition();
