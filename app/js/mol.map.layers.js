@@ -14,7 +14,8 @@ mol.modules.map.layers = function(mol) {
                 this.display = new mol.map.layers.LayerListDisplay('.map_container');
                 this.fireEvents();
                 this.addEventHandlers();
-				    this.initSortable();
+				this.initSortable();
+				this.display.toggle(false);
             },
 
             /**
@@ -202,6 +203,7 @@ mol.modules.map.layers = function(mol) {
                                 // Hide the layer widge toggle in the main menu if no layers exist
                                 if(self.map.overlayMapTypes.length == 0) {
                                     self.bus.fireEvent(new mol.bus.Event('hide-layer-display-toggle'));
+                                    self.display.toggle(false);
                                 }
                             }
                         );
@@ -251,6 +253,7 @@ mol.modules.map.layers = function(mol) {
                                 self.bus.fireEvent(e);
                             }
                         );
+                        self.display.toggle(true);
                     },
                     this
                 );
@@ -310,8 +313,8 @@ mol.modules.map.layers = function(mol) {
         {
             init: function(layer) {
                 var html = '' +
-                    '<li class="layerContainer">' +
-                    '  <div class="layer widgetTheme">' +
+                    '<div class="layerContainer">' +
+                    '  <div class="layer">' +
                     '    <button class="source" title="Layer Source: {0}"><img src="/static/maps/search/{0}.png"></button>' +
                     '    <button class="type" title="Layer Type: {1}"><img src="/static/maps/search/{1}.png"></button>' +
                     '    <div class="layerName">' +
@@ -323,7 +326,8 @@ mol.modules.map.layers = function(mol) {
                     '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span title="Toggle layer visibility." class="customCheck"></span></label>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
-                    '</li>';
+                    '  <div class="break"></div>' +
+                    '</div>';
 
                 this._super(html.format(layer.source, layer.type, layer.name, layer.englishname));
                 this.attr('id', layer.id);
@@ -342,10 +346,10 @@ mol.modules.map.layers = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<div class="mol-LayerControl-Layers">' +
+                    '<div class="mol-LayerControl-Layers widgetTheme">' +
                     '   <div class="scrollContainer">' +
-                    '      <ul id="sortable">' +
-                    '      </ul>' +
+                    '       <div id="sortable">' +
+                    '       </div>' +
                     '   </div>' +
                     '</div>';
 
@@ -388,7 +392,7 @@ mol.modules.map.layers = function(mol) {
 
             sortLayers: function() {
                 var order = [];
-                $(this).find('li').each(function(i, el) {
+                $(this).find('.layerContainer').each(function(i, el) {
 					order.push($(el).attr('id'));
 				});
                 this.bus.emit("map:reorder_layers", order);

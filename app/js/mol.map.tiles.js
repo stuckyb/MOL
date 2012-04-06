@@ -49,7 +49,9 @@ mol.modules.map.tiles = function(mol) {
                                         };
                                         e = new mol.bus.Event('layer-opacity', params);
                                         self.bus.fireEvent(e);
-                                        maptype.interaction.add();
+                                        if(maptype.interaction != undefined) {
+                                            maptype.interaction.add();
+                                        }
                                         return;
                                     }
                                 }
@@ -65,7 +67,9 @@ mol.modules.map.tiles = function(mol) {
                                         };
                                         e = new mol.bus.Event('layer-opacity', params);
                                         self.bus.fireEvent(e);
-                                        maptype.interaction.remove();
+                                        if(maptype.interaction != undefined) {
+                                            maptype.interaction.remove();
+                                        }
                                         //self.map.overlayMapTypes.removeAt(index);
                                     }
                                 }
@@ -141,8 +145,10 @@ mol.modules.map.tiles = function(mol) {
                                 mapTypes.forEach(
                                     function(mt, index) { // "mt" is short for map type.
                                         if ((mt != undefined) && (mt.name === lid)) {
+                                            if(mt.interaction != undefined) {
+                                                mt.interaction.remove();
+                                            }
                                             mapTypes.removeAt(index);
-                                            mt.interaction.remove();
                                         }
                                     }
                                 );
