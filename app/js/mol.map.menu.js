@@ -41,6 +41,12 @@ mol.modules.map.menu = function(mol) {
                             new mol.bus.Event('search-display-toggle'));
                     }
                 );
+                this.display.legendItem.click(
+                    function(event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('legend-display-toggle'));
+                    }
+                );
                 this.display.speciesListItem.click(
                     function(event) {
                         self.bus.fireEvent(new mol.bus.Event('species-list-tool-toggle'));
@@ -113,18 +119,13 @@ mol.modules.map.menu = function(mol) {
                     '    </div>' +
                     '    <div title="Toggle taxonomy dashboard." class="widgetTheme dashboard button">Dashboard</div>' +
                     '    <div title="Toggle layer search tools." class="widgetTheme search button">Search</div>' +
+                    '    <div title="Toggle map legend." class="widgetTheme legend button">Legend</div>' +
                     '    <div title="Toggle species list radius tool (right-click to use)" class="widgetTheme list button">Species&nbsp;Lists</div>' +
-                    '</div>' +
-                    '<div class="mol-LayerControl-Layers">' +
-                    /*'      <div class="staticLink widgetTheme" >' +
-                    '          <input type="text" class="linkText" />' +
-                    '      </div>' +*/
-                    '   <div class="scrollContainer">' +
-                    '   </div>' +
                     '</div>';
 
                 this._super(html);
                 this.searchItem = $(this).find('.search');
+                this.legendItem = $(this).find('.legend');
                 this.dashboardItem = $(this).find('.dashboard');
                 this.speciesListItem = $(this).find('.list');
                 this.layersToggle = $(this).find('.layersToggle');

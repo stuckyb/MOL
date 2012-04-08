@@ -74,12 +74,8 @@ mol.modules.map.dashboard = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: false,
-					         width: 800,
-					         buttons: {
-						          "Ok": function() {
-							           $(this).dialog("close");
-						          }
-					         }
+					    width: 1000,
+					    dialogClass: "mol-Dashboard"
                     }
                 );
             }
@@ -90,12 +86,13 @@ mol.modules.map.dashboard = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<div id="dialog" class="mol-LayerControl-Results">' +
+                    '<div id="dialog">' +
                     '  <div class="dashboard">' +
                     '  <div class="title">Dashboard</div>' +
                     '  <div class="subtitle">Statistics for data served by the Map of Life</div>' +
                     '  <table>' +
                     '    <tr>' +
+                    '      <td width="50px"><b>Type</b></td>' +
                     '      <td width="100px"><b>Source</b></td>' +
                     '      <td><b>Amphibians</b></td>' +
                     '      <td><b>Birds</b></td>' +
@@ -104,32 +101,54 @@ mol.modules.map.dashboard = function(mol) {
                     '      <td><b>Fish</b></td>' +
                     '    </tr>' +
                     '    <tr>' +
-                    '      <td>GBIF points</td>' +
-                    '      <td>5,662 species with 1,794,441 records</td>' +
-                    '      <td>13,000 species with 132,412,174 records</td>' +
-                    '      <td>14,095 species with 4,351,065 records</td>' +
-                    '      <td>11,445 species with 1,695,170 records</td>' +
+                    '      <td>Points</td>' +
+                    '      <td>GBIF</td>' +
+                    '      <td>5,662 species names with 1,794,441 records</td>' +
+                    '      <td>13,000 species names with 132,412,174 records</td>' +
+                    '      <td>14,095 species names with 4,351,065 records</td>' +
+                    '      <td>11,445 species names with 1,695,170 records</td>' +
                     '      <td></td>' +
                     '   <tr>' +
-                    '       <td>Jetz range maps</td>' +
+                    '       <td>Expert maps</td>' +
+                    '       <td>User-uploaded</td>' +
                     '       <td></td>' +
-                    '       <td>9,869 species with 28,019 records</td>' +
+                    '       <td>Jetz et al. 2012: 9,869 species with 28,019 records</td>' +
                     '       <td></td>' +
                     '       <td></td>' +
-                    '       <td>723 species with 9,755 records</td>' +
+                    '       <td>Page and Burr, 2011: 723 species with 9,755 records</td>' +
                     '   </tr>' +
                     '   <tr>' +
-                    '       <td>IUCN range maps</td>' +
+                    '       <td>Expert maps</td>' +
+                    '       <td>IUCN</td>' +
                     '       <td>5,966 species with 18,852 records</td>' +
                     '       <td></td>' +
                     '       <td>4,081 species with 38,673 records</td>' +
                     '       <td></td>' +
                     '       <td></td>' +
                     '   </tr>' +
+                    '   <tr>' +
+                    '       <td>Local Inventories</td>' +
+                    '       <td>Misc. sources</td>' +
+                    '       <td>727 species with 1,820 records</td>' +
+                    '       <td>4,042 species with 48,000 records</td>' +
+                    '       <td>1,411 species with 9,895 records</td>' +
+                    '       <td></td>' +
+                    '       <td></td>' +
+                    '   </tr>' +
+                    '   <tr>' +
+                    '       <td>Regional checklists</td>' +
+                    '       <td>WWF</td>' +
+                    '       <td>3,081 species with 12,296 records</td>' +
+                    '       <td>8,755 species with 201,418 records</td>' +
+                    '       <td>4,224 species with 67,533 records</td>' +
+                    '       <td>6,830 species with 67,533 records</td>' +
+                    '       <td></td>' +
+                    '   </tr>' +
                     '  </table>' +
                     '</div>  ';
 
                 this._super(html);
+
             }
         }
     );

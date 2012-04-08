@@ -12,8 +12,39 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'SELECT ' +
-                    'provider as source, scientificname as name, type as type ' +
-                    'FROM scientificnames WHERE scientificname = \'{0}\'';
+                    's.provider as source, s.scientificname as name, s.type as type, englishname, m.records as records ' +
+                    'FROM scientificnames s ' +
+                    'LEFT JOIN ( ' +
+                    '   SELECT ' +
+                    '   scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),\', \'))) as englishname ' +
+                    '   FROM master_taxonomy ' +
+                    '   GROUP BY scientific HAVING scientific = \'{0}\' ' +
+                    ') n '+
+                    'ON s.scientificname = n.scientific ' +
+                    'LEFT JOIN (' +
+                    '   ( SELECT ' +
+                    '       count(*) as records, ' +
+                    '       \'points\' as type, ' +
+                    '       \'gbif\' as provider ' +
+                    '   FROM' +
+                    '       gbif_import ' +
+                    '   WHERE ' +
+                    '       lower(scientificname)=lower(\'{0}\') )' +
+                    '   UNION ALL ' +
+                    '   (SELECT ' +
+                    '       count(*) as records, ' +
+                    '       type, ' +
+                    '       provider ' +
+                    '   FROM ' +
+                    '       polygons' +
+                    '   GROUP BY ' +
+                    '       scientificname, type, provider ' +
+                    '   HAVING ' +
+                    '       scientificname=\'{0}\' )' +
+                    ') m ' +
+                    'ON ' +
+                    '   s.type = m.type AND s.provider = m.provider ' +
+                    'WHERE scientificname = \'{0}\'';
             },
 
             /**
@@ -43,6 +74,11 @@ mol.modules.map.search = function(mol) {
 
                     item.label = kind === 'sci' ? sci : eng;
                     item.value = name;
+                    if(kind == 'sci') {
+                        item.type = 'scientificname';
+                    } else {
+                        item.type =  'vernacularname';
+                    }
 
                     item.label = item.label.replace(
                         new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
@@ -61,7 +97,7 @@ mol.modules.map.search = function(mol) {
             populateAutocomplete : function(action, response) {
                 $(this.display.searchBox).autocomplete(
                     {
-                        minLength: 3,
+                        minLength: 3, // Note: Auto-complete indexes are min length 3.
                         delay: 0,
                         source: function(request, response) {
                             $.getJSON(
@@ -70,7 +106,12 @@ mol.modules.map.search = function(mol) {
                                     key: 'acn-{0}'.format(request.term)
                                 },
                                 function(names) {
-                                    response(names);
+                                    response(
+                                        _.sortBy(names,  // Alphabetical sort on auto-complete results.
+                                                 function(x) {
+                                                     return x;
+                                                 })
+                                    );
                                 }
                             );
                         },
@@ -103,12 +144,27 @@ mol.modules.map.search = function(mol) {
                         } else {
                             self.display.toggle(event.visible);
                         }
-						params.visible = false;
+
                         e = new mol.bus.Event('results-display-toggle', params);
                         self.bus.fireEvent(e);
                     }
                 );
+                this.bus.addHandler(
+                    'search',
+                    function(event) {
+                        if (event.term != undefined) {
+                            if(!self.display.is(':visible')) {
+                                self.bus.fireEvent(new mol.bus.Event('search-display-toggle',{visible : true}));
+                            }
+                            self.search(event.term);
 
+                            if(self.display.searchBox.val()=='') {
+                                self.display.searchBox.val(event.term)
+                            }
+
+                        }
+                   }
+               );
                 /**
                  * Clicking the go button executes a search.
                  */

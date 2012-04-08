@@ -2,8 +2,23 @@
 
 /* sets defaults for units within a widget background greed fade theme,
  * as well as min-height and 100% width */
-
+.FIRST {
+    pointer-events: none;
+}
+.TOP {
+    pointer-events: none;
+}
+.MIDDLE {
+    pointer-events: none;
+}
+.BOTTOM {
+    pointer-events: none;
+}
+.LAST {
+    pointer-events: none;
+}
 .widgetTheme{
+    background-image: -ms-linear-gradient(rgba(29,43,82,0.65) 89%, rgba(29,43,82,0.75) 57%);
     background-image: -webkit-gradient(
         linear,
         left bottom,
@@ -21,9 +36,15 @@
     -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
     box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     color: rgb(240, 240, 260);
+    pointer-events: auto;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 button{
-    display:inline-block;
     width: auto;
     margin: 2px;
     font-size: 1.1em;
@@ -44,6 +65,25 @@ button:hover{
     cursor: pointer;
 }
 
+.mol-Map-TopLeftControl {
+    pointer-events: none;
+}
+
+.mol-Map-CenterTopControl {
+    pointer-events: none;
+}
+
+.mol-Map-RightControl {
+    pointer-events: none;
+}
+
+.mol-Map-RightBottomControl {
+    pointer-events: none;
+}
+
+.mol-Map-LeftBottomControl {
+    pointer-events: none;
+}
 /* BEGIN Layers Widget
  * Add, Delete
  * Layer Stack
@@ -54,6 +94,8 @@ button:hover{
     float: left;
     list-style-type: none;
     font-size: 0.8em;
+    pointer-events: auto;
+    border-radius: 3px;
 }
 .mol-LayerControl-Menu .button:hover{
     color: #FFF;
@@ -80,6 +122,7 @@ button:hover{
     -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
     box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
+    background-image: -ms-linear-gradient(rgba(35, 35, 35,0.85) 37%,rgba(66,66,66,0.85) 69%);
     background-image: -webkit-gradient(
         linear,
         left bottom,
@@ -100,6 +143,12 @@ button:hover{
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF191919', endColorstr='#FF191919');
 
 }
+.mol-LayerControl-Menu div.list {
+    -moz-border-radius-bottomleft: 3px;
+    border-bottom-left-radius: 3px;
+    -moz-border-radius-topleft: 3px;
+    border-top-left-radius: 3px;
+}
 .mol-LayerControl-Menu div.label img{
     float: right;
     height: 16px;
@@ -114,14 +163,44 @@ button:hover{
     visibility:hidden;
 }
 
+.mol-LayerControl-Layers{
+    max-height: 475px;
+    margin: 5px;
+    padding: 5px;
+    padding-top: 10px;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    pointer-events:auto;
+}
+
+.mol-LayerControl-Layers .scrollContainer{
+    max-height:380px;
+    overflow-y: auto;
+    margin-top: 1em;
+    margin-bottom:1em;
+}
+
+.mol-LayerControl-Layers .layerContainer {
+    height:38px;
+}
+
+.mol-LayerControl-Layers .break{
+    float: left;
+    width: 100%;
+    height: 1px;
+    border-bottom: 1px solid rgba(11,11,11,0.3);
+    margin-bottom: 2px;
+}
 
 .mol-LayerControl-Layers ::-webkit-scrollbar {
     width: 11px;
     height: 0px;
+    border: 1px solid black;
 }
 .mol-LayerControl-Layers ::-webkit-scrollbar-button:vertical {
     background-color: white;
-    border: 1px solid white;
+    border: 1px solid black;
 }
 .mol-LayerControl-Layers ::-webkit-scrollbar-button:start:decrement,
 ::-webkit-scrollbar-button:end:increment {
@@ -137,23 +216,24 @@ button:hover{
 .mol-LayerControl-Layers ::-webkit-scrollbar-thumb:vertical {
     height: 50px;
     background-color: white;
-}
-.mol-LayerControl-Layers .scrollContainer{
-    max-height: 400px;
-    width: 100%;
-    overflow-y: auto;
-    overflow-x: visible;
+    border: 1px solid black;
 }
 
-.mol-LayerControl-Layers .layer, .staticLink{
-    display: table-cell;
-    width: 405px;
-    margin-top: 3px;
-    padding: 2px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-    border: 3px solid rgba(0,0,0,0.01);
-    cursor: pointer;
+.mol-LayerControl-Layers .ui-sortable {
+    width: 100%;
+}
+
+.mol-LayerControl-Layers .layer {
+    padding-left: 0px;
+    margin-bottom: 5px;
+    text-align: left;
+    width: 100%;
+    float: left;
+    position: relative;
+}
+.mol-LayerControl-Layers .layerRecords {
+    float: right;
+    font-size: 0.6em;
 }
 .mol-LayerControl-Layers .staticLink{
     display: none;
@@ -182,44 +262,57 @@ button:hover{
 }
 .mol-LayerControl-Layers .layer .layerName{
     float: left;
-    #width: 60%;
+    white-space:normal;
+    width: 200px;
     margin-left: 5px;
     margin-right: 5px;
-    pointer-events: none;
+
 }
-.mol-LayerControl-Layers .layer .layerNomial{
-    float: left;
-    width: 100%;
+.mol-LayerControl-Layers .layer .layerNomial {
+    display: block;
+    font-size: 14px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.mol-LayerControl-Layers .layerEnglishName {
+    display: block;
     font-size: 0.6em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
-.mol-LayerControl-Layers .layer .layerNomial:first-line{
-    font-size: 2em;
-}
+
 .mol-LayerControl-Layers .layer .type{
     float: left;
-    width: 10%;
-    padding-top: 2px;
-    padding-bottom: 2px;
+    text-align: center;
+    width: 20px;
+    height: 20px;
+    padding: 0px;
+
 }
 .mol-LayerControl-Layers .layer .source{
     float: left;
-    width: 10%;
-    padding-top: 2px;
-    padding-bottom: 2px;
+    text-align: center;
+    width: 20px;
+    height: 20px;
+    padding: 0px;
+
 }
-.mol-LayerControl-Layers .layer img.type{
-    height: 18px;
-    width: 18px;
+.mol-LayerControl-Layers .layer .type img{
+    height: 16px;
+    width: 16px;
 }
-.mol-LayerControl-Layers .layer img.source{
-    height: 18px;
-    width: 18px;
+.mol-LayerControl-Layers .layer .source img{
+    height: 16px;
+    width: 16px;
 }
 .mol-LayerControl-Layers .layer .buttonContainer {
-    width: 21%;
+    width: 20px;
+    height: 20px;
     float: right;
     position: relative;
-    margin-right: 5px;
+    margin-right: 10px;
 }
 
 .mol-LayerControl-Layers .layer .toggle {
@@ -249,6 +342,7 @@ button:hover{
     border: none;
 }
 .mol-LayerControl-Layers .layer .toggle:hover + .customCheck:after{
+    background-color: rgb(25, 25, 25);
     background-color: rgba(25, 25, 25, 1.0);
     cursor: pointer;
 }
@@ -273,14 +367,22 @@ button:hover{
     height: 24px;
 }
 
-.mol-LayerControl-Layers .layer .opacity {
+.mol-LayerControl-Layers .layer .opacityContainer {
     float: right;
     position: relative;
-    width: 20%;
-    font-style: italic;
-    font-size: 1.2em;
+    width: 15%;
     height: 24px;
-    margin-right: 35px;
+    margin-right: 5px;
+}
+.mol-LayerControl-Layers .layer .opacity  {
+    position: absolute;
+    top: 50%;
+    width: 100%;
+    height: 3px;
+}
+.mol-LayerControl-Layers .layer .opacity .ui-slider-handle {
+    width: 8px;
+    height: 11px;
 }
 
 .mol-LayerControl-Layers .layer .zoom {
@@ -292,14 +394,40 @@ button:hover{
     height: 24px;
 }
 
-.mol-LayerControl-Layers .layerContainer {
-    display: table-row;
-}
 .mol-LayerControl-Layers .loading {
     display: table-cell;
     float: left;
 }
+.mol-LayerControl-Layers .selectAll {
+    color: #E6FAE6;
+    padding-left: 2px;
+    font-size: 0.9em;
+    float: right;
+    padding-right: 10px;
+}
 
+.mol-LayerControl-Layers .selectNone {
+    color: #E6FAE6;
+    padding-left: 2px;
+    font-size: 0.9em;
+    float: right;
+    padding-right: 10px;
+}
+
+.mol-LayerControl-Layers .pageNavigation{
+    width: 100%;
+    height: 25px;
+    padding: 0px;
+    margin: 4px;
+    margin-top: 5px;
+}
+
+.mol-LayerControl-Layers .pageNavigation button {
+float: right;
+margin-right: 4px;
+font-size: 1.1em;
+padding: 3px;
+}
 
 /* BEGIN SEARCH UI
  * search, results
@@ -314,6 +442,7 @@ button:hover{
     -moz-border-radius: 4px;
     border-radius: 4px;
     white-space: nowrap;
+    pointer-events: auto;
 }
 .mol-LayerControl-Search .title{
     display:inline-block;
@@ -335,6 +464,7 @@ button:hover{
         overflow-x: hidden;
         /* add padding to account for vertical scrollbar */
         padding-right: 20px;
+        pointer-events: auto;
     }
 
 
@@ -369,15 +499,22 @@ button:hover{
     position: relative;
     padding: 0px;
     margin: 0px;
+    pointer-events: none;
+}
+
+.mol-LayerControl-Results .resultRecords{
+    float: right;
+    font-size: 0.6em;
 }
 
 .mol-LayerControl-Results ::-webkit-scrollbar {
     width: 11px;
     height: 0px;
+    border: 1px solid black;
 }
 .mol-LayerControl-Results ::-webkit-scrollbar-button:vertical {
     background-color: white;
-    border: 1px solid white;
+    border: 1px solid black;
 }
 .mol-LayerControl-Results ::-webkit-scrollbar-button:start:decrement,
 ::-webkit-scrollbar-button:end:increment {
@@ -395,14 +532,38 @@ button:hover{
 .mol-LayerControl-Results ::-webkit-scrollbar-thumb:vertical {
     height: 50px;
     background-color: white;
+    border: 1px solid black;
 }
 
 .mol-LayerControl-Results .noresults {
     text-align: center;
 }
 
-.mol-LayerControl-Results .dashboard {
 
+.mol-Dashboard .dashboard table tr td {
+    border-top: 1px solid #CCC;
+    border: 1px solid #CCC;
+    text-align: left;
+    margin: 0;
+    padding: 6px 13px;
+    font-style: normal;
+    font-size: 12px;
+}
+
+.mol-Dashboard #dialog .dashboard .title {
+    font-weight:bold;
+    font-size: 18px;
+}
+
+.mol-Dashboard #dialog .dashboard .subtitle {
+    font-size: 14px;
+    font-style: italic;
+    padding-bottom: 10px;
+}
+
+.mol-Dashboard .ui-dialog-titlebar, .ui-widget-header, .dashboard{
+    background: none;
+    background-image: -ms-linear-gradient(rgba(29,43,82,0.65) 89%, rgba(29,43,82,0.75) 57%);
     background-image: -webkit-gradient(
         linear,
         left bottom,
@@ -415,42 +576,22 @@ button:hover{
         rgba(29,43,82,0.65) 89%,
         rgba(29,43,82,0.75) 57%
     );
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#A51D2B52', endColorstr='#BF1D2B52');
     -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
     box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     color: rgb(240, 240, 260);
-
-    padding: 5px;
-    margin: 0px;
-    width: 100%;
-    float: left;
-    padding-top: 10px;
-    position: relative;
-    -moz-border-radius: 3px;
+    pointer-events: auto;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    border: none;
     border-radius: 3px;
-    font-style:normal;
-    font-weight: normal;
-}
-
-.mol-LayerControl-Results .dashboard table tr td {
-    border-top: 1px solid #CCC;
-    border: 1px solid #CCC;
-    text-align: left;
-    margin: 0;
-    padding: 6px 13px;
-    font-style: normal;
-    font-size: 12px;
-}
-
-.mol-LayerControl-Results .dashboard .title {
-    font-weight:bold;
-    font-size: 18px;
-}
-
-.mol-LayerControl-Results .dashboard .subtitle {
-    font-size: 14px;
-    font-style: italic;
-    padding-bottom: 10px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
 }
 
 .mol-LayerControl-Results .filters{
@@ -467,7 +608,7 @@ button:hover{
     font-size: 12px;
     -moz-border-radius: 3px;
     border-radius: 3px;
-
+    pointer-events: auto;
 }
 .mol-LayerControl-Results .filters .filter .options{
     max-height: 125px;
@@ -507,6 +648,7 @@ button:hover{
     position: relative;
     -moz-border-radius: 3px;
     border-radius: 3px;
+    pointer-events: auto;
 }
 
 .mol-LayerControl-Results .searchResults .selectAll {
@@ -532,7 +674,12 @@ button:hover{
     max-height: 380px;
     overflow-y: auto;
 }
-
+.mol-LayerControl-Results .resultEnglishName {
+    font-size: 0.6em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
 
 .mol-LayerControl-Results ul {
     padding-left: 0px;
@@ -554,7 +701,7 @@ button:hover{
     height: 16px;
 }
 .mol-LayerControl-Results .result div.resultName{
-    width: 55%;
+    width: 70%;
     display:inline-block;
     margin-left: 4px;
 }
@@ -633,6 +780,7 @@ button:hover{
 	height: 185px;
 	vertical-align: top;
     padding: 3px 5px 2px 5px;
+    pointer-events: auto;
 }
 
 .mol-LayerControl-Add .title {
@@ -686,15 +834,37 @@ button:hover{
     padding-left:6px;
     padding-right:6px;
     margin: 2px;
+    pointer-events:auto;
 }
-.mol-Map-ListQueryInfoWindowResults {
+.mol-Map-ListQueryRadius {
+     pointer-events:none;
+}
+.mol-Map-ListQueryInfoWindow {
      font-size: 12px;
-     font-style:normal
-     font-weight:normal
+     font-style:normal;
+     font-weight:normal;
+     height:100px;
+     width:650px;
+     overflow:auto;
+     margin:5px
 }
+.mol-Map-ListQueryInfoWindow td{
+        cursor: pointer;
+ }
+.mol-Map-ListQueryInfoWindow .english{
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow:ellipsis;
+ }
+ .mol-Map-ListQueryEmptyInfoWindow {
+     margin:5px;
+     font-size: 14px;
+     font-style:normal;
+     font-weight:normal;
+ }
 
 .mol-Map-LegendDisplay {
-    display: table-cell;
+    display: none;
     float:right;
     -moz-border-radius: 3px;
     border-radius: 3px;
@@ -727,4 +897,59 @@ button:hover{
 }
 .mol-Map-LegendDisplay .seasonality5 {
       background-color:#E25B5B
+}
+.mol-BaseMapControl {
+    list-style-type: none;
+    font-size: 0.8em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    white-space: nowrap;
+}
+.mol-BaseMapControl .button:hover{
+    color: #FFF;
+    cursor: pointer;
+}
+.mol-BaseMapControl div{
+    display: inline-block;
+    text-align: center;
+    padding: 5px;
+    margin: 0px;
+}
+.mol-BaseMapControl div:first-child{
+    -moz-border-radius-bottomleft: 3px;
+    border-bottom-left-radius: 3px;
+    -moz-border-radius-topleft: 3px;
+    border-top-left-radius: 3px;
+}
+.mol-BaseMapControl div:last-child{
+    -moz-border-radius-bottomright: 3px;
+    border-bottom-right-radius: 3px;
+    -moz-border-radius-topright: 3px;
+    border-top-right-radius: 3px;
+}
+.mol-BaseMapControl div.label{
+    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
+    -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
+    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
+    background-image: -ms-linear-gradient(rgba(35, 35, 35,0.85) 37%,rgba(66,66,66,0.85) 69%);
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.37, rgba(35, 35, 35,0.85)),
+        color-stop(0.69, rgba(66,66,66,0.85))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(35, 35, 35,0.85) 37%,
+        rgba(66,66,66,0.85) 69%
+    );
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    padding-bottom: 5px;
+
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF191919', endColorstr='#FF191919');
+    pointer-events: none;
 }

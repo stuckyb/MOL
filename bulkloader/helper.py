@@ -24,6 +24,9 @@ import os, sys
 import csv_unicode
 
 # Standard Python modules
+import csv
+csv.field_size_limit(1000000000)
+
 import collections
 import json
 import logging

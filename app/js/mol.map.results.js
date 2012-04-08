@@ -89,10 +89,14 @@ mol.modules.map.results = function(mol) {
                 this.bus.addHandler(
                     'results-display-toggle',
                     function(event) {
-                        if (event.visible === undefined) {
-                            self.display.toggle();
+                        if(self.results == undefined) {
+                            self.display.toggle(false);
                         } else {
-                            self.display.toggle(event.visible);
+                            if (event.visible === undefined) {
+                                self.display.toggle();
+                            } else {
+                                self.display.toggle(event.visible);
+                            }
                         }
                     }
                 );
@@ -361,11 +365,12 @@ mol.modules.map.results = function(mol) {
                     function(layer) {
                         var id = layer.id,
                             name = layer.name,
-                            result = new mol.map.results.ResultDisplay(name, id);
-                            result.sourcePng[0].src = 'static/maps/search/'+layer.source.replace(/ /g,"_")+'.png';
-                            result.sourcePng[0].title = 'Layer Source: ' + layer.source;
-                            result.typePng[0].src = 'static/maps/search/'+layer.type.replace(/ /g,"_")+'.png';
-                            result.typePng[0].title = 'Layer Type: ' + layer.type;
+                            source = layer.source,
+                            type = layer.type,
+                            englishname = layer.englishname,
+                            records = layer.records,
+                            result = new mol.map.results.ResultDisplay(name, id, source, type, englishname, records);
+
                         this.resultList.append(result);
                         return result;
                     },
@@ -431,30 +436,33 @@ mol.modules.map.results = function(mol) {
      */
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
-            init: function(name, id) {
+            init: function(name, id, source, type, englishname, records) {
                 var html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
-                    '<div class="resultSource"><button><img class="source" src=""></button></div>' +
-                    '<div class="resultType" ><button ><img class="type" src=""></button></div>' +
-                    '<div class="resultName">{1}' +
-                    '  <div class="resultNomial" ></div>' +
+                    '<div class="resultSource"><button><img class="source" title="Layer Source: {2}" src="/static/maps/search/{2}.png"></button></div>' +
+                    '<div class="resultType" ><button ><img class="type" title="Layer Type: {3}" src="/static/maps/search/{3}.png"></button></div>' +
+                    '<div class="resultName">' +
+                    '  <div class="resultRecords">{5} records</div>' +
+                    '  <div class="resultNomial">{1}</div>' +
+                    '  <div class="resultEnglishName" title="{4}">{4}</div>' +
                     '  <div class="resultAuthor"></div>' +
                     '</div>' +
-                    '<div class="buttonContainer"> ' +
-                    '  <input type="checkbox" class="checkbox" /> ' +
-                    '  <span class="customCheck"></span> ' +
-                    '</div> ' +
+                    '<label class="buttonContainer">' +
+                    '   <input type="checkbox" class="checkbox" />' +
+                    '   <span class="customCheck"></span>' +
+                    '</label> ' +
                     '</ul>' +
                     '<div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(id, name));
+                this._super(html.format(id, name, source, type, englishname, records));
 
                 this.infoLink = $(this).find('.info');
                 this.nameBox = $(this).find('.resultName');
                 this.sourcePng = $(this).find('.source');
                 this.typePng = $(this).find('.type');
+                this.checkbox = $(this).find('.checkbox').button();
             }
         }
     );
@@ -515,8 +523,8 @@ mol.modules.map.results = function(mol) {
              * @param profile the profile to test
              *
              */
-            getNewLayers: function(name, source, type, profile) {
-                var layers = this.getLayers(name, source, type, profile);
+            getNewLayers: function(name, source, type, englishname, profile) {
+                var layers = this.getLayers(name, source, type, englishname, profile);
 
                 return _.map(
                     layers,
@@ -527,15 +535,16 @@ mol.modules.map.results = function(mol) {
                 );
             },
 
-            getLayers: function(name, source, type, profile) {
+            getLayers: function(name, source, type, englishname, profile) {
                 var response = this.response,
                 currentProfile = profile ? profile : 'nameProfile',
                 nameProfile = name ? response.names[name] : null,
                 sourceProfile = source ? response.sources[source] : null,
                 typeProfile = type ? response.types[type] : null,
+                englishnameProfile = englishname ? response.englishnames[englishname] : null,
                 profileSatisfied = false;
 
-                if (!name && !type && !source){
+                if (!name && !type && !source && !englishname){
                     var keys = new Array();
                     for (i in response.layers) {
                         keys.push(i);
@@ -547,7 +556,7 @@ mol.modules.map.results = function(mol) {
 
                 case 'nameProfile':
                     if (!name) {
-                        return this.getLayers(name, source, type, 'sourceProfile');
+                        return this.getLayers(name, source, type, englishname, 'sourceProfile');
                     }
 
                     if (nameProfile) {
@@ -559,21 +568,21 @@ mol.modules.map.results = function(mol) {
                                 this.exists(type, nameProfile.types)) {
                                 return _.intersect(
                                     nameProfile.layers,
-                                    this.getLayers(name, source, type, 'sourceProfile'));
+                                    this.getLayers(name, source, type, englishname, 'sourceProfile'));
                             }
                         }
                         if (source && !type) {
                             if (this.exists(source, nameProfile.sources)) {
                                 return _.intersect(
                                     nameProfile.layers,
-                                    this.getLayers(name, source, type, 'sourceProfile'));
+                                    this.getLayers(name, source, type, englishname, 'sourceProfile'));
                             }
                         }
                         if (!source && type) {
                             if (this.exists(type, nameProfile.types)) {
                                 return _.intersect(
                                     nameProfile.layers,
-                                    this.getLayers(name, source, type, 'typeProfile'));
+                                    this.getLayers(name, source, type, englishname, 'typeProfile'));
                             }
                         }
                     }
@@ -581,7 +590,7 @@ mol.modules.map.results = function(mol) {
 
                 case 'sourceProfile':
                     if (!source) {
-                        return this.getLayers(name, source, type, 'typeProfile');
+                        return this.getLayers(name, source, type, englishname,'typeProfile');
                     }
 
                     if (sourceProfile) {
@@ -593,7 +602,7 @@ mol.modules.map.results = function(mol) {
                                 this.exists(type, sourceProfile.types)) {
                                 return _.intersect(
                                     sourceProfile.layers,
-                                    this.getLayers(name, source, type, 'typeProfile'));
+                                    this.getLayers(name, source, type, englishname,'typeProfile'));
                             }
                         }
                         if (name && !type) {
@@ -605,11 +614,12 @@ mol.modules.map.results = function(mol) {
                             if (this.exists(type, sourceProfile.types)) {
                                 return _.intersect(
                                     sourceProfile.layers,
-                                    this.getLayers(name, source, type, 'typeProfile'));
+                                    this.getLayers(name, source, type, englishname, 'typeProfile'));
                             }
                         }
                     }
                     return [];
+                /*TODO englishname profile */
 
                 case 'typeProfile':
                     if (!type) {
@@ -638,6 +648,7 @@ mol.modules.map.results = function(mol) {
                         }
                     }
                     return [];
+
                 }
                 return [];
             },
@@ -657,6 +668,9 @@ mol.modules.map.results = function(mol) {
                     break;
                 case "names":
                     res = this.response.names;
+                    break;
+                case "englishnames":
+                    res = this.response.englishnames;
                     break;
                 }
                 return _.keys(res);
@@ -691,7 +705,15 @@ mol.modules.map.results = function(mol) {
             getName: function(name) {
                 return this.response.names[name];
             },
+            getEnglishNameKeys: function() {
+                var x = this.englishnameKeys,
+                englishnames = this.response.englishnames;
+                return x ? x : (this.englishnameKeys = _.keys(englishnames));
+            },
 
+            getEnglishName: function(englishname) {
+                return this.response.englishnames[englishname];
+            },
             /**
              * Returns true if the name exists in the array, false otherwise.
              */

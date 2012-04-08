@@ -2,7 +2,7 @@ mol.modules.map = function(mol) {
 
     mol.map = {};
 
-    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard', 'query', 'legend'];
+    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard', 'query', 'legend', 'basemap'];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
@@ -267,34 +267,70 @@ mol.modules.map = function(mol) {
                     minZoom: 2,
                     minLat: -85,
                     maxLat: 85,
-                    mapTypeControlOptions: { position: google.maps.ControlPosition.BOTTOM_LEFT},
+                    mapTypeControl: false,
+                    //mapTypeControlOptions: {position: google.maps.ControlPosition.BOTTOM_LEFT},
                     center: new google.maps.LatLng(0,0),
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     styles: [
-                        {
-                            "featureType":"all",
-                            "elementType":"all",
-                            "stylers":[
-                                {
-                                    "lightness":43
-                                },
-                                {
-                                    "visibility":"simplified"
-                                },
-                                {
-                                    "saturation":-59
-                                }
-                            ]
-                        },
-                        {
-                            "elementType":"labels",
-                            "stylers":[
-                                {
-                                    "visibility":"on"
-                                }
-                            ]
-                        }
-
+                      {
+                        featureType: "administrative",
+                        stylers: [
+                          { visibility: "simplified" }
+                        ]
+                      },
+                      {
+                        featureType: "administrative.locality",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },
+                      {
+                        featureType: "landscape",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },
+                      {
+                        featureType: "road",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },
+                      {
+                        featureType: "poi",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "water",
+                        stylers: [
+                          { visibility: "on" },
+                          { saturation: -65 },
+                          { lightness: -15 },
+                          { gamma: 0.83 }
+                        ]
+                      },
+                      {
+                        featureType: "transit",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "administrative",
+                        stylers: [
+                          { visibility: "off" }
+                        ]
+                      },{
+                        featureType: "administrative.country",
+                        stylers: [
+                          { visibility: "on" }
+                        ]
+                      },{
+                        featureType: "administrative.province",
+                       stylers: [
+                          { visibility: "on" }
+                        ]
+                      }
                     ]
                 };
 

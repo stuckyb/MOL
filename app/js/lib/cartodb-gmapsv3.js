@@ -7,15 +7,15 @@
  *               href="http://opensource.org/licenses/mit-license.php">MIT</a>
  *               license.<br/> This library lets you use CartoDB with google
  *               maps v3.
- *                 
+ *
  */
 /**
  * @name google
- * @class The fundamental namespace for Google APIs 
+ * @class The fundamental namespace for Google APIs
  */
 /**
  * @name google.maps
- * @class The fundamental namespace for Google Maps V3 API 
+ * @class The fundamental namespace for Google Maps V3 API
  */
  /*
  *  - Map style of cartodb
@@ -78,12 +78,12 @@ var CartoDB = CartoDB || {};
                 var bounds = new google.maps.LatLngBounds();
 
                 // Check bounds
-                if (coor1[0] >  180 || coor1[0] < -180 || coor1[1] >  90 || coor1[1] < -90 
+                if (coor1[0] >  180 || coor1[0] < -180 || coor1[1] >  90 || coor1[1] < -90
                   || coor2[0] >  180 || coor2[0] < -180 || coor2[1] >  90  || coor2[1] < -90) {
                   coor1[0] = '-30';
-                  coor1[1] = '-50'; 
-                  coor2[0] = '110'; 
-                  coor2[1] =  '80'; 
+                  coor1[1] = '-50';
+                  coor2[0] = '110';
+                  coor2[1] =  '80';
                 }
 
                 bounds.extend(new google.maps.LatLng(coor1[1],coor1[0]));
@@ -178,11 +178,12 @@ var CartoDB = CartoDB || {};
           },
           clickAction: 'full'
         };
-        
+
         params.layer = new wax.g.connector(params.tilejson);
-  
+        params.layer.interaction = wax.g.interaction(params.map, params.tilejson, params.waxOptions);
+
         params.map.overlayMapTypes.insertAt(0,params.layer);
-        params.interaction = wax.g.interaction(params.map, params.tilejson, params.waxOptions);
+
       }
 
       // Refresh wax interaction
@@ -191,17 +192,17 @@ var CartoDB = CartoDB || {};
           params.cache_buster++;
           params.query = sql;
           params.tilejson = generateTileJson(params);
-  
+
           // Remove old wax
           removeOldLayer(params.map,params.layer);
-  
+
           // Setup new wax
           params.tilejson.grids = wax.util.addUrlData(params.tilejson.grids_base,  'cache_buster=' + params.cache_buster);
-  
+
           // Add map tiles
           params.layer = new wax.g.connector(params.tilejson);
           params.map.overlayMapTypes.insertAt(0,params.layer);
-  
+
           // Add interaction
           params.interaction.remove();
           params.interaction = wax.g.interaction(params.map, params.tilejson, params.waxOptions);
@@ -234,7 +235,7 @@ var CartoDB = CartoDB || {};
 
       function generateTileJson(params) {
         var core_url = 'http://' + params.hostname;
-        var base_url = core_url + '/tiles/' + params.table_name + '/{z}/{x}/{y}';
+        var base_url = core_url + '/tiles/' + params.style_table_name + '/{z}/{x}/{y}';
         var tile_url = base_url + '.png?cache_buster=0';
         var grid_url = base_url + '.grid.json';
 
@@ -242,7 +243,7 @@ var CartoDB = CartoDB || {};
         if (params.query) {
           var query = 'sql=' + params.query;
           tile_url = wax.util.addUrlData(tile_url, query);
-          grid_url = wax.util.addUrlData(grid_url, query);
+          grid_url = wax.util.addUrlData(grid_url, 'sql=' + params.info_query);
         }
 
         // Map key ?
@@ -262,7 +263,7 @@ var CartoDB = CartoDB || {};
         // Build up the tileJSON
         // TODO: make a blankImage a real 'empty tile' image
         return {
-          blankImage: 'blank_tile.png', 
+          blankImage: 'blank_tile.png',
           tilejson: '1.0.0',
           scheme: 'xyz',
           tiles: [tile_url],
@@ -271,6 +272,7 @@ var CartoDB = CartoDB || {};
           grids_base: grid_url,
           name: params.tile_name,
           description: true,
+          opacity: params.opacity,
           formatter: function(options, data) {
             currentCartoDbId = data.cartodb_id;
             return data.cartodb_id;
@@ -290,17 +292,17 @@ var CartoDB = CartoDB || {};
               pos = i;
             }
           });
-          if (pos!=-1) 
+          if (pos!=-1)
             map.overlayMapTypes.removeAt(pos);
           layer = null;
         }
       }
-      
+
 
       // Update tiles & interactivity layer;
       google.maps.CartoDBLayer.prototype.update = function(sql) {
         // Hide the infowindow
-        if (this.params.infowindow) 
+        if (this.params.infowindow)
           this.params.infowindow.hide();
         // Refresh wax
         refreshWax(this.params,sql);
@@ -310,7 +312,7 @@ var CartoDB = CartoDB || {};
         this.params.active = true;
         this.params.visible = true;
       };
-  
+
       // Destroy layers from the map
       google.maps.CartoDBLayer.prototype.destroy = function() {
         // First remove previous cartodb - tiles.
@@ -324,7 +326,7 @@ var CartoDB = CartoDB || {};
 
         this.params.active = false;
       };
-  
+
       // Hide layers from the map
       google.maps.CartoDBLayer.prototype.hide = function() {
         this.destroy();
@@ -377,7 +379,6 @@ var CartoDB = CartoDB || {};
                         '</div>'+
                       '</div>'+
                       '<div class="bottom">'+
-                        '<label>id:1</label>'+
                       '</div>';
 
       $(div).find('a.close').click(function(ev){
@@ -409,7 +410,7 @@ var CartoDB = CartoDB || {};
   };
 
   CartoDB.Infowindow.prototype.setPosition = function() {
-    if (this.div_) { 
+    if (this.div_) {
        var div = this.div_;
        var pixPosition = this.getProjection().fromLatLngToDivPixel(this.latlng_);
        if (pixPosition) {
@@ -427,6 +428,17 @@ var CartoDB = CartoDB || {};
       , infowindow_sql = 'SELECT contact, provider, scientificname, seasonality, type FROM ' + this.params_.table_name + ' WHERE cartodb_id=' + feature;
     that.feature_ = feature;
 
+    if (this.params_.table_name == 'gbif_import') {
+          infowindow_sql = "SELECT  " +
+            "'Point' AS \"Type\", " +
+            "'GBIF' AS \"Source\", " +
+            "scientificname AS  \"Species name\", " +
+            "CollectionID AS \"Collection\", " +
+            "CONCAT('<a target=\"_gbif\" onclick=\"window.open(this.href)\" href=\"http://data.gbif.org/occurrences/',identifier,'\">',identifier, '</a>') as \"Source ID\", " +
+            "SurveyStartDate as \"Observed on\" " +
+            "FROM {0} WHERE cartodb_id={1}".format("gbif_import", feature);
+    }
+
     // If the table is private, you can't run any api methods
     if (this.params_.feature!=true) {
       infowindow_sql = encodeURIComponent(this.params_.feature.replace('{{feature}}',feature));
@@ -442,7 +454,7 @@ var CartoDB = CartoDB || {};
         positionateInfowindow(result.rows[0],latlng);
       },
       error: function(e,msg) {
-        that.params_.debug && console.debug('Error retrieving infowindow variables: ' + msg);  
+        that.params_.debug && console.debug('Error retrieving infowindow variables: ' + msg);
       }
     });
 
@@ -464,9 +476,9 @@ var CartoDB = CartoDB || {};
         }
 
         // Show cartodb_id?
-        if (variables['cartodb_id']) {
-          $('div.cartodb_infowindow div.bottom label').html('id: <strong>'+feature+'</strong>');
-        }
+       // if (variables['cartodb_id']) {
+        //  $('div.cartodb_infowindow div.bottom label').html('id: <strong>'+feature+'</strong>');
+       // }
 
         that.moveMaptoOpen();
         that.setPosition();

@@ -172,7 +172,7 @@ def setup_cacheitem_db():
     c = conn.cursor()
     # Creates the cache table:
     c.execute('create table if not exists CacheItem '
-              '(id text, ' +
+              '(id string primary key, ' +
               'string text)')
     # Clears all records from the table.
     c.execute('delete from CacheItem')
@@ -180,33 +180,54 @@ def setup_cacheitem_db():
     return conn
 
 def create_autocomplete_index():
-    #names()
-    #english_names()
+    names()
+    english_names()
     load_names()
     writer = csv_unicode.UnicodeDictWriter(open('ac.csv', 'w'), ['id', 'string'])
     writer.writeheader()
     conn = setup_cacheitem_db()
     cur = conn.cursor()
 
-    count = 100
-    
+    #count = 100
+
     for row in csv_unicode.UnicodeDictReader(open('names.csv', 'r')): 
-        if count == 0:
-            break
+
+        binomial = row['binomial']  
+
         if row['type'] == 'MONOMIAL':
+            print 'skipping %s MONOMIAL' % binomial
             continue
+
+        print 'processing %s BINOMIAL' % binomial
+
         bi = row['binomial_index'] # puma concolor
+
         if not names_map.has_key(bi):
-            continue
-        all_names = names_map[bi] # [mountain lion, puma, puma concolor, deer lion]
-        
-        print row['binomial']
+            print '%s NO_COMMONS' % binomial
+            all_names = ['%s:sci' % bi.capitalize()] 
+        else:
+            all_names = names_map[bi] # [mountain lion, puma, puma concolor, deer lion]
 
         # Search result rows for binomial_index:
         url = "http://mol.cartodb.com/api/v2/sql?%s" % urllib.urlencode(dict(q="SELECT sn.provider AS source, sn.scientificname AS name, sn.type AS type FROM scientificnames sn where scientificname = '%s'" % row['binomial']))
-        response = urllib2.urlopen(url)
-        rows = json.loads(response.read())['rows']
 
+        try:
+            response = urllib2.urlopen(url)
+            if response.code != 200:
+                print 'skipping %s CartoDB response error %s' % (binomial, response.code)
+                continue
+            rows = json.loads(response.read())['rows']
+            print 'CartoDB response received for %s' % binomial
+        except urllib2.HTTPError, e:
+            print 'skipping because of HTTPError code: %s, url: %s' % (e.code, url)
+            continue
+        except urllib2.URLError, e:
+            print 'skipping because of URLError reason: %s, url: %s ' % (e.reason, url)
+            continue
+        except:
+            print 'skipping because of unknown cdb error. url: %s' % url
+            continue
+        
         for tagged_name in all_names:
             name, tag = tagged_name.split(':')
             for token in tokens(name): # split on ":" since names are tagged with sci or eng.
@@ -219,7 +240,7 @@ def create_autocomplete_index():
                     cur.execute('UPDATE CacheItem SET string = ? WHERE id = ?', (json.dumps(all_names_updated), idname))
                 else:
                     cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(all_names)))    
-
+                    
                 # Build search index                
                 idname = 'acr-%s' % token.lower() # auto complete results (acr)
                 result = cur.execute('SELECT * FROM CacheItem WHERE id = ?', (idname,)).fetchone()
@@ -231,36 +252,18 @@ def create_autocomplete_index():
                     cur.execute('UPDATE CacheItem SET string = ? WHERE id = ?', (json.dumps(dict(rows=rows_updated)), idname))
                 else:
                     cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(dict(rows=rows))))    
-                                    
+
+        print '%s SUCCESS' % binomial
         conn.commit()
-        count = count - 1
+        #if count == 0:
+        #    return
+        #else:
+        #    count = count - 1
+
     
     for result in cur.execute('SELECT * FROM CacheItem').fetchall():
         writer.writerow(dict(id=result[0], string=result[1]))
         
-def build_autocomplete_csv():
-    results = json.loads(open('results.json', 'r').read())
-    names = names_map
-    writer = csv_unicode.UnicodeDictWriter(open('ac.csv', 'w'), ['id', 'string'])
-    writer.writeheader()
-    conn = setup_cacheitem_db()
-    cur = conn.cursor()
-    
-    for sciname, record in names.iteritems(): 
-       all_names = ['%s:sci' % sciname] + ['%s:eng' % x for x in record[0]['commons'].split(',')]
-       for name in [sciname.lower()] + record[0]['commons_index'].split(','):
-           for token in tokens(name):
-               idname = 'ac-%s' % token.lower()
-               result = cur.execute('SELECT * FROM CacheItem WHERE id = ?', (idname,)).fetchone()
-               if result:
-                   all_names = list(set(all_names + json.loads(result[1])))
-                   cur.execute('UPDATE CacheItem SET string = ? WHERE id = ?', (json.dumps(all_names), idname))
-               else:
-                   cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(all_names)))    
-       conn.commit()
-    #row = dict(id=idname, string=json.dumps(all_names))
-    #writer.writerow(row)
-               
 if __name__ == '__main__':
     #names()
     #english_names()
