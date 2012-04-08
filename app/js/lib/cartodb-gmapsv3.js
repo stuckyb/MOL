@@ -180,9 +180,10 @@ var CartoDB = CartoDB || {};
         };
 
         params.layer = new wax.g.connector(params.tilejson);
+        params.layer.interaction = wax.g.interaction(params.map, params.tilejson, params.waxOptions);
 
         params.map.overlayMapTypes.insertAt(0,params.layer);
-        params.interaction = wax.g.interaction(params.map, params.tilejson, params.waxOptions);
+
       }
 
       // Refresh wax interaction
@@ -224,7 +225,7 @@ var CartoDB = CartoDB || {};
             },
             tileSize: new google.maps.Size(256, 256),
             name: params.tile_name,
-            description: false,
+            description: false
           };
 
           params.layer = new google.maps.ImageMapType(cartodb_layer);
@@ -234,7 +235,7 @@ var CartoDB = CartoDB || {};
 
       function generateTileJson(params) {
         var core_url = 'http://' + params.hostname;
-        var base_url = core_url + '/tiles/' + params.table_name + '/{z}/{x}/{y}';
+        var base_url = core_url + '/tiles/' + params.style_table_name + '/{z}/{x}/{y}';
         var tile_url = base_url + '.png?cache_buster=0';
         var grid_url = base_url + '.grid.json';
 
@@ -242,7 +243,7 @@ var CartoDB = CartoDB || {};
         if (params.query) {
           var query = 'sql=' + params.query;
           tile_url = wax.util.addUrlData(tile_url, query);
-          grid_url = wax.util.addUrlData(grid_url, query);
+          grid_url = wax.util.addUrlData(grid_url, 'sql=' + params.info_query);
         }
 
         // Map key ?
@@ -378,7 +379,6 @@ var CartoDB = CartoDB || {};
                         '</div>'+
                       '</div>'+
                       '<div class="bottom">'+
-                        '<label>id:1</label>'+
                       '</div>';
 
       $(div).find('a.close').click(function(ev){
@@ -428,6 +428,17 @@ var CartoDB = CartoDB || {};
       , infowindow_sql = 'SELECT contact, provider, scientificname, seasonality, type FROM ' + this.params_.table_name + ' WHERE cartodb_id=' + feature;
     that.feature_ = feature;
 
+    if (this.params_.table_name == 'gbif_import') {
+          infowindow_sql = "SELECT  " +
+            "'Point' AS \"Type\", " +
+            "'GBIF' AS \"Source\", " +
+            "scientificname AS  \"Species name\", " +
+            "CollectionID AS \"Collection\", " +
+            "CONCAT('<a target=\"_gbif\" onclick=\"window.open(this.href)\" href=\"http://data.gbif.org/occurrences/',identifier,'\">',identifier, '</a>') as \"Source ID\", " +
+            "SurveyStartDate as \"Observed on\" " +
+            "FROM {0} WHERE cartodb_id={1}".format("gbif_import", feature);
+    }
+
     // If the table is private, you can't run any api methods
     if (this.params_.feature!=true) {
       infowindow_sql = encodeURIComponent(this.params_.feature.replace('{{feature}}',feature));
@@ -465,9 +476,9 @@ var CartoDB = CartoDB || {};
         }
 
         // Show cartodb_id?
-        if (variables['cartodb_id']) {
-          $('div.cartodb_infowindow div.bottom label').html('id: <strong>'+feature+'</strong>');
-        }
+       // if (variables['cartodb_id']) {
+        //  $('div.cartodb_infowindow div.bottom label').html('id: <strong>'+feature+'</strong>');
+       // }
 
         that.moveMaptoOpen();
         that.setPosition();
