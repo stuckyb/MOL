@@ -46,14 +46,17 @@ mol.modules.map.tiles = function(mol) {
                                     if ((maptype != undefined) && (maptype.name === layer.id)) {
                                         params = {
                                             layer: layer
-                                        };                                       
-                                        e = new mol.bus.Event('layer-opacity', params);                                        
-                                        self.bus.fireEvent(e);                                        
+                                        };
+                                        e = new mol.bus.Event('layer-opacity', params);
+                                        self.bus.fireEvent(e);
+                                        if(maptype.interaction != undefined) {
+                                            maptype.interaction.add();
+                                        }
                                         return;
                                     }
                                 }
                             );
-                            self.renderTiles([layer]);
+                            //self.renderTiles([layer]);
                         } else { // Remove layer from map.
                             self.map.overlayMapTypes.forEach(
                                 function(maptype, index) {
@@ -61,9 +64,12 @@ mol.modules.map.tiles = function(mol) {
                                         params = {
                                             layer: layer,
                                             opacity: 0
-                                        };                                       
-                                        e = new mol.bus.Event('layer-opacity', params);                                        
-                                        self.bus.fireEvent(e);                                        
+                                        };
+                                        e = new mol.bus.Event('layer-opacity', params);
+                                        self.bus.fireEvent(e);
+                                        if(maptype.interaction != undefined) {
+                                            maptype.interaction.remove();
+                                        }
                                         //self.map.overlayMapTypes.removeAt(index);
                                     }
                                 }
@@ -85,8 +91,8 @@ mol.modules.map.tiles = function(mol) {
                 );
 
                 /**
-                 * Handler for changing layer opacity. The event.opacity is a 
-                 * number between 0 and 1.0 and the event.layer is an object 
+                 * Handler for changing layer opacity. The event.opacity is a
+                 * number between 0 and 1.0 and the event.layer is an object
                  * {id, name, source, type}.
                  */
                 this.bus.addHandler(
@@ -94,7 +100,7 @@ mol.modules.map.tiles = function(mol) {
                     function(event) {
                         var layer = event.layer,
                             opacity = event.opacity;
-                        
+
                         if (opacity === undefined) {
                             return;
                         }
@@ -139,6 +145,9 @@ mol.modules.map.tiles = function(mol) {
                                 mapTypes.forEach(
                                     function(mt, index) { // "mt" is short for map type.
                                         if ((mt != undefined) && (mt.name === lid)) {
+                                            if(mt.interaction != undefined) {
+                                                mt.interaction.remove();
+                                            }
                                             mapTypes.removeAt(index);
                                         }
                                     }
@@ -301,14 +310,23 @@ mol.modules.map.tiles = function(mol) {
                 var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type='{2}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
                     tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
-                    hostname = window.location.hostname;
+                    hostname = window.location.hostname,
+                    style_table_name = table,
+                    info_query = sql;
+                    tile_style =  null,
+                    hostname = window.location.hostname,
+                    infowindow = false;
 
                 if (layer.type === 'points') {
-                    sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator " +
+                    sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, identifier " +
                         "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
-                    table = 'names_old';
+                    table = 'gbif_import';
+                    style_table_name = 'names_old';
+                    info_query = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
+                    infowindow = true;
                 } else {
                     sql = sql.format(table, layer.name, layer.type);
+                    info_query = ''; //sql;
                 }
 
                 hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
@@ -321,11 +339,13 @@ mol.modules.map.tiles = function(mol) {
                         map: map,
                         user_name: 'mol',
                         table_name: table,
+                        style_table_name: style_table_name,
                         query: sql,
+                        info_query: info_query,
                         tile_style: tile_style,
                         map_style: false,
-                        infowindow: true,
-                        opacity: opacity
+                        infowindow: infowindow,
+                        opacity: 0.5
                     }
                 );
             }

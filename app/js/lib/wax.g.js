@@ -2743,7 +2743,12 @@ wax.g.connector.prototype.setOpacity = function(opacity) {
             var key;
             this.opacity = opacity;
             for (key in this.cache) {
-                this.cache[key].style.opacity = opacity;
+                if(this.cache[key].style.opacity != undefined) {
+                    this.cache[key].style.opacity = opacity;
+                    if (this.cache[key].style.filter != undefined) {
+                        this.cache[key].style.filter="alpha(opacity="+opacity*100+")";
+                    }
+                }
             }
 }
 

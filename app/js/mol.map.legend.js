@@ -9,23 +9,28 @@ mol.modules.map.legend = function(mol) {
                 this.bus = bus;
                 this.map = map;
         },
+
         start : function() {
             this.addLegendDisplay();
             this.addEventHandlers();
         },
+
         /*
          *  Build the legend display and add it as a control to the bottom right of the map display.
          */
         addLegendDisplay : function() {
-                var params = {
-                    display: null,
-                    slot: mol.map.ControlDisplay.Slot.TOP,
-                    position: google.maps.ControlPosition.RIGHT_BOTTOM
-                 };
-                this.display = new mol.map.LegendDisplay();
-                params.display = this.display;
-                this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
+            var params = {
+                  display: null,
+                  slot: mol.map.ControlDisplay.Slot.TOP,
+                  position: google.maps.ControlPosition.RIGHT_BOTTOM
+                };
+
+            this.display = new mol.map.LegendDisplay();
+            this.display.toggle(false);
+            params.display = this.display;
+            this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
         },
+
         addEventHandlers : function () {
             var self = this;
             /**
