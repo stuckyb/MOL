@@ -443,7 +443,7 @@ mol.modules.map.results = function(mol) {
                     '<div class="resultSource"><button><img class="source" title="Layer Source: {2}" src="/static/maps/search/{2}.png"></button></div>' +
                     '<div class="resultType" ><button ><img class="type" title="Layer Type: {3}" src="/static/maps/search/{3}.png"></button></div>' +
                     '<div class="resultName">' +
-                    '  <div class="resultRecords">{5}</div>' +
+                    //'  <div class="resultRecords">{5} records</div>' +
                     '  <div class="resultNomial">{1}</div>' +
                     '  <div class="resultEnglishName" title="{4}">{4}</div>' +
                     '  <div class="resultAuthor"></div>' +

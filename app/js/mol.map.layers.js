@@ -337,7 +337,7 @@ mol.modules.map.layers = function(mol) {
                     '    <button class="source" title="Layer Source: {0}"><img src="/static/maps/search/{0}.png"></button>' +
                     '    <button class="type" title="Layer Type: {1}"><img src="/static/maps/search/{1}.png"></button>' +
                     '    <div class="layerName">' +
-                    '        <div class="layerRecords">{4} records</div>' +
+                   // '        <div class="layerRecords">{4} records</div>' +
                     '        <div title="{2}" class="layerNomial">{2}</div>' +
                     '        <div title="{3}" class="layerEnglishName">{3}</div>' +
                     '    </div>' +
