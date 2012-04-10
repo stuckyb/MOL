@@ -27,7 +27,23 @@ mol.modules.map.layers = function(mol) {
              */
             addEventHandlers: function() {
                 var self = this;
+                this.display.removeAll.click (
+                    function(event) {
 
+                        $(self.display).find(".close").trigger("click");
+                    }
+                );
+                this.display.toggleAll.click (
+                    function(event) {
+                        _.each(
+                            $(self.display).find(".toggle"),
+                            function(checkbox){
+                                    //$(checkbox).attr('checked', !$(checkbox).attr('checked'));
+                                    checkbox.click({currentTarget : this})
+                            }
+                        );
+                    }
+                );
                 this.bus.addHandler(
                     'layer-opacity',
                     function(event) {
@@ -138,6 +154,8 @@ mol.modules.map.layers = function(mol) {
                     var params = {},
                         e = null;
 
+                    l.toggle.attr('checked', true);
+
                     params = {
                         layer: layer,
                         opacity: parseFloat(l.opacity.slider("value"))
@@ -153,6 +171,7 @@ mol.modules.map.layers = function(mol) {
              * Adds layer widgets to the map. The layers parameter is an array
              * of layer objects {id, name, type, source}.
              */
+
             addLayers: function(layers) {
                 var all = [],
                     layerIds = [],
@@ -324,7 +343,7 @@ mol.modules.map.layers = function(mol) {
                     '    </div>' +
                     '    <button title="Remove layer." class="close">x</button>' +
                     '    <button title="Zoom to layer extent." class="zoom">z</button>' +
-                    '    <button title="Layer metadata info." class="info">i</button>' +
+                    /*'    <button title="Layer metadata info." class="info">i</button>' +*/
                     '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span title="Toggle layer visibility." class="customCheck"></span></label>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
@@ -352,22 +371,24 @@ mol.modules.map.layers = function(mol) {
                     '   <div class="layers">' +
                     '       <div class="layersHeader">' +
                     '           Layers ' +
-                    '           <a href="#" class="selectNone">none</a>' +
-                    '           <a href="#" class="selectAll">all</a>' +
+                   /* '           <a href="#" class="selectNone">none</a>' +
+                    '           <a href="#" class="selectAll">all</a>' +*/
                     '       </div>' +
                     '       <div class="scrollContainer">' +
                     '           <div id="sortable">' +
                     '           </div>' +
                     '       </div>' +
                     '       <div class="pageNavigation">' +
-                    '           <button class="remove">Remove Selected Layers</button>' +
-                    '           <button class="toggle">Toggle Selected Layers</button>' +
+                    '           <button class="removeAll">Remove All Layers</button>' +
+                    '           <button class="toggleAll">Toggle All Layers</button>' +
                     '       </div>' +
                     '   </div>' +
                     '</div>';
 
                 this._super(html);
                 this.list = $(this).find("#sortable");
+                this.removeAll = $(this).find(".removeAll");
+                this.toggleAll = $(this).find(".toggleAll");
                 this.open = false;
                 this.views = {};
                 this.layers = [];

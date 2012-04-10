@@ -194,19 +194,32 @@ mol.modules.map.tiles = function(mol) {
                 var tiles = [],
                     overlays = this.map.overlayMapTypes.getArray(),
                     newLayers = this.filterLayers(layers, overlays),
+                    maptype=null;
                     self = this;
 
                 _.each(
                     newLayers,
                     function(layer) {
+                        var maptype;
                         tiles.push(self.getTile(layer, self.map));
-                        self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : "overlays"}));
-
-                        $("img",self.map.overlayMapTypes).imagesLoaded(
-                            function(images, proper, broken) {
-                                self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : "overlays"}));
+                        self.map.overlayMapTypes.forEach(
+                            function(mt) {
+                                if(mt.name==layer.id) {
+                                    maptype=mt;
+                                }
                             }
-                         );
+                        );
+                       _.each(
+                           maptype.cache,
+                           function(img) {
+                              self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : img.src}));
+                              $(img).load(
+                                 function(event) {
+                                       self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : this.src}));
+                                 }
+                               );
+                            }
+                        );
                     },
                     self
                 );

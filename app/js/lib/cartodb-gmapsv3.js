@@ -50,11 +50,11 @@ var CartoDB = CartoDB || {};
       if (this.params.map_style)  setCartoDBMapStyle(this.params);    // Map style? ok, let's style.
       if (this.params.auto_bound)   autoBound(this.params);           // Bounds? CartoDB does it.
 
-      if (this.params.infowindow) {
+      //if (this.params.infowindow) {
         addWaxCartoDBTiles(this.params);
-      } else {
-        addSimpleCartoDBTiles(this.params);                           // Always add cartodb tiles, simple or with wax.
-      }
+      //} else {
+      //  addSimpleCartoDBTiles(this.params);                           // Always add cartodb tiles, simple or with wax.
+      //}
 
       this.params.visible = true;
       this.params.active = true;
@@ -149,6 +149,7 @@ var CartoDB = CartoDB || {};
           name: params.tile_name,
           description: false
         };
+
         params.layer = new google.maps.ImageMapType(cartodb_layer);
         params.map.overlayMapTypes.insertAt(0,params.layer);
       }
