@@ -2733,6 +2733,9 @@ wax.g.connector.prototype.getTile = function(coord, zoom, ownerDocument) {
         this.cache[key].src = this.getTileUrl(coord, zoom);
         this.cache[key].setAttribute('gTileKey', key);
         this.cache[key].style.opacity = this.opacity;
+        if (this.cache[key].style.filter != undefined) {
+            this.cache[key].style.filter="alpha(opacity="+this.opacity*100+")";
+        }
         this.cache[key].onerror = function() { img.style.display = 'none'; };
     }
     return this.cache[key];
