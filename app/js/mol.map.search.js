@@ -12,15 +12,38 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'SELECT ' +
-                    'provider as source, scientificname as name, type as type, englishname ' +
+                    's.provider as source, s.scientificname as name, s.type as type, englishname, m.records as records ' +
                     'FROM scientificnames s ' +
-                    'LEFT JOIN (' +
+                    'LEFT JOIN ( ' +
                     '   SELECT ' +
                     '   scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),\', \'))) as englishname ' +
                     '   FROM master_taxonomy ' +
-                    '   GROUP BY scientific ' +
+                    '   GROUP BY scientific HAVING scientific = \'{0}\' ' +
                     ') n '+
                     'ON s.scientificname = n.scientific ' +
+                    'LEFT JOIN (' +
+                    '   ( SELECT ' +
+                    '       count(*) as records, ' +
+                    '       \'points\' as type, ' +
+                    '       \'gbif\' as provider ' +
+                    '   FROM' +
+                    '       gbif_import ' +
+                    '   WHERE ' +
+                    '       lower(scientificname)=lower(\'{0}\') )' +
+                    '   UNION ALL ' +
+                    '   (SELECT ' +
+                    '       count(*) as records, ' +
+                    '       type, ' +
+                    '       provider ' +
+                    '   FROM ' +
+                    '       polygons' +
+                    '   GROUP BY ' +
+                    '       scientificname, type, provider ' +
+                    '   HAVING ' +
+                    '       scientificname=\'{0}\' )' +
+                    ') m ' +
+                    'ON ' +
+                    '   s.type = m.type AND s.provider = m.provider ' +
                     'WHERE scientificname = \'{0}\'';
             },
 
