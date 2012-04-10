@@ -13,7 +13,7 @@ mol.modules.map.search = function(mol) {
                 this.sql = '' +
                     'SELECT ' +
                     's.provider as source, s.scientificname as name, s.type as type, englishname, m.records as records ' +
-                    'FROM scientificnames s ' +
+                    'FROM  scientificnames s ' +
                     'LEFT JOIN ( ' +
                     '   SELECT ' +
                     '   scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),\', \'))) as englishname ' +
@@ -44,7 +44,7 @@ mol.modules.map.search = function(mol) {
                     ') m ' +
                     'ON ' +
                     '   s.type = m.type AND s.provider = m.provider ' +
-                    'WHERE scientificname = \'{0}\'';
+                    'WHERE s.scientificname = \'{0}\' ';
             },
 
             /**
@@ -77,7 +77,7 @@ mol.modules.map.search = function(mol) {
                     if(kind == 'sci') {
                         item.type = 'scientificname';
                     } else {
-                        item.type =  'vernacularname';
+                        item.type = 'vernacularname';
                     }
 
                     item.label = item.label.replace(
@@ -152,10 +152,12 @@ mol.modules.map.search = function(mol) {
                 this.bus.addHandler(
                     'search',
                     function(event) {
+                        var type = 'scientificname';
                         if (event.term != undefined) {
                             if(!self.display.is(':visible')) {
                                 self.bus.fireEvent(new mol.bus.Event('search-display-toggle',{visible : true}));
                             }
+
                             self.search(event.term);
 
                             if(self.display.searchBox.val()=='') {
