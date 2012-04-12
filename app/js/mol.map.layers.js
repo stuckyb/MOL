@@ -250,9 +250,7 @@ mol.modules.map.layers = function(mol) {
                                         layer: layer,
                                         auto_bound: true
                                     },
-                                    e = new mol.bus.Event('metadata-toggle', params),
-                                    le = new mol.bus.Event('show-loading-indicator',{source : "info"});
-
+                                    e = new mol.bus.Event('metadata-toggle', params);
                                 self.bus.fireEvent(e);
                                 self.bus.fireEvent(le);
                             }

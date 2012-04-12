@@ -42,7 +42,7 @@ mol.modules.map.metadata = function(mol) {
                     if(this.layers['metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)].dialog("isOpen")) {
                         this.layers['metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)].dialog("close");
                     } else {
-                        this.layers['metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)].dialog("open")
+                        this.layers['metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)].dialog("open");
                     }
                 }
 
