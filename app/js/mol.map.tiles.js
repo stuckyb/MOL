@@ -302,7 +302,7 @@ mol.modules.map.tiles = function(mol) {
     mol.map.tiles.CartoDbTile = Class.extend(
         {
             init: function(layer, table, map) {
-                var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type='{2}'",
+                var sql =  "SELECT * FROM {0} where scientificname='{1}' and type='{2}' and provider ='{3}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
                     tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
                     hostname = window.location.hostname,
@@ -310,7 +310,7 @@ mol.modules.map.tiles = function(mol) {
                     info_query = sql;
                     tile_style =  null,
                     hostname = window.location.hostname,
-                    infowindow = false;
+                    infowindow = true;
 
                 if (layer.type === 'points') {
                     sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, identifier " +
@@ -320,8 +320,10 @@ mol.modules.map.tiles = function(mol) {
                     info_query = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                     infowindow = true;
                 } else {
-                    sql = sql.format(table, layer.name, layer.type);
-                    info_query = ''; //sql;
+                    info_query = sql = sql.format(table, layer.name, layer.type, layer.source);
+
+                    //info_query = ''; //sql
+                    infowindow = true;;
                 }
 
                 hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
@@ -334,6 +336,7 @@ mol.modules.map.tiles = function(mol) {
                         map: map,
                         user_name: 'mol',
                         table_name: table,
+                        mol_layer: layer,
                         style_table_name: style_table_name,
                         query: sql,
                         info_query: info_query,

@@ -438,6 +438,19 @@ var CartoDB = CartoDB || {};
             "CONCAT('<a target=\"_gbif\" onclick=\"window.open(this.href)\" href=\"http://data.gbif.org/occurrences/',identifier,'\">',identifier, '</a>') as \"Source ID\", " +
             "SurveyStartDate as \"Observed on\" " +
             "FROM {0} WHERE cartodb_id={1}".format("gbif_import", feature);
+    } else { // I'll see your hack and raise you 50.
+        if(this.params_.mol_layer.type == 'ecoregion') {
+            infowindow_sql = "SELECT  " +
+            "'Ecoregion' AS \"Type\", " +
+            "upper(p.provider) AS \"Source\", " +
+            "p.scientificname AS  \"Species name\", " +
+            "regionname AS \"Region\", " +
+            "e.ecoregion_code AS \"Ecoregion Code\", " +
+            "p.datesubmitted as \"Date\" " +
+            "FROM polygons p " +
+            "LEFT JOIN ecoregion_species e " +
+            "ON p.ecoregion_list_id = e.id WHERE p.cartodb_id={0}".format(feature);
+        }
     }
 
     // If the table is private, you can't run any api methods

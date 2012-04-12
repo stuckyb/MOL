@@ -242,6 +242,17 @@ mol.modules.map.layers = function(mol) {
                                 self.bus.fireEvent(le);
                             }
                         );
+                        l.layer.dblclick(
+                            function(event) {
+                                if($(this).hasClass('selected')) {
+                                    $(this).removeClass('selected');
+                                } else {
+                                    $(self.display).find('.selected').removeClass('selected');
+                                    $(this).addClass('selected');
+                                }
+
+                            }
+                        )
                         // Click handler for info button fires 'layer-info'
                         // and 'show-loading-indicator' events.
                         l.info.click(
@@ -271,6 +282,7 @@ mol.modules.map.layers = function(mol) {
                             }
                         );
                         self.display.toggle(true);
+
                     },
                     this
                 );
@@ -305,7 +317,7 @@ mol.modules.map.layers = function(mol) {
 
 				    display.list.sortable(
                     {
-					         update: function(event, ui) {
+					        update: function(event, ui) {
 						          var layers = [],
 						          params = {},
                             e = null;
@@ -321,7 +333,9 @@ mol.modules.map.layers = function(mol) {
 						          self.bus.fireEvent(e);
 					         }
 				        }
-                );
+                    );
+
+
 			   }
         }
     );
@@ -357,6 +371,7 @@ mol.modules.map.layers = function(mol) {
                 this.close = $(this).find('.close');
                 this.type = $(this).find('.type');
                 this.source = $(this).find('.source');
+                this.layer = $(this).find('.layer');
 
 
 

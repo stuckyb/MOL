@@ -65,7 +65,7 @@ mol.modules.map.metadata = function(mol) {
                         }
                     }
                 );
-            }
+           }
         }
     );
 
