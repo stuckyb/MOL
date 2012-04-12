@@ -171,7 +171,12 @@ button:hover{
     border-radius: 3px;
     -moz-border-radius: 3px;
     -ms-border-radius: 3px;
+
     pointer-events:auto;
+}
+
+.mol-LayerControl-Layers .ui-selected {
+    background-color:pink;
 }
 
 .mol-LayerControl-Layers .scrollContainer{
@@ -183,6 +188,7 @@ button:hover{
 
 .mol-LayerControl-Layers .layerContainer {
     height:38px;
+    cursor:inherit;
 }
 
 .mol-LayerControl-Layers .break{

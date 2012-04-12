@@ -21,7 +21,7 @@ mol.modules.map.query = function(mol) {
                         "   t.year_assessed as year_assessed " +
                         "FROM {3} p " +
                         "LEFT JOIN (SELECT scientific, " +
-                        "                  string_agg(common_names_eng, ',')  as common_names_eng, " + //using string_agg in case there are duplicates
+                        "                  initcap(string_agg(common_names_eng, ','))  as common_names_eng, " + //using string_agg in case there are duplicates
                         "                  MIN(class) as class, " + //these should be the same, even if there are duplicates
                         "                  MIN(_order) as _order, " +
                         "                  MIN(family) as family, " +
@@ -180,7 +180,7 @@ mol.modules.map.query = function(mol) {
                             }
                         )
 
-                        height = (90 + 22*speciestotal < 450) ? 90 + 22*speciestotal : 450;
+                        height = (90 + 22*speciestotal < 400) ? 90 + 22*speciestotal : 400;
 
                         stats = (speciesthreatened > 0) ? ('('+speciesthreatened+' considered threatened by <a href="http://www.iucnredlist.org" target="_iucn">IUCN</a> '+years.join(',')+')') : '';
 
@@ -220,7 +220,8 @@ mol.modules.map.query = function(mol) {
 
                         infoWindow= new google.maps.InfoWindow( {
                             content: content[0],
-                            position: listradius.center
+                            position: listradius.center,
+                            height: height+100
                         });
 
                         self.features[listradius.center.toString()+listradius.radius] = {
