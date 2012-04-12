@@ -185,41 +185,19 @@ mol.modules.map.tiles = function(mol) {
             },
 
             /**
-             * Renders an array a tile layers by firing add-map-overlays event
-             * on the bus.
+             * Renders an array a tile layers.
              *
              * @param layers the array of layer objects {name, type}
              */
             renderTiles: function(layers) {
-                var tiles = [],
-                    overlays = this.map.overlayMapTypes.getArray(),
+                var overlays = this.map.overlayMapTypes.getArray(),
                     newLayers = this.filterLayers(layers, overlays),
-                    maptype=null,
                     self = this;
 
                 _.each(
                     newLayers,
                     function(layer) {
-                        var maptype;
-                        tiles.push(self.getTile(layer, self.map));
-                        self.map.overlayMapTypes.forEach(
-                            function(mt) {
-                                if(mt.name==layer.id) {
-                                    maptype=mt;
-                                }
-                            }
-                        );
-                       _.each(
-                           maptype.cache,
-                           function(img) {
-                              self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : img.src}));
-                              $(img).load(
-                                 function(event) {
-                                       self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : this.src}));
-                                 }
-                               );
-                            }
-                        );
+                        var maptype = self.getTile(layer);
                     },
                     self
                 );
@@ -260,19 +238,23 @@ mol.modules.map.tiles = function(mol) {
             getTile: function(layer) {
                 var name = layer.name,
                     type = layer.type,
-                    tile = null;
+                    self = this,
+                    maptype = null;
+
 
                 switch (type) {
                 case 'points':
-                    new mol.map.tiles.CartoDbTile(layer, 'gbif_import', this.map);
+                    maptype = new mol.map.tiles.CartoDbTile(layer, 'gbif_import', this.map);
                     break;
                 case 'polygon':
                 case 'range':
                 case 'ecoregion':
                 case 'protectedarea':
-                    new mol.map.tiles.CartoDbTile(layer, 'polygons', this.map);
+                    maptype = new mol.map.tiles.CartoDbTile(layer, 'polygons', this.map);
                     break;
                 }
+                maptype.layer.params.layer.onbeforeload = function (){self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : layer.id}))};
+                maptype.layer.params.layer.onafterload = function (){self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator",{source : layer.id}))};
             },
 
             /**
