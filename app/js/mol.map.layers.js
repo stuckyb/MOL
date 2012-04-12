@@ -250,7 +250,7 @@ mol.modules.map.layers = function(mol) {
                                         layer: layer,
                                         auto_bound: true
                                     },
-                                    e = new mol.bus.Event('layer-info', params),
+                                    e = new mol.bus.Event('metadata-toggle', params),
                                     le = new mol.bus.Event('show-loading-indicator',{source : "info"});
 
                                 self.bus.fireEvent(e);
@@ -337,13 +337,13 @@ mol.modules.map.layers = function(mol) {
                     '    <button class="source" title="Layer Source: {0}"><img src="/static/maps/search/{0}.png"></button>' +
                     '    <button class="type" title="Layer Type: {1}"><img src="/static/maps/search/{1}.png"></button>' +
                     '    <div class="layerName">' +
-                   // '        <div class="layerRecords">{4} records</div>' +
+                    '        <div class="layerRecords">{4} records</div>' +
                     '        <div title="{2}" class="layerNomial">{2}</div>' +
                     '        <div title="{3}" class="layerEnglishName">{3}</div>' +
                     '    </div>' +
                     '    <button title="Remove layer." class="close">x</button>' +
                     '    <button title="Zoom to layer extent." class="zoom">z</button>' +
-                    /*'    <button title="Layer metadata info." class="info">i</button>' +*/
+                    '    <button title="Layer metadata info." class="info">i</button>' +
                     '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span title="Toggle layer visibility." class="customCheck"></span></label>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
@@ -359,6 +359,9 @@ mol.modules.map.layers = function(mol) {
                 this.close = $(this).find('.close');
                 this.type = $(this).find('.type');
                 this.source = $(this).find('.source');
+
+
+
             }
         }
     );

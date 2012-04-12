@@ -2174,7 +2174,7 @@ mol.modules.map.results = function(mol) {
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
             init: function(name, id, source, type, englishname, records) {
-                var html = '' +
+                var self, html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
                     '<div class="resultSource"><button><img class="source" title="Layer Source: {2}" src="/static/maps/search/{2}.png"></button></div>' +
@@ -2200,6 +2200,21 @@ mol.modules.map.results = function(mol) {
                 this.sourcePng = $(this).find('.source');
                 this.typePng = $(this).find('.type');
                 this.checkbox = $(this).find('.checkbox').button();
+                this.customCheck = $(this).find('.customCheck');
+                self = this;
+
+                //really hate to do this...
+                if(document.all) {
+                    $(this.checkbox).change(
+                        function(event) {
+                            if(this.checked=="checked" || this.checked==true) {
+                                self.customCheck.style.content="url('/static/maps/layers/active.png')"
+                            } else {
+                                self.customCheck.style.content="url('/static/maps/layers/inactive.png')"
+                            }
+                        }
+                    )
+                }
             }
         }
     );
@@ -2930,7 +2945,7 @@ mol.modules.map.tiles = function(mol) {
                 var tiles = [],
                     overlays = this.map.overlayMapTypes.getArray(),
                     newLayers = this.filterLayers(layers, overlays),
-                    maptype=null;
+                    maptype=null,
                     self = this;
 
                 _.each(

@@ -437,19 +437,19 @@ mol.modules.map.results = function(mol) {
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
             init: function(name, id, source, type, englishname, records) {
-                var html = '' +
+                var self, html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
                     '<div class="resultSource"><button><img class="source" title="Layer Source: {2}" src="/static/maps/search/{2}.png"></button></div>' +
                     '<div class="resultType" ><button ><img class="type" title="Layer Type: {3}" src="/static/maps/search/{3}.png"></button></div>' +
                     '<div class="resultName">' +
-                    //'  <div class="resultRecords">{5} records</div>' +
+                    '  <div class="resultRecords">{5} records</div>' +
                     '  <div class="resultNomial">{1}</div>' +
                     '  <div class="resultEnglishName" title="{4}">{4}</div>' +
                     '  <div class="resultAuthor"></div>' +
                     '</div>' +
                     '<label class="buttonContainer">' +
-                    '   <input type="checkbox" class="checkbox" />' +
+                    ' <input type="checkbox" class="checkbox" />' +
                     '   <span class="customCheck"></span>' +
                     '</label> ' +
                     '</ul>' +
@@ -462,7 +462,9 @@ mol.modules.map.results = function(mol) {
                 this.nameBox = $(this).find('.resultName');
                 this.sourcePng = $(this).find('.source');
                 this.typePng = $(this).find('.type');
-                this.checkbox = $(this).find('.checkbox').button();
+                this.checkbox = $(this).find('.checkbox');
+                //this.customCheck = $(this).find('.customCheck');
+
             }
         }
     );

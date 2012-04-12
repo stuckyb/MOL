@@ -326,6 +326,7 @@ button:hover{
     cursor: pointer;
 
 }
+
 .mol-LayerControl-Layers .layer .customCheck:after{
 	content:url('/static/maps/layers/inactive.png');
     margin: 2px;
@@ -341,6 +342,17 @@ button:hover{
     border-radius: 3px;
     border: none;
 }
+.custom_checkbox {
+    content:url('/static/maps/search/unchecked.png');
+    position:absolute;
+    left: 0;
+}
+
+.custom_checkbox .selected{
+    content:url('/static/maps/search/checked.png');
+
+}
+
 .mol-LayerControl-Layers .layer .toggle:hover + .customCheck:after{
     background-color: rgb(25, 25, 25);
     background-color: rgba(25, 25, 25, 1.0);
@@ -953,3 +965,19 @@ padding: 3px;
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF191919', endColorstr='#FF191919');
     pointer-events: none;
 }
+
+.mol-LayerMetadata .key {
+    display: inline-block;
+    white-space: nowrap;
+    padding: 5px;
+    font-size:10pt;
+    font-weight:700;
+}
+.mol-LayerMetadata .val {
+    white-space: nowrap;
+    display: inline-block;
+    font-size:10pt;
+    font-weight:300;
+}
+
+

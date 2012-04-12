@@ -194,7 +194,7 @@ mol.modules.map.tiles = function(mol) {
                 var tiles = [],
                     overlays = this.map.overlayMapTypes.getArray(),
                     newLayers = this.filterLayers(layers, overlays),
-                    maptype=null;
+                    maptype=null,
                     self = this;
 
                 _.each(
