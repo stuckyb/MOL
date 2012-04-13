@@ -432,7 +432,7 @@ var CartoDB = CartoDB || {};
     if (this.params_.table_name == 'gbif_import') {
           infowindow_sql = "SELECT  " +
             "'Point' AS \"Type\", " +
-            "'GBIF' AS \"Source\", " +
+            "'GBIF' AS \"Provider\", " +
             "scientificname AS  \"Species name\", " +
             "CollectionID AS \"Collection\", " +
             "CONCAT('<a target=\"_gbif\" onclick=\"window.open(this.href)\" href=\"http://data.gbif.org/occurrences/',identifier,'\">',identifier, '</a>') as \"Source ID\", " +
@@ -442,7 +442,7 @@ var CartoDB = CartoDB || {};
         if(this.params_.mol_layer.type == 'ecoregion') {
             infowindow_sql = "SELECT  " +
             "'Ecoregion' AS \"Type\", " +
-            "upper(p.provider) AS \"Source\", " +
+            "'<a href=\" http://www.worldwildlife.org/science/wildfinder/\">World Wildlife Fund' AS \"Provider\", " +
             "p.scientificname AS  \"Species name\", " +
             "regionname AS \"Region\", " +
             "e.ecoregion_code AS \"Ecoregion Code\", " +
@@ -451,6 +451,50 @@ var CartoDB = CartoDB || {};
             "LEFT JOIN ecoregion_species e " +
             "ON p.ecoregion_list_id = e.id WHERE p.cartodb_id={0}".format(feature);
         }
+        if(this.params_.mol_layer.type == 'protectedarea') {
+            infowindow_sql = "SELECT  " +
+            "'Local inventory' AS \"Type\", " +
+            "'Scientist provided' AS \"Provider\", " +
+            "scientificname AS  \"Species name\", " +
+            "regionname AS \"Region\", " +
+            "'ca. 1980-2005' as \"Date\", " +
+            "seasonality AS \"Seasonality\" " +
+            "FROM polygons " +
+            "WHERE cartodb_id={0}".format(feature);
+        }
+        if(this.params_.mol_layer.type == 'range' && this.params_.mol_layer.source == 'fishes') {
+            infowindow_sql = "SELECT  " +
+            "'Expert range map' AS \"Type\", " +
+            "'Page & Burr 2011' AS \"Provider\", " +
+            "scientificname AS  \"Species name\", " +
+            "'ca. 1980-2010' as \"Date\", " +
+            "seasonality as \"Seasonality\" " +
+            "FROM polygons " +
+            "WHERE cartodb_id={0}".format(feature);
+        }
+        if(this.params_.mol_layer.type == 'range' && this.params_.mol_layer.source.toLowerCase() == 'jetz') {
+            infowindow_sql = "SELECT  " +
+            "'Expert range map' AS \"Type\", " +
+            "'Jetz et al 2012' AS \"Provider\", " +
+            "scientificname AS  \"Species name\", " +
+            "'ca. 1980-2010' as \"Date\", " +
+            "seasonality as \"Seasonality\" " +
+            "FROM polygons " +
+            "WHERE cartodb_id={0}".format(feature);
+        }
+        if(this.params_.mol_layer.type == 'range' && this.params_.mol_layer.source.toLowerCase() == 'iucn') {
+            infowindow_sql = "SELECT  " +
+            "'Expert range map' AS \"Type\", " +
+            "'IUCN' AS \"Provider\", " +
+            "scientificname AS  \"Species name\", " +
+            "'ca. 1980-2010' as \"Date\", " +
+            "seasonality as \"Seasonality\", " +
+            "establishmentmeans as \"Origin\" " +
+            "FROM polygons " +
+            "WHERE cartodb_id={0}".format(feature);
+        }
+
+
     }
 
     // If the table is private, you can't run any api methods

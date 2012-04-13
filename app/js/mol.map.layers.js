@@ -202,6 +202,14 @@ mol.modules.map.layers = function(mol) {
                             break;
                         }
 
+                        //disable interactivity to start
+                        self.map.overlayMapTypes.forEach(
+                                    function(mt) {
+                                        mt.interaction.remove();
+                                        mt.interaction.clickAction = "";
+                                    }
+                        );
+
                         // Hack so that at the end we can fire opacity event with all layers.
                         all.push({layer:layer, l:l, opacity:opacity});
 
@@ -244,12 +252,25 @@ mol.modules.map.layers = function(mol) {
                         );
                         l.layer.dblclick(
                             function(event) {
+
                                 if($(this).hasClass('selected')) {
                                     $(this).removeClass('selected');
                                 } else {
                                     $(self.display).find('.selected').removeClass('selected');
                                     $(this).addClass('selected');
                                 }
+
+                                self.map.overlayMapTypes.forEach(
+                                    function(mt) {
+                                        if(mt.name == layer.id && $(l.layer).hasClass('selected')) {
+                                            mt.interaction.add();
+                                            mt.interaction.clickAction = "full"
+                                        } else {
+                                            mt.interaction.remove();
+                                            mt.interaction.clickAction = "";
+                                        }
+                                    }
+                                )
 
                             }
                         )

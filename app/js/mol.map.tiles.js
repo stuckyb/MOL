@@ -49,9 +49,10 @@ mol.modules.map.tiles = function(mol) {
                                         };
                                         e = new mol.bus.Event('layer-opacity', params);
                                         self.bus.fireEvent(e);
-                                        if(maptype.interaction != undefined) {
-                                            maptype.interaction.add();
-                                        }
+                                        //if(maptype.interaction != undefined) {
+                                        //    maptype.interaction.add();
+                                        //    maptype.interaction.clickAction="full"
+                                        //}
                                         return;
                                     }
                                 }
@@ -69,6 +70,7 @@ mol.modules.map.tiles = function(mol) {
                                         self.bus.fireEvent(e);
                                         if(maptype.interaction != undefined) {
                                             maptype.interaction.remove();
+                                            maptype.interaction.clickAction="";
                                         }
                                         //self.map.overlayMapTypes.removeAt(index);
                                     }
@@ -302,7 +304,7 @@ mol.modules.map.tiles = function(mol) {
     mol.map.tiles.CartoDbTile = Class.extend(
         {
             init: function(layer, table, map) {
-                var sql =  "SELECT * FROM {0} where scientificname='{1}' and type='{2}' and provider ='{3}'",
+                var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type = '{2}' and provider = '{3}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
                     tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
                     hostname = window.location.hostname,
