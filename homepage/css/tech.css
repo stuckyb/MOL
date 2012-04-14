@@ -109,6 +109,7 @@ div#container .subject{
     color: #111; 
     float: left;
 }
+
 div#container .links{
     margin-left: 30px;
 }
@@ -140,6 +141,16 @@ div#container .subject.second{
 div#container .subject.second .link{
     background-color: #b8fd85; 
 }
+
+div#container .subject.second img {
+    width: 80%;
+
+    display: block;
+    margin: 30px auto;
+
+    border: 1px solid #2222dd;
+}
+
 div#container .subject.third{
     background-color: #FFC800; color: #111; 
 }
