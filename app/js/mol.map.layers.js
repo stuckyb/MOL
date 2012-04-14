@@ -202,6 +202,14 @@ mol.modules.map.layers = function(mol) {
                             break;
                         }
 
+                        //disable interactivity to start
+                        self.map.overlayMapTypes.forEach(
+                                    function(mt) {
+                                        mt.interaction.remove();
+                                        mt.interaction.clickAction = "";
+                                    }
+                        );
+
                         // Hack so that at the end we can fire opacity event with all layers.
                         all.push({layer:layer, l:l, opacity:opacity});
 
@@ -242,6 +250,30 @@ mol.modules.map.layers = function(mol) {
                                 self.bus.fireEvent(le);
                             }
                         );
+                        l.layer.dblclick(
+                            function(event) {
+
+                                if($(this).hasClass('selected')) {
+                                    $(this).removeClass('selected');
+                                } else {
+                                    $(self.display).find('.selected').removeClass('selected');
+                                    $(this).addClass('selected');
+                                }
+
+                                self.map.overlayMapTypes.forEach(
+                                    function(mt) {
+                                        if(mt.name == layer.id && $(l.layer).hasClass('selected')) {
+                                            mt.interaction.add();
+                                            mt.interaction.clickAction = "full"
+                                        } else {
+                                            mt.interaction.remove();
+                                            mt.interaction.clickAction = "";
+                                        }
+                                    }
+                                )
+
+                            }
+                        )
                         // Click handler for info button fires 'layer-info'
                         // and 'show-loading-indicator' events.
                         l.info.click(
@@ -250,9 +282,7 @@ mol.modules.map.layers = function(mol) {
                                         layer: layer,
                                         auto_bound: true
                                     },
-                                    e = new mol.bus.Event('layer-info', params),
-                                    le = new mol.bus.Event('show-loading-indicator',{source : "info"});
-
+                                    e = new mol.bus.Event('metadata-toggle', params);
                                 self.bus.fireEvent(e);
                                 self.bus.fireEvent(le);
                             }
@@ -273,6 +303,7 @@ mol.modules.map.layers = function(mol) {
                             }
                         );
                         self.display.toggle(true);
+
                     },
                     this
                 );
@@ -307,7 +338,7 @@ mol.modules.map.layers = function(mol) {
 
 				    display.list.sortable(
                     {
-					         update: function(event, ui) {
+					        update: function(event, ui) {
 						          var layers = [],
 						          params = {},
                             e = null;
@@ -323,7 +354,9 @@ mol.modules.map.layers = function(mol) {
 						          self.bus.fireEvent(e);
 					         }
 				        }
-                );
+                    );
+
+
 			   }
         }
     );
@@ -337,13 +370,13 @@ mol.modules.map.layers = function(mol) {
                     '    <button class="source" title="Layer Source: {0}"><img src="/static/maps/search/{0}.png"></button>' +
                     '    <button class="type" title="Layer Type: {1}"><img src="/static/maps/search/{1}.png"></button>' +
                     '    <div class="layerName">' +
-                   // '        <div class="layerRecords">{4} records</div>' +
+                    '        <div class="layerRecords">{4} records</div>' +
                     '        <div title="{2}" class="layerNomial">{2}</div>' +
                     '        <div title="{3}" class="layerEnglishName">{3}</div>' +
                     '    </div>' +
                     '    <button title="Remove layer." class="close">x</button>' +
                     '    <button title="Zoom to layer extent." class="zoom">z</button>' +
-                    /*'    <button title="Layer metadata info." class="info">i</button>' +*/
+                    '    <button title="Layer metadata info." class="info">i</button>' +
                     '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span title="Toggle layer visibility." class="customCheck"></span></label>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
@@ -359,6 +392,10 @@ mol.modules.map.layers = function(mol) {
                 this.close = $(this).find('.close');
                 this.type = $(this).find('.type');
                 this.source = $(this).find('.source');
+                this.layer = $(this).find('.layer');
+
+
+
             }
         }
     );

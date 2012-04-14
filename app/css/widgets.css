@@ -171,6 +171,7 @@ button:hover{
     border-radius: 3px;
     -moz-border-radius: 3px;
     -ms-border-radius: 3px;
+
     pointer-events:auto;
 }
 
@@ -183,6 +184,7 @@ button:hover{
 
 .mol-LayerControl-Layers .layerContainer {
     height:38px;
+    cursor:inherit;
 }
 
 .mol-LayerControl-Layers .break{
@@ -224,10 +226,10 @@ button:hover{
 }
 
 .mol-LayerControl-Layers .layer {
-    padding-left: 0px;
+    padding: 2px;
     margin-bottom: 5px;
     text-align: left;
-    width: 100%;
+    width: 99%;
     float: left;
     position: relative;
 }
@@ -258,7 +260,11 @@ button:hover{
 }
 
 .mol-LayerControl-Layers .layer.selected{
-    border: 3px solid rgba(255, 122, 122, .55);
+    border: 2px solid rgba(255, 100, 88, .45);
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -ms-border-radius:5px;
+    padding:0px;
 }
 .mol-LayerControl-Layers .layer .layerName{
     float: left;
@@ -289,7 +295,7 @@ button:hover{
     width: 20px;
     height: 20px;
     padding: 0px;
-
+    pointer-events:none;
 }
 .mol-LayerControl-Layers .layer .source{
     float: left;
@@ -297,7 +303,7 @@ button:hover{
     width: 20px;
     height: 20px;
     padding: 0px;
-
+    pointer-events:none;
 }
 .mol-LayerControl-Layers .layer .type img{
     height: 16px;
@@ -326,6 +332,7 @@ button:hover{
     cursor: pointer;
 
 }
+
 .mol-LayerControl-Layers .layer .customCheck:after{
 	content:url('/static/maps/layers/inactive.png');
     margin: 2px;
@@ -341,6 +348,17 @@ button:hover{
     border-radius: 3px;
     border: none;
 }
+.custom_checkbox {
+    content:url('/static/maps/search/unchecked.png');
+    position:absolute;
+    left: 0;
+}
+
+.custom_checkbox .selected{
+    content:url('/static/maps/search/checked.png');
+
+}
+
 .mol-LayerControl-Layers .layer .toggle:hover + .customCheck:after{
     background-color: rgb(25, 25, 25);
     background-color: rgba(25, 25, 25, 1.0);
@@ -953,3 +971,19 @@ padding: 3px;
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF191919', endColorstr='#FF191919');
     pointer-events: none;
 }
+
+.mol-LayerMetadata .key {
+    display: inline-block;
+    white-space: nowrap;
+    padding: 5px;
+    font-size:10pt;
+    font-weight:700;
+}
+.mol-LayerMetadata .val {
+    white-space: nowrap;
+    display: inline-block;
+    font-size:10pt;
+    font-weight:300;
+}
+
+
