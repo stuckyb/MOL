@@ -201,7 +201,7 @@ mol.modules.map.query = function(mol) {
                                     '   <div> ' +
                                     '       <table class="tablesorter">' +
                                     '           <thead><tr><th></th><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>IUCN&nbsp;&nbsp;</th></tr></thead>' +
-                                    '           <tbody>' +
+                                    '           <tbody class="tablebody">' +
                                                     tablerows.join('') +
                                     '           </tbody>' +
                                     '       </table>' +

@@ -8,8 +8,16 @@ mol.modules.map.metadata = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.sql = '' +
-                    'SELECT * FROM scientificnames WHERE ' +
-                    '   CONCAT(scientificname, type, lower(provider)) = \'{0}{1}{2}\'';
+                    'SELECT ' +
+                    '   s.scientificname AS "Species name", ' +
+                    '   t.title as "Type", ' +
+                    '   CONCAT(\'<a href=\"\',p.url,\'\">\',p.title,\'</a>\') as "Provider", ' +
+                    '   p.pubdate AS "Date" ' +
+                    '   FROM scientificnames s, types t, providers p ' +
+                    '   WHERE ' +
+                    '       CONCAT(s.scientificname, s.type, lower(s.provider)) = \'{0}{1}{2}\' ' + //I think this hits the index better
+                    '       AND s.provider = p.provider ' +
+                    '       AND s.type = t.type';
            },
 
             /**
@@ -79,7 +87,7 @@ mol.modules.map.metadata = function(mol) {
                _.each(
                     results.response.rows[0],
                     function(val, key, list) {
-                        html+='<div class="metakey-{0}"><div class="key">{0}</div></div>'.format(key,val);
+                        html+='<div class="metakey-{0}"><div class="key">{1}</div></div>'.format(key.replace(/ /g, '_'),key,val);
                     }
                 )
 
@@ -92,7 +100,7 @@ mol.modules.map.metadata = function(mol) {
                         _.each(
                             col,
                             function(val, key, list) {
-                                $(self).find(".metakey-{0}".format(key)).append($('<div class="val">{0}<div>'.format(val)));
+                                $(self).find(".metakey-{0}".format(key.replace(/ /g, '_'))).append($('<div class="val">{0}<div>'.format(val)));
                             }
                         )
                     }

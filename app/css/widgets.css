@@ -171,8 +171,8 @@ button:hover{
     border-radius: 3px;
     -moz-border-radius: 3px;
     -ms-border-radius: 3px;
-
     pointer-events:auto;
+    cursor:default;
 }
 
 .mol-LayerControl-Layers .scrollContainer{
@@ -272,7 +272,12 @@ button:hover{
     width: 200px;
     margin-left: 5px;
     margin-right: 5px;
-
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 .mol-LayerControl-Layers .layer .layerNomial {
     display: block;
@@ -295,7 +300,8 @@ button:hover{
     width: 20px;
     height: 20px;
     padding: 0px;
-    pointer-events:none;
+    padding-top: 2px;
+    cursor:default;
 }
 .mol-LayerControl-Layers .layer .source{
     float: left;
@@ -303,7 +309,8 @@ button:hover{
     width: 20px;
     height: 20px;
     padding: 0px;
-    pointer-events:none;
+    padding-top: 2px;
+    cursor:default;
 }
 .mol-LayerControl-Layers .layer .type img{
     height: 16px;
@@ -518,6 +525,7 @@ padding: 3px;
     padding: 0px;
     margin: 0px;
     pointer-events: none;
+    cursor:default;
 }
 
 .mol-LayerControl-Results .resultRecords{
@@ -657,6 +665,7 @@ padding: 3px;
     visibility: hidden;
 }
 
+
 .mol-LayerControl-Results .searchResults{
     padding: 5px;
     margin: 0px;
@@ -667,6 +676,12 @@ padding: 3px;
     -moz-border-radius: 3px;
     border-radius: 3px;
     pointer-events: auto;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .mol-LayerControl-Results .searchResults .selectAll {
@@ -717,6 +732,7 @@ padding: 3px;
 .mol-LayerControl-Results .result button img{
     width: 16px;
     height: 16px;
+
 }
 .mol-LayerControl-Results .result div.resultName{
     width: 70%;
@@ -861,9 +877,10 @@ padding: 3px;
      font-size: 12px;
      font-style:normal;
      font-weight:normal;
-     height:100px;
+     max-height:500px;
      width:650px;
-     overflow:auto;
+     overflow-y:scroll;
+     overflow-x:hidden;
      margin:5px
 }
 .mol-Map-ListQueryInfoWindow td{

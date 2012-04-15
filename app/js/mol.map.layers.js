@@ -250,7 +250,7 @@ mol.modules.map.layers = function(mol) {
                                 self.bus.fireEvent(le);
                             }
                         );
-                        l.layer.dblclick(
+                        l.layer.click(
                             function(event) {
 
                                 if($(this).hasClass('selected')) {
