@@ -187,6 +187,12 @@ button:hover{
     cursor:inherit;
 }
 
+.mol-LayerControl-Layers .keycatcher {
+    position:absolute;
+    visibility:hidden;
+}
+
+
 .mol-LayerControl-Layers .break{
     float: left;
     width: 100%;
@@ -587,6 +593,11 @@ padding: 3px;
     padding-bottom: 10px;
 }
 
+.mol-Dashboard #dialog .class {
+    cursor: pointer;
+    cursor: hand;
+}
+
 .mol-Dashboard .ui-dialog-titlebar, .ui-widget-header, .dashboard{
     background: none;
     background-image: -ms-linear-gradient(rgba(29,43,82,0.65) 89%, rgba(29,43,82,0.75) 57%);
@@ -877,7 +888,6 @@ padding: 3px;
      font-size: 12px;
      font-style:normal;
      font-weight:normal;
-     max-height:500px;
      width:650px;
      overflow-y:scroll;
      overflow-x:hidden;
