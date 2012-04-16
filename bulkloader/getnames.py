@@ -35,7 +35,7 @@ def names():
             row['type'] = 'BINOMIAL'
             
         values = []
-        for token in re.split('[^a-zA-Z0-9_]', sn):
+        for token in re.split('[^a-zA-Z0-9_-]', sn):
             if token.isalpha():
                 values.append(token.lower())
             else:
