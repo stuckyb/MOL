@@ -64,6 +64,26 @@ mol.modules.map.dashboard = function(mol) {
                         }
                     }
                 );
+
+                _.each(
+                    this.display.providers,
+                    function(tr) {
+                        var provider = $(tr).attr('class').replace('provider','').trim(),
+                            type = $(tr).find('.type').attr('class').replace('type','').trim();
+                        _.each(
+                            $(tr).find('.class'),
+                            function(td) {
+                                $(td).click (
+                                    function(event) {
+                                        var _class = $(tr).find('.class').attr('class').replace('class','').trim();
+                                        self.bus.fireEvent(new mol.bus.Event('metadata-toggle',{ params :{provider: provider, type: type, _class: _class, text: $(this).text()}}));
+                                    }
+                                )
+                            }
+                        )
+
+                    }
+                )
             },
 
             /**
@@ -91,63 +111,71 @@ mol.modules.map.dashboard = function(mol) {
                     '  <div class="title">Dashboard</div>' +
                     '  <div class="subtitle">Statistics for data served by the Map of Life</div>' +
                     '  <table>' +
+                    '   <thead>' +
                     '    <tr>' +
-                    '      <td width="50px"><b>Type</b></td>' +
-                    '      <td width="100px"><b>Source</b></td>' +
-                    '      <td><b>Amphibians</b></td>' +
-                    '      <td><b>Birds</b></td>' +
-                    '      <td><b>Mammals</b></td>' +
-                    '      <td><b>Reptiles</b></td>' +
-                    '      <td><b>Fish</b></td>' +
+                    '      <th width="50px"><b>Type</b></th>' +
+                    '      <th width="100px"><b>Source</b></th>' +
+                    '      <th><b>Amphibians</b></th>' +
+                    '      <th><b>Birds</b></th>' +
+                    '      <th><b>Mammals</b></th>' +
+                    '      <th><b>Reptiles</b></th>' +
+                    '      <th><b>Fish</b></th>' +
                     '    </tr>' +
-                    '    <tr>' +
-                    '      <td>Points</td>' +
-                    '      <td>GBIF</td>' +
-                    '      <td>5,662 species names with 1,794,441 records</td>' +
-                    '      <td>13,000 species names with 132,412,174 records</td>' +
-                    '      <td>14,095 species names with 4,351,065 records</td>' +
-                    '      <td>11,445 species names with 1,695,170 records</td>' +
+                    '   </thead>' +
+                    '   <tbody>' +
+                    '    <tr class="provider gbif">' +
+                    '      <td class="type points">Points</td>' +
+                    '      <td class="providertitle">GBIF</td>' +
+                    '      <td class="class amphibia">5,662 species names with 1,794,441 records</td>' +
+                    '      <td class="class aves">13,000 species names with 132,412,174 records</td>' +
+                    '      <td class="class mammalia">14,095 species names with 4,351,065 records</td>' +
+                    '      <td class="class osteichthyes">11,445 species names with 1,695,170 records</td>' +
                     '      <td></td>' +
-                    '   <tr>' +
-                    '       <td>Expert maps</td>' +
-                    '       <td>User-uploaded</td>' +
-                    '       <td></td>' +
-                    '       <td>Jetz et al. 2012: 9,869 species with 28,019 records</td>' +
-                    '       <td></td>' +
-                    '       <td></td>' +
-                    '       <td>Page and Burr, 2011: 723 species with 9,755 records</td>' +
                     '   </tr>' +
-                    '   <tr>' +
-                    '       <td>Expert maps</td>' +
-                    '       <td>IUCN</td>' +
-                    '       <td>5,966 species with 18,852 records</td>' +
+                    '   <tr class="provider jetz">' +
+                    '       <td class="type range">Expert maps</td>' +
+                    '       <td class="providertitle">User-uploaded</td>' +
                     '       <td></td>' +
-                    '       <td>4,081 species with 38,673 records</td>' +
+                    '       <td class="class aves">Jetz et al. 2012: 9,869 species with 28,019 records</td>' +
                     '       <td></td>' +
                     '       <td></td>' +
+                    '       <td class="class reptilia">Page and Burr, 2011: 723 species with 9,755 records</td>' +
                     '   </tr>' +
-                    '   <tr>' +
-                    '       <td>Local Inventories</td>' +
-                    '       <td>Misc. sources</td>' +
-                    '       <td>727 species with 1,820 records</td>' +
-                    '       <td>4,042 species with 48,000 records</td>' +
-                    '       <td>1,411 species with 9,895 records</td>' +
+                    '   <tr class="provider iucn">' +
+                    '       <td class="type range">Expert maps</td>' +
+                    '       <td class="providertitle">IUCN</td>' +
+                    '       <td class="class amphibia">5,966 species with 18,852 records</td>' +
+                    '       <td></td>' +
+                    '       <td class="class mammalia">4,081 species with 38,673 records</td>' +
                     '       <td></td>' +
                     '       <td></td>' +
                     '   </tr>' +
-                    '   <tr>' +
-                    '       <td>Regional checklists</td>' +
-                    '       <td>WWF</td>' +
-                    '       <td>3,081 species with 12,296 records</td>' +
-                    '       <td>8,755 species with 201,418 records</td>' +
-                    '       <td>4,224 species with 67,533 records</td>' +
-                    '       <td>6,830 species with 67,533 records</td>' +
+                    '   <tr class="provider wdpa">' +
+                    '       <td class="type protectedarea">Local Inventories</td>' +
+                    '       <td class="providertitle">Misc. sources</td>' +
+                    '       <td class="class amphibia">727 species with 1,820 records</td>' +
+                    '       <td class="class aves">4,042 species with 48,000 records</td>' +
+                    '       <td class="class mammalia">1,411 species with 9,895 records</td>' +
+                    '       <td></td>' +
                     '       <td></td>' +
                     '   </tr>' +
+                    '   <tr class="provider wwf">' +
+                    '       <td class="type range">Regional checklists</td>' +
+                    '       <td class="providertitle">WWF</td>' +
+                    '       <td class="class amphibia">3,081 species with 12,296 records</td>' +
+                    '       <td class="class aves">8,755 species with 201,418 records</td>' +
+                    '       <td class="class mammalia">4,224 species with 67,533 records</td>' +
+                    '       <td class="class osteichthyes">6,830 species with 67,533 records</td>' +
+                    '       <td></td>' +
+                    '   </tr>' +
+                    '   </tbody>' +
                     '  </table>' +
                     '</div>  ';
 
                 this._super(html);
+                this.providers = $(this).find('.provider');
+
+
 
             }
         }

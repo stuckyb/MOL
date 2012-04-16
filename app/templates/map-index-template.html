@@ -1,7 +1,7 @@
 <!DOCTYPE html>
+
 <html>
   <head>
-    <!--[if IE]><link rel="stylesheet" href="../../../css/ie.css" type="text/css" media="screen, projection" /><![endif]-->
     <link rel="stylesheet" href="../../../js/lib/jquery/css/ui-lightness/jquery-ui-1.8.18.custom.css">
     <link rel="stylesheet" href="../../../css/mol.css">
     <link rel="stylesheet" href="../../../css/widgets.css">
@@ -14,7 +14,6 @@
     <!-- <link rel="stylesheet" href="../../../css/wri-style.css"> -->
 
     <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
-
     <script type="text/javascript" src="../../../js/lib/jquery-1.7.1.js"></script>
     <script type="text/javascript" src="../../../js/lib/jquery.numeric.js"></script>
     <script type="text/javascript" src="../../../js/lib/jquery/js/jquery-ui-1.8.18.custom.min.js"></script>
@@ -47,6 +46,7 @@
      <script type="text/javascript" src="../../../js/mol.map.query.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.legend.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.basemap.js"></script>
+     <script type="text/javascript" src="../../../js/mol.map.metadata.js"></script>
     {% endif %}
 
     <meta charset="utf-8" />
@@ -86,6 +86,8 @@
              lge.start()
              bme = new env.map.basemap.BaseMapEngine(proxy, bus, me.display.map)
              bme.start()
+             mde = new env.map.metadata.MetadataEngine(proxy, bus)
+             mde.start()
           });
           {% else %}
           env = mol(function(env) {
@@ -113,6 +115,8 @@
              lge.start()
              bme = new env.map.basemap.BaseMapEngine(proxy, bus, me.display.map)
              bme.start()
+             mde = new env.map.metadata.MetadataEngine(proxy, bus)
+             mde.start()
           });
           {% endif %}
       });
