@@ -12,7 +12,7 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'SELECT ' +
-                    's.provider as source, s.scientificname as name, s.type as type, englishname, n.class as class, m.records as records ' +
+                    's.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, englishname, n.class as class, m.records as records ' +
                     'FROM  scientificnames s ' +
                     'LEFT JOIN ( ' +
                     '   SELECT ' +
@@ -44,6 +44,14 @@ mol.modules.map.search = function(mol) {
                     ') m ' +
                     'ON ' +
                     '   s.type = m.type AND s.provider = m.provider ' +
+                    'LEFT JOIN ' +
+                    '   types t ' +
+                    'ON ' +
+                    '   s.type = t.type ' +
+                    'LEFT JOIN ' +
+                    '   providers p ' +
+                    'ON ' +
+                    '   s.provider = p.provider ' +
                     'WHERE s.scientificname = \'{0}\' ';
             },
 
