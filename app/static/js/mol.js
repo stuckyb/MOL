@@ -631,7 +631,19 @@ mol.modules.map = function(mol) {
 
     mol.map = {};
 
-    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard', 'query', 'legend', 'basemap'];
+    mol.map.submodules = [
+            'search',
+            'results',
+            'layers',
+            'tiles',
+            'menu',
+            'loading',
+            'dashboard',
+            'query',
+            'legend',
+            'basemap',
+            'metadata'
+    ];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
@@ -793,12 +805,12 @@ mol.modules.map = function(mol) {
                         function() {
                             self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator',{source : "map"}));
                             if (self.display.map.overlayMapTypes.length > 0) {
-                                self.bus.fireEvent(new mol.bus.Event('show-loading-indicator',{source : "overlays"}));
-                                $("img",self.display.map.overlayMapTypes).imagesLoaded (
+                                //self.bus.fireEvent(new mol.bus.Event('show-loading-indicator',{source : "overlays"}));
+                                /*$("img",self.display.map.overlayMapTypes).imagesLoaded (
                                     function(images, proper, broken) {
                                         self.bus.fireEvent( new mol.bus.Event('hide-loading-indicator',{source : "overlays"}));
                                     }
-                                 );
+                                 );*/
                             }
                         }
                 );
@@ -1317,6 +1329,14 @@ mol.modules.map.layers = function(mol) {
                             break;
                         }
 
+                        //disable interactivity to start
+                        self.map.overlayMapTypes.forEach(
+                                    function(mt) {
+                                        mt.interaction.remove();
+                                        mt.interaction.clickAction = "";
+                                    }
+                        );
+
                         // Hack so that at the end we can fire opacity event with all layers.
                         all.push({layer:layer, l:l, opacity:opacity});
 
@@ -1357,6 +1377,30 @@ mol.modules.map.layers = function(mol) {
                                 self.bus.fireEvent(le);
                             }
                         );
+                        l.layer.click(
+                            function(event) {
+
+                                if($(this).hasClass('selected')) {
+                                    $(this).removeClass('selected');
+                                } else {
+                                    $(self.display).find('.selected').removeClass('selected');
+                                    $(this).addClass('selected');
+                                }
+
+                                self.map.overlayMapTypes.forEach(
+                                    function(mt) {
+                                        if(mt.name == layer.id && $(l.layer).hasClass('selected')) {
+                                            mt.interaction.add();
+                                            mt.interaction.clickAction = "full"
+                                        } else {
+                                            mt.interaction.remove();
+                                            mt.interaction.clickAction = "";
+                                        }
+                                    }
+                                )
+
+                            }
+                        )
                         // Click handler for info button fires 'layer-info'
                         // and 'show-loading-indicator' events.
                         l.info.click(
@@ -1365,9 +1409,7 @@ mol.modules.map.layers = function(mol) {
                                         layer: layer,
                                         auto_bound: true
                                     },
-                                    e = new mol.bus.Event('layer-info', params),
-                                    le = new mol.bus.Event('show-loading-indicator',{source : "info"});
-
+                                    e = new mol.bus.Event('metadata-toggle', params);
                                 self.bus.fireEvent(e);
                                 self.bus.fireEvent(le);
                             }
@@ -1388,6 +1430,7 @@ mol.modules.map.layers = function(mol) {
                             }
                         );
                         self.display.toggle(true);
+
                     },
                     this
                 );
@@ -1422,7 +1465,7 @@ mol.modules.map.layers = function(mol) {
 
 				    display.list.sortable(
                     {
-					         update: function(event, ui) {
+					        update: function(event, ui) {
 						          var layers = [],
 						          params = {},
                             e = null;
@@ -1438,7 +1481,9 @@ mol.modules.map.layers = function(mol) {
 						          self.bus.fireEvent(e);
 					         }
 				        }
-                );
+                    );
+
+
 			   }
         }
     );
@@ -1452,13 +1497,13 @@ mol.modules.map.layers = function(mol) {
                     '    <button class="source" title="Layer Source: {0}"><img src="/static/maps/search/{0}.png"></button>' +
                     '    <button class="type" title="Layer Type: {1}"><img src="/static/maps/search/{1}.png"></button>' +
                     '    <div class="layerName">' +
-                   // '        <div class="layerRecords">{4} records</div>' +
+                    '        <div class="layerRecords">{4} records</div>' +
                     '        <div title="{2}" class="layerNomial">{2}</div>' +
                     '        <div title="{3}" class="layerEnglishName">{3}</div>' +
                     '    </div>' +
                     '    <button title="Remove layer." class="close">x</button>' +
                     '    <button title="Zoom to layer extent." class="zoom">z</button>' +
-                    /*'    <button title="Layer metadata info." class="info">i</button>' +*/
+                    '    <button title="Layer metadata info." class="info">i</button>' +
                     '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span title="Toggle layer visibility." class="customCheck"></span></label>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
@@ -1474,6 +1519,10 @@ mol.modules.map.layers = function(mol) {
                 this.close = $(this).find('.close');
                 this.type = $(this).find('.type');
                 this.source = $(this).find('.source');
+                this.layer = $(this).find('.layer');
+
+
+
             }
         }
     );
@@ -2180,13 +2229,13 @@ mol.modules.map.results = function(mol) {
                     '<div class="resultSource"><button><img class="source" title="Layer Source: {2}" src="/static/maps/search/{2}.png"></button></div>' +
                     '<div class="resultType" ><button ><img class="type" title="Layer Type: {3}" src="/static/maps/search/{3}.png"></button></div>' +
                     '<div class="resultName">' +
-                    //'  <div class="resultRecords">{5} records</div>' +
+                    '  <div class="resultRecords">{5} records</div>' +
                     '  <div class="resultNomial">{1}</div>' +
                     '  <div class="resultEnglishName" title="{4}">{4}</div>' +
                     '  <div class="resultAuthor"></div>' +
                     '</div>' +
                     '<label class="buttonContainer">' +
-                    '   <input type="checkbox" class="checkbox" />' +
+                    ' <input type="checkbox" class="checkbox" />' +
                     '   <span class="customCheck"></span>' +
                     '</label> ' +
                     '</ul>' +
@@ -2199,22 +2248,9 @@ mol.modules.map.results = function(mol) {
                 this.nameBox = $(this).find('.resultName');
                 this.sourcePng = $(this).find('.source');
                 this.typePng = $(this).find('.type');
-                this.checkbox = $(this).find('.checkbox').button();
-                this.customCheck = $(this).find('.customCheck');
-                self = this;
+                this.checkbox = $(this).find('.checkbox');
+                //this.customCheck = $(this).find('.customCheck');
 
-                //really hate to do this...
-                if(document.all) {
-                    $(this.checkbox).change(
-                        function(event) {
-                            if(this.checked=="checked" || this.checked==true) {
-                                self.customCheck.style.content="url('/static/maps/layers/active.png')"
-                            } else {
-                                self.customCheck.style.content="url('/static/maps/layers/inactive.png')"
-                            }
-                        }
-                    )
-                }
             }
         }
     );
@@ -2800,9 +2836,10 @@ mol.modules.map.tiles = function(mol) {
                                         };
                                         e = new mol.bus.Event('layer-opacity', params);
                                         self.bus.fireEvent(e);
-                                        if(maptype.interaction != undefined) {
-                                            maptype.interaction.add();
-                                        }
+                                        //if(maptype.interaction != undefined) {
+                                        //    maptype.interaction.add();
+                                        //    maptype.interaction.clickAction="full"
+                                        //}
                                         return;
                                     }
                                 }
@@ -2820,6 +2857,7 @@ mol.modules.map.tiles = function(mol) {
                                         self.bus.fireEvent(e);
                                         if(maptype.interaction != undefined) {
                                             maptype.interaction.remove();
+                                            maptype.interaction.clickAction="";
                                         }
                                         //self.map.overlayMapTypes.removeAt(index);
                                     }
@@ -2936,41 +2974,19 @@ mol.modules.map.tiles = function(mol) {
             },
 
             /**
-             * Renders an array a tile layers by firing add-map-overlays event
-             * on the bus.
+             * Renders an array a tile layers.
              *
              * @param layers the array of layer objects {name, type}
              */
             renderTiles: function(layers) {
-                var tiles = [],
-                    overlays = this.map.overlayMapTypes.getArray(),
+                var overlays = this.map.overlayMapTypes.getArray(),
                     newLayers = this.filterLayers(layers, overlays),
-                    maptype=null,
                     self = this;
 
                 _.each(
                     newLayers,
                     function(layer) {
-                        var maptype;
-                        tiles.push(self.getTile(layer, self.map));
-                        self.map.overlayMapTypes.forEach(
-                            function(mt) {
-                                if(mt.name==layer.id) {
-                                    maptype=mt;
-                                }
-                            }
-                        );
-                       _.each(
-                           maptype.cache,
-                           function(img) {
-                              self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : img.src}));
-                              $(img).load(
-                                 function(event) {
-                                       self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator", {source : this.src}));
-                                 }
-                               );
-                            }
-                        );
+                        var maptype = self.getTile(layer);
                     },
                     self
                 );
@@ -3011,19 +3027,23 @@ mol.modules.map.tiles = function(mol) {
             getTile: function(layer) {
                 var name = layer.name,
                     type = layer.type,
-                    tile = null;
+                    self = this,
+                    maptype = null;
+
 
                 switch (type) {
                 case 'points':
-                    new mol.map.tiles.CartoDbTile(layer, 'gbif_import', this.map);
+                    maptype = new mol.map.tiles.CartoDbTile(layer, 'gbif_import', this.map);
                     break;
                 case 'polygon':
                 case 'range':
                 case 'ecoregion':
                 case 'protectedarea':
-                    new mol.map.tiles.CartoDbTile(layer, 'polygons', this.map);
+                    maptype = new mol.map.tiles.CartoDbTile(layer, 'polygons', this.map);
                     break;
                 }
+                maptype.layer.params.layer.onbeforeload = function (){self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : layer.id}))};
+                maptype.layer.params.layer.onafterload = function (){self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator",{source : layer.id}))};
             },
 
             /**
@@ -3071,7 +3091,7 @@ mol.modules.map.tiles = function(mol) {
     mol.map.tiles.CartoDbTile = Class.extend(
         {
             init: function(layer, table, map) {
-                var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type='{2}'",
+                var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type = '{2}' and provider = '{3}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
                     tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
                     hostname = window.location.hostname,
@@ -3079,7 +3099,7 @@ mol.modules.map.tiles = function(mol) {
                     info_query = sql;
                     tile_style =  null,
                     hostname = window.location.hostname,
-                    infowindow = false;
+                    infowindow = true;
 
                 if (layer.type === 'points') {
                     sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, identifier " +
@@ -3089,8 +3109,10 @@ mol.modules.map.tiles = function(mol) {
                     info_query = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
                     infowindow = true;
                 } else {
-                    sql = sql.format(table, layer.name, layer.type);
-                    info_query = ''; //sql;
+                    info_query = sql = sql.format(table, layer.name, layer.type, layer.source);
+
+                    //info_query = ''; //sql
+                    infowindow = true;;
                 }
 
                 hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
@@ -3103,6 +3125,7 @@ mol.modules.map.tiles = function(mol) {
                         map: map,
                         user_name: 'mol',
                         table_name: table,
+                        mol_layer: layer,
                         style_table_name: style_table_name,
                         query: sql,
                         info_query: info_query,
@@ -3297,7 +3320,7 @@ mol.modules.map.query = function(mol) {
                         "   t.year_assessed as year_assessed " +
                         "FROM {3} p " +
                         "LEFT JOIN (SELECT scientific, " +
-                        "                  string_agg(common_names_eng, ',')  as common_names_eng, " + //using string_agg in case there are duplicates
+                        "                  initcap(string_agg(common_names_eng, ','))  as common_names_eng, " + //using string_agg in case there are duplicates
                         "                  MIN(class) as class, " + //these should be the same, even if there are duplicates
                         "                  MIN(_order) as _order, " +
                         "                  MIN(family) as family, " +
@@ -3456,7 +3479,7 @@ mol.modules.map.query = function(mol) {
                             }
                         )
 
-                        height = (90 + 22*speciestotal < 450) ? 90 + 22*speciestotal : 450;
+                        height = (90 + 22*speciestotal < 400) ? 90 + 22*speciestotal : 400;
 
                         stats = (speciesthreatened > 0) ? ('('+speciesthreatened+' considered threatened by <a href="http://www.iucnredlist.org" target="_iucn">IUCN</a> '+years.join(',')+')') : '';
 
@@ -3477,7 +3500,7 @@ mol.modules.map.query = function(mol) {
                                     '   <div> ' +
                                     '       <table class="tablesorter">' +
                                     '           <thead><tr><th></th><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>IUCN&nbsp;&nbsp;</th></tr></thead>' +
-                                    '           <tbody>' +
+                                    '           <tbody class="tablebody">' +
                                                     tablerows.join('') +
                                     '           </tbody>' +
                                     '       </table>' +
@@ -3496,7 +3519,8 @@ mol.modules.map.query = function(mol) {
 
                         infoWindow= new google.maps.InfoWindow( {
                             content: content[0],
-                            position: listradius.center
+                            position: listradius.center,
+                            height: height+100
                         });
 
                         self.features[listradius.center.toString()+listradius.radius] = {
@@ -3958,6 +3982,132 @@ stylers: [
             }
         }
     );
+};
+
+
+
+mol.modules.map.metadata = function(mol) {
+
+    mol.map.metadata = {};
+
+    mol.map.metadata.MetadataEngine = mol.mvp.Engine.extend(
+        {
+            init: function(proxy, bus) {
+                this.proxy = proxy;
+                this.bus = bus;
+                this.sql = '' +
+                    'SELECT ' +
+                    '   s.scientificname AS "Species name", ' +
+                    '   t.title as "Type", ' +
+                    '   CONCAT(\'<a href=\"\',p.url,\'\">\',p.title,\'</a>\') as "Provider", ' +
+                    '   p.pubdate AS "Date" ' +
+                    '   FROM scientificnames s, types t, providers p ' +
+                    '   WHERE ' +
+                    '       CONCAT(s.scientificname, s.type, lower(s.provider)) = \'{0}{1}{2}\' ' + //I think this hits the index better
+                    '       AND s.provider = p.provider ' +
+                    '       AND s.type = t.type';
+           },
+
+            /**
+             * Starts the MenuEngine. Note that the container parameter is
+             * ignored.
+             */
+            start: function() {
+                this.layers = {};
+                this.addEventHandlers();
+            },
+            getMetadata: function (layer) {
+                  var self = this,
+                    sql = this.sql.format(layer.name, layer.type, layer.source),
+                    params = {sql:sql, key: 'metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
+                    action = new mol.services.Action('cartodb-sql-query', params),
+                    success = function(action, response) {
+                        var results = {layer:layer, response:response};
+                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)}));
+                        self.layers['metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)]
+                            = new mol.map.metadata.MetadataDisplay(results);
+                    },
+                    failure = function(action, response) {
+                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)}));
+                    };
+
+                if(this.layers['metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)] == undefined) {
+                    self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : 'metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)}));
+                    this.proxy.execute(action, new mol.services.Callback(success, failure));
+                } else {
+                    if(this.layers['metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)].dialog("isOpen")) {
+                        this.layers['metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)].dialog("close");
+                    } else {
+                        this.layers['metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)].dialog("open");
+                    }
+                }
+
+            },
+            addEventHandlers: function() {
+                var self = this;
+
+                /**
+                 * Callback that toggles the metadata display visibility.
+                 *
+                 * @param event mol.bus.Event
+                 */
+                this.bus.addHandler(
+                    'metadata-toggle',
+                    function(event) {
+                        var params = null,
+                            e = null;
+                        if(event.layer){
+                            self.getMetadata(event.layer);
+                        }
+                    }
+                );
+           }
+        }
+    );
+
+    mol.map.metadata.MetadataDisplay = mol.mvp.View.extend(
+        {
+            init: function(results) {
+                var self = this,
+                    html = '' +
+                        '<div id="dialog">';
+
+               _.each(
+                    results.response.rows[0],
+                    function(val, key, list) {
+                        html+='<div class="metakey-{0}"><div class="key">{1}</div></div>'.format(key.replace(/ /g, '_'),key,val);
+                    }
+                )
+
+                html+='</div>';
+
+                this._super(html);
+                _.each(
+                    results.response.rows,
+                    function(col) {
+                        _.each(
+                            col,
+                            function(val, key, list) {
+                                $(self).find(".metakey-{0}".format(key.replace(/ /g, '_'))).append($('<div class="val">{0}<div>'.format(val)));
+                            }
+                        )
+                    }
+                );
+                this.dialog(
+                    {
+                        autoOpen: true,
+
+                        dialogClass: "mol-LayerMetadata"
+                    }
+                );
+                //set first col widths
+                $(this).find('.key').width(Math.max.apply(Math, $(self).find('.key').map(function(){ return $(this).width(); }).get()));
+                //set total width
+                this.dialog("option", "width",Math.max.apply(Math, $(self).find('.key').map(function(){ return $(this).width(); }).get())+Math.max.apply(Math, $(self).find('.val').map(function(){ return $(this).width(); }).get())+50);
+            }
+        }
+    );
+
 };
 
 

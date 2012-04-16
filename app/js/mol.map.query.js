@@ -180,7 +180,7 @@ mol.modules.map.query = function(mol) {
                             }
                         )
 
-                        height = (90 + 22*speciestotal < 400) ? 90 + 22*speciestotal : 400;
+                        height = (90 + 22*speciestotal < 300) ? 90 + 22*speciestotal : 300;
 
                         stats = (speciesthreatened > 0) ? ('('+speciesthreatened+' considered threatened by <a href="http://www.iucnredlist.org" target="_iucn">IUCN</a> '+years.join(',')+')') : '';
 
@@ -201,7 +201,7 @@ mol.modules.map.query = function(mol) {
                                     '   <div> ' +
                                     '       <table class="tablesorter">' +
                                     '           <thead><tr><th></th><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>IUCN&nbsp;&nbsp;</th></tr></thead>' +
-                                    '           <tbody>' +
+                                    '           <tbody class="tablebody">' +
                                                     tablerows.join('') +
                                     '           </tbody>' +
                                     '       </table>' +
@@ -363,13 +363,11 @@ mol.modules.map.query = function(mol) {
                         '       <option disabled value="">Point records</option>' +
                         '     </select>' +
                         '   </div>' +
-                        //'   <div class="resultslist">Click on the map to find bird species within 50km of that point.</div>' +
                         '</div>';
 
             this._super(html);
             this.resultslist=$(this).find('.resultslist');
             this.radiusInput=$(this).find('.radius');
-            //$(this.radiusInput).numeric({negative : false, decimal : false});
             this.classInput=$(this).find('.class');
             this.typeInput=$(this).find('.type');
         }

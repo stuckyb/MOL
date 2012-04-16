@@ -35,7 +35,7 @@ def names():
             row['type'] = 'BINOMIAL'
             
         values = []
-        for token in re.split('[^a-zA-Z0-9_]', sn):
+        for token in re.split('[^a-zA-Z0-9_-]', sn):
             if token.isalpha():
                 values.append(token.lower())
             else:
@@ -86,7 +86,7 @@ def english_names():
             row['type'] = 'BINOMIAL'
 
         values = []
-        for token in re.split('[^a-zA-Z0-9_]', sn):
+        for token in re.split('[^a-zA-Z0-9_-]', sn):
             if token.isalpha():
                 values.append(token.strip().lower())
             else:
@@ -157,8 +157,7 @@ def tokens(name):
         > name_keys('concolor')
         > ['con', 'conc', 'conco', 'concol', 'concolo', 'concolor']
     """
-    yield name.strip().lower()
-    for n in name.split():
+    for n in name.split() + [name.strip().lower()]:
         name_len = len(n)
         yield n.lower()
         if name_len > 3:

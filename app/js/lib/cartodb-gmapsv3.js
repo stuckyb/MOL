@@ -465,7 +465,7 @@ var CartoDB = CartoDB || {};
         if(this.params_.mol_layer.type == 'range' && this.params_.mol_layer.source == 'fishes') {
             infowindow_sql = "SELECT  " +
             "'Expert range map' AS \"Type\", " +
-            "'Page & Burr 2011' AS \"Provider\", " +
+            "'Page and Burr 2011' AS \"Provider\", " +
             "scientificname AS  \"Species name\", " +
             "'ca. 1980-2010' as \"Date\", " +
             "seasonality as \"Seasonality\" " +

@@ -232,6 +232,8 @@ mol.modules.map.layers = function(mol) {
                                     self.bus.fireEvent(new mol.bus.Event('hide-layer-display-toggle'));
                                     self.display.toggle(false);
                                 }
+                                event.stopPropagation();
+                                event.cancelBubble = true;
                             }
                         );
 
@@ -248,11 +250,13 @@ mol.modules.map.layers = function(mol) {
 
                                 self.bus.fireEvent(e);
                                 self.bus.fireEvent(le);
+                                event.stopPropagation();
+                                event.cancelBubble = true;
                             }
                         );
-                        l.layer.dblclick(
+                        l.layer.click(
                             function(event) {
-
+                                $(l.layer).focus();
                                 if($(this).hasClass('selected')) {
                                     $(this).removeClass('selected');
                                 } else {
@@ -271,20 +275,27 @@ mol.modules.map.layers = function(mol) {
                                         }
                                     }
                                 )
+                                event.stopPropagation();
+                                event.cancelBubble = true;
 
                             }
-                        )
-                        // Click handler for info button fires 'layer-info'
-                        // and 'show-loading-indicator' events.
+                        );
+                        l.keycatcher.keydown(
+                            function(event) {
+                                alert('ack');
+                            }
+                        );
+                        l.layer.keypress(
+                            function(event) {
+                                alert('fud');
+                            }
+                        );
+                        // Click handler for info button fires 'metadata-toggle'
                         l.info.click(
                             function(event) {
-                                var params = {
-                                        layer: layer,
-                                        auto_bound: true
-                                    },
-                                    e = new mol.bus.Event('metadata-toggle', params);
-                                self.bus.fireEvent(e);
-                                self.bus.fireEvent(le);
+                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { layer: layer}}));
+                                event.stopPropagation();
+                                event.cancelBubble = true;
                             }
                         );
                         l.toggle.attr('checked', true);
@@ -300,6 +311,8 @@ mol.modules.map.layers = function(mol) {
                                     e = new mol.bus.Event('layer-toggle', params);
 
                                 self.bus.fireEvent(e);
+                                event.stopPropagation();
+                                event.cancelBubble = true;
                             }
                         );
                         self.display.toggle(true);
@@ -374,6 +387,7 @@ mol.modules.map.layers = function(mol) {
                     '        <div title="{2}" class="layerNomial">{2}</div>' +
                     '        <div title="{3}" class="layerEnglishName">{3}</div>' +
                     '    </div>' +
+                    '    <input class="keycatcher" type="text" />' +
                     '    <button title="Remove layer." class="close">x</button>' +
                     '    <button title="Zoom to layer extent." class="zoom">z</button>' +
                     '    <button title="Layer metadata info." class="info">i</button>' +
@@ -393,6 +407,7 @@ mol.modules.map.layers = function(mol) {
                 this.type = $(this).find('.type');
                 this.source = $(this).find('.source');
                 this.layer = $(this).find('.layer');
+                this.keycatcher = $(this).find('.keycatcher');
 
 
 
