@@ -200,7 +200,7 @@ div#content .person{
     color: #fff;
     font-size: 1.2em;
     text-align: justify;
-    min-height: 272px;
+    min-height: 300px;
 }
 div#content .person .name{
     float: left;
@@ -212,7 +212,7 @@ div#content .person .description{
     float: left;
     margin-left: 2%;
     margin-right: 2%;
-    width: 50%;
+    width: 48%;
     min-height: 200px;
 }
 div#content .person .description.full{
@@ -229,7 +229,8 @@ div#content .person img{
     float: left;
     min-width: 39%;
     max-width: 40%;
-    max-height: 250px;
+    max-height: 100px;
+    margin-top: 75px;
 }
 div#content .person.top img{
     width: 45%;
@@ -241,9 +242,11 @@ div#content .person img.right{
 }
 div#content .person a{
     color: #fff;
+    /*
     margin-left: 1px;
     margin-top: 5px;
     float: left;
+    */
 }
 
 /* Begin About.html styles */
