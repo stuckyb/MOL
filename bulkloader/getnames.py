@@ -99,7 +99,7 @@ def english_names():
         commons_index = set()
         row['commons'] = reduce(lambda x,y: '%s,%s' % (x.strip(), y.strip()), commons.split(','))
         for common in row['commons'].split(','):
-            values = [x for x in re.split('[^a-zA-Z0-9_]', common) if x and len(x) >= 3]
+            values = [x for x in re.split('[^a-zA-Z0-9_-]', common) if x and len(x) >= 3]
             if len(values) > 0:
                 commons_index.add(reduce(
                         lambda x,y:'%s %s' % (x.lower(), y.lower()), 
@@ -110,7 +110,7 @@ def english_names():
         if len(commons_index) > 0:
             row['commons_index'] = reduce(lambda x,y: '%s,%s' % (x.lower(), y.lower()), commons_index)        
 
-        uniques = set([x for x in re.split('[^a-zA-Z0-9_]', row['commons']) if x and len(x) >= 3])
+        uniques = set([x for x in re.split('[^a-zA-Z0-9_-]', row['commons']) if x and len(x) >= 3])
         if len(uniques) == 0:
             continue
         row['keywords'] = reduce(lambda x,y: '%s,%s' % (x.lower(), y.lower()), uniques)

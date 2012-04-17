@@ -111,7 +111,7 @@ mol.modules.map.search = function(mol) {
                             $.getJSON(
                                 'api/autocomplete',
                                 {
-                                    key: 'acn-{0}'.format(request.term)
+                                    key: 'acn_{0}'.format(request.term)
                                 },
                                 function(names) {
                                     response(
@@ -239,7 +239,7 @@ mol.modules.map.search = function(mol) {
             search: function(term) {
                 var self = this,
                     sql = this.sql.format(term),
-                    params = {sql:sql, key: 'acr-{0}'.format(term)},
+                    params = {sql:sql, key: 'acr_{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {term:term, response:response},

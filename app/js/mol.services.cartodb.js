@@ -83,6 +83,9 @@ mol.modules.services.cartodb = function(mol) {
                     case 'englishname':
                         results.push(row.englishname);
                         break;
+                    case 'feature_count':
+                        results.push(row.feature_count);
+                        break;
                     }
                 }
                 return _.uniq(results);
@@ -283,8 +286,9 @@ mol.modules.services.cartodb = function(mol) {
                         name: row.name.charAt(0).toUpperCase()+row.name.slice(1).toLowerCase(),
                         source: row.source.toLowerCase(),
                         type: row.type.toLowerCase(),
-                        englishname: (row.englishname != undefined) ? _.uniq(row.englishname.split(', ')).join(', ') : '', //this removes duplicates
-                        records: row.records
+                        // This removes duplicates:
+                        englishname: (row.englishname != undefined) ? _.uniq(row.englishname.split(', ')).join(', ') : '', 
+                        feature_count: row.feature_count
                     };
                 }
                 return layers;
