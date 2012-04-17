@@ -179,15 +179,15 @@ def setup_cacheitem_db():
     return conn
 
 def create_autocomplete_index():
-    #names()
-    #english_names()
+    names()
+    english_names()
     load_names()
     writer = csv_unicode.UnicodeDictWriter(open('ac.csv', 'w'), ['id', 'string'])
     writer.writeheader()
     conn = setup_cacheitem_db()
     cur = conn.cursor()
 
-    count = 10
+    count = 1000
 
     for row in csv_unicode.UnicodeDictReader(open('names.csv', 'r')): 
 
@@ -232,7 +232,7 @@ def create_autocomplete_index():
             for token in tokens(name): # split on ":" since names are tagged with sci or eng.
                 
                 # Build autocomplete index
-                idname = 'acn-%s' % token.lower() # auto complete names (acn)
+                idname = 'acn_%s' % token.lower() # auto complete names (acn)
                 result = cur.execute('SELECT * FROM CacheItem WHERE id = ?', (idname,)).fetchone()
                 if result:
                     all_names_updated = list(set([tagged_name] + json.loads(result[1])))
@@ -241,7 +241,7 @@ def create_autocomplete_index():
                     cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(all_names)))    
                     
                 # Build search index                
-                idname = 'acr-%s' % token.lower() # auto complete results (acr)
+                idname = 'acr_%s' % token.lower() # auto complete results (acr)
                 result = cur.execute('SELECT * FROM CacheItem WHERE id = ?', (idname,)).fetchone()
                 if result:
                     rows_updated = json.loads(result[1])['rows']
