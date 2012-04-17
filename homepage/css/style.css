@@ -200,8 +200,13 @@ div#content .person{
     color: #fff;
     font-size: 1.2em;
     text-align: justify;
-    min-height: 300px;
+    min-height: 272px;
 }
+
+div#content .person.partner {
+    min-height: 315px;
+}
+
 div#content .person .name{
     float: left;
     font-weight: bold;
@@ -229,9 +234,12 @@ div#content .person img{
     float: left;
     min-width: 39%;
     max-width: 40%;
+    max-height: 250px;
+}
+div#content .person.partner img {
     max-height: 100px;
     margin-top: 75px;
-}
+} 
 div#content .person.top img{
     width: 45%;
     height: auto;
