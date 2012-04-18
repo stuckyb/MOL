@@ -368,8 +368,8 @@ mol.modules.map.results = function(mol) {
                             source = layer.source,
                             type = layer.type,
                             englishname = layer.englishname,
-                            records = layer.records,
-                            result = new mol.map.results.ResultDisplay(name, id, source, type, englishname, records);
+                            feature_count = layer.feature_count,
+                            result = new mol.map.results.ResultDisplay(name, id, source, type, englishname, feature_count);
 
                         this.resultList.append(result);
                         return result;
@@ -436,33 +436,35 @@ mol.modules.map.results = function(mol) {
      */
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
-            init: function(name, id, source, type, englishname, records) {
-                var html = '' +
+            init: function(name, id, source, type, englishname, feature_count) {
+                var self, html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
                     '<div class="resultSource"><button><img class="source" title="Layer Source: {2}" src="/static/maps/search/{2}.png"></button></div>' +
                     '<div class="resultType" ><button ><img class="type" title="Layer Type: {3}" src="/static/maps/search/{3}.png"></button></div>' +
                     '<div class="resultName">' +
-                    '  <div class="resultRecords">{5} records</div>' +
+                    '  <div class="resultRecords">{5} features</div>' +
                     '  <div class="resultNomial">{1}</div>' +
                     '  <div class="resultEnglishName" title="{4}">{4}</div>' +
                     '  <div class="resultAuthor"></div>' +
                     '</div>' +
                     '<label class="buttonContainer">' +
-                    '   <input type="checkbox" class="checkbox" />' +
+                    ' <input type="checkbox" class="checkbox" />' +
                     '   <span class="customCheck"></span>' +
                     '</label> ' +
                     '</ul>' +
                     '<div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(id, name, source, type, englishname, records));
+                this._super(html.format(id, name, source, type, englishname, feature_count));
 
                 this.infoLink = $(this).find('.info');
                 this.nameBox = $(this).find('.resultName');
                 this.sourcePng = $(this).find('.source');
                 this.typePng = $(this).find('.type');
-                this.checkbox = $(this).find('.checkbox').button();
+                this.checkbox = $(this).find('.checkbox');
+                //this.customCheck = $(this).find('.customCheck');
+
             }
         }
     );

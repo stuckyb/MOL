@@ -2723,19 +2723,39 @@ wax.g.connector = function(options) {
 
     // DOM element cache
     this.cache = {};
+
+    //count of img elements that havent loaded yet
+    this.loading=0;
 };
 
 // Get a tile element from a coordinate, zoom level, and an ownerDocument.
 wax.g.connector.prototype.getTile = function(coord, zoom, ownerDocument) {
-    var key = zoom + '/' + coord.x + '/' + coord.y;
+    var self= this,
+        key = zoom + '/' + coord.x + '/' + coord.y;
+    if(_.keys(this.cache).length==0) {
+        this.onbeforeload();
+    }
     if (!this.cache[key]) {
         var img = this.cache[key] = new Image(256, 256);
         this.cache[key].src = this.getTileUrl(coord, zoom);
         this.cache[key].setAttribute('gTileKey', key);
         this.cache[key].style.opacity = this.opacity;
-        this.cache[key].onerror = function() { img.style.display = 'none'; };
+        if (this.cache[key].style.filter != undefined) {
+            this.cache[key].style.filter="alpha(opacity="+this.opacity*100+")";
+        }
+        this.loading++;
+        this.cache[key].onerror = function() { img.style.display = 'none'; self.loading--; if (self.loading<=0){self.onafterload();}};
+        this.cache[key].onload = function() {self.loading--; if (self.loading<=0){self.onafterload();}};
     }
     return this.cache[key];
+};
+
+wax.g.connector.prototype.onbeforeload = function() {
+
+};
+
+wax.g.connector.prototype.onafterload = function() {
+    alert('done!');
 };
 
 //change the layer opacity

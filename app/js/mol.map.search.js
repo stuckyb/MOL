@@ -12,13 +12,13 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'SELECT ' +
-                    's.provider as source, s.scientificname as name, s.type as type, englishname, m.records as records ' +
-                    'FROM scientificnames s ' +
+                    '   s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, englishname, n.class as _class, m.records as records ' +
+                    'FROM  scientificnames s ' +
                     'LEFT JOIN ( ' +
                     '   SELECT ' +
-                    '   scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),\', \'))) as englishname ' +
+                    '   scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),\', \'))) as englishname, class ' +
                     '   FROM master_taxonomy ' +
-                    '   GROUP BY scientific HAVING scientific = \'{0}\' ' +
+                    '   GROUP BY scientific, class HAVING scientific = \'{0}\' ' +
                     ') n '+
                     'ON s.scientificname = n.scientific ' +
                     'LEFT JOIN (' +
@@ -44,7 +44,15 @@ mol.modules.map.search = function(mol) {
                     ') m ' +
                     'ON ' +
                     '   s.type = m.type AND s.provider = m.provider ' +
-                    'WHERE scientificname = \'{0}\'';
+                    'LEFT JOIN ' +
+                    '   types t ' +
+                    'ON ' +
+                    '   s.type = t.type ' +
+                    'LEFT JOIN ' +
+                    '   providers p ' +
+                    'ON ' +
+                    '   s.provider = p.provider ' +
+                    'WHERE s.scientificname = \'{0}\' ';
             },
 
             /**
@@ -77,7 +85,7 @@ mol.modules.map.search = function(mol) {
                     if(kind == 'sci') {
                         item.type = 'scientificname';
                     } else {
-                        item.type =  'vernacularname';
+                        item.type = 'vernacularname';
                     }
 
                     item.label = item.label.replace(
@@ -103,7 +111,7 @@ mol.modules.map.search = function(mol) {
                             $.getJSON(
                                 'api/autocomplete',
                                 {
-                                    key: 'acn-{0}'.format(request.term)
+                                    key: 'acn_{0}'.format(request.term)
                                 },
                                 function(names) {
                                     response(
@@ -152,10 +160,12 @@ mol.modules.map.search = function(mol) {
                 this.bus.addHandler(
                     'search',
                     function(event) {
+                        var type = 'scientificname';
                         if (event.term != undefined) {
                             if(!self.display.is(':visible')) {
                                 self.bus.fireEvent(new mol.bus.Event('search-display-toggle',{visible : true}));
                             }
+
                             self.search(event.term);
 
                             if(self.display.searchBox.val()=='') {
@@ -229,7 +239,7 @@ mol.modules.map.search = function(mol) {
             search: function(term) {
                 var self = this,
                     sql = this.sql.format(term),
-                    params = {sql:sql, key: 'acr-{0}'.format(term)},
+                    params = {sql:sql, key: 'acr_{0}'.format(term)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {term:term, response:response},
