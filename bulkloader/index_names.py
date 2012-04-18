@@ -8,6 +8,7 @@ import re
 
 
 def names():
+    print 'Getting names...'
     url = "http://mol.cartodb.com/api/v2/sql?q=select%20distinct(scientificname)%20from%20scientificnames%20where%20type%20=%20'protectedarea'%20or%20type%20=%20'range'%20or%20type%20=%20'ecoregion'%20or%20type='points'%20order%20by%20scientificname"
     response = urllib2.urlopen(url)
     rows = json.loads(response.read())['rows']
@@ -180,14 +181,12 @@ def setup_cacheitem_db():
 
 def create_autocomplete_index():
     names()
-    english_names()
-    load_names()
-    writer = csv_unicode.UnicodeDictWriter(open('ac.csv', 'w'), ['id', 'string'])
+    writer = csv_unicode.UnicodeDictWriter(open('names_index.csv', 'w'), ['id', 'string'])
     writer.writeheader()
     conn = setup_cacheitem_db()
     cur = conn.cursor()
 
-    count = 1
+    count = 10
 
     for row in csv_unicode.UnicodeDictReader(open('names.csv', 'r')): 
 
@@ -200,12 +199,6 @@ def create_autocomplete_index():
         print 'processing %s BINOMIAL' % binomial
 
         bi = row['binomial_index'] # puma concolor
-
-        if not names_map.has_key(bi):
-            print '%s NO_COMMONS' % binomial
-            all_names = ['%s:sci' % bi.capitalize()] 
-        else:
-            all_names = names_map[bi] # [mountain lion, puma, puma concolor, deer lion]
 
         # Search result rows for binomial_index:
         url = "http://mol.cartodb.com/api/v2/sql?%s" % urllib.urlencode(dict(q="SELECT s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, names, n.class as class, m.records as feature_count FROM scientificnames s LEFT JOIN ( SELECT scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),', '))) as names, class FROM master_taxonomy GROUP BY scientific, class HAVING scientific = '%s' ) n ON s.scientificname = n.scientific LEFT JOIN (( SELECT count(*) as records, 'points' as type, 'gbif' as provider FROM gbif_import WHERE lower(scientificname)=lower('%s')) UNION ALL (SELECT count(*) as records, type, provider FROM polygons GROUP BY scientificname, type, provider HAVING scientificname='%s' )) m ON s.type = m.type AND s.provider = m.provider LEFT JOIN types t ON s.type = t.type LEFT JOIN providers p ON s.provider = p.provider WHERE s.scientificname = '%s'" % (row['binomial'], row['binomial'], row['binomial'], row['binomial'])))
@@ -227,43 +220,11 @@ def create_autocomplete_index():
             print 'skipping because of unknown cdb error. url: %s' % url
             continue
         
-        for tagged_name in all_names:
-            name, tag = tagged_name.split(':')
-            for token in tokens(name): # split on ":" since names are tagged with sci or eng.
-                
-                # Build autocomplete index
-                idname = 'acn_%s' % token.lower() # auto complete names (acn)
-                result = cur.execute('SELECT * FROM CacheItem WHERE id = ?', (idname,)).fetchone()
-                if result:
-                    all_names_updated = list(set([tagged_name] + json.loads(result[1])))
-                    cur.execute('UPDATE CacheItem SET string = ? WHERE id = ?', (json.dumps(all_names_updated), idname))
-                else:
-                    cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(all_names)))    
-                    
-                # Build search index                
-                idname = 'acr_%s' % token.lower() # auto complete results (acr)
-                result = cur.execute('SELECT * FROM CacheItem WHERE id = ?', (idname,)).fetchone()
-                if result:
-                    rows_updated = json.loads(result[1])['rows']
-                    for row in rows:
-                        if row not in rows_updated:
-                            rows_updated.append(row)
-                    cur.execute('UPDATE CacheItem SET string = ? WHERE id = ?', (json.dumps(dict(rows=rows_updated)), idname))
-                else:
-                    cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(dict(rows=rows))))    
-
-        print '%s SUCCESS' % binomial
-        conn.commit()
+        writer.writerow(dict(id=bi, string=reduce(lambda x,y: '%s,%s' % (x, y), [x for x in rows])))
         if count == 0:
-            for result in cur.execute('SELECT * FROM CacheItem').fetchall():
-                writer.writerow(dict(id=result[0], string=result[1]))
             return
         else:
             count = count - 1
-
-    
-    for result in cur.execute('SELECT * FROM CacheItem').fetchall():
-        writer.writerow(dict(id=result[0], string=result[1]))
         
 if __name__ == '__main__':
     #names()
@@ -274,3 +235,4 @@ if __name__ == '__main__':
     pass
     
         
+
