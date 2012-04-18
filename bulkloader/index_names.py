@@ -190,7 +190,6 @@ class Query(object):
     def execute(self, name):
         url = "http://mol.cartodb.com/api/v2/sql?%s" % urllib.urlencode(dict(q="SELECT s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, names, n.class as class, m.records as feature_count FROM scientificnames s LEFT JOIN ( SELECT scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),', '))) as names, class FROM master_taxonomy GROUP BY scientific, class HAVING scientific = '%s' ) n ON s.scientificname = n.scientific LEFT JOIN (( SELECT count(*) as records, 'points' as type, 'gbif' as provider FROM gbif_import WHERE lower(scientificname)=lower('%s')) UNION ALL (SELECT count(*) as records, type, provider FROM polygons GROUP BY scientificname, type, provider HAVING scientificname='%s' )) m ON s.type = m.type AND s.provider = m.provider LEFT JOIN types t ON s.type = t.type LEFT JOIN providers p ON s.provider = p.provider WHERE s.scientificname = '%s'" % (name, name, name, name)))
 
-        rows = []
         try:
             response = urllib2.urlopen(url)
             if response.code != 200 and response.code != 304: # OK or NOT MODIFIED
@@ -204,7 +203,8 @@ class Query(object):
         #except:
         #    print 'skipping because of unknown cdb error. url: %s' % url
         
-        self.writer.writerow(dict(id=name.lower(), string=reduce(lambda x,y: '%s,%s' % (x, y), [x for x in rows], [])))
+        if len(rows) > 0:
+            self.writer.writerow(dict(id=name.lower(), string=reduce(lambda x,y: '%s,%s' % (x, y), [x for x in rows])))
 
     def loop(self):
         while True:
