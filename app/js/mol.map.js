@@ -2,7 +2,19 @@ mol.modules.map = function(mol) {
 
     mol.map = {};
 
-    mol.map.submodules = ['search', 'results', 'layers', 'tiles', 'menu', 'loading', 'dashboard', 'query', 'legend'];
+    mol.map.submodules = [
+            'search',
+            'results',
+            'layers',
+            'tiles',
+            'menu',
+            'loading',
+            'dashboard',
+            'query',
+            'legend',
+            'basemap',
+            'metadata'
+    ];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
         {
@@ -164,12 +176,12 @@ mol.modules.map = function(mol) {
                         function() {
                             self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator',{source : "map"}));
                             if (self.display.map.overlayMapTypes.length > 0) {
-                                self.bus.fireEvent(new mol.bus.Event('show-loading-indicator',{source : "overlays"}));
-                                $("img",self.display.map.overlayMapTypes).imagesLoaded (
+                                //self.bus.fireEvent(new mol.bus.Event('show-loading-indicator',{source : "overlays"}));
+                                /*$("img",self.display.map.overlayMapTypes).imagesLoaded (
                                     function(images, proper, broken) {
                                         self.bus.fireEvent( new mol.bus.Event('hide-loading-indicator',{source : "overlays"}));
                                     }
-                                 );
+                                 );*/
                             }
                         }
                 );
@@ -267,7 +279,8 @@ mol.modules.map = function(mol) {
                     minZoom: 2,
                     minLat: -85,
                     maxLat: 85,
-                    mapTypeControlOptions: { position: google.maps.ControlPosition.BOTTOM_LEFT},
+                    mapTypeControl: false,
+                    //mapTypeControlOptions: {position: google.maps.ControlPosition.BOTTOM_LEFT},
                     center: new google.maps.LatLng(0,0),
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     styles: [
