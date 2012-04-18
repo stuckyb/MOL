@@ -18,6 +18,9 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 class ResultsHandler(webapp2.RequestHandler):
     """Request handler for cache requests."""
 
+    def get(self):
+        self.post()
+
     def post(self):
         """Returns a cached value by key or None if it doesn't exist."""
         # names = self.request.get('names').split(',')        
