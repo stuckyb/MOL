@@ -103,15 +103,17 @@ mol.modules.map.search = function(mol) {
              * Populate autocomplete results list
              */
             populateAutocomplete : function(action, response) {
+                var query = 
                 $(this.display.searchBox).autocomplete(
                     {
                         minLength: 3, // Note: Auto-complete indexes are min length 3.
                         delay: 0,
                         source: function(request, response) {
                             $.getJSON(
-                                'api/autocomplete',
+                                'cache/get',
                                 {
-                                    key: 'acn_{0}'.format(request.term)
+                                    key: 'acn_{0}'.format(request.term),
+                                    sql: sql
                                 },
                                 function(names) {
                                     response(

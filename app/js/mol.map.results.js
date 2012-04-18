@@ -367,9 +367,9 @@ mol.modules.map.results = function(mol) {
                             name = layer.name,
                             source = layer.source,
                             type = layer.type,
-                            englishname = layer.englishname,
+                            englishname = layer.names,
                             feature_count = layer.feature_count,
-                            result = new mol.map.results.ResultDisplay(name, id, source, type, englishname, feature_count);
+                            result = new mol.map.results.ResultDisplay(name, id, source, type, names, feature_count);
 
                         this.resultList.append(result);
                         return result;
@@ -516,7 +516,7 @@ mol.modules.map.results = function(mol) {
             },
 
             /**
-             * Gets layer names that satisfy a name, source, and type combined
+             * Gets layer namesthat satisfy a name, source, and type combined
              * constraint.
              *
              * @param name the layer name
