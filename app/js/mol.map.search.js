@@ -93,14 +93,14 @@ mol.modules.map.search = function(mol) {
 				var self = this;
                 $(this.display.searchBox).autocomplete(
                     {
-                        minLength: 2, // Note: Auto-complete indexes are min length 3.
-                        delay: 0,
+                        minLength: 3, // Note: Auto-complete indexes are min length 3.
+                        delay: 2,
                         source: function(request, response) {
                             $.post(
                                 'cache/get',
                                 {
-                                    key: 'acn_{0}'.format(request.term),
-                                    sql:"SELECT n,v from ac where n~*'\\m" + request.term + "' OR v~*'\\m" + request.term + "' LIMIT 100"
+                                    key: 'acsql_{0}'.format(request.term),
+                                    sql:"SELECT n,v from ac where n~*'\\m" + request.term + "' OR v~*'\\m" + request.term + "' LIMIT 50"
                                 },
                                 function (json) {
                                     var names = [];
@@ -124,8 +124,9 @@ mol.modules.map.search = function(mol) {
                             );
                         },
                         select: function(event, ui) {
-                            //$(this).val($(ui.item.value).text());
+                            self.names=[ui.item.value];
                             $(this).autocomplete("close");
+
                         }
                   });
             },
@@ -241,9 +242,9 @@ mol.modules.map.search = function(mol) {
             search: function(term) {
                         var self = this;
                         $.getJSON(
-                            'api/autocomplete',
+                            'cartodb/results',
                                 {
-                                    key: 'acr_["{0}"]'.format(term),
+                                    key: '{0}'.format(term.join(',')),
                                 },
                                 function (response) {
                                     var results = {term:self.names, response:response};
