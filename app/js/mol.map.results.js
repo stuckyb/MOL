@@ -367,7 +367,7 @@ mol.modules.map.results = function(mol) {
                             name = layer.name,
                             source = layer.source,
                             type = layer.type,
-                            englishname = layer.names,
+                            names = layer.names,
                             feature_count = layer.feature_count,
                             result = new mol.map.results.ResultDisplay(name, id, source, type, names, feature_count);
 
@@ -436,7 +436,7 @@ mol.modules.map.results = function(mol) {
      */
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
-            init: function(name, id, source, type, englishname, feature_count) {
+            init: function(name, id, source, type, names, feature_count) {
                 var self, html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
@@ -456,7 +456,7 @@ mol.modules.map.results = function(mol) {
                     '<div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(id, name, source, type, englishname, feature_count));
+                this._super(html.format(id, name, source, type, names, feature_count));
 
                 this.infoLink = $(this).find('.info');
                 this.nameBox = $(this).find('.resultName');

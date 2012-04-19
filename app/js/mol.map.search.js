@@ -10,15 +10,15 @@ mol.modules.map.search = function(mol) {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
-                this.sql = '' +
+                /*this.sql = '' +
                     'SELECT ' +
-                    '   s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, englishname, n.class as _class, m.records as records ' +
+                    '   s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, n.name as names, n.class as _class, m.records as feature_count ' +
                     'FROM  scientificnames s ' +
                     'LEFT JOIN ( ' +
                     '   SELECT ' +
-                    '   scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),\', \'))) as englishname, class ' +
+                    '   scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),\', \'))) as name, class ' +
                     '   FROM master_taxonomy ' +
-                    '   GROUP BY scientific, class HAVING scientific = \'{0}\' ' +
+                    '   GROUP BY scientific, class HAVING ARRAY[CONCAT(scientific)] <@ ARRAY[{0}] ' +
                     ') n '+
                     'ON s.scientificname = n.scientific ' +
                     'LEFT JOIN (' +
@@ -29,7 +29,7 @@ mol.modules.map.search = function(mol) {
                     '   FROM' +
                     '       gbif_import ' +
                     '   WHERE ' +
-                    '       lower(scientificname)=lower(\'{0}\') )' +
+                    '       ARRAY[lower(scientificname)] <@ string_to_array(lower(array_to_string(ARRAY[{0}],\',\')),\',\'))' +
                     '   UNION ALL ' +
                     '   (SELECT ' +
                     '       count(*) as records, ' +
@@ -40,7 +40,7 @@ mol.modules.map.search = function(mol) {
                     '   GROUP BY ' +
                     '       scientificname, type, provider ' +
                     '   HAVING ' +
-                    '       scientificname=\'{0}\' )' +
+                    '       ARRAY[scientificname] <@ ARRAY[{0}] )' +
                     ') m ' +
                     'ON ' +
                     '   s.type = m.type AND s.provider = m.provider ' +
@@ -52,7 +52,7 @@ mol.modules.map.search = function(mol) {
                     '   providers p ' +
                     'ON ' +
                     '   s.provider = p.provider ' +
-                    'WHERE s.scientificname = \'{0}\' ';
+                    'WHERE ARRAY[s.scientificname] <@ ARRAY[{0}] ';*/
             },
 
             /**
@@ -74,19 +74,6 @@ mol.modules.map.search = function(mol) {
 
                 // http://stackoverflow.com/questions/2435964/jqueryui-how-can-i-custom-format-the-autocomplete-plug-in-results
                 $.ui.autocomplete.prototype._renderItem = function (ul, item) {
-                    var val = item.label.split(':'),
-                        name = val[0],
-                        kind = val[1],
-                        eng = '<a>{0}</a>'.format(name),
-                        sci = '<a><i>{0}</i></a>'.format(name);
-
-                    item.label = kind === 'sci' ? sci : eng;
-                    item.value = name;
-                    if(kind == 'sci') {
-                        item.type = 'scientificname';
-                    } else {
-                        item.type = 'vernacularname';
-                    }
 
                     item.label = item.label.replace(
                         new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
@@ -103,32 +90,44 @@ mol.modules.map.search = function(mol) {
              * Populate autocomplete results list
              */
             populateAutocomplete : function(action, response) {
-                var query = 
+				var self = this;
                 $(this.display.searchBox).autocomplete(
                     {
-                        minLength: 3, // Note: Auto-complete indexes are min length 3.
+                        minLength: 2, // Note: Auto-complete indexes are min length 3.
                         delay: 0,
                         source: function(request, response) {
-                            $.getJSON(
+                            $.post(
                                 'cache/get',
                                 {
                                     key: 'acn_{0}'.format(request.term),
-                                    sql: sql
+                                    sql:"SELECT n,v from ac where n~*'\\m" + request.term + "' OR v~*'\\m" + request.term + "' LIMIT 100"
                                 },
-                                function(names) {
-                                    response(
-                                        _.sortBy(names,  // Alphabetical sort on auto-complete results.
-                                                 function(x) {
-                                                     return x;
-                                                 })
+                                function (json) {
+                                    var names = [];
+                                    self.names = [];
+                                    _.each (
+                                        json.rows,
+                                        function(row) {
+                                            var sci, eng;
+                                            if(row.n != undefined){
+                                                   sci = row.n;
+                                                   eng = (row.v == null)? '' : ', {0}'.format(row.v.replace(/'S/g, "'s"));
+                                                   names.push({label:'<span class="sci">{0}</span><span class="eng">{1}</span>'.format(sci, eng), value:sci});
+                                                   self.names.push(sci);
+
+                                           }
+                                       }
                                     );
-                                }
+                                    response(names);
+                                 },
+                                 'json'
                             );
                         },
                         select: function(event, ui) {
+                            //$(this).val($(ui.item.value).text());
                             $(this).autocomplete("close");
                         }
-                 });
+                  });
             },
 
             addEventHandlers: function() {
@@ -162,7 +161,6 @@ mol.modules.map.search = function(mol) {
                 this.bus.addHandler(
                     'search',
                     function(event) {
-                        var type = 'scientificname';
                         if (event.term != undefined) {
                             if(!self.display.is(':visible')) {
                                 self.bus.fireEvent(new mol.bus.Event('search-display-toggle',{visible : true}));
@@ -183,7 +181,7 @@ mol.modules.map.search = function(mol) {
                 this.display.goButton.click(
                     function(event) {
                         $(self.display).autocomplete("close");
-						      self.search(self.display.searchBox.val());
+						self.search(self.display.searchBox.val());
                     }
                 );
 
@@ -208,9 +206,11 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.searchBox.keyup(
                     function(event) {
+                      var term = "SELECT "
                       if (event.keyCode === 13) {
+                        term = self.names.join('","');
                         $(this).autocomplete("close");
-                        self.display.goButton.click();
+                        self.search(term);
                       }
                     }
                 );
@@ -239,22 +239,19 @@ mol.modules.map.search = function(mol) {
              * @param term the search term (scientific name)
              */
             search: function(term) {
-                var self = this,
-                    sql = this.sql.format(term),
-                    params = {sql:sql, key: 'acr_{0}'.format(term)},
-                    action = new mol.services.Action('cartodb-sql-query', params),
-                    success = function(action, response) {
-                        var results = {term:term, response:response},
-                            event = new mol.bus.Event('search-results', results);
-                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search"}));
-                        self.bus.fireEvent(event);
-                    },
-                    failure = function(action, response) {
-                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search"}));
-                    };
-                self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search"}));
-                this.proxy.execute(action, new mol.services.Callback(success, failure));
-                //this.bus.fireEvent('search', new mol.bus.Event('search', term));
+                        var self = this;
+                        $.getJSON(
+                            'api/autocomplete',
+                                {
+                                    key: 'acr_["{0}"]'.format(term),
+                                },
+                                function (response) {
+                                    var results = {term:self.names, response:response};
+                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search"}));
+                                    self.bus.fireEvent(new mol.bus.Event('search-results', results));
+                                }
+                            );
+
             }
         }
     );
