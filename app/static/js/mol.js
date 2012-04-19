@@ -2542,15 +2542,15 @@ mol.modules.map.search = function(mol) {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
-                /*this.sql = '' +
+                this.sql = '' +
                     'SELECT ' +
                     '   s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, n.name as names, n.class as _class, m.records as feature_count ' +
-                    'FROM  scientificnames s ' +
+                    'FROM  layer_metadata s ' +
                     'LEFT JOIN ( ' +
                     '   SELECT ' +
                     '   scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),\', \'))) as name, class ' +
                     '   FROM master_taxonomy ' +
-                    '   GROUP BY scientific, class HAVING ARRAY[CONCAT(scientific)] <@ ARRAY[{0}] ' +
+                    '   GROUP BY scientific, class HAVING scientific = \'{0}\' ' +
                     ') n '+
                     'ON s.scientificname = n.scientific ' +
                     'LEFT JOIN (' +
@@ -2561,7 +2561,7 @@ mol.modules.map.search = function(mol) {
                     '   FROM' +
                     '       gbif_import ' +
                     '   WHERE ' +
-                    '       ARRAY[lower(scientificname)] <@ string_to_array(lower(array_to_string(ARRAY[{0}],\',\')),\',\'))' +
+                    '       lower(scientificname) = lower(\'{0}\'))' +
                     '   UNION ALL ' +
                     '   (SELECT ' +
                     '       count(*) as records, ' +
@@ -2572,7 +2572,7 @@ mol.modules.map.search = function(mol) {
                     '   GROUP BY ' +
                     '       scientificname, type, provider ' +
                     '   HAVING ' +
-                    '       ARRAY[scientificname] <@ ARRAY[{0}] )' +
+                    '       scientificname = \'{0}\' )' +
                     ') m ' +
                     'ON ' +
                     '   s.type = m.type AND s.provider = m.provider ' +
@@ -2584,7 +2584,7 @@ mol.modules.map.search = function(mol) {
                     '   providers p ' +
                     'ON ' +
                     '   s.provider = p.provider ' +
-                    'WHERE ARRAY[s.scientificname] <@ ARRAY[{0}] ';*/
+                    'WHERE s.scientificname = \'{0}\' ';
             },
 
             /**
@@ -2773,10 +2773,11 @@ mol.modules.map.search = function(mol) {
              */
             search: function(term) {
                         var self = this;
-                        $.getJSON(
-                            'cartodb/results',
+                        $.post(
+                            'cache/get',
                                 {
                                     key: '{0}'.format(term.join(',')),
+                                    sql: self.sql.format(term)
                                 },
                                 function (response) {
                                     var results = {term:self.names, response:response};
