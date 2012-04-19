@@ -75,7 +75,7 @@ mol.modules.map.dashboard = function(mol) {
                             function(td) {
                                 $(td).click (
                                     function(event) {
-                                        var _class = $(tr).find('.class').attr('class').replace('class','').trim();
+                                        var _class = $(td).attr('class').replace('class','').trim();
                                         self.bus.fireEvent(new mol.bus.Event('metadata-toggle',{ params :{provider: provider, type: type, _class: _class, text: $(this).text()}}));
                                     }
                                 )
@@ -132,14 +132,14 @@ mol.modules.map.dashboard = function(mol) {
                     '      <td class="class osteichthyes">11,445 species names with 1,695,170 records</td>' +
                     '      <td></td>' +
                     '   </tr>' +
-                    '   <tr class="provider jetz">' +
+                    '   <tr>' +
                     '       <td class="type range">Expert maps</td>' +
                     '       <td class="providertitle">User-uploaded</td>' +
                     '       <td></td>' +
-                    '       <td class="class aves">Jetz et al. 2012: 9,869 species with 28,019 records</td>' +
+                    '       <td class="provider jetz"><div class="class aves"/><div class="type range"/>Jetz et al. 2012: 9,869 species with 28,019 records</td>' +
                     '       <td></td>' +
                     '       <td></td>' +
-                    '       <td class="class reptilia">Page and Burr, 2011: 723 species with 9,755 records</td>' +
+                    '       <td class="provider fishes"><div class="class aves"/><div class="type range"/>Page and Burr, 2011: 723 species with 9,755 records</td>' +
                     '   </tr>' +
                     '   <tr class="provider iucn">' +
                     '       <td class="type range">Expert maps</td>' +

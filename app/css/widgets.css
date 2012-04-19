@@ -496,7 +496,16 @@ padding: 3px;
         /* add padding to account for vertical scrollbar */
         padding-right: 20px;
         pointer-events: auto;
+        font-size:10pt;
+        font-weight:400;
     }
+.ui-autocomplete .sci {
+    font-style: italic;
+}
+
+.ui-autocomplete .eng {
+}
+
 
 
 .mol-LayerControl-Search .execute{
