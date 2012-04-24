@@ -94,7 +94,6 @@ mol.modules.map.search = function(mol) {
                 $(this.display.searchBox).autocomplete(
                     {
                         minLength: 3, // Note: Auto-complete indexes are min length 3.
-                        //delay: 200,
                         source: function(request, response) {
                             $.post(
                                 'cache/get',

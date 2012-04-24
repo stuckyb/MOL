@@ -2776,14 +2776,18 @@ mol.modules.map.search = function(mol) {
                         $.post(
                             'cache/get',
                                 {
-                                    key: '{0}'.format(term.join(',')),
+                                    //Note for Aaron: for multiple results, term is a comma delimited list --
+                                    //  (see this.display.searchBox.keyup)
+                                    //For all other cases it is just a scientificname.
+                                    key: 'acrsql_{0}'.format(term),
                                     sql: self.sql.format(term)
                                 },
                                 function (response) {
                                     var results = {term:self.names, response:response};
                                     self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search"}));
                                     self.bus.fireEvent(new mol.bus.Event('search-results', results));
-                                }
+                                },
+                                'json'
                             );
 
             }
@@ -3305,15 +3309,15 @@ mol.modules.map.dashboard = function(mol) {
                     '       <td class="type range">Expert maps</td>' +
                     '       <td class="providertitle">User-uploaded</td>' +
                     '       <td></td>' +
-                    '       <td class="provider jetz"><div class="class aves"/><div class="type range"/>Jetz et al. 2012: 9,869 species with 28,019 records</td>' +
+                    '       <td class="provider jetz"><div class="class aves"><div class="type range"/>Jetz et al. 2012: 9,869 species with 28,019 records</div></td>' +
                     '       <td></td>' +
                     '       <td></td>' +
-                    '       <td class="provider fishes"><div class="class aves"/><div class="type range"/>Page and Burr, 2011: 723 species with 9,755 records</td>' +
+                    '       <td class="provider fishes"><div class="class fish"><div class="type range"/>Page and Burr, 2011: 723 species with 9,755 records</div></td>' +
                     '   </tr>' +
                     '   <tr class="provider iucn">' +
                     '       <td class="type range">Expert maps</td>' +
                     '       <td class="providertitle">IUCN</td>' +
-                    '       <td class="class amphibia">5,966 species with 18,852 records</td>' +
+                    '       <td class="class amphibia ">5,966 species with 18,852 records</td>' +
                     '       <td></td>' +
                     '       <td class="class mammalia">4,081 species with 38,673 records</td>' +
                     '       <td></td>' +
@@ -3329,7 +3333,7 @@ mol.modules.map.dashboard = function(mol) {
                     '       <td></td>' +
                     '   </tr>' +
                     '   <tr class="provider wwf">' +
-                    '       <td class="type range">Regional checklists</td>' +
+                    '       <td class="type ecoregion">Regional checklists</td>' +
                     '       <td class="providertitle">WWF</td>' +
                     '       <td class="class amphibia">3,081 species with 12,296 records</td>' +
                     '       <td class="class aves">8,755 species with 201,418 records</td>' +
@@ -4062,13 +4066,15 @@ mol.modules.map.metadata = function(mol) {
                         '    AND s.provider = p.provider ' +
                         '    AND s.type = t.type',
                     dashboard: '' +
-                        'SELECT Coverage, Taxon, Description, URL, Spatial_metadata, Taxonomy_metadata, Recommended_citation, Contact ' +
+                        'SELECT Coverage, Taxon, Description, ' +
+                        '   CASE WHEN URL IS NOT NULL THEN CONCAT(\'<a target="_dashlink" href="\',URL, \'">\', URL, \'</a>\') ' +
+                        '   ELSE Null END AS URL, Spatial_metadata, Taxonomy_metadata, Recommended_citation, Contact ' +
                         'FROM dashboard_metadata ' +
                         'WHERE ' +
                         '   provider = \'{0}\' ' +
                         '   AND type =  \'{1}\' ' +
-                        '   AND (class = \'{2}\' OR class IS Null) ' +
-                        '   AND show = true ' +
+                        '   AND (class = \'{2}\' OR class = \'all\') ' +
+                        '   AND show ' +
                         'ORDER BY' +
                         '   class ASC'
                 }
@@ -4183,7 +4189,7 @@ mol.modules.map.metadata = function(mol) {
                _.each(
                     results.response.rows[0],
                     function(val, key, list) {
-                        html+='<div class="metakey-{0}"><div class="key">{1}</div></div>'.format(key.replace(/ /g, '_'),key,val);
+                        html+='<div class="metarow metakey-{0}"><div class="key">{1}</div><div class="values"></div></div>'.format(key.replace(/ /g, '_'),key.replace(/_/g,' '));
                     }
                 )
 
@@ -4197,7 +4203,7 @@ mol.modules.map.metadata = function(mol) {
                             col,
                             function(val, key, list) {
                                 if(val != null) {
-                                    $(self).find(".metakey-{0}".format(key.replace(/ /g, '_'))).append($('<div class="val">{0}<div>'.format(val)));
+                                    $(self).find(".metakey-{0} .values".format(key.replace(/ /g, '_'))).append($('<div class="val">{0}<div>'.format(val)));
                                 }
                                 if($(self).find(".metakey-{0}".format(key.replace(/ /g, '_'))).find(".val").length == 0 ) {
                                     $(self).find(".metakey-{0}".format(key.replace(/ /g, '_'))).toggle(false);
@@ -4218,7 +4224,7 @@ mol.modules.map.metadata = function(mol) {
                 //set first col widths
                 $(this).find('.key').width(Math.max.apply(Math, $(self).find('.key').map(function(){ return $(this).width(); }).get()));
                 //set total width
-                this.dialog("option", "width",Math.max.apply(Math, $(self).find('.key').map(function(){ return $(this).width(); }).get())+Math.max.apply(Math, $(self).find('.val').map(function(){ return $(this).width(); }).get())+50);
+                this.dialog("option", "width",Math.max.apply(Math, $(self).find('.key').map(function(){ return $(this).width(); }).get())+Math.max.apply(Math, $(self).find('.values').map(function(){ return $(this).width() }).get())+150);
             }
         }
     );

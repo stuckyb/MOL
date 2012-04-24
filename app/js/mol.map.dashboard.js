@@ -83,6 +83,18 @@ mol.modules.map.dashboard = function(mol) {
                         )
 
                     }
+                );
+                _.each(
+                    this.display.types,
+                    function(td) {
+                         var type = $(td).attr('class').replace('type','').trim();
+                         $(td).click (
+                                    function(event) {
+                                        var _class = $(this).attr('class').replace('class','').trim();
+                                        self.bus.fireEvent(new mol.bus.Event('metadata-toggle',{ params :{type: type}}));
+                                    }
+                         );
+                    }
                 )
             },
 
@@ -136,15 +148,15 @@ mol.modules.map.dashboard = function(mol) {
                     '       <td class="type range">Expert maps</td>' +
                     '       <td class="providertitle">User-uploaded</td>' +
                     '       <td></td>' +
-                    '       <td class="provider jetz"><div class="class aves"/><div class="type range"/>Jetz et al. 2012: 9,869 species with 28,019 records</td>' +
+                    '       <td class="provider jetz"><div class="class aves"><div class="type range"/>Jetz et al. 2012: 9,869 species with 28,019 records</div></td>' +
                     '       <td></td>' +
                     '       <td></td>' +
-                    '       <td class="provider fishes"><div class="class aves"/><div class="type range"/>Page and Burr, 2011: 723 species with 9,755 records</td>' +
+                    '       <td class="provider fishes"><div class="class fish"><div class="type range"/>Page and Burr, 2011: 723 species with 9,755 records</div></td>' +
                     '   </tr>' +
                     '   <tr class="provider iucn">' +
                     '       <td class="type range">Expert maps</td>' +
                     '       <td class="providertitle">IUCN</td>' +
-                    '       <td class="class amphibia">5,966 species with 18,852 records</td>' +
+                    '       <td class="class amphibia ">5,966 species with 18,852 records</td>' +
                     '       <td></td>' +
                     '       <td class="class mammalia">4,081 species with 38,673 records</td>' +
                     '       <td></td>' +
@@ -160,7 +172,7 @@ mol.modules.map.dashboard = function(mol) {
                     '       <td></td>' +
                     '   </tr>' +
                     '   <tr class="provider wwf">' +
-                    '       <td class="type range">Regional checklists</td>' +
+                    '       <td class="type ecoregion">Regional checklists</td>' +
                     '       <td class="providertitle">WWF</td>' +
                     '       <td class="class amphibia">3,081 species with 12,296 records</td>' +
                     '       <td class="class aves">8,755 species with 201,418 records</td>' +
@@ -174,6 +186,7 @@ mol.modules.map.dashboard = function(mol) {
 
                 this._super(html);
                 this.providers = $(this).find('.provider');
+                this.types = $(this).find('.type');
 
 
 
