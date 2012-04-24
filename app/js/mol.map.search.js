@@ -94,13 +94,13 @@ mol.modules.map.search = function(mol) {
                 $(this.display.searchBox).autocomplete(
                     {
                         minLength: 3, // Note: Auto-complete indexes are min length 3.
-                        delay: 2,
+                        //delay: 200,
                         source: function(request, response) {
                             $.post(
                                 'cache/get',
                                 {
                                     key: 'acsql_{0}'.format(request.term),
-                                    sql:"SELECT n,v from ac where n~*'\\m" + request.term + "' OR v~*'\\m" + request.term + "' LIMIT 50"
+                                    sql:"SELECT n,v from ac where n~*'\\m" + request.term + "' OR v~*'\\m" + request.term + "'"
                                 },
                                 function (json) {
                                     var names = [];
@@ -244,6 +244,9 @@ mol.modules.map.search = function(mol) {
                         $.post(
                             'cache/get',
                                 {
+                                    //Note for Aaron: for multiple results, term is a comma delimited list --
+                                    //  (see this.display.searchBox.keyup)
+                                    //For all other cases it is just a scientificname.
                                     key: 'acrsql_{0}'.format(term),
                                     sql: self.sql.format(term)
                                 },
