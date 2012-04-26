@@ -47,6 +47,7 @@
      <script type="text/javascript" src="../../../js/mol.map.legend.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.basemap.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.metadata.js"></script>
+     <script type="text/javascript" src="../../../js/mol.map.splash.js"></script>
     {% endif %}
 
     <meta charset="utf-8" />
@@ -88,6 +89,8 @@
              bme.start()
              mde = new env.map.metadata.MetadataEngine(proxy, bus)
              mde.start()
+             spe = new env.map.splash.SplashEngine(proxy, bus)
+             spe.start()
           });
           {% else %}
           env = mol(function(env) {
@@ -117,6 +120,8 @@
              bme.start()
              mde = new env.map.metadata.MetadataEngine(proxy, bus)
              mde.start()
+             spe = new env.map.splash.SplashEngine(proxy, bus)
+             spe.start()
           });
           {% endif %}
       });

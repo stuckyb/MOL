@@ -98,7 +98,7 @@ mol.modules.map.metadata = function(mol) {
                     this.proxy.execute(action, new mol.services.Callback(success, failure));
                 } else {
                     if(this.displays['type-metadata-{0}'.format(type)].dialog("isOpen")) {
-                        this.displays['type-metadata-{0}'.format(type)].dialog("close");
+                        //this.displays['type-metadata-{0}'.format(type)].dialog("close");
                     } else {
                         this.displays['type-metadata-{0}'.format(type)].dialog("open");
                     }
@@ -117,7 +117,7 @@ mol.modules.map.metadata = function(mol) {
                         //self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)}));
                         if(!results.response.error) {
                             if(results.response.total_rows > 0) {
-                                self.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)]  = new mol.map.metadata.MetadataDisplay(results);
+                                //self.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)]  = new mol.map.metadata.MetadataDisplay(results);
                             }
 
                         } else {

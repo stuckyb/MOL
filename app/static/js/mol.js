@@ -646,7 +646,8 @@ mol.modules.map = function(mol) {
             'query',
             'legend',
             'basemap',
-            'metadata'
+            'metadata',
+            'splash'
     ];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
@@ -2626,13 +2627,12 @@ mol.modules.map.search = function(mol) {
                 $(this.display.searchBox).autocomplete(
                     {
                         minLength: 3, // Note: Auto-complete indexes are min length 3.
-                        delay: 2,
                         source: function(request, response) {
                             $.post(
                                 'cache/get',
                                 {
                                     key: 'acsql_{0}'.format(request.term),
-                                    sql:"SELECT n,v from ac where n~*'\\m" + request.term + "' OR v~*'\\m" + request.term + "' LIMIT 50"
+                                    sql:"SELECT n,v from ac where n~*'\\m" + request.term + "' OR v~*'\\m" + request.term + "'"
                                 },
                                 function (json) {
                                     var names = [];
@@ -3256,6 +3256,18 @@ mol.modules.map.dashboard = function(mol) {
                         )
 
                     }
+                );
+                _.each(
+                    this.display.types,
+                    function(td) {
+                         var type = $(td).attr('class').replace('type','').trim();
+                         $(td).click (
+                                    function(event) {
+                                        var _class = $(this).attr('class').replace('class','').trim();
+                                        self.bus.fireEvent(new mol.bus.Event('metadata-toggle',{ params :{type: type}}));
+                                    }
+                         );
+                    }
                 )
             },
 
@@ -3347,6 +3359,7 @@ mol.modules.map.dashboard = function(mol) {
 
                 this._super(html);
                 this.providers = $(this).find('.provider');
+                this.types = $(this).find('.type');
 
 
 
@@ -4068,7 +4081,7 @@ mol.modules.map.metadata = function(mol) {
                     dashboard: '' +
                         'SELECT Coverage, Taxon, Description, ' +
                         '   CASE WHEN URL IS NOT NULL THEN CONCAT(\'<a target="_dashlink" href="\',URL, \'">\', URL, \'</a>\') ' +
-                        '   ELSE Null END AS URL, Spatial_metadata, Taxonomy_metadata, Recommended_citation, Contact ' +
+                        '   ELSE Null END AS URL, Spatial_metadata as "Spatial Metadata", Taxonomy_metadata as "Taxonomy Metadata", Recommended_citation as "Recommended Citation", Contact as "Contact" ' +
                         'FROM dashboard_metadata ' +
                         'WHERE ' +
                         '   provider = \'{0}\' ' +
@@ -4076,7 +4089,9 @@ mol.modules.map.metadata = function(mol) {
                         '   AND (class = \'{2}\' OR class = \'all\') ' +
                         '   AND show ' +
                         'ORDER BY' +
-                        '   class ASC'
+                        '   class ASC',
+                    types: '' +
+                        'SELECT title as "Data Type", description AS "Description" FROM types where type = \'{0}\''
                 }
            },
 
@@ -4119,20 +4134,49 @@ mol.modules.map.metadata = function(mol) {
                 }
 
             },
+            getTypeMetadata:function (params) {
+                                 var self = this,
+                    type = params.type,
+                    sql = this.sql['types'].format(type),
+                    params = {sql:sql, key: 'type-metadata-{0}'.format(type)},
+                    action = new mol.services.Action('cartodb-sql-query', params),
+                    success = function(action, response) {
+                        var results = {type:type, response:response};
+                        if(!results.response.error) {
+                            if(results.response.total_rows > 0) {
+                                self.displays['type-metadata-{0}'.format(type)]  = new mol.map.metadata.MetadataDisplay(results);
+                            }
+
+                        } else {}
+                    },
+                    failure = function(action, response) {
+                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'metadata-{0}-{1}-{2}'.format(provider, type, _class)}));
+                    };
+
+                if(this.displays['type-metadata-{0}'.format(type)] == undefined) {
+                    this.proxy.execute(action, new mol.services.Callback(success, failure));
+                } else {
+                    if(this.displays['type-metadata-{0}'.format(type)].dialog("isOpen")) {
+                        //this.displays['type-metadata-{0}'.format(type)].dialog("close");
+                    } else {
+                        this.displays['type-metadata-{0}'.format(type)].dialog("open");
+                    }
+                }
+            },
             getDashboardMetadata: function (params) {
                   var self = this,
                     type = params.type,
                     provider = params.provider,
                     _class = params._class,
                     sql = this.sql['dashboard'].format(provider, type, _class),
-                    params = {sql:sql, key: 'dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)},
+                    params = {sql:sql, key: 'dashboard-metadata-{0}-{1}-{2}'.format(provider, type, _class)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {provider:provider, type:type, _class:_class, response:response};
                         //self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)}));
                         if(!results.response.error) {
                             if(results.response.total_rows > 0) {
-                                self.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)]  = new mol.map.metadata.MetadataDisplay(results);
+                                //self.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)]  = new mol.map.metadata.MetadataDisplay(results);
                             }
 
                         } else {
@@ -4172,6 +4216,8 @@ mol.modules.map.metadata = function(mol) {
                             self.getLayerMetadata(params.layer);
                         } else if(params.provider && params.type) {
                             self.getDashboardMetadata(params);
+                        } else if(params.type) {
+                            self.getTypeMetadata(params);
                         }
                     }
                 );
@@ -4229,6 +4275,57 @@ mol.modules.map.metadata = function(mol) {
         }
     );
 
+};
+
+
+
+mol.modules.map.splash = function(mol) {
+
+    mol.map.splash = {};
+
+    mol.map.splash.SplashEngine = mol.mvp.Engine.extend(
+        {
+            init: function(proxy, bus) {
+                this.proxy = proxy;
+                this.bus = bus;
+             },
+
+            /**
+             * Starts the MenuEngine. Note that the container parameter is
+             * ignored.
+             */
+            start: function() {
+                this.display = new mol.map.splash.splashDisplay();
+                this.initDialog();
+            },
+            initDialog: function() {
+                this.display.dialog(
+                    {
+                        autoOpen: true,
+					    width: "80%",
+					    height: 500,
+					    dialogClass: "mol-splash",
+					    modal: true
+                    }
+                );
+                 $(this.display).width('98%');
+
+            }
+        }
+    );
+
+    mol.map.splash.splashDisplay = mol.mvp.View.extend(
+        {
+            init: function() {
+                var html = '' +
+                    '<iframe class="mol-splash iframe_content" src="https://docs.google.com/document/pub?id=1vrttRdCz4YReWFq5qQmm4K6WmyWayiouEYrYtPrAyvY&amp;embedded=true"></iframe>';
+
+                this._super(html);
+                this.iframe_content = $(this).find('.iframe_content');
+
+            }
+        }
+    );
 };
 
 
