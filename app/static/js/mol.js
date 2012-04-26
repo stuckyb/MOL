@@ -83,9 +83,9 @@ mol.modules.core = function(mol) {
         var name = $.trim(layer.name.toLowerCase()).replace(/ /g, "_"),
             type = $.trim(layer.type.toLowerCase()).replace(/ /g, "_"),
             source = $.trim(layer.source.toLowerCase()).replace(/ /g, "_"),
-            englishname = $.trim(layer.englishname).replace(/ /g, "_"),
+            names = $.trim(layer.names).replace(/ /g, "_"),
             feature_count = $.trim(layer.feature_count).replace(/ /g, "_");
-        return 'layer--{0}--{1}--{2}--{3}--{4}'.format(name, type, source, englishname, feature_count);
+        return 'layer--{0}--{1}--{2}--{3}--{4}'.format(name, type, source, names, feature_count);
     };
 
     /**
@@ -96,7 +96,7 @@ mol.modules.core = function(mol) {
             name = tokens[1].replace(/_/g, " "),
             type = tokens[2].replace(/_/g, " "),
             source = tokens[3].replace(/_/g, " "),
-            englishname = tokens[4].replace(/_/g, " "),
+            names = tokens[4].replace(/_/g, " "),
             feature_count = tokens[5].replace(/_/g, " ");
 
         name = name.charAt(0).toUpperCase()+name.slice(1).toLowerCase();
@@ -108,7 +108,7 @@ mol.modules.core = function(mol) {
             name: name,
             type: type,
             source: source,
-            englishname: englishname,
+            names: names,
             feature_count: feature_count
         };
     };
@@ -391,8 +391,8 @@ mol.modules.services.cartodb = function(mol) {
                     case 'source':
                         results.push(row.source);
                         break;
-                    case 'englishname':
-                        results.push(row.englishname);
+                    case 'names':
+                        results.push(row.names);
                         break;
                     case 'feature_count':
                         results.push(row.feature_count);
@@ -598,7 +598,7 @@ mol.modules.services.cartodb = function(mol) {
                         source: row.source.toLowerCase(),
                         type: row.type.toLowerCase(),
                         // This removes duplicates:
-                        englishname: (row.englishname != undefined) ? _.uniq(row.englishname.split(', ')).join(', ') : '', 
+                        names: (row.names != undefined) ? _.uniq(row.names.split(', ')).join(', ') : '',
                         feature_count: row.feature_count
                     };
                 }
@@ -646,7 +646,8 @@ mol.modules.map = function(mol) {
             'query',
             'legend',
             'basemap',
-            'metadata'
+            'metadata',
+            'splash'
     ];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
@@ -1528,7 +1529,7 @@ mol.modules.map.layers = function(mol) {
                     '  <div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(layer.source, layer.type, layer.name, layer.englishname, layer.feature_count));
+                this._super(html.format(layer.source, layer.type, layer.name, layer.names, layer.feature_count));
                 this.attr('id', layer.id);
                 this.opacity = $(this).find('.opacity').slider({value: 0.5, min: 0, max:1, step: 0.02, animate:"slow"});
                 this.toggle = $(this).find('.toggle').button();
@@ -2172,9 +2173,9 @@ mol.modules.map.results = function(mol) {
                             name = layer.name,
                             source = layer.source,
                             type = layer.type,
-                            englishname = layer.englishname,
+                            names = layer.names,
                             feature_count = layer.feature_count,
-                            result = new mol.map.results.ResultDisplay(name, id, source, type, englishname, feature_count);
+                            result = new mol.map.results.ResultDisplay(name, id, source, type, names, feature_count);
 
                         this.resultList.append(result);
                         return result;
@@ -2241,7 +2242,7 @@ mol.modules.map.results = function(mol) {
      */
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
-            init: function(name, id, source, type, englishname, feature_count) {
+            init: function(name, id, source, type, names, feature_count) {
                 var self, html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
@@ -2261,7 +2262,7 @@ mol.modules.map.results = function(mol) {
                     '<div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(id, name, source, type, englishname, feature_count));
+                this._super(html.format(id, name, source, type, names, feature_count));
 
                 this.infoLink = $(this).find('.info');
                 this.nameBox = $(this).find('.resultName');
@@ -2321,7 +2322,7 @@ mol.modules.map.results = function(mol) {
             },
 
             /**
-             * Gets layer names that satisfy a name, source, and type combined
+             * Gets layer namesthat satisfy a name, source, and type combined
              * constraint.
              *
              * @param name the layer name
@@ -2544,11 +2545,11 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'SELECT ' +
-                    '   s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, englishname, n.class as _class, m.records as records ' +
-                    'FROM  scientificnames s ' +
+                    '   s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, n.name as names, n.class as _class, m.records as feature_count ' +
+                    'FROM  layer_metadata s ' +
                     'LEFT JOIN ( ' +
                     '   SELECT ' +
-                    '   scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),\', \'))) as englishname, class ' +
+                    '   scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),\', \'))) as name, class ' +
                     '   FROM master_taxonomy ' +
                     '   GROUP BY scientific, class HAVING scientific = \'{0}\' ' +
                     ') n '+
@@ -2561,7 +2562,7 @@ mol.modules.map.search = function(mol) {
                     '   FROM' +
                     '       gbif_import ' +
                     '   WHERE ' +
-                    '       lower(scientificname)=lower(\'{0}\') )' +
+                    '       lower(scientificname) = lower(\'{0}\'))' +
                     '   UNION ALL ' +
                     '   (SELECT ' +
                     '       count(*) as records, ' +
@@ -2572,7 +2573,7 @@ mol.modules.map.search = function(mol) {
                     '   GROUP BY ' +
                     '       scientificname, type, provider ' +
                     '   HAVING ' +
-                    '       scientificname=\'{0}\' )' +
+                    '       scientificname = \'{0}\' )' +
                     ') m ' +
                     'ON ' +
                     '   s.type = m.type AND s.provider = m.provider ' +
@@ -2606,19 +2607,6 @@ mol.modules.map.search = function(mol) {
 
                 // http://stackoverflow.com/questions/2435964/jqueryui-how-can-i-custom-format-the-autocomplete-plug-in-results
                 $.ui.autocomplete.prototype._renderItem = function (ul, item) {
-                    var val = item.label.split(':'),
-                        name = val[0],
-                        kind = val[1],
-                        eng = '<a>{0}</a>'.format(name),
-                        sci = '<a><i>{0}</i></a>'.format(name);
-
-                    item.label = kind === 'sci' ? sci : eng;
-                    item.value = name;
-                    if(kind == 'sci') {
-                        item.type = 'scientificname';
-                    } else {
-                        item.type = 'vernacularname';
-                    }
 
                     item.label = item.label.replace(
                         new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
@@ -2635,30 +2623,44 @@ mol.modules.map.search = function(mol) {
              * Populate autocomplete results list
              */
             populateAutocomplete : function(action, response) {
+				var self = this;
                 $(this.display.searchBox).autocomplete(
                     {
                         minLength: 3, // Note: Auto-complete indexes are min length 3.
-                        delay: 0,
                         source: function(request, response) {
-                            $.getJSON(
-                                'api/autocomplete',
+                            $.post(
+                                'cache/get',
                                 {
-                                    key: 'acn_{0}'.format(request.term)
+                                    key: 'acsql_{0}'.format(request.term),
+                                    sql:"SELECT n,v from ac where n~*'\\m" + request.term + "' OR v~*'\\m" + request.term + "'"
                                 },
-                                function(names) {
-                                    response(
-                                        _.sortBy(names,  // Alphabetical sort on auto-complete results.
-                                                 function(x) {
-                                                     return x;
-                                                 })
+                                function (json) {
+                                    var names = [];
+                                    self.names = [];
+                                    _.each (
+                                        json.rows,
+                                        function(row) {
+                                            var sci, eng;
+                                            if(row.n != undefined){
+                                                   sci = row.n;
+                                                   eng = (row.v == null)? '' : ', {0}'.format(row.v.replace(/'S/g, "'s"));
+                                                   names.push({label:'<span class="sci">{0}</span><span class="eng">{1}</span>'.format(sci, eng), value:sci});
+                                                   self.names.push(sci);
+
+                                           }
+                                       }
                                     );
-                                }
+                                    response(names);
+                                 },
+                                 'json'
                             );
                         },
                         select: function(event, ui) {
+                            self.names=[ui.item.value];
                             $(this).autocomplete("close");
+
                         }
-                 });
+                  });
             },
 
             addEventHandlers: function() {
@@ -2692,7 +2694,6 @@ mol.modules.map.search = function(mol) {
                 this.bus.addHandler(
                     'search',
                     function(event) {
-                        var type = 'scientificname';
                         if (event.term != undefined) {
                             if(!self.display.is(':visible')) {
                                 self.bus.fireEvent(new mol.bus.Event('search-display-toggle',{visible : true}));
@@ -2713,7 +2714,7 @@ mol.modules.map.search = function(mol) {
                 this.display.goButton.click(
                     function(event) {
                         $(self.display).autocomplete("close");
-						      self.search(self.display.searchBox.val());
+						self.search(self.display.searchBox.val());
                     }
                 );
 
@@ -2738,9 +2739,11 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.searchBox.keyup(
                     function(event) {
+                      var term = "SELECT "
                       if (event.keyCode === 13) {
+                        term = self.names.join('","');
                         $(this).autocomplete("close");
-                        self.display.goButton.click();
+                        self.search(term);
                       }
                     }
                 );
@@ -2769,22 +2772,24 @@ mol.modules.map.search = function(mol) {
              * @param term the search term (scientific name)
              */
             search: function(term) {
-                var self = this,
-                    sql = this.sql.format(term),
-                    params = {sql:sql, key: 'acr_{0}'.format(term)},
-                    action = new mol.services.Action('cartodb-sql-query', params),
-                    success = function(action, response) {
-                        var results = {term:term, response:response},
-                            event = new mol.bus.Event('search-results', results);
-                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search"}));
-                        self.bus.fireEvent(event);
-                    },
-                    failure = function(action, response) {
-                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search"}));
-                    };
-                self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search"}));
-                this.proxy.execute(action, new mol.services.Callback(success, failure));
-                //this.bus.fireEvent('search', new mol.bus.Event('search', term));
+                        var self = this;
+                        $.post(
+                            'cache/get',
+                                {
+                                    //Note for Aaron: for multiple results, term is a comma delimited list --
+                                    //  (see this.display.searchBox.keyup)
+                                    //For all other cases it is just a scientificname.
+                                    key: 'acrsql_{0}'.format(term),
+                                    sql: self.sql.format(term)
+                                },
+                                function (response) {
+                                    var results = {term:self.names, response:response};
+                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search"}));
+                                    self.bus.fireEvent(new mol.bus.Event('search-results', results));
+                                },
+                                'json'
+                            );
+
             }
         }
     );
@@ -3243,13 +3248,25 @@ mol.modules.map.dashboard = function(mol) {
                             function(td) {
                                 $(td).click (
                                     function(event) {
-                                        var _class = $(tr).find('.class').attr('class').replace('class','').trim();
+                                        var _class = $(td).attr('class').replace('class','').trim();
                                         self.bus.fireEvent(new mol.bus.Event('metadata-toggle',{ params :{provider: provider, type: type, _class: _class, text: $(this).text()}}));
                                     }
                                 )
                             }
                         )
 
+                    }
+                );
+                _.each(
+                    this.display.types,
+                    function(td) {
+                         var type = $(td).attr('class').replace('type','').trim();
+                         $(td).click (
+                                    function(event) {
+                                        var _class = $(this).attr('class').replace('class','').trim();
+                                        self.bus.fireEvent(new mol.bus.Event('metadata-toggle',{ params :{type: type}}));
+                                    }
+                         );
                     }
                 )
             },
@@ -3300,19 +3317,19 @@ mol.modules.map.dashboard = function(mol) {
                     '      <td class="class osteichthyes">11,445 species names with 1,695,170 records</td>' +
                     '      <td></td>' +
                     '   </tr>' +
-                    '   <tr class="provider jetz">' +
+                    '   <tr>' +
                     '       <td class="type range">Expert maps</td>' +
                     '       <td class="providertitle">User-uploaded</td>' +
                     '       <td></td>' +
-                    '       <td class="class aves">Jetz et al. 2012: 9,869 species with 28,019 records</td>' +
+                    '       <td class="provider jetz"><div class="class aves"><div class="type range"/>Jetz et al. 2012: 9,869 species with 28,019 records</div></td>' +
                     '       <td></td>' +
                     '       <td></td>' +
-                    '       <td class="class reptilia">Page and Burr, 2011: 723 species with 9,755 records</td>' +
+                    '       <td class="provider fishes"><div class="class fish"><div class="type range"/>Page and Burr, 2011: 723 species with 9,755 records</div></td>' +
                     '   </tr>' +
                     '   <tr class="provider iucn">' +
                     '       <td class="type range">Expert maps</td>' +
                     '       <td class="providertitle">IUCN</td>' +
-                    '       <td class="class amphibia">5,966 species with 18,852 records</td>' +
+                    '       <td class="class amphibia ">5,966 species with 18,852 records</td>' +
                     '       <td></td>' +
                     '       <td class="class mammalia">4,081 species with 38,673 records</td>' +
                     '       <td></td>' +
@@ -3328,7 +3345,7 @@ mol.modules.map.dashboard = function(mol) {
                     '       <td></td>' +
                     '   </tr>' +
                     '   <tr class="provider wwf">' +
-                    '       <td class="type range">Regional checklists</td>' +
+                    '       <td class="type ecoregion">Regional checklists</td>' +
                     '       <td class="providertitle">WWF</td>' +
                     '       <td class="class amphibia">3,081 species with 12,296 records</td>' +
                     '       <td class="class aves">8,755 species with 201,418 records</td>' +
@@ -3342,6 +3359,7 @@ mol.modules.map.dashboard = function(mol) {
 
                 this._super(html);
                 this.providers = $(this).find('.provider');
+                this.types = $(this).find('.type');
 
 
 
@@ -3693,7 +3711,7 @@ mol.modules.map.query = function(mol) {
         init : function(names) {
             var className = 'mol-Map-QueryDisplay',
                 html = '' +
-                        '<div class="' + className + ' widgetTheme">' +
+                        '<div title="Use this control to select species group and radius. Then right click (Mac Users: \'control-\') on focal location on map" class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
                         '     Search Radius <select class="radius">' +
                         '       <option selected value="50">50 km</option>' +
@@ -3704,17 +3722,17 @@ mol.modules.map.query = function(mol) {
                         '     Class <select class="class" value="">' +
                         '       <option value="">All</option>' +
                         '       <option selected value=" and p.class=\'aves\' ">Bird</option>' +
-                        '       <option value=" and p.class LIKE \'%osteichthyes\' ">Fish</option>' + //note the space, leaving till we can clean up polygons
+                        '       <option value=" and p.provider = \'fishes\' ">Fish</option>' + //note the space, leaving till we can clean up polygons
                         '       <option value=" and p.class=\'reptilia\' ">Reptile</option>' +
                         '       <option value=" and p.class=\'amphibia\' ">Amphibian</option>' +
                         '       <option value=" and p.class=\'mammalia\' ">Mammal</option>' +
                         '     </select>' +
                         '     Type <select class="type" value="">' +
-                        '       <option value="">All</option>' +
+                        //'       <option value="">All</option>' +
                         '       <option selected value="and p.type=\'range\' ">Range maps</option>' +
-                        '       <option value=" and p.type=\'protectedarea\'">Protected Areas</option>' +
+                        //'       <option value=" and p.type=\'protectedarea\'">Protected Areas</option>' +
                         '       <option value=" and p.type=\'ecoregion\'">Ecoregions</option>' +
-                        '       <option disabled value="">Point records</option>' +
+                        //'       <option disabled value="">Point records</option>' +
                         '     </select>' +
                         '   </div>' +
                         '</div>';
@@ -4061,15 +4079,19 @@ mol.modules.map.metadata = function(mol) {
                         '    AND s.provider = p.provider ' +
                         '    AND s.type = t.type',
                     dashboard: '' +
-                        'SELECT Coverage, Taxon, Description, URL, Spatial_metadata, Taxonomy_metadata, Recommended_citation, Contact ' +
+                        'SELECT Coverage, Taxon, Description, ' +
+                        '   CASE WHEN URL IS NOT NULL THEN CONCAT(\'<a target="_dashlink" href="\',URL, \'">\', URL, \'</a>\') ' +
+                        '   ELSE Null END AS URL, Spatial_metadata as "Spatial Metadata", Taxonomy_metadata as "Taxonomy Metadata", Recommended_citation as "Recommended Citation", Contact as "Contact" ' +
                         'FROM dashboard_metadata ' +
                         'WHERE ' +
                         '   provider = \'{0}\' ' +
                         '   AND type =  \'{1}\' ' +
-                        '   AND (class = \'{2}\' OR class IS Null) ' +
-                        '   AND show = true ' +
+                        '   AND (class = \'{2}\' OR class = \'all\') ' +
+                        '   AND show ' +
                         'ORDER BY' +
-                        '   class ASC'
+                        '   class ASC',
+                    types: '' +
+                        'SELECT title as "Data Type", description AS "Description" FROM types where type = \'{0}\''
                 }
            },
 
@@ -4084,7 +4106,7 @@ mol.modules.map.metadata = function(mol) {
             getLayerMetadata: function (layer) {
                   var self = this,
                     sql = this.sql['layer'].format(layer.name, layer.type, layer.source),
-                    params = {sql:sql, key: 'metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
+                    params = {sql:sql, cache_buster: true, key: 'metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {layer:layer, response:response};
@@ -4112,13 +4134,42 @@ mol.modules.map.metadata = function(mol) {
                 }
 
             },
+            getTypeMetadata:function (params) {
+                                 var self = this,
+                    type = params.type,
+                    sql = this.sql['types'].format(type),
+                    params = {sql:sql, cache_buster: true, key: 'type-metadata-{0}'.format(type)},
+                    action = new mol.services.Action('cartodb-sql-query', params),
+                    success = function(action, response) {
+                        var results = {type:type, response:response};
+                        if(!results.response.error) {
+                            if(results.response.total_rows > 0) {
+                                self.displays['type-metadata-{0}'.format(type)]  = new mol.map.metadata.MetadataDisplay(results);
+                            }
+
+                        } else {}
+                    },
+                    failure = function(action, response) {
+                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'metadata-{0}-{1}-{2}'.format(provider, type, _class)}));
+                    };
+
+                if(this.displays['type-metadata-{0}'.format(type)] == undefined) {
+                    this.proxy.execute(action, new mol.services.Callback(success, failure));
+                } else {
+                    if(this.displays['type-metadata-{0}'.format(type)].dialog("isOpen")) {
+                        //this.displays['type-metadata-{0}'.format(type)].dialog("close");
+                    } else {
+                        this.displays['type-metadata-{0}'.format(type)].dialog("open");
+                    }
+                }
+            },
             getDashboardMetadata: function (params) {
                   var self = this,
                     type = params.type,
                     provider = params.provider,
                     _class = params._class,
                     sql = this.sql['dashboard'].format(provider, type, _class),
-                    params = {sql:sql, key: 'dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)},
+                    params = {sql:sql, cache_buster: true, key: 'dashboard-metadata-{0}-{1}-{2}'.format(provider, type, _class)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {provider:provider, type:type, _class:_class, response:response};
@@ -4141,7 +4192,7 @@ mol.modules.map.metadata = function(mol) {
                     this.proxy.execute(action, new mol.services.Callback(success, failure));
                 } else {
                     if(this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("isOpen")) {
-                        this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("close");
+                        //this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("close");
                     } else {
                         this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("open");
                     }
@@ -4165,6 +4216,8 @@ mol.modules.map.metadata = function(mol) {
                             self.getLayerMetadata(params.layer);
                         } else if(params.provider && params.type) {
                             self.getDashboardMetadata(params);
+                        } else if(params.type) {
+                            self.getTypeMetadata(params);
                         }
                     }
                 );
@@ -4182,7 +4235,7 @@ mol.modules.map.metadata = function(mol) {
                _.each(
                     results.response.rows[0],
                     function(val, key, list) {
-                        html+='<div class="metakey-{0}"><div class="key">{1}</div></div>'.format(key.replace(/ /g, '_'),key,val);
+                        html+='<div class="metarow metakey-{0}"><div class="key">{1}</div><div class="values"></div></div>'.format(key.replace(/ /g, '_'),key.replace(/_/g,' '));
                     }
                 )
 
@@ -4196,7 +4249,7 @@ mol.modules.map.metadata = function(mol) {
                             col,
                             function(val, key, list) {
                                 if(val != null) {
-                                    $(self).find(".metakey-{0}".format(key.replace(/ /g, '_'))).append($('<div class="val">{0}<div>'.format(val)));
+                                    $(self).find(".metakey-{0} .values".format(key.replace(/ /g, '_'))).append($('<div class="val">{0}<div>'.format(val)));
                                 }
                                 if($(self).find(".metakey-{0}".format(key.replace(/ /g, '_'))).find(".val").length == 0 ) {
                                     $(self).find(".metakey-{0}".format(key.replace(/ /g, '_'))).toggle(false);
@@ -4217,11 +4270,62 @@ mol.modules.map.metadata = function(mol) {
                 //set first col widths
                 $(this).find('.key').width(Math.max.apply(Math, $(self).find('.key').map(function(){ return $(this).width(); }).get()));
                 //set total width
-                this.dialog("option", "width",Math.max.apply(Math, $(self).find('.key').map(function(){ return $(this).width(); }).get())+Math.max.apply(Math, $(self).find('.val').map(function(){ return $(this).width(); }).get())+50);
+                this.dialog("option", "width",Math.max.apply(Math, $(self).find('.key').map(function(){ return $(this).width(); }).get())+Math.max.apply(Math, $(self).find('.values').map(function(){ return $(this).width() }).get())+150);
             }
         }
     );
 
+};
+
+
+
+mol.modules.map.splash = function(mol) {
+
+    mol.map.splash = {};
+
+    mol.map.splash.SplashEngine = mol.mvp.Engine.extend(
+        {
+            init: function(proxy, bus) {
+                this.proxy = proxy;
+                this.bus = bus;
+             },
+
+            /**
+             * Starts the MenuEngine. Note that the container parameter is
+             * ignored.
+             */
+            start: function() {
+                this.display = new mol.map.splash.splashDisplay();
+                this.initDialog();
+            },
+            initDialog: function() {
+                this.display.dialog(
+                    {
+                        autoOpen: true,
+					    width: "80%",
+					    height: 500,
+					    dialogClass: "mol-splash",
+					    modal: true
+                    }
+                );
+                 $(this.display).width('98%');
+
+            }
+        }
+    );
+
+    mol.map.splash.splashDisplay = mol.mvp.View.extend(
+        {
+            init: function() {
+                var html = '' +
+                    '<iframe class="mol-splash iframe_content" src="https://docs.google.com/document/pub?id=1vrttRdCz4YReWFq5qQmm4K6WmyWayiouEYrYtPrAyvY&amp;embedded=true"></iframe>';
+
+                this._super(html);
+                this.iframe_content = $(this).find('.iframe_content');
+
+            }
+        }
+    );
 };
 
 

@@ -20,15 +20,19 @@ mol.modules.map.metadata = function(mol) {
                         '    AND s.provider = p.provider ' +
                         '    AND s.type = t.type',
                     dashboard: '' +
-                        'SELECT Coverage, Taxon, Description, URL, Spatial_metadata, Taxonomy_metadata, Recommended_citation, Contact ' +
+                        'SELECT Coverage, Taxon, Description, ' +
+                        '   CASE WHEN URL IS NOT NULL THEN CONCAT(\'<a target="_dashlink" href="\',URL, \'">\', URL, \'</a>\') ' +
+                        '   ELSE Null END AS URL, Spatial_metadata as "Spatial Metadata", Taxonomy_metadata as "Taxonomy Metadata", Recommended_citation as "Recommended Citation", Contact as "Contact" ' +
                         'FROM dashboard_metadata ' +
                         'WHERE ' +
                         '   provider = \'{0}\' ' +
                         '   AND type =  \'{1}\' ' +
-                        '   AND (class = \'{2}\' OR class IS Null) ' +
-                        '   AND show = true ' +
+                        '   AND (class = \'{2}\' OR class = \'all\') ' +
+                        '   AND show ' +
                         'ORDER BY' +
-                        '   class ASC'
+                        '   class ASC',
+                    types: '' +
+                        'SELECT title as "Data Type", description AS "Description" FROM types where type = \'{0}\''
                 }
            },
 
@@ -43,7 +47,7 @@ mol.modules.map.metadata = function(mol) {
             getLayerMetadata: function (layer) {
                   var self = this,
                     sql = this.sql['layer'].format(layer.name, layer.type, layer.source),
-                    params = {sql:sql, key: 'metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
+                    params = {sql:sql, cache_buster: true, key: 'metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {layer:layer, response:response};
@@ -71,13 +75,42 @@ mol.modules.map.metadata = function(mol) {
                 }
 
             },
+            getTypeMetadata:function (params) {
+                                 var self = this,
+                    type = params.type,
+                    sql = this.sql['types'].format(type),
+                    params = {sql:sql, cache_buster: true, key: 'type-metadata-{0}'.format(type)},
+                    action = new mol.services.Action('cartodb-sql-query', params),
+                    success = function(action, response) {
+                        var results = {type:type, response:response};
+                        if(!results.response.error) {
+                            if(results.response.total_rows > 0) {
+                                self.displays['type-metadata-{0}'.format(type)]  = new mol.map.metadata.MetadataDisplay(results);
+                            }
+
+                        } else {}
+                    },
+                    failure = function(action, response) {
+                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'metadata-{0}-{1}-{2}'.format(provider, type, _class)}));
+                    };
+
+                if(this.displays['type-metadata-{0}'.format(type)] == undefined) {
+                    this.proxy.execute(action, new mol.services.Callback(success, failure));
+                } else {
+                    if(this.displays['type-metadata-{0}'.format(type)].dialog("isOpen")) {
+                        //this.displays['type-metadata-{0}'.format(type)].dialog("close");
+                    } else {
+                        this.displays['type-metadata-{0}'.format(type)].dialog("open");
+                    }
+                }
+            },
             getDashboardMetadata: function (params) {
                   var self = this,
                     type = params.type,
                     provider = params.provider,
                     _class = params._class,
                     sql = this.sql['dashboard'].format(provider, type, _class),
-                    params = {sql:sql, key: 'dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)},
+                    params = {sql:sql, cache_buster: true, key: 'dashboard-metadata-{0}-{1}-{2}'.format(provider, type, _class)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {provider:provider, type:type, _class:_class, response:response};
@@ -100,7 +133,7 @@ mol.modules.map.metadata = function(mol) {
                     this.proxy.execute(action, new mol.services.Callback(success, failure));
                 } else {
                     if(this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("isOpen")) {
-                        this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("close");
+                        //this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("close");
                     } else {
                         this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("open");
                     }
@@ -124,6 +157,8 @@ mol.modules.map.metadata = function(mol) {
                             self.getLayerMetadata(params.layer);
                         } else if(params.provider && params.type) {
                             self.getDashboardMetadata(params);
+                        } else if(params.type) {
+                            self.getTypeMetadata(params);
                         }
                     }
                 );
@@ -141,7 +176,7 @@ mol.modules.map.metadata = function(mol) {
                _.each(
                     results.response.rows[0],
                     function(val, key, list) {
-                        html+='<div class="metakey-{0}"><div class="key">{1}</div></div>'.format(key.replace(/ /g, '_'),key,val);
+                        html+='<div class="metarow metakey-{0}"><div class="key">{1}</div><div class="values"></div></div>'.format(key.replace(/ /g, '_'),key.replace(/_/g,' '));
                     }
                 )
 
@@ -155,7 +190,7 @@ mol.modules.map.metadata = function(mol) {
                             col,
                             function(val, key, list) {
                                 if(val != null) {
-                                    $(self).find(".metakey-{0}".format(key.replace(/ /g, '_'))).append($('<div class="val">{0}<div>'.format(val)));
+                                    $(self).find(".metakey-{0} .values".format(key.replace(/ /g, '_'))).append($('<div class="val">{0}<div>'.format(val)));
                                 }
                                 if($(self).find(".metakey-{0}".format(key.replace(/ /g, '_'))).find(".val").length == 0 ) {
                                     $(self).find(".metakey-{0}".format(key.replace(/ /g, '_'))).toggle(false);
@@ -176,7 +211,7 @@ mol.modules.map.metadata = function(mol) {
                 //set first col widths
                 $(this).find('.key').width(Math.max.apply(Math, $(self).find('.key').map(function(){ return $(this).width(); }).get()));
                 //set total width
-                this.dialog("option", "width",Math.max.apply(Math, $(self).find('.key').map(function(){ return $(this).width(); }).get())+Math.max.apply(Math, $(self).find('.val').map(function(){ return $(this).width(); }).get())+50);
+                this.dialog("option", "width",Math.max.apply(Math, $(self).find('.key').map(function(){ return $(this).width(); }).get())+Math.max.apply(Math, $(self).find('.values').map(function(){ return $(this).width() }).get())+150);
             }
         }
     );

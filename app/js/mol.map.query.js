@@ -339,7 +339,7 @@ mol.modules.map.query = function(mol) {
         init : function(names) {
             var className = 'mol-Map-QueryDisplay',
                 html = '' +
-                        '<div class="' + className + ' widgetTheme">' +
+                        '<div title="Use this control to select species group and radius. Then right click (Mac Users: \'control-\') on focal location on map" class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
                         '     Search Radius <select class="radius">' +
                         '       <option selected value="50">50 km</option>' +
@@ -350,17 +350,17 @@ mol.modules.map.query = function(mol) {
                         '     Class <select class="class" value="">' +
                         '       <option value="">All</option>' +
                         '       <option selected value=" and p.class=\'aves\' ">Bird</option>' +
-                        '       <option value=" and p.class LIKE \'%osteichthyes\' ">Fish</option>' + //note the space, leaving till we can clean up polygons
+                        '       <option value=" and p.provider = \'fishes\' ">Fish</option>' + //note the space, leaving till we can clean up polygons
                         '       <option value=" and p.class=\'reptilia\' ">Reptile</option>' +
                         '       <option value=" and p.class=\'amphibia\' ">Amphibian</option>' +
                         '       <option value=" and p.class=\'mammalia\' ">Mammal</option>' +
                         '     </select>' +
                         '     Type <select class="type" value="">' +
-                        '       <option value="">All</option>' +
+                        //'       <option value="">All</option>' +
                         '       <option selected value="and p.type=\'range\' ">Range maps</option>' +
-                        '       <option value=" and p.type=\'protectedarea\'">Protected Areas</option>' +
+                        //'       <option value=" and p.type=\'protectedarea\'">Protected Areas</option>' +
                         '       <option value=" and p.type=\'ecoregion\'">Ecoregions</option>' +
-                        '       <option disabled value="">Point records</option>' +
+                        //'       <option disabled value="">Point records</option>' +
                         '     </select>' +
                         '   </div>' +
                         '</div>';

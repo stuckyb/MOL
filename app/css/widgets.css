@@ -178,6 +178,7 @@ button:hover{
 .mol-LayerControl-Layers .scrollContainer{
     max-height:380px;
     overflow-y: auto;
+    overflow-x: hidden;
     margin-top: 1em;
     margin-bottom:1em;
 }
@@ -275,7 +276,7 @@ button:hover{
 .mol-LayerControl-Layers .layer .layerName{
     float: left;
     white-space:normal;
-    width: 200px;
+    width: 190px;
     margin-left: 5px;
     margin-right: 5px;
     -webkit-touch-callout: none;
@@ -496,7 +497,16 @@ padding: 3px;
         /* add padding to account for vertical scrollbar */
         padding-right: 20px;
         pointer-events: auto;
+        font-size:10pt;
+        font-weight:400;
     }
+.ui-autocomplete .sci {
+    font-style: italic;
+}
+
+.ui-autocomplete .eng {
+}
+
 
 
 .mol-LayerControl-Search .execute{
@@ -594,6 +604,11 @@ padding: 3px;
 }
 
 .mol-Dashboard #dialog .class {
+    cursor: pointer;
+    cursor: hand;
+}
+
+.mol-Dashboard #dialog .type {
     cursor: pointer;
     cursor: hand;
 }
@@ -1001,16 +1016,30 @@ padding: 3px;
 
 .mol-LayerMetadata .key {
     display: inline-block;
-    white-space: nowrap;
+    clear:both;
+    float:left;
     padding: 5px;
     font-size:10pt;
     font-weight:700;
 }
 .mol-LayerMetadata .val {
-    white-space: nowrap;
     display: inline-block;
     font-size:10pt;
     font-weight:300;
 }
+
+.mol-LayerMetadata .metarow {
+    display: block;
+}
+
+
+.mol-LayerMetadata .values {
+    display: inline-block;
+    float:left;
+    max-width:350px;
+}
+
+
+
 
 
