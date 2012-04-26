@@ -46,4 +46,3 @@ handlers:
 
 - url: /.*
   script: app.application
-  login: admin

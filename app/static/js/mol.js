@@ -3711,7 +3711,7 @@ mol.modules.map.query = function(mol) {
         init : function(names) {
             var className = 'mol-Map-QueryDisplay',
                 html = '' +
-                        '<div class="' + className + ' widgetTheme">' +
+                        '<div title="Use this control to select species group and radius. Then right click (Mac Users: \'control-\') on focal location on map" class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
                         '     Search Radius <select class="radius">' +
                         '       <option selected value="50">50 km</option>' +
@@ -4106,7 +4106,7 @@ mol.modules.map.metadata = function(mol) {
             getLayerMetadata: function (layer) {
                   var self = this,
                     sql = this.sql['layer'].format(layer.name, layer.type, layer.source),
-                    params = {sql:sql, key: 'metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
+                    params = {sql:sql, cache_buster: true, key: 'metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {layer:layer, response:response};
@@ -4138,7 +4138,7 @@ mol.modules.map.metadata = function(mol) {
                                  var self = this,
                     type = params.type,
                     sql = this.sql['types'].format(type),
-                    params = {sql:sql, key: 'type-metadata-{0}'.format(type)},
+                    params = {sql:sql, cache_buster: true, key: 'type-metadata-{0}'.format(type)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {type:type, response:response};
@@ -4169,14 +4169,14 @@ mol.modules.map.metadata = function(mol) {
                     provider = params.provider,
                     _class = params._class,
                     sql = this.sql['dashboard'].format(provider, type, _class),
-                    params = {sql:sql, key: 'dashboard-metadata-{0}-{1}-{2}'.format(provider, type, _class)},
+                    params = {sql:sql, cache_buster: true, key: 'dashboard-metadata-{0}-{1}-{2}'.format(provider, type, _class)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {provider:provider, type:type, _class:_class, response:response};
                         //self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)}));
                         if(!results.response.error) {
                             if(results.response.total_rows > 0) {
-                                //self.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)]  = new mol.map.metadata.MetadataDisplay(results);
+                                self.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)]  = new mol.map.metadata.MetadataDisplay(results);
                             }
 
                         } else {
@@ -4192,7 +4192,7 @@ mol.modules.map.metadata = function(mol) {
                     this.proxy.execute(action, new mol.services.Callback(success, failure));
                 } else {
                     if(this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("isOpen")) {
-                        this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("close");
+                        //this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("close");
                     } else {
                         this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("open");
                     }
