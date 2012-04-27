@@ -2301,7 +2301,27 @@ mol.modules.map.results = function(mol) {
     mol.map.results.OptionDisplay = mol.mvp.View.extend(
         {
             init: function(name) {
-                this._super('<div id="{0}" class="option">{0}</div>'.format(name, name));
+                var name_mappings = {
+                    "gbif": "GBIF",
+                    "wdpa": "Misc. sources",
+                    "wwf": "WWF",
+                    "jetz": "User-uploaded",
+                    "iucn": "IUCN",
+
+                    "points": "Points",
+                    "range": "Expert Maps",
+                    "protectedarea": "Local Inventories",
+                    "ecoregion": "Regional Checklists"
+                };
+
+                mapped_name = name_mappings[name];
+                if(name == "All") {
+                    this._super('<div id="{0}" class="option" style="text-align: right; margin-right: 10px;"><strong>all</strong></div>'.format(name, mapped_name));
+                } else if(!mapped_name) {
+                    this._super('<div id="{0}" class="option">{1}</div>'.format(name, name));
+                } else {
+                    this._super('<div id="{0}" class="option"><button><img type="source" style="width: 12px; height: 12px; margin: 0.5px;" src="/static/maps/search/{0}.png"></button> {1}</div>'.format(name, mapped_name));
+                }
             }
         }
     );
