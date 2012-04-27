@@ -656,7 +656,8 @@ mol.modules.map = function(mol) {
             'legend',
             'basemap',
             'metadata',
-            'splash'
+            'splash',
+            'help'
     ];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
@@ -1725,6 +1726,14 @@ mol.modules.map.menu = function(mol) {
                     }
                 );
 
+                this.display.helpButton.click(
+                    function(Event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('help-display-dialog')
+                        );
+                    }
+                ); 
+
                 this.display.searchItem.click(
                     function(event) {
                         self.bus.fireEvent(
@@ -1807,19 +1816,20 @@ mol.modules.map.menu = function(mol) {
                     '    <div class="label">' +
                     '       <img class="layersToggle" src="/static/maps/layers/collapse.png">' +
                     '    </div>' +
-                    '    <div title="Toggle taxonomy dashboard." class="widgetTheme dashboard button">Dashboard</div>' +
-                    '    <div title="Toggle layer search tools." class="widgetTheme search button">Search</div>' +
-                    '    <div title="Toggle map legend." class="widgetTheme legend button">Legend</div>' +
-                    '    <div title="Toggle species list radius tool (right-click to use)" class="widgetTheme list button">Species&nbsp;Lists</div>' +
+                    '    <div title="Toggle taxonomy dashboard." id="dashboard" class="widgetTheme search button">Dashboard</div>' +
+                    '    <div title="Toggle layer search tools." id="search" class="widgetTheme search button">Search</div>' +
+                    '    <div title="Toggle map legend." id="legend" class="widgetTheme legend button">Legend</div>' +
+                    '    <div title="Toggle species list radius tool (right-click to use)" id="list" class="widgetTheme legend button">Species&nbsp;Lists</div>' +
+                    '    <div title="Display help" id="help" class="widgetTheme list button" style="width: 50px">Help</div>' +
                     '</div>';
 
                 this._super(html);
-                this.searchItem = $(this).find('.search');
-                this.legendItem = $(this).find('.legend');
-                this.dashboardItem = $(this).find('.dashboard');
-                this.speciesListItem = $(this).find('.list');
-                this.layersToggle = $(this).find('.layersToggle');
-
+                this.searchItem = $(this).find('#search');
+                this.legendItem = $(this).find('#legend');
+                this.dashboardItem = $(this).find('#dashboard');
+                this.speciesListItem = $(this).find('#list');
+                this.layersToggle = $(this).find('#layersToggle');
+                this.helpButton = $(this).find('#help');
             }
         }
     );
@@ -2337,50 +2347,31 @@ mol.modules.map.results = function(mol) {
         }
     );
 
+
     mol.map.results.OptionDisplay = mol.mvp.View.extend(
         {
             init: function(name) {
-                //HUGE Dad on Paternity Leave HACK!!! These titles should come in from the result json
-                var title = '';
-                switch(name) {
-                    case 'gbif':
-                        title='GBIF';
-                    break;
-                    case 'jetz':
-                        title='Jetz et al., 2012';
-                    break;
-                    case 'wdpa':
-                        title='Scientist provided';
-                    break;
-                    case 'wwf':
-                        title='World Wildlife Fund';
-                    break;
-                    case 'fishes':
-                        title='Page &amp; Burr, 2011';
-                    break;
-                    case 'iucn':
-                        title='IUCN';
-                    break;
-                    case 'range':
-                        title='Expert range map';
-                    break;
-                    case 'protectedarea':
-                        title='Local inventory';
-                    break;
-                    case 'ecoregion':
-                        title='Regional checklist';
-                    break;
-                    case 'points':
-                        title='Point observation';
-                    break;
-                    case 'All':
-                        title='All';
-                    break;
-                    default:
-                        title=name;
-                }
+                var name_mappings = {
+                    "gbif": "GBIF",
+                    "wdpa": "Misc. sources",
+                    "wwf": "WWF",
+                    "jetz": "User-uploaded",
+                    "iucn": "IUCN",
+                    "fishes": "Page &amp; Burr, 2011",
+                    "points": "Points",
+                    "range": "Expert Maps",
+                    "protectedarea": "Local Inventories",
+                    "ecoregion": "Regional Checklists"
+                };
 
-                this._super('<div id="{0}" class="option">{1}</div>'.format(name, title));
+                mapped_name = name_mappings[name];
+                if(name == "All") {
+                    this._super('<div id="{0}" class="option" style="text-align: right; margin-right: 10px;"><strong>all</strong></div>'.format(name, mapped_name));
+                } else if(!mapped_name) {
+                    this._super('<div id="{0}" class="option">{1}</div>'.format(name, name));
+                } else {
+                    this._super('<div id="{0}" class="option"><button><img type="source" style="width: 12px; height: 12px; margin: 0.5px;" src="/static/maps/search/{0}.png"></button> {1}</div>'.format(name, mapped_name));
+                }
             }
         }
     );
@@ -2609,8 +2600,7 @@ mol.modules.map.results = function(mol) {
             }
         }
     );
-};
-mol.modules.map.search = function(mol) {
+};mol.modules.map.search = function(mol) {
 
     mol.map.search = {};
 
@@ -4411,6 +4401,79 @@ mol.modules.map.splash = function(mol) {
                 this._super(html);
                 this.iframe_content = $(this).find('.iframe_content');
 
+            }
+        }
+    );
+};
+
+
+
+mol.modules.map.help = function(mol) {
+
+    mol.map.help = {};
+
+    mol.map.help.HelpDialog = mol.mvp.Engine.extend(
+        {
+            init: function(proxy, bus) {
+                this.proxy = proxy;
+                this.bus = bus;
+             },
+
+            /**
+             * Starts the MenuEngine. Note that the container parameter is
+             * ignored.
+             */
+            start: function() {
+                this.display = new mol.map.help.helpDisplay();
+                this.initDialog();
+                this.addEventHandlers();
+            },
+
+            addEventHandlers: function() {
+                var self = this;
+
+                this.bus.addHandler(
+                    'help-display-dialog',
+                    function(event) {
+                        var params = null,
+                            e = null;
+
+                        if(event.state === undefined) {
+                            self.display.dialog('open');
+
+                            // This is necessary, because otherwise the
+                            // iframe comes out in the wrong size.
+                            $(self.display).width('98%');
+                        } else {
+                            self.display.dialog(event.state);
+                        }
+                    }
+                );
+            },
+
+            initDialog: function() {
+                this.display.dialog(
+                    {
+                        autoOpen: false,
+			dialogClass: "mol-help",
+                        height: 500,
+                        width: "80%"
+                    }
+                );
+
+            }
+        }
+    );
+
+    mol.map.help.helpDisplay = mol.mvp.View.extend(
+        {
+            init: function() {
+                var html = '' +
+                    '<iframe id="help_dialog" class="mol-help iframe_content" src="https://docs.google.com/document/pub?id=1I64XqsJcoJ8GZAZhy6KmtlhtEht4tlaOrd-g82VFq-w&amp;embedded=true"></iframe>';
+
+                this._super(html);
+                
+                // this.iframe_content = $(this).find('.iframe_content');
             }
         }
     );
