@@ -509,11 +509,13 @@ mol.modules.map.results = function(mol) {
                 };
 
                 mapped_name = name_mappings[name];
-                if(!mapped_name) {
-                    mapped_name = name;
+                if(name == "All") {
+                    this._super('<div id="{0}" class="option" style="text-align: right; margin-right: 10px;"><strong>all</strong></div>'.format(name, mapped_name));
+                } else if(!mapped_name) {
+                    this._super('<div id="{0}" class="option">{1}</div>'.format(name, name));
+                } else {
+                    this._super('<div id="{0}" class="option"><button><img type="source" style="width: 13px; height: 13px;" src="/static/maps/search/{0}.png"></button> {1}</div>'.format(name, mapped_name));
                 }
-
-                this._super('<div id="{0}" class="option">{1}</div>'.format(name, mapped_name));
             }
         }
     );
