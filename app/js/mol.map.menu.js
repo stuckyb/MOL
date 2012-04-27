@@ -35,6 +35,14 @@ mol.modules.map.menu = function(mol) {
                     }
                 );
 
+                this.display.helpButton.click(
+                    function(Event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('help-display-dialog')
+                        );
+                    }
+                ); 
+
                 this.display.searchItem.click(
                     function(event) {
                         self.bus.fireEvent(
@@ -117,19 +125,20 @@ mol.modules.map.menu = function(mol) {
                     '    <div class="label">' +
                     '       <img class="layersToggle" src="/static/maps/layers/collapse.png">' +
                     '    </div>' +
-                    '    <div title="Toggle taxonomy dashboard." class="widgetTheme dashboard button">Dashboard</div>' +
-                    '    <div title="Toggle layer search tools." class="widgetTheme search button">Search</div>' +
-                    '    <div title="Toggle map legend." class="widgetTheme legend button">Legend</div>' +
-                    '    <div title="Toggle species list radius tool (right-click to use)" class="widgetTheme list button">Species&nbsp;Lists</div>' +
+                    '    <div title="Toggle taxonomy dashboard." id="dashboard" class="widgetTheme search button">Dashboard</div>' +
+                    '    <div title="Toggle layer search tools." id="search" class="widgetTheme search button">Search</div>' +
+                    '    <div title="Toggle map legend." id="legend" class="widgetTheme legend button">Legend</div>' +
+                    '    <div title="Toggle species list radius tool (right-click to use)" id="list" class="widgetTheme legend button">Species&nbsp;Lists</div>' +
+                    '    <div title="Display help" id="help" class="widgetTheme list button" style="width: 50px">Help</div>' +
                     '</div>';
 
                 this._super(html);
-                this.searchItem = $(this).find('.search');
-                this.legendItem = $(this).find('.legend');
-                this.dashboardItem = $(this).find('.dashboard');
-                this.speciesListItem = $(this).find('.list');
-                this.layersToggle = $(this).find('.layersToggle');
-
+                this.searchItem = $(this).find('#search');
+                this.legendItem = $(this).find('#legend');
+                this.dashboardItem = $(this).find('#dashboard');
+                this.speciesListItem = $(this).find('#list');
+                this.layersToggle = $(this).find('#layersToggle');
+                this.helpButton = $(this).find('#help');
             }
         }
     );
