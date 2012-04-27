@@ -92,6 +92,8 @@
              mde.start()
              spe = new env.map.splash.SplashEngine(proxy, bus)
              spe.start()
+             hd = new env.map.help.HelpDialog(proxy, bus)
+             hd.start()
           });
           {% else %}
           env = mol(function(env) {
@@ -123,6 +125,8 @@
              mde.start()
              spe = new env.map.splash.SplashEngine(proxy, bus)
              spe.start()
+             hd = new env.map.help.HelpDialog(proxy, bus)
+             hd.start()
           });
           {% endif %}
       });

@@ -14,7 +14,6 @@ mol.modules.map.help = function(mol) {
              * ignored.
              */
             start: function() {
-                alert("Start!");
                 this.display = new mol.map.help.helpDisplay();
                 this.initDialog();
                 this.addEventHandlers();
@@ -23,38 +22,34 @@ mol.modules.map.help = function(mol) {
             addEventHandlers: function() {
                 var self = this;
 
-                alert("Adding handler");
-
                 this.bus.addHandler(
                     'help-display-dialog',
                     function(event) {
                         var params = null,
                             e = null;
 
-                        alert("Here!");
-
                         if(event.state === undefined) {
                             self.display.dialog('open');
+
+                            // This is necessary, because otherwise the
+                            // iframe comes out in the wrong size.
+                            $(self.display).width('98%');
                         } else {
                             self.display.dialog(event.state);
                         }
                     }
                 );
-
-                alert("Added");
             },
 
             initDialog: function() {
                 this.display.dialog(
                     {
-                        autoOpen: true,
-		        width: "80%",
-			height: 500,
+                        autoOpen: false,
 			dialogClass: "mol-help",
-			modal: false 
+                        height: 500,
+                        width: "80%"
                     }
                 );
-                 $(this.display).width('98%');
 
             }
         }
@@ -64,11 +59,11 @@ mol.modules.map.help = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    'Hello, world!'
+                    '<iframe id="help_dialog" class="mol-help iframe_content" src="https://docs.google.com/document/pub?id=1I64XqsJcoJ8GZAZhy6KmtlhtEht4tlaOrd-g82VFq-w&amp;embedded=true"></iframe>';
 
                 this._super(html);
+                
                 // this.iframe_content = $(this).find('.iframe_content');
-
             }
         }
     );
