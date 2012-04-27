@@ -208,7 +208,11 @@ mol.modules.map.search = function(mol) {
                     function(event) {
                       var term = "SELECT "
                       if (event.keyCode === 13) {
-                        term = self.names.join('","');
+                       // if(self.names.length>0) {
+                         //   term = self.names.join('","');
+                        //} else {
+                            term = $(this).val().charAt(0).toUpperCase()+$(this).val().substring(1,$(this).val().length);
+                        //}
                         $(this).autocomplete("close");
                         self.search(term);
                       }

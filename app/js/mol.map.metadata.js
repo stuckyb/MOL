@@ -20,9 +20,9 @@ mol.modules.map.metadata = function(mol) {
                         '    AND s.provider = p.provider ' +
                         '    AND s.type = t.type',
                     dashboard: '' +
-                        'SELECT Coverage, Taxon, Description, ' +
+                        'SELECT Coverage as "Coverage", Taxon as "Taxon", Description as "Description", ' +
                         '   CASE WHEN URL IS NOT NULL THEN CONCAT(\'<a target="_dashlink" href="\',URL, \'">\', URL, \'</a>\') ' +
-                        '   ELSE Null END AS URL, Spatial_metadata as "Spatial Metadata", Taxonomy_metadata as "Taxonomy Metadata", Recommended_citation as "Recommended Citation", Contact as "Contact" ' +
+                        '   ELSE Null END AS "URL", Spatial_metadata as "Spatial Metadata", Taxonomy_metadata as "Taxonomy Metadata", date_range as "Date", date_more as "Date further info",  Recommended_citation as "Recommended Citation", Contact as "Contact" ' +
                         'FROM dashboard_metadata ' +
                         'WHERE ' +
                         '   provider = \'{0}\' ' +
@@ -47,7 +47,7 @@ mol.modules.map.metadata = function(mol) {
             getLayerMetadata: function (layer) {
                   var self = this,
                     sql = this.sql['layer'].format(layer.name, layer.type, layer.source),
-                    params = {sql:sql, cache_buster: true, key: 'metadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
+                    params = {sql:sql, cache_buster: true, key: 'layermetadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {layer:layer, response:response};
@@ -79,7 +79,7 @@ mol.modules.map.metadata = function(mol) {
                                  var self = this,
                     type = params.type,
                     sql = this.sql['types'].format(type),
-                    params = {sql:sql, cache_buster: true, key: 'type-metadata-{0}'.format(type)},
+                    params = {sql:sql, cache_buster: true, key: 'typemetadata-{0}'.format(type)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {type:type, response:response};
@@ -110,7 +110,7 @@ mol.modules.map.metadata = function(mol) {
                     provider = params.provider,
                     _class = params._class,
                     sql = this.sql['dashboard'].format(provider, type, _class),
-                    params = {sql:sql, cache_buster: true, key: 'dashboard-metadata-{0}-{1}-{2}'.format(provider, type, _class)},
+                    params = {sql:sql, cache_buster: 'true', key: 'dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {provider:provider, type:type, _class:_class, response:response};
@@ -119,7 +119,6 @@ mol.modules.map.metadata = function(mol) {
                             if(results.response.total_rows > 0) {
                                 self.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)]  = new mol.map.metadata.MetadataDisplay(results);
                             }
-
                         } else {
  //                           self.getDasboardMetadata({provider:provider, type:type, _class:_class});
                         }
@@ -199,6 +198,12 @@ mol.modules.map.metadata = function(mol) {
                                 }
                             }
                         )
+                    }
+                );
+                _.each(
+                    self.displays,
+                    function(dialog) {
+                        $(dialog).toggle(false);
                     }
                 );
                 this.dialog(

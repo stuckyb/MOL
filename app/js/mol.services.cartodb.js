@@ -288,7 +288,9 @@ mol.modules.services.cartodb = function(mol) {
                         type: row.type.toLowerCase(),
                         // This removes duplicates:
                         names: (row.names != undefined) ? _.uniq(row.names.split(', ')).join(', ') : '',
-                        feature_count: row.feature_count
+                        feature_count: row.feature_count,
+                        type_title: row.type_title,
+                        source_title: row.source_title
                     };
                 }
                 return layers;
