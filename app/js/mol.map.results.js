@@ -508,50 +508,31 @@ mol.modules.map.results = function(mol) {
         }
     );
 
+
     mol.map.results.OptionDisplay = mol.mvp.View.extend(
         {
             init: function(name) {
-                //HUGE Dad on Paternity Leave HACK!!! These titles should come in from the result json
-                var title = '';
-                switch(name) {
-                    case 'gbif':
-                        title='GBIF';
-                    break;
-                    case 'jetz':
-                        title='Jetz et al., 2012';
-                    break;
-                    case 'wdpa':
-                        title='Scientist provided';
-                    break;
-                    case 'wwf':
-                        title='World Wildlife Fund';
-                    break;
-                    case 'fishes':
-                        title='Page &amp; Burr, 2011';
-                    break;
-                    case 'iucn':
-                        title='IUCN';
-                    break;
-                    case 'range':
-                        title='Expert range map';
-                    break;
-                    case 'protectedarea':
-                        title='Local inventory';
-                    break;
-                    case 'ecoregion':
-                        title='Regional checklist';
-                    break;
-                    case 'points':
-                        title='Point observation';
-                    break;
-                    case 'All':
-                        title='All';
-                    break;
-                    default:
-                        title=name;
-                }
+                var name_mappings = {
+                    "gbif": "GBIF",
+                    "wdpa": "Misc. sources",
+                    "wwf": "WWF",
+                    "jetz": "User-uploaded",
+                    "iucn": "IUCN",
+                    "fishes": "Page &amp; Burr, 2011",
+                    "points": "Points",
+                    "range": "Expert Maps",
+                    "protectedarea": "Local Inventories",
+                    "ecoregion": "Regional Checklists"
+                };
 
-                this._super('<div id="{0}" class="option">{1}</div>'.format(name, title));
+                mapped_name = name_mappings[name];
+                if(name == "All") {
+                    this._super('<div id="{0}" class="option" style="text-align: right; margin-right: 10px;"><strong>all</strong></div>'.format(name, mapped_name));
+                } else if(!mapped_name) {
+                    this._super('<div id="{0}" class="option">{1}</div>'.format(name, name));
+                } else {
+                    this._super('<div id="{0}" class="option"><button><img type="source" style="width: 12px; height: 12px; margin: 0.5px;" src="/static/maps/search/{0}.png"></button> {1}</div>'.format(name, mapped_name));
+                }
             }
         }
     );
