@@ -35,7 +35,7 @@ def names():
             row['type'] = 'BINOMIAL'
             
         values = []
-        for token in re.split('[^a-zA-Z0-9_]', sn):
+        for token in re.split('[^a-zA-Z0-9_-]', sn):
             if token.isalpha():
                 values.append(token.lower())
             else:
@@ -86,7 +86,7 @@ def english_names():
             row['type'] = 'BINOMIAL'
 
         values = []
-        for token in re.split('[^a-zA-Z0-9_]', sn):
+        for token in re.split('[^a-zA-Z0-9_-]', sn):
             if token.isalpha():
                 values.append(token.strip().lower())
             else:
@@ -99,7 +99,7 @@ def english_names():
         commons_index = set()
         row['commons'] = reduce(lambda x,y: '%s,%s' % (x.strip(), y.strip()), commons.split(','))
         for common in row['commons'].split(','):
-            values = [x for x in re.split('[^a-zA-Z0-9_]', common) if x and len(x) >= 3]
+            values = [x for x in re.split('[^a-zA-Z0-9_-]', common) if x and len(x) >= 3]
             if len(values) > 0:
                 commons_index.add(reduce(
                         lambda x,y:'%s %s' % (x.lower(), y.lower()), 
@@ -110,7 +110,7 @@ def english_names():
         if len(commons_index) > 0:
             row['commons_index'] = reduce(lambda x,y: '%s,%s' % (x.lower(), y.lower()), commons_index)        
 
-        uniques = set([x for x in re.split('[^a-zA-Z0-9_]', row['commons']) if x and len(x) >= 3])
+        uniques = set([x for x in re.split('[^a-zA-Z0-9_-]', row['commons']) if x and len(x) >= 3])
         if len(uniques) == 0:
             continue
         row['keywords'] = reduce(lambda x,y: '%s,%s' % (x.lower(), y.lower()), uniques)
@@ -157,8 +157,7 @@ def tokens(name):
         > name_keys('concolor')
         > ['con', 'conc', 'conco', 'concol', 'concolo', 'concolor']
     """
-    yield name.strip().lower()
-    for n in name.split():
+    for n in name.split() + [name.strip().lower()]:
         name_len = len(n)
         yield n.lower()
         if name_len > 3:
@@ -188,7 +187,7 @@ def create_autocomplete_index():
     conn = setup_cacheitem_db()
     cur = conn.cursor()
 
-    #count = 100
+    count = 1
 
     for row in csv_unicode.UnicodeDictReader(open('names.csv', 'r')): 
 
@@ -209,7 +208,7 @@ def create_autocomplete_index():
             all_names = names_map[bi] # [mountain lion, puma, puma concolor, deer lion]
 
         # Search result rows for binomial_index:
-        url = "http://mol.cartodb.com/api/v2/sql?%s" % urllib.urlencode(dict(q="SELECT sn.provider AS source, sn.scientificname AS name, sn.type AS type FROM scientificnames sn where scientificname = '%s'" % row['binomial']))
+        url = "http://mol.cartodb.com/api/v2/sql?%s" % urllib.urlencode(dict(q="SELECT s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, names, n.class as class, m.records as feature_count FROM scientificnames s LEFT JOIN ( SELECT scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),', '))) as names, class FROM master_taxonomy GROUP BY scientific, class HAVING scientific = '%s' ) n ON s.scientificname = n.scientific LEFT JOIN (( SELECT count(*) as records, 'points' as type, 'gbif' as provider FROM gbif_import WHERE lower(scientificname)=lower('%s')) UNION ALL (SELECT count(*) as records, type, provider FROM polygons GROUP BY scientificname, type, provider HAVING scientificname='%s' )) m ON s.type = m.type AND s.provider = m.provider LEFT JOIN types t ON s.type = t.type LEFT JOIN providers p ON s.provider = p.provider WHERE s.scientificname = '%s'" % (row['binomial'], row['binomial'], row['binomial'], row['binomial'])))
 
         try:
             response = urllib2.urlopen(url)
@@ -233,7 +232,7 @@ def create_autocomplete_index():
             for token in tokens(name): # split on ":" since names are tagged with sci or eng.
                 
                 # Build autocomplete index
-                idname = 'acn-%s' % token.lower() # auto complete names (acn)
+                idname = 'acn_%s' % token.lower() # auto complete names (acn)
                 result = cur.execute('SELECT * FROM CacheItem WHERE id = ?', (idname,)).fetchone()
                 if result:
                     all_names_updated = list(set([tagged_name] + json.loads(result[1])))
@@ -242,7 +241,7 @@ def create_autocomplete_index():
                     cur.execute('INSERT INTO CacheItem VALUES (?, ?)', (idname, json.dumps(all_names)))    
                     
                 # Build search index                
-                idname = 'acr-%s' % token.lower() # auto complete results (acr)
+                idname = 'acr_%s' % token.lower() # auto complete results (acr)
                 result = cur.execute('SELECT * FROM CacheItem WHERE id = ?', (idname,)).fetchone()
                 if result:
                     rows_updated = json.loads(result[1])['rows']
@@ -255,10 +254,12 @@ def create_autocomplete_index():
 
         print '%s SUCCESS' % binomial
         conn.commit()
-        #if count == 0:
-        #    return
-        #else:
-        #    count = count - 1
+        if count == 0:
+            for result in cur.execute('SELECT * FROM CacheItem').fetchall():
+                writer.writerow(dict(id=result[0], string=result[1]))
+            return
+        else:
+            count = count - 1
 
     
     for result in cur.execute('SELECT * FROM CacheItem').fetchall():

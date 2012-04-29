@@ -172,18 +172,27 @@ button:hover{
     -moz-border-radius: 3px;
     -ms-border-radius: 3px;
     pointer-events:auto;
+    cursor:default;
 }
 
 .mol-LayerControl-Layers .scrollContainer{
     max-height:380px;
     overflow-y: auto;
+    overflow-x: hidden;
     margin-top: 1em;
     margin-bottom:1em;
 }
 
 .mol-LayerControl-Layers .layerContainer {
     height:38px;
+    cursor:inherit;
 }
+
+.mol-LayerControl-Layers .keycatcher {
+    position:absolute;
+    visibility:hidden;
+}
+
 
 .mol-LayerControl-Layers .break{
     float: left;
@@ -224,10 +233,10 @@ button:hover{
 }
 
 .mol-LayerControl-Layers .layer {
-    padding-left: 0px;
+    padding: 2px;
     margin-bottom: 5px;
     text-align: left;
-    width: 100%;
+    width: 99%;
     float: left;
     position: relative;
 }
@@ -258,15 +267,24 @@ button:hover{
 }
 
 .mol-LayerControl-Layers .layer.selected{
-    border: 3px solid rgba(255, 122, 122, .55);
+    border: 2px solid rgba(255, 100, 88, .45);
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -ms-border-radius:5px;
+    padding:0px;
 }
 .mol-LayerControl-Layers .layer .layerName{
     float: left;
     white-space:normal;
-    width: 200px;
+    width: 190px;
     margin-left: 5px;
     margin-right: 5px;
-
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 .mol-LayerControl-Layers .layer .layerNomial {
     display: block;
@@ -289,7 +307,8 @@ button:hover{
     width: 20px;
     height: 20px;
     padding: 0px;
-
+    padding-top: 2px;
+    cursor:default;
 }
 .mol-LayerControl-Layers .layer .source{
     float: left;
@@ -297,7 +316,8 @@ button:hover{
     width: 20px;
     height: 20px;
     padding: 0px;
-
+    padding-top: 2px;
+    cursor:default;
 }
 .mol-LayerControl-Layers .layer .type img{
     height: 16px;
@@ -326,6 +346,7 @@ button:hover{
     cursor: pointer;
 
 }
+
 .mol-LayerControl-Layers .layer .customCheck:after{
 	content:url('/static/maps/layers/inactive.png');
     margin: 2px;
@@ -341,6 +362,17 @@ button:hover{
     border-radius: 3px;
     border: none;
 }
+.custom_checkbox {
+    content:url('/static/maps/search/unchecked.png');
+    position:absolute;
+    left: 0;
+}
+
+.custom_checkbox .selected{
+    content:url('/static/maps/search/checked.png');
+
+}
+
 .mol-LayerControl-Layers .layer .toggle:hover + .customCheck:after{
     background-color: rgb(25, 25, 25);
     background-color: rgba(25, 25, 25, 1.0);
@@ -465,7 +497,16 @@ padding: 3px;
         /* add padding to account for vertical scrollbar */
         padding-right: 20px;
         pointer-events: auto;
+        font-size:10pt;
+        font-weight:400;
     }
+.ui-autocomplete .sci {
+    font-style: italic;
+}
+
+.ui-autocomplete .eng {
+}
+
 
 
 .mol-LayerControl-Search .execute{
@@ -500,6 +541,7 @@ padding: 3px;
     padding: 0px;
     margin: 0px;
     pointer-events: none;
+    cursor:default;
 }
 
 .mol-LayerControl-Results .resultRecords{
@@ -559,6 +601,16 @@ padding: 3px;
     font-size: 14px;
     font-style: italic;
     padding-bottom: 10px;
+}
+
+.mol-Dashboard #dialog .class {
+    cursor: pointer;
+    cursor: hand;
+}
+
+.mol-Dashboard #dialog .type {
+    cursor: pointer;
+    cursor: hand;
 }
 
 .mol-Dashboard .ui-dialog-titlebar, .ui-widget-header, .dashboard{
@@ -639,6 +691,7 @@ padding: 3px;
     visibility: hidden;
 }
 
+
 .mol-LayerControl-Results .searchResults{
     padding: 5px;
     margin: 0px;
@@ -649,6 +702,12 @@ padding: 3px;
     -moz-border-radius: 3px;
     border-radius: 3px;
     pointer-events: auto;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .mol-LayerControl-Results .searchResults .selectAll {
@@ -699,6 +758,7 @@ padding: 3px;
 .mol-LayerControl-Results .result button img{
     width: 16px;
     height: 16px;
+
 }
 .mol-LayerControl-Results .result div.resultName{
     width: 70%;
@@ -843,9 +903,9 @@ padding: 3px;
      font-size: 12px;
      font-style:normal;
      font-weight:normal;
-     height:100px;
      width:650px;
-     overflow:auto;
+     overflow-y:scroll;
+     overflow-x:hidden;
      margin:5px
 }
 .mol-Map-ListQueryInfoWindow td{
@@ -953,3 +1013,33 @@ padding: 3px;
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF191919', endColorstr='#FF191919');
     pointer-events: none;
 }
+
+.mol-LayerMetadata .key {
+    display: inline-block;
+    clear:both;
+    float:left;
+    padding: 5px;
+    font-size:10pt;
+    font-weight:700;
+}
+.mol-LayerMetadata .val {
+    display: inline-block;
+    font-size:10pt;
+    font-weight:300;
+}
+
+.mol-LayerMetadata .metarow {
+    display: block;
+}
+
+
+.mol-LayerMetadata .values {
+    display: inline-block;
+    float:left;
+    max-width:350px;
+}
+
+
+
+
+

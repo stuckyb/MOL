@@ -16,7 +16,7 @@ class BaseHandler(webapp2.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), "templates", f)
         self.response.out.write(template.render(path, template_args))
 
-    def push_html(self, f):
+    def push_html(self, f):        
         path = os.path.join(os.path.dirname(__file__), "html", f)
         self.response.out.write(open(path, 'r').read())
 

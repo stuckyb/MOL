@@ -512,7 +512,7 @@ def sendSQLStatementToCartoDB(sql):
 
     # print "Executing SQL: «%s»" % sql
     if not _getoptions().dummy_run:
-        tries = 50
+        tries = 10
 
         while (tries > 0):
             try:
@@ -521,6 +521,7 @@ def sendSQLStatementToCartoDB(sql):
             except CartoDBException as e:
                 #if str(e) == 'internal server error' or str(e) == 'current transaction is aborted, commands ignored until end of transaction block':
                 logging.info("\t  CartoDB exception caught ('%s'), retrying ...", e)
+                time.sleep(random.randint(3,9))
                 result = None
                 tries = tries - 1 
 

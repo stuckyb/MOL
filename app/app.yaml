@@ -35,6 +35,9 @@ handlers:
 - url: /cache/.*
   script: cache_handler.application
 
+- url: /cartodb/.*
+  script: cartodb_handler.application
+
 - url: /api/autocomplete
   script: autocomplete_handler.application
 
