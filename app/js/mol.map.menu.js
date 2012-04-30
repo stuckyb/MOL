@@ -137,7 +137,7 @@ mol.modules.map.menu = function(mol) {
                 this.legendItem = $(this).find('#legend');
                 this.dashboardItem = $(this).find('#dashboard');
                 this.speciesListItem = $(this).find('#list');
-                this.layersToggle = $(this).find('#layersToggle');
+                this.layersToggle = $(this).find('.layersToggle');
                 this.helpButton = $(this).find('#help');
             }
         }
