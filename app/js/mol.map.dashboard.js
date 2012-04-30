@@ -58,7 +58,11 @@ mol.modules.map.dashboard = function(mol) {
                             e = null;
 
                         if (event.state === undefined) {
-                            self.display.dialog('open');
+                            if(self.display.dialog('isOpen')) {
+                                self.display.dialog('close');
+                            } else {
+                                self.display.dialog('open');
+                            }
                         } else {
                             self.display.dialog(event.state);
                         }
