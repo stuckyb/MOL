@@ -13,7 +13,9 @@ mol.modules.map = function(mol) {
             'query',
             'legend',
             'basemap',
-            'metadata'
+            'metadata',
+            'splash',
+            'help'
     ];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(

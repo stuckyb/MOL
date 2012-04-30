@@ -16,9 +16,10 @@ mol.modules.map.query = function(mol) {
                         "   initcap(lower(t.Family)) as family, " +
                         "   t.red_list_status as redlist, " +
                         "   initcap(lower(t.class)) as className, " +
-                        "   p.type as type, " +
-                        "   p.provider as provider, " +
-                        "   t.year_assessed as year_assessed " +
+                        "   dt.title as type, " +
+                        "   pv.title as provider, " +
+                        "   t.year_assessed as year_assessed, " +
+                        "   s.sequenceid as sequenceid " +
                         "FROM {3} p " +
                         "LEFT JOIN (SELECT scientific, " +
                         "                  initcap(string_agg(common_names_eng, ','))  as common_names_eng, " + //using string_agg in case there are duplicates
@@ -27,14 +28,21 @@ mol.modules.map.query = function(mol) {
                         "                  MIN(family) as family, " +
                         "                  string_agg(red_list_status,',') as red_list_status, " +
                         "                  string_agg(year_assessed,',') as year_assessed " +
-                        "           FROM master_taxonomy WHERE " +
+                        "           FROM master_taxonomy  " +
+                        "           WHERE " +
                         "                  infraspecific_name = '' " + //dont want subspecies
                         "           GROUP BY scientific ) t " +
                         "ON p.scientificname = t.scientific " +
+                        "LEFT JOIN sequence_metadata s " +
+                        "   ON t.family = s.family " +
+                        "LEFT JOIN types dt ON " +
+                        "   p.type = dt.type " +
+                        "LEFT JOIN providers pv ON " +
+                        "   p.provider = pv.provider " +
                         "WHERE " +
                         "   ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " + //radius test
                         "   {2} " + //other constraints
-                        "ORDER BY \"order\", scientificname";
+                        "ORDER BY s.sequenceid, p.scientificname asc";
 
         },
         start : function() {
@@ -157,7 +165,7 @@ mol.modules.map.query = function(mol) {
                                         row.order + "</td><td class='wiki'>" +
                                         row.family + "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
                                         row.redlist + "</td></tr>");
-                                    providers.push(row.type.charAt(0).toUpperCase()+row.type.substr(1,row.type.length) + ' maps/' + row.provider);
+                                        providers.push(row.type+ '/' + row.provider);
                                     if (year != null && year != '') {
                                         years.push(year)
                                     }
@@ -339,7 +347,7 @@ mol.modules.map.query = function(mol) {
         init : function(names) {
             var className = 'mol-Map-QueryDisplay',
                 html = '' +
-                        '<div class="' + className + ' widgetTheme">' +
+                        '<div title="Use this control to select species group and radius. Then right click (Mac Users: \'control-\') on focal location on map" class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
                         '     Search Radius <select class="radius">' +
                         '       <option selected value="50">50 km</option>' +
@@ -350,17 +358,17 @@ mol.modules.map.query = function(mol) {
                         '     Class <select class="class" value="">' +
                         '       <option value="">All</option>' +
                         '       <option selected value=" and p.class=\'aves\' ">Bird</option>' +
-                        '       <option value=" and p.class LIKE \'%osteichthyes\' ">Fish</option>' + //note the space, leaving till we can clean up polygons
+                        '       <option value=" and p.provider = \'fishes\' ">Fish</option>' +
                         '       <option value=" and p.class=\'reptilia\' ">Reptile</option>' +
                         '       <option value=" and p.class=\'amphibia\' ">Amphibian</option>' +
                         '       <option value=" and p.class=\'mammalia\' ">Mammal</option>' +
                         '     </select>' +
                         '     Type <select class="type" value="">' +
-                        '       <option value="">All</option>' +
+                        //'       <option value="">All</option>' +
                         '       <option selected value="and p.type=\'range\' ">Range maps</option>' +
-                        '       <option value=" and p.type=\'protectedarea\'">Protected Areas</option>' +
+                        //'       <option value=" and p.type=\'protectedarea\'">Protected Areas</option>' +
                         '       <option value=" and p.type=\'ecoregion\'">Ecoregions</option>' +
-                        '       <option disabled value="">Point records</option>' +
+                        //'       <option disabled value="">Point records</option>' +
                         '     </select>' +
                         '   </div>' +
                         '</div>';

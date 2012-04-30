@@ -22,19 +22,21 @@ class GetHandler(webapp2.RequestHandler):
         """Returns a cached value by key or None if it doesn't exist."""
         key = self.request.get('key', 'empty')
         sql = self.request.get('sql', None)
-        value = cache.get(key)
+        cache_buster = self.request.get('cache_buster', None)
+        if not cache_buster:
+            value = cache.get(key)
         if not value and sql:
             url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
             value = urlfetch.fetch(url, deadline=60).content
-            if not json.loads(value).has_key('error'):
+            if not json.loads(value).has_key('error') and not cache_buster:
                 cache.add(key, value)
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(value)
-                    
+
 application = webapp2.WSGIApplication(
-    [('/cache/get', GetHandler),], 
+    [('/cache/get', GetHandler),],
     debug=True)
-         
+
 def main():
     run_wsgi_app(application)
 
