@@ -514,7 +514,7 @@ mol.modules.map.results = function(mol) {
             init: function(name) {
                 var name_mappings = {
                     "gbif": "GBIF",
-                    "wdpa": "Misc. sources",
+                    "wdpa": "Scientist/Literature",
                     "wwf": "WWF",
                     "jetz": "User-uploaded",
                     "iucn": "IUCN",
