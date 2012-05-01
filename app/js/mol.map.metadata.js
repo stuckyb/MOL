@@ -10,15 +10,15 @@ mol.modules.map.metadata = function(mol) {
                 this.sql = {
                     layer: '' +
                         'SELECT ' +
-                        '   s.scientificname AS "Species name", ' +
+                        '   TEXT(\'{0}\') AS "Species name", ' +
                         '   t.title as "Type", ' +
                         '   CONCAT(\'<a href=\"\',p.url,\'\">\',p.title,\'</a>\') as "Provider", ' +
                         '   p.pubdate AS "Date" ' +
-                        'FROM scientificnames s, types t, providers p ' +
+                        'FROM types t, providers p, (SELECT TEXT(\'{0}\') as scientificname, TEXT(\'{1}\') as type, TEXT(\'{2}\') as provider) s ' +
                         'WHERE ' +
-                        '    CONCAT(s.scientificname, s.type, lower(s.provider)) = \'{0}{1}{2}\' ' + //I think this hits the index better
-                        '    AND s.provider = p.provider ' +
-                        '    AND s.type = t.type',
+                        '    s.provider = p.provider ' +
+                        '    AND s.type = t.type ' +
+                        'LIMIT 1',
                     dashboard: '' +
                         'SELECT Coverage as "Coverage", Taxon as "Taxon", Description as "Description", ' +
                         '   CASE WHEN URL IS NOT NULL THEN CONCAT(\'<a target="_dashlink" href="\',URL, \'">\', URL, \'</a>\') ' +
