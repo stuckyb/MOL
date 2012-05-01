@@ -224,7 +224,7 @@ div#content .person{
 }
 
 div#content .person.partner {
-    min-height: 315px;
+    min-height: 240px;
 }
 
 div#content .person .name{
@@ -258,8 +258,12 @@ div#content .person img{
 }
 div#content .person.partner img {
     max-height: 100px;
-    margin-top: 75px;
+    margin-top: 50px;
 } 
+
+div#content .person.partner img.right {
+}
+
 div#content .person.top img{
     width: 45%;
     height: auto;
