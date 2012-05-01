@@ -521,9 +521,9 @@ mol.modules.map.results = function(mol) {
                     "iucn": "IUCN",
                     "fishes": "Scientist/Literature",
                     "points": "Points",
-                    "range": "Expert Maps",
-                    "protectedarea": "Local Inventories",
-                    "ecoregion": "Regional Checklists"
+                    "range": "Expert range maps",
+                    "protectedarea": "Local inventories",
+                    "ecoregion": "Regional checklists"
                 };
 
                 mapped_name = name_mappings[name];
