@@ -70,6 +70,26 @@ div#header #menu .item a{
     text-decoration: none;
     color: #394050;
 }
+div#submenu {
+    position: relative;
+    float: left;
+    width: 100%;
+    margin-top: 70px;
+    margin-bottom: -60px;
+    padding: 10px;
+    padding-left: 15%;
+    font-size: 1.4em;
+    background-color: #6AD2DF; color: #111; 
+}
+div#submenu .link{
+    float: left;
+    margin-left: 45px;
+}
+div#submenu .link a{
+    color: #ddd;
+    color: #111;
+}
+
 div#container { 
     font-family: 'Ubuntu', san-sarif;
     float: left; width: 100%; height: 80%;
