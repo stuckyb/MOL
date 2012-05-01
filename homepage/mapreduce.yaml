@@ -1,0 +1,100 @@
+mapreduce: 
+
+- name: Fixes Jetz range map extents
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.fix_extents
+    params:
+    - name: entity_kind
+      default: mol.db.MultiPolygon
+    - name: shard_count
+      default: 8
+    - name: processing_rate
+      default: 2000 
+
+- name: Counts duplicate MasterSearchIndex entities
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.report_duplicate_msi
+    params:
+    - name: entity_kind
+      default: mol.db.MasterSearchIndex
+    - name: shard_count
+      default: 8
+    - name: processing_rate
+      default: 2000 
+
+- name: Builds MetaDataIndex by mapping over MetaData
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.build_metadata_index
+    params:
+    - name: entity_kind
+      default: mol.db.MetaData
+    - name: shard_count
+      default: 8
+    - name: processing_rate
+      default: 2000 
+
+- name: Clean term index of terms with nonexisting parents
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.clean_term_index
+    params:
+    - name: entity_kind
+      default: mol.db.MasterSearchIndex
+    - name: shard_count
+      default: 2
+    - name: processing_rate
+      default: 2000 
+      
+- name: Change OccurrenceSet key_name
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.change_occurrenceset_key
+    params:
+    - name: entity_kind
+      default: mol.db.OccurrenceSet
+
+
+- name: Delete all entities of a given kind
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.delete
+    params:
+    - name: entity_kind
+      default: mol.db.Species
+
+- name: Move Index to MasterSearch
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.move_index_to_mastersearch
+    params:
+    - name: entity_kind
+      default: mol.db.MultiPolygonIndex
+    - name: shard_count
+      default: 8
+
+- name: Remove empty OS
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.clean_empty_os
+    params:
+    - name: entity_kind
+      default: mol.db.OccurrenceSet
+    - name: shard_count
+      default: 2
+    - name: processing_rate
+      default: 2500 
+
+- name: Change MOL ranges to IUCN ranges
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.change_mol_to_iucn
+    params:
+    - name: entity_kind
+      default: mol.db.MultiPolygon
+    - name: shard_count
+      default: 2
+    - name: processing_rate
+      default: 2500 
