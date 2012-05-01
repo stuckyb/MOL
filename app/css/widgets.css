@@ -145,7 +145,7 @@ button:hover{
         rgba(35, 35, 35,0.85) 37%,
         rgba(66,66,66,0.85) 69%
     );
- 
+
     color: #fff;
     text-align: left;
     cursor: pointer;
@@ -319,7 +319,7 @@ button:hover{
     height: 20px;
     padding: 0px;
     padding-top: 2px;
-    cursor:default;
+
 }
 .mol-LayerControl-Layers .layer .source{
     float: left;
@@ -328,7 +328,7 @@ button:hover{
     height: 20px;
     padding: 0px;
     padding-top: 2px;
-    cursor:default;
+
 }
 .mol-LayerControl-Layers .layer .type img{
     height: 16px;
@@ -644,7 +644,7 @@ padding: 3px;
         rgba(29,43,82,0.65) 89%,
         rgba(29,43,82,0.75) 57%
     );
- 
+
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#A51D2B52', endColorstr='#BF1D2B52');
     -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
@@ -771,11 +771,11 @@ padding: 3px;
     color: #fff;
     padding: 0px;
     padding-top: 2px;
+
 }
 .mol-LayerControl-Results .result button img{
     width: 16px;
     height: 16px;
-
 }
 .mol-LayerControl-Results .result div.resultName{
     width: 70%;
@@ -910,9 +910,33 @@ padding: 3px;
     padding: 2px;
     padding-left:6px;
     padding-right:6px;
+    padding-bottom:8px;
     margin: 2px;
     pointer-events:auto;
 }
+
+.mol-Map-QueryDisplay button{
+    width: 22px;
+    height: 22px;
+    color: #fff;
+    padding: 3px;
+
+}
+
+.mol-Map-QueryDisplay button img{
+    width: 16px;
+    height: 16px;
+
+}
+
+.mol-Map-QueryDisplay button.selected {
+    border: 3px solid rgba(255, 100, 88, .45);
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -ms-border-radius:5px;
+    padding:0px;
+}
+
 .mol-Map-ListQueryRadius {
      pointer-events:none;
 }
@@ -1027,7 +1051,7 @@ padding: 3px;
         rgba(35, 35, 35,0.85) 37%,
         rgba(66,66,66,0.85) 69%
     );
- 
+
     color: #fff;
     text-align: left;
     cursor: pointer;

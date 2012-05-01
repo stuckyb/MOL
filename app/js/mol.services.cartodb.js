@@ -290,7 +290,9 @@ mol.modules.services.cartodb = function(mol) {
                         names: (row.names != undefined) ? _.uniq(row.names.split(', ')).join(', ') : '',
                         feature_count: row.feature_count,
                         type_title: row.type_title,
-                        source_title: row.source_title
+                        source_title: row.source_title,
+                        sourcetype : row.sourcetype,
+                        _class: row._class
                     };
                 }
                 return layers;

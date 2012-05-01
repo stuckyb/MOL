@@ -16,7 +16,9 @@ mol.modules.core = function(mol) {
             source_title = $.trim(layer.source_title).replace(/ /g, "_"),
             names = $.trim(layer.names).replace(/ /g, "_"),
             feature_count = $.trim(layer.feature_count).replace(/ /g, "_");
-        return 'layer--{0}--{1}--{2}--{3}--{4}--{5}--{6}'.format(name, type, source, names, feature_count, type_title, source_title);
+            sourcetype =  $.trim(layer.sourcetype).replace(/ /g, "_");
+            _class = $.trim(layer._class).replace(/ /g, "_");
+        return 'layer--{0}--{1}--{2}--{3}--{4}--{5}--{6}--{7}--{8}'.format(name, type, source, names, feature_count, type_title, source_title, sourcetype, _class);
     };
 
     /**
@@ -30,12 +32,14 @@ mol.modules.core = function(mol) {
             names = tokens[4].replace(/_/g, " "),
             feature_count = tokens[5].replace(/_/g, " "),
             type_title = tokens[6].replace(/_/g, " "),
-            source_title = tokens[7].replace(/_/g, " ");
-
+            source_title = tokens[7].replace(/_/g, " "),
+            sourcetype = tokens[8].replace(/_/g, " ");
+            _class = tokens[9].replace(/_/g, " ");
 
         name = name.charAt(0).toUpperCase()+name.slice(1).toLowerCase();
         source = source.toLowerCase();
         type = type.toLowerCase();
+        _class = _class.toLowerCase();
 
         return {
             id: id,
@@ -45,7 +49,9 @@ mol.modules.core = function(mol) {
             names: names,
             feature_count: feature_count,
             type_title: type_title,
-            source_title: source_title
+            source_title: source_title,
+            sourcetype: sourcetype,
+            _class : _class
         };
     };
 };

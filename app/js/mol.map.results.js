@@ -158,7 +158,7 @@ mol.modules.map.results = function(mol) {
                     // TODO: Wire up results.
                         result.source.click(
                             function(event) {
-                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { source: result.layerObj.source}}));
+                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { type: result.layerObj.type, provider: result.layerObj.source, _class: result.layerObj._class }}));
                                 event.stopPropagation();
                                 event.cancelBubble = true;
                             }
@@ -385,7 +385,8 @@ mol.modules.map.results = function(mol) {
                             feature_count = layer.feature_count,
                             type_title = layer.type_title,
                             source_title = layer.source_title,
-                            result = new mol.map.results.ResultDisplay(name, id, source, type, names, feature_count, type_title, source_title);
+                            sourcetype = layer.sourcetype,
+                            result = new mol.map.results.ResultDisplay(name, id, source, type, names, feature_count, type_title, source_title, sourcetype);
                             result.layerObj = layer;
                         this.resultList.append(result);
                         return result;
@@ -516,9 +517,9 @@ mol.modules.map.results = function(mol) {
                     "gbif": "GBIF",
                     "wdpa": "Scientist/Literature",
                     "wwf": "WWF",
-                    "jetz": "User-uploaded",
+                    "jetz": "Scientist/Literature",
                     "iucn": "IUCN",
-                    "fishes": "Page &amp; Burr, 2011",
+                    "fishes": "Scientist/Literature",
                     "points": "Points",
                     "range": "Expert Maps",
                     "protectedarea": "Local Inventories",
@@ -526,13 +527,14 @@ mol.modules.map.results = function(mol) {
                 };
 
                 mapped_name = name_mappings[name];
+
                 if(name == "All") {
                     this._super('<div id="{0}" class="option" style="text-align: right; margin-right: 10px;"><strong>all</strong></div>'.format(name, mapped_name));
                 } else if(!mapped_name) {
                     this._super('<div id="{0}" class="option">{1}</div>'.format(name, name));
-                } else {
+                } else
                     this._super('<div id="{0}" class="option"><button><img type="source" style="width: 12px; height: 12px; margin: 0.5px;" src="/static/maps/search/{0}.png"></button> {1}</div>'.format(name, mapped_name));
-                }
+
             }
         }
     );
@@ -544,7 +546,7 @@ mol.modules.map.results = function(mol) {
      * that satisfy those constraints. This is the thing that allows you to
      * click on a name, source, or type and only see those results.
      *
-     * TODO: This could use a refactor. Lot's of duplicate code.
+     * TODO: This could use a refactor. Lot's of duplicate code. <<< +1 -- j
      */
     mol.map.results.SearchProfile = Class.extend(
         {

@@ -12,7 +12,7 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'SELECT ' +
-                    '   s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, n.name as names, n.class as _class, m.records as feature_count ' +
+                    '   s.provider as source, p.title as source_title, p.sourcetype as sourcetype, s.scientificname as name, s.type as type, t.title as type_title, n.name as names, n.class as _class, m.records as feature_count ' +
                     'FROM  layer_metadata s ' +
                     'LEFT JOIN ( ' +
                     '   SELECT ' +

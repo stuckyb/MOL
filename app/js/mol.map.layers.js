@@ -280,16 +280,7 @@ mol.modules.map.layers = function(mol) {
 
                             }
                         );
-                        l.keycatcher.keydown(
-                            function(event) {
-                                alert('ack');
-                            }
-                        );
-                        l.layer.keypress(
-                            function(event) {
-                                alert('fud');
-                            }
-                        );
+
                         // Click handler for info button fires 'metadata-toggle'
                         l.info.click(
                             function(event) {
@@ -317,7 +308,7 @@ mol.modules.map.layers = function(mol) {
                         );
                         l.source.click(
                             function(event) {
-                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { source: layer.source}}));
+                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { provider: layer.source, type: layer.type, _class: layer._class}}));
                                 event.stopPropagation();
                                 event.cancelBubble = true;
                             }

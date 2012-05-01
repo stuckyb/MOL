@@ -432,7 +432,7 @@ var CartoDB = CartoDB || {};
     if (this.params_.table_name == 'gbif_import') {
           infowindow_sql = "SELECT  " +
             "'Point' AS \"Type\", " +
-            "'GBIF' AS \"Provider\", " +
+            "'GBIF' AS \"Source\", " +
             "scientificname AS  \"Species name\", " +
             "CollectionID AS \"Collection\", " +
             "CONCAT('<a target=\"_gbif\" onclick=\"window.open(this.href)\" href=\"http://data.gbif.org/occurrences/',identifier,'\">',identifier, '</a>') as \"Source ID\", " +
@@ -442,7 +442,7 @@ var CartoDB = CartoDB || {};
         if(this.params_.mol_layer.type == 'ecoregion') {
             infowindow_sql = "SELECT  " +
             "'Ecoregion' AS \"Type\", " +
-            "'<a href=\" http://www.worldwildlife.org/science/wildfinder/\">World Wildlife Fund' AS \"Provider\", " +
+            "'<a href=\" http://www.worldwildlife.org/science/wildfinder/\">World Wildlife Fund' AS \"Source\", " +
             "p.scientificname AS  \"Species name\", " +
             "regionname AS \"Region\", " +
             "e.ecoregion_code AS \"Ecoregion Code\", " +
@@ -454,7 +454,7 @@ var CartoDB = CartoDB || {};
         if(this.params_.mol_layer.type == 'protectedarea') {
             infowindow_sql = "SELECT  " +
             "'Local inventory' AS \"Type\", " +
-            "'Scientist provided' AS \"Provider\", " +
+            "'Scientist provided' AS \"Source\", " +
             "scientificname AS  \"Species name\", " +
             "regionname AS \"Region\", " +
             "'ca. 1980-2005' as \"Date\", " +
@@ -465,7 +465,7 @@ var CartoDB = CartoDB || {};
         if(this.params_.mol_layer.type == 'range' && this.params_.mol_layer.source == 'fishes') {
             infowindow_sql = "SELECT  " +
             "'Expert range map' AS \"Type\", " +
-            "'Page and Burr 2011' AS \"Provider\", " +
+            "'Page and Burr 2011' AS \"Source\", " +
             "scientificname AS  \"Species name\", " +
             "'ca. 1980-2010' as \"Date\", " +
             "seasonality as \"Seasonality\" " +
@@ -475,7 +475,7 @@ var CartoDB = CartoDB || {};
         if(this.params_.mol_layer.type == 'range' && this.params_.mol_layer.source.toLowerCase() == 'jetz') {
             infowindow_sql = "SELECT  " +
             "'Expert range map' AS \"Type\", " +
-            "'Jetz et al 2012' AS \"Provider\", " +
+            "'Jetz et al 2012' AS \"Source\", " +
             "scientificname AS  \"Species name\", " +
             "'ca. 1980-2010' as \"Date\", " +
             "seasonality as \"Seasonality\" " +
@@ -485,7 +485,7 @@ var CartoDB = CartoDB || {};
         if(this.params_.mol_layer.type == 'range' && this.params_.mol_layer.source.toLowerCase() == 'iucn') {
             infowindow_sql = "SELECT  " +
             "'Expert range map' AS \"Type\", " +
-            "'IUCN' AS \"Provider\", " +
+            "'IUCN' AS \"Source\", " +
             "scientificname AS  \"Species name\", " +
             "'ca. 1980-2010' as \"Date\", " +
             "seasonality as \"Seasonality\", " +

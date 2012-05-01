@@ -65,13 +65,13 @@ mol.modules.map.query = function(mol) {
                 params.display = this.display;
                 this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
         },
-        getList: function(lat, lng, listradius, constraints, className, typeName) {
+        getList: function(lat, lng, listradius, constraints, className) {
                 var self = this,
-                    sql = this.sql.format((lng+' '+lat), listradius.radius, constraints, (typeName == 'Point records') ? 'gbif_import' : 'polygons'),
+                    sql = this.sql.format((lng+' '+lat), listradius.radius, constraints, 'polygons'),
                     params = {sql:sql, key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius+constraints))},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
-                        var results = {listradius:listradius, className : className, typeName : typeName, constraints: constraints, response:response},
+                        var results = {listradius:listradius,  constraints: constraints, className : className, response:response},
                         event = new mol.bus.Event('species-list-query-results', results);
                         self.bus.fireEvent(event);
                     },
@@ -84,6 +84,17 @@ mol.modules.map.query = function(mol) {
         },
         addEventHandlers : function () {
             var self = this;
+            _.each(
+                $('button',$(this.display.types)),
+                function(button) {
+                    $(button).click(
+                        function(event) {
+                            $('button',$(self.display.types)).removeClass('selected');
+                            $(this).addClass('selected');
+                        }
+                    )
+                }
+            );
             /*
              * Handler in case other modules want to switch the query tool
              */
@@ -100,9 +111,8 @@ mol.modules.map.query = function(mol) {
                 'species-list-query-click',
                 function (event) {
                     var listradius,
-                        constraints = $(self.display.classInput).val() + $(self.display.typeInput).val(),
-                        className =  $("option:selected", $(self.display.classInput)).text(),
-                        typeName = $("option:selected", $(self.display.typeInput)).text();
+                        constraints = $(self.display.classInput).val() + $(".selected", $(self.display.types)).val(),
+                        className =  $("option:selected", $(self.display.classInput)).text();
 
                     if (self.enabled) {
                         listradius = new google.maps.Circle(
@@ -115,7 +125,7 @@ mol.modules.map.query = function(mol) {
                             }
                         );
                         self.bus.fireEvent( new mol.bus.Event('show-loading-indicator', {source : 'listradius'}));
-                        self.getList(event.gmaps_event.latLng.lat(),event.gmaps_event.latLng.lng(),listradius, constraints, className, typeName);
+                        self.getList(event.gmaps_event.latLng.lat(),event.gmaps_event.latLng.lng(),listradius, constraints, className);
                     }
                  }
             );
@@ -123,10 +133,8 @@ mol.modules.map.query = function(mol) {
                 'species-list-query-results',
                 function (event) {
                     var content,
-                        listradius  = event.listradius,
                         className,
-                        typeName,
-                        typeStr,
+                        listradius  = event.listradius,
                         tablerows = [],
                         providers = [],
                         scientificnames = {},
@@ -141,17 +149,10 @@ mol.modules.map.query = function(mol) {
                         speciesdd = 0;
 
                     if(!event.response.error) {
-                            className = event.className,
-                            typeName = event.typeName,
-                            typeStr = '';
-
-                        typeStr = typeName.replace(/maps/i, '').toLowerCase() + ' maps ';
+                        className = event.className;
                         latHem = (listradius.center.lat() > 0) ? 'N' : 'S';
                         lngHem = (listradius.center.lng() > 0) ? 'E' : 'W';
-
-
-
-                        _.each(
+                       _.each(
                            event.response.rows,
                             function(row) {
                                     var english = (row.english != null) ? _.uniq(row.english.split(',')).join(',') : '',
@@ -358,19 +359,23 @@ mol.modules.map.query = function(mol) {
                         '     </select>' +
                         '     Class <select class="class" value="">' +
                         '       <option value="">All</option>' +
-                        '       <option selected value=" and p.class=\'aves\' ">Bird</option>' +
-                        '       <option value=" and p.provider = \'fishes\' ">Fish</option>' +
-                        '       <option value=" and p.class=\'reptilia\' ">Reptile</option>' +
-                        '       <option value=" and p.class=\'amphibia\' ">Amphibian</option>' +
-                        '       <option value=" and p.class=\'mammalia\' ">Mammal</option>' +
+                        '       <option selected value=" AND p.class=\'aves\' ">Bird</option>' +
+                        '       <option value=" AND p.provider = \'fishes\' ">Fish</option>' +
+                        '       <option value=" AND p.class=\'reptilia\' ">Reptile</option>' +
+                        '       <option value=" AND p.class=\'amphibia\' ">Amphibian</option>' +
+                        '       <option value=" AND p.class=\'mammalia\' ">Mammal</option>' +
                         '     </select>' +
-                        '     Type <select class="type" value="">' +
+                        //'     Type <select class="type" value="">' +
                         //'       <option value="">All</option>' +
-                        '       <option selected value="and p.type=\'range\' ">Range maps</option>' +
+                        //'       <option selected value="and p.type=\'range\' ">Range maps</option>' +
                         //'       <option value=" and p.type=\'protectedarea\'">Protected Areas</option>' +
-                        '       <option value=" and p.type=\'ecoregion\'">Ecoregions</option>' +
+                        '      <span class="types">' +
+                        '           <button class="selected" value=" AND p.type=\'range\'"><img title="Click to use Expert range maps for query." src="/static/maps/search/range.png"></button>' +
+                        '           <button value=" AND p.type=\'ecoregion\' "><img title="Click to use Regional checklists for query." src="/static/maps/search/ecoregion.png"></button>' +
+                        '       </span>'+
+                        //'       <option value=" and p.type=\'ecoregion\'">Ecoregions</option>' +
                         //'       <option disabled value="">Point records</option>' +
-                        '     </select>' +
+                        //'     </select>' +
                         '   </div>' +
                         '</div>';
 
@@ -378,7 +383,7 @@ mol.modules.map.query = function(mol) {
             this.resultslist=$(this).find('.resultslist');
             this.radiusInput=$(this).find('.radius');
             this.classInput=$(this).find('.class');
-            this.typeInput=$(this).find('.type');
+            this.types=$(this).find('.types');
         }
     }
     );

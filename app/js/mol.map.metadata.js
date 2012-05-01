@@ -33,6 +33,7 @@ mol.modules.map.metadata = function(mol) {
                         '   class ASC',
                     types: '' +
                         'SELECT title as "Data Type", description AS "Description" FROM types where type = \'{0}\''
+
                 }
            },
 
