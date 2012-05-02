@@ -204,7 +204,7 @@ class Query(object):
         #    print 'skipping because of unknown cdb error. url: %s' % url
         
         if len(rows) > 0:
-            self.writer.writerow(dict(id=name.lower(), string=reduce(lambda x,y: '%s,%s' % (x, y), [x for x in rows])))
+            self.writer.writerow(dict(id=name.lower(), string=json.dumps(rows)))
 
     def loop(self):
         while True:
