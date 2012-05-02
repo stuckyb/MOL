@@ -80,8 +80,8 @@ mol.modules.services.cartodb = function(mol) {
                     case 'source':
                         results.push(row.source);
                         break;
-                    case 'englishname':
-                        results.push(row.englishname);
+                    case 'names':
+                        results.push(row.names);
                         break;
                     case 'feature_count':
                         results.push(row.feature_count);
@@ -287,8 +287,12 @@ mol.modules.services.cartodb = function(mol) {
                         source: row.source.toLowerCase(),
                         type: row.type.toLowerCase(),
                         // This removes duplicates:
-                        englishname: (row.englishname != undefined) ? _.uniq(row.englishname.split(', ')).join(', ') : '', 
-                        feature_count: row.feature_count
+                        names: (row.names != undefined) ? _.uniq(row.names.split(', ')).join(', ') : '',
+                        feature_count: row.feature_count,
+                        type_title: row.type_title,
+                        source_title: row.source_title,
+                        sourcetype : row.sourcetype,
+                        _class: row._class
                     };
                 }
                 return layers;

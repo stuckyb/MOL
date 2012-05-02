@@ -153,9 +153,23 @@ mol.modules.map.results = function(mol) {
 
                 // Set layer results in display.
                  _.each(
-                    this.display.setResults(this.getLayersWithIds(layers)),
+                    this.display.setResults(this.getLayersWithIds(layers)), //passing in self so I can fire events in resultdisplay
                     function(result) {
                     // TODO: Wire up results.
+                        result.source.click(
+                            function(event) {
+                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { type: result.layerObj.type, provider: result.layerObj.source, _class: result.layerObj._class }}));
+                                event.stopPropagation();
+                                event.cancelBubble = true;
+                            }
+                        );
+                        result.type.click(
+                            function(event) {
+                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { type: result.layerObj.type}}));
+                                event.stopPropagation();
+                                event.cancelBubble = true;
+                            }
+                        );
                     },
                     this
                   );
@@ -367,10 +381,13 @@ mol.modules.map.results = function(mol) {
                             name = layer.name,
                             source = layer.source,
                             type = layer.type,
-                            englishname = layer.names,
+                            names = layer.names,
                             feature_count = layer.feature_count,
-                            result = new mol.map.results.ResultDisplay(name, id, source, type, names, feature_count);
-
+                            type_title = layer.type_title,
+                            source_title = layer.source_title,
+                            sourcetype = layer.sourcetype,
+                            result = new mol.map.results.ResultDisplay(name, id, source, type, names, feature_count, type_title, source_title, sourcetype);
+                            result.layerObj = layer;
                         this.resultList.append(result);
                         return result;
                     },
@@ -436,12 +453,12 @@ mol.modules.map.results = function(mol) {
      */
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
-            init: function(name, id, source, type, englishname, feature_count) {
-                var self, html = '' +
+            init: function(name, id, source, type, names, feature_count, type_title, source_title) {
+                var self=this, html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
-                    '<div class="resultSource"><button><img class="source" title="Layer Source: {2}" src="/static/maps/search/{2}.png"></button></div>' +
-                    '<div class="resultType" ><button ><img class="type" title="Layer Type: {3}" src="/static/maps/search/{3}.png"></button></div>' +
+                    '<div class="resultSource"><button><img class="source" title="Layer Source: {7}" src="/static/maps/search/{2}.png"></button></div>' +
+                    '<div class="resultType" ><button ><img class="type" title="Layer Type: {6}" src="/static/maps/search/{3}.png"></button></div>' +
                     '<div class="resultName">' +
                     '  <div class="resultRecords">{5} features</div>' +
                     '  <div class="resultNomial">{1}</div>' +
@@ -456,12 +473,12 @@ mol.modules.map.results = function(mol) {
                     '<div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(id, name, source, type, englishname, feature_count));
+                this._super(html.format(id, name, source, type, names, feature_count, type_title, source_title));
 
                 this.infoLink = $(this).find('.info');
                 this.nameBox = $(this).find('.resultName');
-                this.sourcePng = $(this).find('.source');
-                this.typePng = $(this).find('.type');
+                this.source = $(this).find('.source');
+                this.type = $(this).find('.type');
                 this.checkbox = $(this).find('.checkbox');
                 //this.customCheck = $(this).find('.customCheck');
 
@@ -492,10 +509,32 @@ mol.modules.map.results = function(mol) {
         }
     );
 
+
     mol.map.results.OptionDisplay = mol.mvp.View.extend(
         {
             init: function(name) {
-                this._super('<div id="{0}" class="option">{0}</div>'.format(name, name));
+                var name_mappings = {
+                    "gbif": "GBIF",
+                    "wdpa": "Scientist/Literature",
+                    "wwf": "WWF",
+                    "jetz": "Scientist/Literature",
+                    "iucn": "IUCN",
+                    "fishes": "Scientist/Literature",
+                    "points": "Points",
+                    "range": "Expert range maps",
+                    "protectedarea": "Local inventories",
+                    "ecoregion": "Regional checklists"
+                };
+
+                mapped_name = name_mappings[name];
+
+                if(name == "All") {
+                    this._super('<div id="{0}" class="option" style="text-align: right; margin-right: 10px;"><strong>all</strong></div>'.format(name, mapped_name));
+                } else if(!mapped_name) {
+                    this._super('<div id="{0}" class="option">{1}</div>'.format(name, name));
+                } else
+                    this._super('<div id="{0}" class="option"><button><img type="source" style="width: 12px; height: 12px; margin: 0.5px;" src="/static/maps/search/{0}.png"></button> {1}</div>'.format(name, mapped_name));
+
             }
         }
     );
@@ -507,7 +546,7 @@ mol.modules.map.results = function(mol) {
      * that satisfy those constraints. This is the thing that allows you to
      * click on a name, source, or type and only see those results.
      *
-     * TODO: This could use a refactor. Lot's of duplicate code.
+     * TODO: This could use a refactor. Lot's of duplicate code. <<< +1 -- j
      */
     mol.map.results.SearchProfile = Class.extend(
         {

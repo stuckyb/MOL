@@ -280,16 +280,7 @@ mol.modules.map.layers = function(mol) {
 
                             }
                         );
-                        l.keycatcher.keydown(
-                            function(event) {
-                                alert('ack');
-                            }
-                        );
-                        l.layer.keypress(
-                            function(event) {
-                                alert('fud');
-                            }
-                        );
+
                         // Click handler for info button fires 'metadata-toggle'
                         l.info.click(
                             function(event) {
@@ -315,6 +306,20 @@ mol.modules.map.layers = function(mol) {
                                 event.cancelBubble = true;
                             }
                         );
+                        l.source.click(
+                            function(event) {
+                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { provider: layer.source, type: layer.type, _class: layer._class}}));
+                                event.stopPropagation();
+                                event.cancelBubble = true;
+                            }
+                        );
+                        l.type.click(
+                            function(event) {
+                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { type: layer.type}}));
+                                event.stopPropagation();
+                                event.cancelBubble = true;
+                            }
+                        )
                         self.display.toggle(true);
 
                     },
@@ -380,8 +385,8 @@ mol.modules.map.layers = function(mol) {
                 var html = '' +
                     '<div class="layerContainer">' +
                     '  <div class="layer">' +
-                    '    <button class="source" title="Layer Source: {0}"><img src="/static/maps/search/{0}.png"></button>' +
-                    '    <button class="type" title="Layer Type: {1}"><img src="/static/maps/search/{1}.png"></button>' +
+                    '    <button class="source" title="Layer Source: {5}"><img src="/static/maps/search/{0}.png"></button>' +
+                    '    <button class="type" title="Layer Type: {6}"><img src="/static/maps/search/{1}.png"></button>' +
                     '    <div class="layerName">' +
                     '        <div class="layerRecords">{4} features</div>' +
                     '        <div title="{2}" class="layerNomial">{2}</div>' +
@@ -397,7 +402,7 @@ mol.modules.map.layers = function(mol) {
                     '  <div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(layer.source, layer.type, layer.name, layer.englishname, layer.feature_count));
+                this._super(html.format(layer.source, layer.type, layer.name, layer.names, layer.feature_count, layer.source_title, layer.type_title));
                 this.attr('id', layer.id);
                 this.opacity = $(this).find('.opacity').slider({value: 0.5, min: 0, max:1, step: 0.02, animate:"slow"});
                 this.toggle = $(this).find('.toggle').button();
@@ -408,7 +413,7 @@ mol.modules.map.layers = function(mol) {
                 this.source = $(this).find('.source');
                 this.layer = $(this).find('.layer');
                 this.keycatcher = $(this).find('.keycatcher');
-
+                this.layerObj = layer;
 
 
             }
