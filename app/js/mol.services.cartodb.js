@@ -7,16 +7,21 @@ mol.modules.services.cartodb = function(mol) {
             init: function(user, host) {
                 this.user = user;
                 this.host = host;
-                this.url = 'https://{0}.{1}/api/v2/sql?q={2}';
+                this.url = 'https://{0}.{1}/api/v2/sql';
                 this.cache = '/cache/get';
             },
 
             query: function(key, sql, callback) {
-                  var data = {
-                          key: key,
-                          sql: sql
-                      },
-                      xhr = $.post(this.cache, data);
+                var data, xhr;
+
+                if(key) {
+                    data = {key:key, sql:sql};
+                    xhr = $.post(this.cache, data);
+                } else {
+                    data = {q:sql}
+                    xhr = $.post(this.url.format(this.user,this.host), data);
+                }
+
 
                 xhr.success(
                     function(response) {
