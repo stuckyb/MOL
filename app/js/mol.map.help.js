@@ -47,7 +47,7 @@ mol.modules.map.help = function(mol) {
                         autoOpen: false,
 			dialogClass: "mol-help",
                         height: 500,
-                        width: "80%"
+                        width: 800
                     }
                 );
 
@@ -62,7 +62,7 @@ mol.modules.map.help = function(mol) {
                     '<iframe id="help_dialog" class="mol-help iframe_content" src="https://docs.google.com/document/pub?id=1I64XqsJcoJ8GZAZhy6KmtlhtEht4tlaOrd-g82VFq-w&amp;embedded=true"></iframe>';
 
                 this._super(html);
-                
+
                 // this.iframe_content = $(this).find('.iframe_content');
             }
         }

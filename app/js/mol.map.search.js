@@ -206,13 +206,13 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.searchBox.keyup(
                     function(event) {
-                      var term = "SELECT "
+                      var term = event.term;
                       if (event.keyCode === 13) {
-                       // if(self.names.length>0) {
-                         //   term = self.names.join('","');
-                        //} else {
+                        if(self.names.length>0) {
+                            term = self.names.join(",");
+                        } else {
                             term = $(this).val().charAt(0).toUpperCase()+$(this).val().substring(1,$(this).val().length);
-                        //}
+                        }
                         $(this).autocomplete("close");
                         self.search(term);
                       }
@@ -245,13 +245,14 @@ mol.modules.map.search = function(mol) {
             search: function(term) {
                         var self = this;
                         $.post(
-                            'cache/get',
+                            'cartodb/results',
                                 {
                                     //Note for Aaron: for multiple results, term is a comma delimited list --
                                     //  (see this.display.searchBox.keyup)
                                     //For all other cases it is just a scientificname.
-                                    key: 'acrsql_{0}'.format(term),
-                                    sql: self.sql.format(term)
+                                    //key: 'acrsql_{0}'.format(term),
+                                    //sql: self.sql.format(term)
+                                    names:term
                                 },
                                 function (response) {
                                     var results = {term:self.names, response:response};

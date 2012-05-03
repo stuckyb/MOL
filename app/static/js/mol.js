@@ -331,16 +331,21 @@ mol.modules.services.cartodb = function(mol) {
             init: function(user, host) {
                 this.user = user;
                 this.host = host;
-                this.url = 'https://{0}.{1}/api/v2/sql?q={2}';
+                this.url = 'https://{0}.{1}/api/v2/sql';
                 this.cache = '/cache/get';
             },
 
             query: function(key, sql, callback) {
-                  var data = {
-                          key: key,
-                          sql: sql
-                      },
-                      xhr = $.post(this.cache, data);
+                var data, xhr;
+
+                if(key) {
+                    data = {key:key, sql:sql};
+                    xhr = $.post(this.cache, data);
+                } else {
+                    data = {q:sql}
+                    xhr = $.post(this.url.format(this.user,this.host), data);
+                }
+
 
                 xhr.success(
                     function(response) {
@@ -1545,7 +1550,7 @@ mol.modules.map.layers = function(mol) {
                     '    <input class="keycatcher" type="text" />' +
                     '    <button title="Remove layer." class="close">x</button>' +
                     '    <button title="Zoom to layer extent." class="zoom">z</button>' +
-                    '    <button title="Layer metadata info." class="info">i</button>' +
+                    //'    <button title="Layer metadata info." class="info">i</button>' +
                     '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span title="Toggle layer visibility." class="customCheck"></span></label>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
@@ -1945,7 +1950,19 @@ mol.modules.map.results = function(mol) {
                 this.bus.addHandler(
                     'search-results',
                     function(event) {
-                        self.results = mol.services.cartodb.convert(event.response);
+                        var response={rows:[]}
+                        _.each(
+                            event.response,
+                            function(sci){
+                                _.each(
+                                    sci,
+                                    function(row) {
+                                        response.rows.push(row);
+                                    }
+                                )
+                            }
+                        )
+                        self.results = mol.services.cartodb.convert(response);
                         self.profile = new mol.map.results.SearchProfile(self.results);
                         if (self.getLayersWithIds(self.results.layers).length > 0) {
                             self.showFilters(self.profile);
@@ -2809,13 +2826,13 @@ mol.modules.map.results = function(mol) {
                  */
                 this.display.searchBox.keyup(
                     function(event) {
-                      var term = "SELECT "
+                      var term = event.term;
                       if (event.keyCode === 13) {
-                       // if(self.names.length>0) {
-                         //   term = self.names.join('","');
-                        //} else {
+                        if(self.names.length>0) {
+                            term = self.names.join(",");
+                        } else {
                             term = $(this).val().charAt(0).toUpperCase()+$(this).val().substring(1,$(this).val().length);
-                        //}
+                        }
                         $(this).autocomplete("close");
                         self.search(term);
                       }
@@ -2848,13 +2865,14 @@ mol.modules.map.results = function(mol) {
             search: function(term) {
                         var self = this;
                         $.post(
-                            'cache/get',
+                            'cartodb/results',
                                 {
                                     //Note for Aaron: for multiple results, term is a comma delimited list --
                                     //  (see this.display.searchBox.keyup)
                                     //For all other cases it is just a scientificname.
-                                    key: 'acrsql_{0}'.format(term),
-                                    sql: self.sql.format(term)
+                                    //key: 'acrsql_{0}'.format(term),
+                                    //sql: self.sql.format(term)
+                                    names:term
                                 },
                                 function (response) {
                                     var results = {term:self.names, response:response};
@@ -3613,9 +3631,9 @@ mol.modules.map.query = function(mol) {
                                         "<td class='wiki'>" +
                                         row.scientificname + "</td><td class='wiki english'>" +
                                         english + "</td><td class='wiki'>" +
-                                        row.order + "</td><td>" +
-                                        row.sequenceid + "</td><td class='wiki'>" +
-                                        row.family + "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
+                                        row.order + "</td><td class='wiki'>" +
+                                        row.family + "</td><td>" +
+                                        row.sequenceid + "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
                                         row.redlist + "</td></tr>");
                                         providers.push(row.type+ '/' + row.provider);
                                     if (year != null && year != '') {
@@ -3660,7 +3678,7 @@ mol.modules.map.query = function(mol) {
                                     '   </div> ' +
                                     '   <div> ' +
                                     '       <table class="tablesorter">' +
-                                    '           <thead><tr><th></th><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Order ID</th><th>Family</th><th>IUCN&nbsp;&nbsp;</th></tr></thead>' +
+                                    '           <thead><tr><th></th><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>Rank&nbsp;&nbsp;&nbsp;</th><th>IUCN&nbsp;&nbsp;</th></tr></thead>' +
                                     '           <tbody class="tablebody">' +
                                                     tablerows.join('') +
                                     '           </tbody>' +
@@ -4199,7 +4217,7 @@ mol.modules.map.metadata = function(mol) {
             getLayerMetadata: function (layer) {
                   var self = this,
                     sql = this.sql['layer'].format(layer.name, layer.type, layer.source),
-                    params = {sql:sql, cache_buster: true, key: 'layermetadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
+                    params = {sql:sql}, //cache_buster: true, key: 'layermetadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {layer:layer, response:response};
@@ -4231,7 +4249,7 @@ mol.modules.map.metadata = function(mol) {
                                  var self = this,
                     type = params.type,
                     sql = this.sql['types'].format(type),
-                    params = {sql:sql, cache_buster: true, key: 'type_metadata-{0}'.format(type)},
+                    params = {sql:sql}, //key: 'type_metadata-{0}'.format(type)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {type:type, response:response};
@@ -4243,7 +4261,7 @@ mol.modules.map.metadata = function(mol) {
                         } else {}
                     },
                     failure = function(action, response) {
-                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'metadata-{0}-{1}-{2}'.format(provider, type, _class)}));
+                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'type-metadata-{0}'.format(type)}));
                     };
 
                 if(this.displays['type-metadata-{0}'.format(type)] == undefined) {
@@ -4262,7 +4280,7 @@ mol.modules.map.metadata = function(mol) {
                     provider = params.provider,
                     _class = params._class,
                     sql = this.sql['dashboard'].format(provider, type, _class),
-                    params = {sql:sql, cache_buster: 'true', key: 'db-metadata-{0}-{1}-{2}'.format(provider, type, _class)},
+                    params = {sql:sql}, //cache_buster: 'true', key: 'db-metadata-{0}-{1}-{2}'.format(provider, type, _class)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {provider:provider, type:type, _class:_class, response:response};
@@ -4400,7 +4418,7 @@ mol.modules.map.splash = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: true,
-					    width: "80%",
+					    width: 800,
 					    height: 500,
 					    dialogClass: "mol-splash",
 					    modal: true
@@ -4477,7 +4495,7 @@ mol.modules.map.help = function(mol) {
                         autoOpen: false,
 			dialogClass: "mol-help",
                         height: 500,
-                        width: "80%"
+                        width: 800
                     }
                 );
 
@@ -4492,7 +4510,7 @@ mol.modules.map.help = function(mol) {
                     '<iframe id="help_dialog" class="mol-help iframe_content" src="https://docs.google.com/document/pub?id=1I64XqsJcoJ8GZAZhy6KmtlhtEht4tlaOrd-g82VFq-w&amp;embedded=true"></iframe>';
 
                 this._super(html);
-                
+
                 // this.iframe_content = $(this).find('.iframe_content');
             }
         }

@@ -163,9 +163,9 @@ mol.modules.map.query = function(mol) {
                                         "<td class='wiki'>" +
                                         row.scientificname + "</td><td class='wiki english'>" +
                                         english + "</td><td class='wiki'>" +
-                                        row.order + "</td><td>" +
-                                        row.sequenceid + "</td><td class='wiki'>" +
-                                        row.family + "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
+                                        row.order + "</td><td class='wiki'>" +
+                                        row.family + "</td><td>" +
+                                        row.sequenceid + "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
                                         row.redlist + "</td></tr>");
                                         providers.push(row.type+ '/' + row.provider);
                                     if (year != null && year != '') {
@@ -210,7 +210,7 @@ mol.modules.map.query = function(mol) {
                                     '   </div> ' +
                                     '   <div> ' +
                                     '       <table class="tablesorter">' +
-                                    '           <thead><tr><th></th><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Order ID</th><th>Family</th><th>IUCN&nbsp;&nbsp;</th></tr></thead>' +
+                                    '           <thead><tr><th></th><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>Rank&nbsp;&nbsp;&nbsp;</th><th>IUCN&nbsp;&nbsp;</th></tr></thead>' +
                                     '           <tbody class="tablebody">' +
                                                     tablerows.join('') +
                                     '           </tbody>' +
