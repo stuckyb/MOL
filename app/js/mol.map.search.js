@@ -247,11 +247,6 @@ mol.modules.map.search = function(mol) {
                         $.post(
                             'cartodb/results',
                                 {
-                                    //Note for Aaron: for multiple results, term is a comma delimited list --
-                                    //  (see this.display.searchBox.keyup)
-                                    //For all other cases it is just a scientificname.
-                                    //key: 'acrsql_{0}'.format(term),
-                                    //sql: self.sql.format(term)
                                     names:term
                                 },
                                 function (response) {

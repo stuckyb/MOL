@@ -227,7 +227,7 @@ mol.modules.map.layers = function(mol) {
 
                                 self.bus.fireEvent(e);
                                 l.remove();
-                                // Hide the layer widge toggle in the main menu if no layers exist
+                                // Hide the layer widget toggle in the main menu if no layers exist
                                 if(self.map.overlayMapTypes.length == 0) {
                                     self.bus.fireEvent(new mol.bus.Event('hide-layer-display-toggle'));
                                     self.display.toggle(false);
@@ -280,6 +280,11 @@ mol.modules.map.layers = function(mol) {
 
                             }
                         );
+
+                        //select first layer by default
+                        if(self.map.overlayMapTypes.length==1) {
+                            l.layer.onclick();
+                        }
 
                         // Click handler for info button fires 'metadata-toggle'
                         l.info.click(
