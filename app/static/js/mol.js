@@ -1382,7 +1382,7 @@ mol.modules.map.layers = function(mol) {
 
                                 self.bus.fireEvent(e);
                                 l.remove();
-                                // Hide the layer widge toggle in the main menu if no layers exist
+                                // Hide the layer widget toggle in the main menu if no layers exist
                                 if(self.map.overlayMapTypes.length == 0) {
                                     self.bus.fireEvent(new mol.bus.Event('hide-layer-display-toggle'));
                                     self.display.toggle(false);
@@ -1435,6 +1435,11 @@ mol.modules.map.layers = function(mol) {
 
                             }
                         );
+
+                        //select first layer by default
+                        if(self.map.overlayMapTypes.length==1) {
+                            l.layer.onclick();
+                        }
 
                         // Click handler for info button fires 'metadata-toggle'
                         l.info.click(
@@ -2867,11 +2872,6 @@ mol.modules.map.results = function(mol) {
                         $.post(
                             'cartodb/results',
                                 {
-                                    //Note for Aaron: for multiple results, term is a comma delimited list --
-                                    //  (see this.display.searchBox.keyup)
-                                    //For all other cases it is just a scientificname.
-                                    //key: 'acrsql_{0}'.format(term),
-                                    //sql: self.sql.format(term)
                                     names:term
                                 },
                                 function (response) {
@@ -3484,23 +3484,25 @@ mol.modules.map.query = function(mol) {
                         "   initcap(lower(t.Family)) as family, " +
                         "   t.red_list_status as redlist, " +
                         "   initcap(lower(t.class)) as className, " +
-                        "   dt.title as type, " +
-                        "   pv.title as provider, " +
+                        "   dt.title as type_title, " +
+                        "   pv.title as provider_title, " +
+                        "   dt.type as type, " +
+                        "   pv.provider as provider, " +
                         "   t.year_assessed as year_assessed, " +
                         "   s.sequenceid as sequenceid " +
                         "FROM {3} p " +
-                        "LEFT JOIN (SELECT scientific, " +
-                        "                  initcap(string_agg(common_names_eng, ','))  as common_names_eng, " + //using string_agg in case there are duplicates
+                        "LEFT JOIN synonym_metadata n " +
+                        "ON p.scientificname = n.scientificname " +
+                        "LEFT JOIN (SELECT scientificname, " +
+                        "                  replace(initcap(string_agg(common_names_eng, ',')),'''S','''s')  as common_names_eng, " + //using string_agg in case there are duplicates
                         "                  MIN(class) as class, " + //these should be the same, even if there are duplicates
                         "                  MIN(_order) as _order, " +
                         "                  MIN(family) as family, " +
-                        "                  string_agg(red_list_status,',') as red_list_status, " +
-                        "                  string_agg(year_assessed,',') as year_assessed " +
-                        "           FROM master_taxonomy  " +
-                        "           WHERE " +
-                        "                  infraspecific_name = '' " + //dont want subspecies
-                        "           GROUP BY scientific ) t " +
-                        "ON p.scientificname = t.scientific " +
+                        "                  string_agg(red_list_status,' ') as red_list_status, " +
+                        "                  string_agg(year_assessed,' ') as year_assessed " +
+                        "           FROM master_taxonomy " +
+                        "           GROUP BY scientificname ) t " +
+                        "ON (p.scientificname = t.scientificname OR n.mol_scientificname = t.scientificname) " +
                         "LEFT JOIN sequence_metadata s " +
                         "   ON t.family = s.family " +
                         "LEFT JOIN types dt ON " +
@@ -3559,6 +3561,9 @@ mol.modules.map.query = function(mol) {
                         function(event) {
                             $('button',$(self.display.types)).removeClass('selected');
                             $(this).addClass('selected');
+                            if($(this).hasClass('range')&&self.display.classInput.val().toLowerCase().indexOf('reptil')>0) {
+                                alert('Available for North America only.');
+                            }
                         }
                     )
                 }
@@ -3630,12 +3635,12 @@ mol.modules.map.query = function(mol) {
                                     tablerows.push("<tr><td><button value='"+row.scientificname+"'>map</button></td>" +
                                         "<td class='wiki'>" +
                                         row.scientificname + "</td><td class='wiki english'>" +
-                                        english + "</td><td class='wiki'>" +
-                                        row.order + "</td><td class='wiki'>" +
-                                        row.family + "</td><td>" +
-                                        row.sequenceid + "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
-                                        row.redlist + "</td></tr>");
-                                        providers.push(row.type+ '/' + row.provider);
+                                        ((english != null) ? english : '') + "</td><td class='wiki'>" +
+                                        ((row.order != null) ? row.order : '')+ "</td><td class='wiki'>" +
+                                        ((row.family != null) ? row.family : '')+ "</td><td>" +
+                                        ((row.sequenceid != null) ? row.sequenceid : '')+ "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
+                                        ((row.redlist != null) ? row.redlist : '') + "</td></tr>");
+                                        providers.push('<a class="type ' + row.type+ '">'+row.type_title+'</a>", ' + row.provider);
                                     if (year != null && year != '') {
                                         years.push(year)
                                     }
@@ -3666,7 +3671,7 @@ mol.modules.map.query = function(mol) {
                             content=$('<div class="mol-Map-ListQueryInfoWindow" style="height:'+ height+'px">' +
                                     '   <div>' +
                                     '       <b>' +
-                                            className + ' species ' +
+                                            className +
                                     '       </b>' +
                                             listradius.radius/1000 + ' km around ' +
                                             Math.abs(Math.round(listradius.center.lat()*1000)/1000) + '&deg;&nbsp;' + latHem + '&nbsp;' +
@@ -3750,12 +3755,14 @@ mol.modules.map.query = function(mol) {
                          _.each(
                              $('.iucn',$(infoWindow.content)),
                              function(iucn) {
-                                 $(iucn).click(
-                                     function(event) {
-                                        var win = window.open('http://www.iucnredlist.org/apps/redlist/search/external?text='+$(this).data('scientificname'));
-                                        win.focus();
-                                    }
-                                 );
+                                 if($(iucn).data('scientificname')!='') {
+                                    $(iucn).click(
+                                         function(event) {
+                                            var win = window.open('http://www.iucnredlist.org/apps/redlist/search/external?text='+$(this).data('scientificname'));
+                                            win.focus();
+                                        }
+                                    );
+                                 }
                              }
                          );
                         } else {
@@ -3808,6 +3815,23 @@ mol.modules.map.query = function(mol) {
                     }
                 }
             );
+            this.display.classInput.change(
+                function(event) {
+                    if($(this).val().toLowerCase().indexOf('fish')>0) {
+                        $(self.display.types).find('.ecoregion').toggle(false);
+                        $(self.display.types).find('.ecoregion').removeClass('selected');
+                        $(self.display.types).find('.range').addClass('selected');
+                    } else if($(this).val().toLowerCase().indexOf('reptil')) {
+                        $(self.display.types).find('.ecoregion').toggle(true);
+                        $(self.display.types).find('.ecoregion').removeClass('selected');
+                        $(self.display.types).find('.range').addClass('selected');
+                    } else {
+                        $(self.display.types).find('.ecoregion').toggle(true);
+                        $(self.display.types).find('.range').toggle(true);
+                    }
+
+                }
+            )
         }
     }
     );
@@ -3825,25 +3849,17 @@ mol.modules.map.query = function(mol) {
                         '       <option value="500">500 km</option>' +
                         '       <option value="1000">1000 km</option>' +
                         '     </select>' +
-                        '     Class <select class="class" value="">' +
-                        '       <option value="">All</option>' +
-                        '       <option selected value=" AND p.class=\'aves\' ">Bird</option>' +
-                        '       <option value=" AND p.provider = \'fishes\' ">Fish</option>' +
-                        '       <option value=" AND p.class=\'reptilia\' ">Reptile</option>' +
-                        '       <option value=" AND p.class=\'amphibia\' ">Amphibian</option>' +
-                        '       <option value=" AND p.class=\'mammalia\' ">Mammal</option>' +
+                        '     Group <select class="class" value="">' +
+                        '       <option selected value=" AND p.class=\'aves\' ">Birds</option>' +
+                        '       <option value=" AND p.provider = \'fishes\' ">NA Fishes</option>' +
+                        '       <option value=" AND p.class=\'reptilia\' ">Reptiles</option>' +
+                        '       <option value=" AND p.class=\'amphibia\' ">Amphibians</option>' +
+                        '       <option value=" AND p.class=\'mammalia\' ">Mammals</option>' +
                         '     </select>' +
-                        //'     Type <select class="type" value="">' +
-                        //'       <option value="">All</option>' +
-                        //'       <option selected value="and p.type=\'range\' ">Range maps</option>' +
-                        //'       <option value=" and p.type=\'protectedarea\'">Protected Areas</option>' +
                         '      <span class="types">' +
-                        '           <button class="selected" value=" AND p.type=\'range\'"><img title="Click to use Expert range maps for query." src="/static/maps/search/range.png"></button>' +
-                        '           <button value=" AND p.type=\'ecoregion\' "><img title="Click to use Regional checklists for query." src="/static/maps/search/ecoregion.png"></button>' +
+                        '           <button class="range selected" value=" AND p.type=\'range\'"><img title="Click to use Expert range maps for query." src="/static/maps/search/range.png"></button>' +
+                        '           <button class="ecoregion" value=" AND p.type=\'ecoregion\' "><img title="Click to use Regional checklists for query." src="/static/maps/search/ecoregion.png"></button>' +
                         '       </span>'+
-                        //'       <option value=" and p.type=\'ecoregion\'">Ecoregions</option>' +
-                        //'       <option disabled value="">Point records</option>' +
-                        //'     </select>' +
                         '   </div>' +
                         '</div>';
 
@@ -4434,7 +4450,25 @@ mol.modules.map.splash = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<iframe class="mol-splash iframe_content" src="https://docs.google.com/document/pub?id=1vrttRdCz4YReWFq5qQmm4K6WmyWayiouEYrYtPrAyvY&amp;embedded=true"></iframe>';
+        '<div>' +
+        '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:350px; width: 95%;" src="https://docs.google.com/document/pub?id=1vrttRdCz4YReWFq5qQmm4K6WmyWayiouEYrYtPrAyvY&amp;embedded=true"></iframe>' +
+	'<div id="footer_imgs">' + 
+	'<div id="sponsors">' + 
+	'<div style="text-align: right">Sponsors<br/></div>' + 
+	'<a target="_blank" href="http://www.nsf.gov/"><button><img title="National Science Foundation" src="http://www.mappinglife.org/static/home/nsf.png"></button></a>' + 
+	'<a target="_blank" href="http://www.nasa.gov/"><button><img title="National Aeronautics and Space Administration" src="http://www.mappinglife.org/static/home/nasa.png"></button></a>' + 
+	'<a target="_blank" href="http://www.nceas.ucsb.edu/"><button><img title="National Center for Ecological Analysis and Synthesis" src="http://www.mappinglife.org/static/home/nceas.png"></button></a>' + 
+	'<a target="_blank" href="http://www.iplantcollaborative.org/"><button><img title="iPlant Collaborative" src="http://www.mappinglife.org/static/home/iplant.png"></button></a>' + 
+	'</div>' + 
+	'<div id="partners">' + 
+	'<div>Partners<br/></div>' + 
+	'<a target="_blank" href="http://www.mountainbiodiversity.org/"><button><img title="Global Mountain Biodiversity Assessment" src="http://www.mappinglife.org/static/home/gmba.png"></button></a>' + 
+	'<a target="_blank" href="http://www.senckenberg.de"><button><img title="Senckenberg" src="http://www.mappinglife.org/static/home/senckenberg.png"></button></a>' + 
+	'<a target="_blank" href="http://www.bik-f.de/"><button><img title="Biodiversität und Klima Forschungszentrum (BiK-F)" src="http://www.mappinglife.org/static/home/bik_bildzeichen.png"></button></a>' + 
+	'<a target="_blank" href="http://www.eol.org/"><button><img title="Encyclopedia of Life" src="http://www.mappinglife.org/static/home/eol.png"></button></a>' + 
+	'</div>' + 
+	'</div>' +
+        '</div>';
 
                 this._super(html);
                 this.iframe_content = $(this).find('.iframe_content');
