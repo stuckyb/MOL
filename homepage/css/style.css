@@ -281,14 +281,16 @@ div#content .person.partner img {
     border-radius: 10px;
     overflow-y: hidden;
     padding: 5px;
-    margin: auto;
     background: #ffffff;
-    float: none;
+    float: right;
     display: block;
+    margin: 1em;
+    margin-top: 0.7em;
+    margin-bottom: 0em;
 } 
 
 div#content .person.partner img.right {
-    float: none;
+    float: left;
 }
 
 div#content .person.top img{
