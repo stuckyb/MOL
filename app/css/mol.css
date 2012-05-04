@@ -52,3 +52,26 @@ body { height: 200%; margin: 0px; padding: 0px; overflow: hidden;
     float: right;
 }
 
+/* Footer images (see splash page) */
+
+div#footer_imgs {
+    max-height: 32px;
+    width: 100%;
+    font-size: 10pt;
+}
+
+div#footer_imgs #sponsors {
+    float: right;
+
+    background: inherit;
+}
+
+div#footer_imgs #partners {
+    float: left;
+
+    background: inherit;
+}
+
+div#footer_imgs img {
+    max-height: 32px;
+}
