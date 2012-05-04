@@ -224,7 +224,12 @@ div#content .person{
 }
 
 div#content .person.partner {
-    min-height: 240px;
+    min-height: 290px;
+}
+
+div#content .partner .role {
+    font-size: 80%;
+    color: rgb(180, 180, 180);
 }
 
 div#content .person .name{
@@ -244,6 +249,18 @@ div#content .person .description.full{
     width: 95%;
 }
 
+div#content .person.partner .name {
+    float: none;
+}
+div#content .person.partner .description {
+    float: none;
+    display: block;
+    width: 98%;
+    height: auto;
+    min-height: 0px;
+    margin: 7px;
+}
+
 div#content .person.top{
     width: 96%;
     font-size: 1.3em;
@@ -256,12 +273,24 @@ div#content .person img{
     max-width: 40%;
     max-height: 250px;
 }
+
 div#content .person.partner img {
     max-height: 100px;
-    margin-top: 50px;
+    min-height: 100px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    overflow-y: hidden;
+    padding: 5px;
+    background: #ffffff;
+    float: right;
+    display: block;
+    margin: 1em;
+    margin-top: 0.7em;
+    margin-bottom: 0em;
 } 
 
 div#content .person.partner img.right {
+    float: left;
 }
 
 div#content .person.top img{

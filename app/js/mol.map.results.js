@@ -107,7 +107,19 @@ mol.modules.map.results = function(mol) {
                 this.bus.addHandler(
                     'search-results',
                     function(event) {
-                        self.results = mol.services.cartodb.convert(event.response);
+                        var response={rows:[]}
+                        _.each(
+                            event.response,
+                            function(sci){
+                                _.each(
+                                    sci,
+                                    function(row) {
+                                        response.rows.push(row);
+                                    }
+                                )
+                            }
+                        )
+                        self.results = mol.services.cartodb.convert(response);
                         self.profile = new mol.map.results.SearchProfile(self.results);
                         if (self.getLayersWithIds(self.results.layers).length > 0) {
                             self.showFilters(self.profile);

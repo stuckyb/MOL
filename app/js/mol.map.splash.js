@@ -21,7 +21,7 @@ mol.modules.map.splash = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: true,
-					    width: "80%",
+					    width: 800,
 					    height: 500,
 					    dialogClass: "mol-splash",
 					    modal: true
