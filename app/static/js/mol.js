@@ -2723,12 +2723,11 @@ mol.modules.map.results = function(mol) {
                             $.post(
                                 'cache/get',
                                 {
-                                    key: 'acsql_{0}'.format(request.term),
+                                    key: 'autocomplete_{0}'.format(request.term),
                                     sql:"SELECT n,v from ac where n~*'\\m" + request.term + "' OR v~*'\\m" + request.term + "'"
                                 },
                                 function (json) {
-                                    var names = [];
-                                    self.names = [];
+                                    var names = [],scinames=[];
                                     _.each (
                                         json.rows,
                                         function(row) {
@@ -2737,19 +2736,23 @@ mol.modules.map.results = function(mol) {
                                                    sci = row.n;
                                                    eng = (row.v == null)? '' : ', {0}'.format(row.v.replace(/'S/g, "'s"));
                                                    names.push({label:'<span class="sci">{0}</span><span class="eng">{1}</span>'.format(sci, eng), value:sci});
-                                                   self.names.push(sci);
+                                                   scinames.push(sci);
 
                                            }
                                        }
                                     );
+                                    if(scinames.length>0) {
+                                        self.names=scinames;
+                                    }
                                     response(names);
                                  },
                                  'json'
                             );
                         },
                         select: function(event, ui) {
-                            self.names=[ui.item.value];
-                            $(this).autocomplete("close");
+
+                        },
+                        close: function(event,ui) {
 
                         }
                   });
@@ -2805,8 +2808,8 @@ mol.modules.map.results = function(mol) {
                  */
                 this.display.goButton.click(
                     function(event) {
-                        $(self.display).autocomplete("close");
-						self.search(self.display.searchBox.val());
+
+						self.search(self.names.join(","));
                     }
                 );
 
@@ -2833,10 +2836,10 @@ mol.modules.map.results = function(mol) {
                     function(event) {
                       var term = event.term;
                       if (event.keyCode === 13) {
+
+
                         if(self.names.length>0) {
                             term = self.names.join(",");
-                        } else {
-                            term = $(this).val().charAt(0).toUpperCase()+$(this).val().substring(1,$(this).val().length);
                         }
                         $(this).autocomplete("close");
                         self.search(term);
@@ -2869,14 +2872,16 @@ mol.modules.map.results = function(mol) {
              */
             search: function(term) {
                         var self = this;
+                        self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search-{0}".format(term)}));
                         $.post(
                             'cartodb/results',
                                 {
                                     names:term
                                 },
                                 function (response) {
-                                    var results = {term:self.names, response:response};
-                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search"}));
+                                    var results = {term:term, response:response};
+                                    $(self.display.searchBox).autocomplete('close');
+                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search-{0}".format(term)}));
                                     self.bus.fireEvent(new mol.bus.Event('search-results', results));
                                 },
                                 'json'
