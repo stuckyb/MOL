@@ -1743,6 +1743,14 @@ mol.modules.map.menu = function(mol) {
                     }
                 ); 
 
+                this.display.feedbackButton.click(
+                    function(Event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('feedback-display-toggle')
+                        );
+                    }
+                ); 
+
                 this.display.searchItem.click(
                     function(event) {
                         self.bus.fireEvent(
@@ -1839,6 +1847,8 @@ mol.modules.map.menu = function(mol) {
                 this.speciesListItem = $(this).find('#list');
                 this.layersToggle = $(this).find('.layersToggle');
                 this.helpButton = $(this).find('#help');
+
+                this.feedbackButton = $('#mol_feedback');
             }
         }
     );
@@ -4501,7 +4511,8 @@ mol.modules.map.help = function(mol) {
              * ignored.
              */
             start: function() {
-                this.display = new mol.map.help.helpDisplay();
+                this.helpDisplay = new mol.map.help.helpDisplay();
+                this.feedbackDisplay = new mol.map.help.feedbackDisplay();
                 this.initDialog();
                 this.addEventHandlers();
             },
@@ -4516,20 +4527,44 @@ mol.modules.map.help = function(mol) {
                             e = null;
 
                         if(event.state === undefined) {
-                            self.display.dialog('open');
+                            self.helpDisplay.dialog('open');
 
                             // This is necessary, because otherwise the
                             // iframe comes out in the wrong size.
-                            $(self.display).width('98%');
+                            $(self.helpDisplay).width('98%');
                         } else {
-                            self.display.dialog(event.state);
+                            self.helpDisplay.dialog(event.state);
                         }
                     }
                 );
+
+                this.bus.addHandler(
+                    'feedback-display-toggle',
+                    function(event) {
+                        var params = null,
+                            e = null;
+
+                        if(event.state === undefined) {
+                            if(self.feedbackDisplay.dialog('isOpen')) {
+                                self.feedbackDisplay.dialog('close');
+                            } else {
+                                self.feedbackDisplay.dialog('open');
+                            }
+
+                            // This is necessary, because otherwise the
+                            // iframe comes out in the wrong size.
+                            $(self.feedbackDisplay).width('98%');
+                        } else {
+                            self.feedbackDisplay.dialog(event.state);
+                        }
+                    }
+                );
+
+
             },
 
             initDialog: function() {
-                this.display.dialog(
+                this.helpDisplay.dialog(
                     {
                         autoOpen: false,
 			dialogClass: "mol-help",
@@ -4537,6 +4572,16 @@ mol.modules.map.help = function(mol) {
                         width: 800
                     }
                 );
+
+                this.feedbackDisplay.dialog(
+                    {
+                        autoOpen: false,
+			dialogClass: "mol-help",
+                        height: 500,
+                        width: 800
+                    }
+                );
+
 
             }
         }
@@ -4547,6 +4592,19 @@ mol.modules.map.help = function(mol) {
             init: function() {
                 var html = '' +
                     '<iframe id="help_dialog" class="mol-help iframe_content" src="https://docs.google.com/document/pub?id=1I64XqsJcoJ8GZAZhy6KmtlhtEht4tlaOrd-g82VFq-w&amp;embedded=true"></iframe>';
+
+                this._super(html);
+
+                // this.iframe_content = $(this).find('.iframe_content');
+            }
+        }
+    );
+
+    mol.map.help.feedbackDisplay = mol.mvp.View.extend(
+        {
+            init: function() {
+                var html = '' +
+                    '<iframe id="feedback_dialog" src="https://docs.google.com/spreadsheet/embeddedform?formkey=dC10Y2ZWNkJXbU5RQWpWbXpJTzhGWEE6MQ" width="760" height="625" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>';
 
                 this._super(html);
 
