@@ -481,31 +481,15 @@ div#footer #footer_links a { font-size: 1.1em; color: #aaa; padding-right: 8px; 
     left: 50%;
     height: auto; 
     color: #fff; 
-    margin-left: -390px;
+    margin-left: -405px;
     padding-bottom: 30px;
 }
-
-#footer_imgs #sponsors {
-    float: right;
-}
-
-#footer_imgs #sponsors img {
-    padding-left: 5px;
-}
-
-#footer_imgs #partners {
-    float: left;
-}
-
-#footer_imgs #partners img {
-    padding-right: 5px;
-}
-
 
 #footer_imgs img{ 
     float: right; 
     height: 42px; 
     opacity: 0.7;
     border: 0px;
+    padding-left: 20px;
 }
 
