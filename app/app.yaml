@@ -38,6 +38,9 @@ handlers:
 - url: /cartodb/.*
   script: cartodb_handler.application
 
+- url: /eol/.*
+  script: eol_handler.application
+
 - url: /api/autocomplete
   script: autocomplete_handler.application
 
