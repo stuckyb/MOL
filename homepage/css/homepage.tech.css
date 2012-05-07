@@ -1,3 +1,9 @@
+/*
+ * Stylesheet for the tech page of the homepage (mappinglife.org/about/tech).
+ * This is VERY redundant with homepage.css, and should be merged into it at
+ * some point.
+ */
+
 body { 
     font-family: 'Coda', sans-serif;
     font-size: 12px;
