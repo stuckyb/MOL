@@ -41,7 +41,7 @@ mol.modules.map.menu = function(mol) {
                             new mol.bus.Event('help-display-dialog')
                         );
                     }
-                ); 
+                );
 
                 this.display.searchItem.click(
                     function(event) {
@@ -123,7 +123,7 @@ mol.modules.map.menu = function(mol) {
                 var html = '' +
                     '<div class="mol-LayerControl-Menu ">' +
                     '    <div class="label">' +
-                    '       <img class="layersToggle" src="/static/maps/layers/collapse.png">' +
+                    '       <img class="layersToggle" height="21px" width="24px" src="/static/maps/layers/collapse.png">' +
                     '    </div>' +
                     '    <div title="Toggle taxonomy dashboard." id="dashboard" class="widgetTheme search button">Dashboard</div>' +
                     '    <div title="Toggle layer search tools." id="search" class="widgetTheme search button">Search</div>' +

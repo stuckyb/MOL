@@ -110,7 +110,7 @@ mol.modules.map.results = function(mol) {
                         var response={rows:[]}
                         _.each(
                             event.response,
-                            function(sci){
+                            function(sci, key, list){
                                 _.each(
                                     sci,
                                     function(row) {

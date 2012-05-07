@@ -10,6 +10,8 @@ mol.modules.map.search = function(mol) {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
+                this.searching = {};
+                this.names = [];
                 this.sql = '' +
                     'SELECT ' +
                     '   s.provider as source, p.title as source_title, p.sourcetype as sourcetype, s.scientificname as name, s.type as type, t.title as type_title, n.name as names, n.class as _class, m.records as feature_count ' +
@@ -98,8 +100,8 @@ mol.modules.map.search = function(mol) {
                             $.post(
                                 'cache/get',
                                 {
-                                    key: 'autocomplete_{0}'.format(request.term),
-                                    sql:"SELECT n,v from ac where n~*'\\m" + request.term + "' OR v~*'\\m" + request.term + "'"
+                                    key: 'ac-sql-{0}'.format(request.term),
+                                    sql:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
                                 },
                                 function (json) {
                                     var names = [],scinames=[];
@@ -111,7 +113,7 @@ mol.modules.map.search = function(mol) {
                                                    sci = row.n;
                                                    eng = (row.v == null)? '' : ', {0}'.format(row.v.replace(/'S/g, "'s"));
                                                    names.push({label:'<span class="sci">{0}</span><span class="eng">{1}</span>'.format(sci, eng), value:sci});
-                                                   scinames.push(sci);
+                                                   scinames.push(sci)
 
                                            }
                                        }
@@ -125,10 +127,20 @@ mol.modules.map.search = function(mol) {
                             );
                         },
                         select: function(event, ui) {
-
+                            self.searching[ui.item.value] = false;
+                            self.names = [ui.item.value];
                         },
                         close: function(event,ui) {
 
+                        },
+                        search: function(event, ui) {
+                            self.searching[$(this).val()] = true;
+                            self.names=[];
+                            self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "autocomplete"}));
+                        },
+                        open: function(event, ui) {
+                            self.searching[$(this).val()] = false;
+                            self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
                         }
                   });
             },
@@ -209,16 +221,27 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.searchBox.keyup(
                     function(event) {
-                      var term = event.term;
                       if (event.keyCode === 13) {
 
-
-                        if(self.names.length>0) {
-                            term = self.names.join(",");
+                        //user hit return before autocomplete got a result.
+                        if (self.searching[$(this).val()] == undefined || self.searching[$(this).val()]) {
+                             $(self.display.searchBox).one(
+                                "autocompleteopen",
+                                function(event, ui) {
+                                    self.searching = false;
+                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
+                                    term = self.names.join(",");
+                                    $(this).autocomplete("close");
+                                    self.search(term);
+                                }
+                             );
+                            $(this).autocomplete("search",$(this).val())
+                        } else if (self.names.length>0 && !self.searching[$(this).val()]) {
+                                term = self.names.join(",");
+                                $(this).autocomplete("close");
+                                self.search(term);
+                            }
                         }
-                        $(this).autocomplete("close");
-                        self.search(term);
-                      }
                     }
                 );
             },
@@ -248,6 +271,7 @@ mol.modules.map.search = function(mol) {
             search: function(term) {
                         var self = this;
                         self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search-{0}".format(term)}));
+                        self.bus.fireEvent(new mol.bus.Event('results-display-toggle',{visible : false}));
                         $.post(
                             'cartodb/results',
                                 {

@@ -1741,7 +1741,7 @@ mol.modules.map.menu = function(mol) {
                             new mol.bus.Event('help-display-dialog')
                         );
                     }
-                ); 
+                );
 
                 this.display.searchItem.click(
                     function(event) {
@@ -1823,7 +1823,7 @@ mol.modules.map.menu = function(mol) {
                 var html = '' +
                     '<div class="mol-LayerControl-Menu ">' +
                     '    <div class="label">' +
-                    '       <img class="layersToggle" src="/static/maps/layers/collapse.png">' +
+                    '       <img class="layersToggle" height="21px" width="24px" src="/static/maps/layers/collapse.png">' +
                     '    </div>' +
                     '    <div title="Toggle taxonomy dashboard." id="dashboard" class="widgetTheme search button">Dashboard</div>' +
                     '    <div title="Toggle layer search tools." id="search" class="widgetTheme search button">Search</div>' +
@@ -1958,7 +1958,7 @@ mol.modules.map.results = function(mol) {
                         var response={rows:[]}
                         _.each(
                             event.response,
-                            function(sci){
+                            function(sci, key, list){
                                 _.each(
                                     sci,
                                     function(row) {
@@ -2635,6 +2635,8 @@ mol.modules.map.results = function(mol) {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
+                this.searching = {};
+                this.names = [];
                 this.sql = '' +
                     'SELECT ' +
                     '   s.provider as source, p.title as source_title, p.sourcetype as sourcetype, s.scientificname as name, s.type as type, t.title as type_title, n.name as names, n.class as _class, m.records as feature_count ' +
@@ -2723,8 +2725,8 @@ mol.modules.map.results = function(mol) {
                             $.post(
                                 'cache/get',
                                 {
-                                    key: 'autocomplete_{0}'.format(request.term),
-                                    sql:"SELECT n,v from ac where n~*'\\m" + request.term + "' OR v~*'\\m" + request.term + "'"
+                                    key: 'ac-sql-{0}'.format(request.term),
+                                    sql:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
                                 },
                                 function (json) {
                                     var names = [],scinames=[];
@@ -2736,7 +2738,7 @@ mol.modules.map.results = function(mol) {
                                                    sci = row.n;
                                                    eng = (row.v == null)? '' : ', {0}'.format(row.v.replace(/'S/g, "'s"));
                                                    names.push({label:'<span class="sci">{0}</span><span class="eng">{1}</span>'.format(sci, eng), value:sci});
-                                                   scinames.push(sci);
+                                                   scinames.push(sci)
 
                                            }
                                        }
@@ -2750,10 +2752,20 @@ mol.modules.map.results = function(mol) {
                             );
                         },
                         select: function(event, ui) {
-
+                            self.searching[ui.item.value] = false;
+                            self.names = [ui.item.value];
                         },
                         close: function(event,ui) {
 
+                        },
+                        search: function(event, ui) {
+                            self.searching[$(this).val()] = true;
+                            self.names=[];
+                            self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "autocomplete"}));
+                        },
+                        open: function(event, ui) {
+                            self.searching[$(this).val()] = false;
+                            self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
                         }
                   });
             },
@@ -2834,16 +2846,27 @@ mol.modules.map.results = function(mol) {
                  */
                 this.display.searchBox.keyup(
                     function(event) {
-                      var term = event.term;
                       if (event.keyCode === 13) {
 
-
-                        if(self.names.length>0) {
-                            term = self.names.join(",");
+                        //user hit return before autocomplete got a result.
+                        if (self.searching[$(this).val()] == undefined || self.searching[$(this).val()]) {
+                             $(self.display.searchBox).one(
+                                "autocompleteopen",
+                                function(event, ui) {
+                                    self.searching = false;
+                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
+                                    term = self.names.join(",");
+                                    $(this).autocomplete("close");
+                                    self.search(term);
+                                }
+                             );
+                            $(this).autocomplete("search",$(this).val())
+                        } else if (self.names.length>0 && !self.searching[$(this).val()]) {
+                                term = self.names.join(",");
+                                $(this).autocomplete("close");
+                                self.search(term);
+                            }
                         }
-                        $(this).autocomplete("close");
-                        self.search(term);
-                      }
                     }
                 );
             },
@@ -2873,6 +2896,7 @@ mol.modules.map.results = function(mol) {
             search: function(term) {
                         var self = this;
                         self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search-{0}".format(term)}));
+                        self.bus.fireEvent(new mol.bus.Event('results-display-toggle',{visible : false}));
                         $.post(
                             'cartodb/results',
                                 {
@@ -4457,16 +4481,16 @@ mol.modules.map.splash = function(mol) {
                 var html = '' +
         '<div>' +
         '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:350px; width: 95%;" src="https://docs.google.com/document/pub?id=1vrttRdCz4YReWFq5qQmm4K6WmyWayiouEYrYtPrAyvY&amp;embedded=true"></iframe>' +
-	'<div id="footer_imgs" style="text-align: center">' + 
-        '<div>Our sponsors and partners</div>' + 
-	'<a target="_blank" href="http://www.nsf.gov/"><button><img title="National Science Foundation" src="http://www.mappinglife.org/static/home/nsf.png"></button></a>' + 
-	'<a target="_blank" href="http://www.nasa.gov/"><button><img title="National Aeronautics and Space Administration" src="http://www.mappinglife.org/static/home/nasa.png"></button></a>' + 
-	'<a target="_blank" href="http://www.nceas.ucsb.edu/"><button><img title="National Center for Ecological Analysis and Synthesis" src="http://www.mappinglife.org/static/home/nceas.png"></button></a>' + 
-	'<a target="_blank" href="http://www.iplantcollaborative.org/"><button><img title="iPlant Collaborative" src="http://www.mappinglife.org/static/home/iplant.png"></button></a>' + 
-	'<a target="_blank" href="http://www.mountainbiodiversity.org/"><button><img title="Global Mountain Biodiversity Assessment" src="http://www.mappinglife.org/static/home/gmba.png"></button></a>' + 
-	'<a target="_blank" href="http://www.senckenberg.de"><button><img title="Senckenberg" src="http://www.mappinglife.org/static/home/senckenberg.png"></button></a>' + 
-	'<a target="_blank" href="http://www.bik-f.de/"><button><img title="Biodiversität und Klima Forschungszentrum (BiK-F)" src="http://www.mappinglife.org/static/home/bik_bildzeichen.png"></button></a>' + 
-	'<a target="_blank" href="http://www.eol.org/"><button><img title="Encyclopedia of Life" src="http://www.mappinglife.org/static/home/eol.png"></button></a>' + 
+	'<div id="footer_imgs" style="text-align: center">' +
+        '<div>Our sponsors and partners</div>' +
+	'<a target="_blank" href="http://www.nsf.gov/"><button><img width="32px" height="32px" title="National Science Foundation" src="http://www.mappinglife.org/static/home/nsf.png"></button></a>' +
+	'<a target="_blank" href="http://www.nasa.gov/"><button><img width="37px" height="32px" title="National Aeronautics and Space Administration" src="http://www.mappinglife.org/static/home/nasa.png"></button></a>' +
+	'<a target="_blank" href="http://www.nceas.ucsb.edu/"><button><img width="30px" height="32px" title="National Center for Ecological Analysis and Synthesis" src="http://www.mappinglife.org/static/home/nceas.png"></button></a>' +
+	'<a target="_blank" href="http://www.iplantcollaborative.org/"><button><img width="105px" height="32px" title="iPlant Collaborative" src="http://www.mappinglife.org/static/home/iplant.png"></button></a>' +
+	'<a target="_blank" href="http://www.mountainbiodiversity.org/"><button><img width="59px" height="32px" title="Global Mountain Biodiversity Assessment" src="http://www.mappinglife.org/static/home/gmba.png"></button></a>' +
+	'<a target="_blank" href="http://www.senckenberg.de"><button><img width="81px" height="32px"title="Senckenberg" src="http://www.mappinglife.org/static/home/senckenberg.png"></button></a>' +
+	'<a target="_blank" href="http://www.bik-f.de/"><button><img width="74px" height="32px" title="Biodiversität und Klima Forschungszentrum (BiK-F)" src="http://www.mappinglife.org/static/home/bik_bildzeichen.png"></button></a>' +
+	'<a target="_blank" href="http://www.eol.org/"><button><img width="51px" height="32px" title="Encyclopedia of Life" src="http://www.mappinglife.org/static/home/eol.png"></button></a>' +
 	'</div>' +
         '</div>';
 
