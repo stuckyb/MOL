@@ -4,6 +4,9 @@
  *  @version: 1.0.2 (5/11/2007)
  *  Documentation and examples at: http://www.malsup.com/jquery/gfeed/
  *  Free beer and free speech. Enjoy!
+ *
+ *  We use this code on the homepage (mappinglife.org/about) to display
+ *  feeds from our Github repos.
  */
 (function($) {
 
