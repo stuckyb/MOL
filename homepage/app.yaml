@@ -1,58 +1,21 @@
 application: mol-lab
 version: axh
-runtime: python
+runtime: python27
+threadsafe: true
 api_version: 1
 
 builtins:
-- datastore_admin: on
-- appstats: on
 - remote_api: on
 
 handlers:
-- url: /mapreduce(/.*)?
-  script: mapreduce/main.py
-  login: admin
-
-- url: /hooks/.*
-  script: app.py
-  
-- url: /admin/.*
-  script: app.py
-  login: admin
-  
-- url: /cron/.*
-  script: cron.py
-  login: admin
-  
-- url: /andrew
-  script: app.py
-
-- url: /js
-  static_dir: js
-  
 - url: /css
   static_dir: css
 
+- url: /js
+  static_dir: js
+
 - url: /static
   static_dir: static
-
-- url: /search/.*
-  script: mol/api/__init__.py
- 
-- url: /data/.*
-  script: mol/api/__init__.py
-
-- url: /util/.*
-  script: mol/api/__init__.py
-
-- url: /test/.*
-  script: mol/api/__init__.py
-
-- url: /webapp/.*
-  script: mol/api/__init__.py
-
-- url: /webapp
-  script: mol/api/__init__.py
 
 - url: /sitemap.xml
   static_files: static/config/sitemap.xml
@@ -63,4 +26,4 @@ handlers:
   upload: static/config/robots.txt
   
 - url: /.*
-  script: app.py
+  script: app.application
