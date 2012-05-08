@@ -24,7 +24,10 @@ else:
 
 app_id = os.environ['CURRENT_VERSION_ID'].split('.')[0]
 if PROD:
-    app_host = 'http://%s.map-of-life.appspot.com' % app_id
+    host_prefix = 'http'
+    if os.environ['SERVER_PORT'] == 443:
+        host_prefix = 'https'
+    app_host = host_prefix + '://' + os.environ['SERVER_NAME'] 
 else:
     app_host = 'http://localhost:8080'
 
