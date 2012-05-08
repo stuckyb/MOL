@@ -26,4 +26,4 @@ handlers:
   upload: static/config/robots.txt
   
 - url: /.*
-  script: app.application
+  script: homepage.application
