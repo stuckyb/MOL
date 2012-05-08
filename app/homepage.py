@@ -45,8 +45,12 @@ class BaseHandler(webapp.RequestHandler):
         self.response.out.write(template.render(path, template_args))
 
     def push_html(self, f):
-        path = os.path.join(os.path.dirname(__file__), "html", f)
+        path = os.path.join(os.path.dirname(__file__), "templates/homepage", f)
         self.response.out.write(open(path, 'r').read())
+
+class AboutPage(BaseHandler):
+    def get(self):
+        self.push_html('about.html')
 
 class PeoplePage(BaseHandler):
     def get(self):
@@ -60,30 +64,22 @@ class TechPage(BaseHandler):
     def get(self):
         self.push_html('tech.html')
 
-class BlogPage(BaseHandler):
-    def get(self):
-        self.push_html('blog.html')
-
 class DemoPage(BaseHandler):
     def get(self):
         self.push_html('demo.html')
-
-class AboutPage(BaseHandler):
-    def get(self):
-        self.push_html('about.html')
 
 class MainPage(BaseHandler):
     def get(self):
         self.push_html('home.html')
 
 application = webapp.WSGIApplication(
-         [('/', MainPage),
-          ('/about', AboutPage),
-          ('/tech', TechPage),
-          ('/demo', DemoPage),
-          ('/blog', BlogPage),
-          ('/people', PeoplePage),
-          ('/partners', PartnersPage)],
+         [('/about', MainPage),
+          ('/about/', MainPage),
+          ('/about/more', AboutPage),
+          ('/about/tech', TechPage),
+          ('/about/demo', DemoPage),
+          ('/about/people', PeoplePage),
+          ('/about/partners', PartnersPage)],
          debug=True)
 
 def main():
