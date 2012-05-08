@@ -122,6 +122,7 @@ mol.modules.map.search = function(mol) {
                                         self.names=scinames;
                                     }
                                     response(names);
+                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
                                  },
                                  'json'
                             );
@@ -129,6 +130,7 @@ mol.modules.map.search = function(mol) {
                         select: function(event, ui) {
                             self.searching[ui.item.value] = false;
                             self.names = [ui.item.value];
+                            self.search(ui.item.value);
                         },
                         close: function(event,ui) {
 
@@ -171,6 +173,12 @@ mol.modules.map.search = function(mol) {
 
                         e = new mol.bus.Event('results-display-toggle', params);
                         self.bus.fireEvent(e);
+                    }
+                );
+                this.bus.addHandler(
+                    'close-autocomplete',
+                    function(event) {
+                        $(self.display.searchBox).autocomplete("close");
                     }
                 );
                 this.bus.addHandler(
@@ -222,7 +230,8 @@ mol.modules.map.search = function(mol) {
                 this.display.searchBox.keyup(
                     function(event) {
                       if (event.keyCode === 13) {
-
+                        $(this).autocomplete("close");
+                         self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
                         //user hit return before autocomplete got a result.
                         if (self.searching[$(this).val()] == undefined || self.searching[$(this).val()]) {
                              $(self.display.searchBox).one(
@@ -231,14 +240,14 @@ mol.modules.map.search = function(mol) {
                                     self.searching = false;
                                     self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
                                     term = self.names.join(",");
-                                    $(this).autocomplete("close");
+                                    $(self.display.searchBox).autocomplete("close");
                                     self.search(term);
                                 }
                              );
                             $(this).autocomplete("search",$(this).val())
                         } else if (self.names.length>0 && !self.searching[$(this).val()]) {
                                 term = self.names.join(",");
-                                $(this).autocomplete("close");
+                                $(self.display.searchBox).autocomplete("close");
                                 self.search(term);
                             }
                         }
@@ -272,6 +281,8 @@ mol.modules.map.search = function(mol) {
                         var self = this;
                         self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search-{0}".format(term)}));
                         self.bus.fireEvent(new mol.bus.Event('results-display-toggle',{visible : false}));
+                        $(self.display.searchBox).autocomplete('disable');
+                        $(self.display.searchBox).autocomplete('enable');
                         $.post(
                             'cartodb/results',
                                 {
@@ -279,7 +290,6 @@ mol.modules.map.search = function(mol) {
                                 },
                                 function (response) {
                                     var results = {term:term, response:response};
-                                    $(self.display.searchBox).autocomplete('close');
                                     self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search-{0}".format(term)}));
                                     self.bus.fireEvent(new mol.bus.Event('search-results', results));
                                 },

@@ -119,6 +119,7 @@ mol.modules.map.results = function(mol) {
                                 )
                             }
                         )
+                        self.bus.fireEvent(new mol.bus.Event('close-autocomplete'));
                         self.results = mol.services.cartodb.convert(response);
                         self.profile = new mol.map.results.SearchProfile(self.results);
                         if (self.getLayersWithIds(self.results.layers).length > 0) {

@@ -194,7 +194,7 @@ mol.modules.map = function(mol) {
                  * object {name, type} and event.showing is true if the layer
                  * is showing, false otherwise.
                  */
-                this.bus.addHandler(
+               /* this.bus.addHandler(
                     'layer-toggle',
                     function(event) {
                         var name = event.layer.name,
@@ -216,7 +216,7 @@ mol.modules.map = function(mol) {
                  * object {name, type} and event.showing is true if the layer
                  * is showing, false otherwise.
                  */
-                this.bus.addHandler(
+                /*this.bus.addHandler(
                     'toggle-overlays',
                     function(event) {
                         var toggle = event.toggle,
@@ -240,7 +240,7 @@ mol.modules.map = function(mol) {
                         }
 
                     }
-                );
+                );*/
                 this.bus.addHandler(
                     'add-map-control',
 

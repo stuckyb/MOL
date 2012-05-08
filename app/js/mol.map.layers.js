@@ -283,7 +283,7 @@ mol.modules.map.layers = function(mol) {
 
                         //select first layer by default
                         if(self.map.overlayMapTypes.length==1) {
-                            l.layer.onclick();
+                            $(l.layer).addClass('.selected')
                         }
 
                         // Click handler for info button fires 'metadata-toggle'
