@@ -542,7 +542,7 @@ mol.modules.map.results = function(mol) {
                 mapped_name = name_mappings[name];
 
                 if(name == "All") {
-                    this._super('<div id="{0}" class="option" style="text-align: right; margin-right: 10px;"><strong>all</strong></div>'.format(name, mapped_name));
+                    this._super('<div id="{0}" class="option" style="text-align: right; margin-right: 10px;"><span class="option_text"><strong>all</strong></span></div>'.format(name, mapped_name));
                 } else if(!mapped_name) {
                     this._super('<div id="{0}" class="option"><span class="option_text">{1}</span></div>'.format(name, name));
                 } else
