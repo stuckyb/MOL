@@ -43,6 +43,14 @@ mol.modules.map.menu = function(mol) {
                     }
                 );
 
+                this.display.feedbackButton.click(
+                    function(Event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('feedback-display-toggle')
+                        );
+                    }
+                ); 
+
                 this.display.searchItem.click(
                     function(event) {
                         self.bus.fireEvent(
@@ -139,6 +147,8 @@ mol.modules.map.menu = function(mol) {
                 this.speciesListItem = $(this).find('#list');
                 this.layersToggle = $(this).find('.layersToggle');
                 this.helpButton = $(this).find('#help');
+
+                this.feedbackButton = $('#mol_feedback');
             }
         }
     );
