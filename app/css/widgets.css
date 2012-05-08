@@ -700,9 +700,14 @@ padding: 3px;
 }
 
 .mol-LayerControl-Results .filters .filter .option.selected {
-    text-decoration: underline;
     cursor: pointer;
 }
+
+.mol-LayerControl-Results .filters .filter .option.selected .option_text {
+    text-decoration: underline;
+}
+
+
 
 .mol-LayerControl-Results .filters .filter .option .hidden {
     visibility: hidden;
