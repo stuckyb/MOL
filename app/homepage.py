@@ -15,22 +15,11 @@
 # limitations under the License.
 #
 
-from google.appengine.api import apiproxy_stub, apiproxy_stub_map, urlfetch
-from google.appengine.api import images
 from google.appengine.api import memcache as m, mail
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
-from xml.etree import ElementTree as etree
-import cStringIO, datetime, random
-import logging
-import math
 import os
-import png
-import random
-import re
-import simplejson
-import urllib
 
 memcache = m.Client()
 
