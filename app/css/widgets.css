@@ -147,7 +147,7 @@ button:hover{
     padding: 5px;
     width: 90px;
 }
-.mol-LayerControl-Menu div:first-child{
+.mol-LayerControl-Menu div:last-child{
     -moz-border-radius-topleft: 3px;
     border-top-left-radius: 3px;
     -moz-border-radius-bottomleft: 3px;

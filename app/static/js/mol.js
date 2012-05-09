@@ -4713,16 +4713,16 @@ mol.modules.map.sidebar = function(mol) {
             init: function() {
                 var html = '' +
                     '<div class="mol-Sidebar">' +
-                    '    <button title="About the Map of Life Project." class="widgetTheme about button">About</button>' +
-                    '    <button title="Submit feedback." class="widgetTheme feedback button">Feedback</button>' +
-                    '    <button title="Get help." class="widgetTheme help button">Help</button>' +
+                    '    <div title="About the Map of Life Project." class="widgetTheme about button">About</div>' +
+                    '    <div title="Submit feedback." class="widgetTheme feedback button">Feedback</div>' +
+                    '    <div title="Get help." class="widgetTheme help button">Help</div>' +
                     '</div>';
 
                 this._super(html);
                 this.about = $(this).find('.about');
                 this.help = $(this).find('.help');
                 this.feedback = $(this).find('.feedback');
-                $(this).attr("style").left = $(this).width()/2+'px';
+
             }
         }
     );
