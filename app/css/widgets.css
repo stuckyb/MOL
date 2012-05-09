@@ -94,6 +94,41 @@ button:hover{
  * Layer Stack
  */
 
+
+.mol-Sidebar  {
+        position:absolute;
+        left:-75px;
+        white-space:nowrap;
+         -moz-transform: rotate(-90deg);  /* FF3.5+ */
+       -o-transform: rotate(-90deg);  /* Opera 10.5 */
+  -webkit-transform: rotate(-90deg);  /* Saf3.1+, Chrome */
+             filter:  progid:DXImageTransform.Microsoft.BasicImage(rotation=-1.571);  /* IE6,IE7 */
+         -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=-1.571)"; /* IE8 */
+
+
+}
+.mol-Sidebar div:first-child{
+    -moz-border-radius-topleft: 3px;
+    border-top-left-radius: 3px;
+    -moz-border-radius-bottomleft: 3px;
+    border-bottom-left-radius: 3px;
+}
+.mol-Sidebar div:last-child{
+    -moz-border-radius-topright: 3px;
+    border-top-right-radius: 3px;
+    -moz-border-radius-bottomright: 3px;
+    border-bottom-right-radius: 3px;
+}
+.mol-Sidebar .button{
+        display:inline-block;
+        padding:6px;
+        margin:0px;
+        cursor:pointer;
+        margin:-3px;
+        left:-82PX;
+
+}
+
 .mol-LayerControl-Menu {
     width: 100%;
     float: left;
@@ -112,7 +147,7 @@ button:hover{
     padding: 5px;
     width: 90px;
 }
-.mol-LayerControl-Menu div.add{
+.mol-LayerControl-Menu div:first-child{
     -moz-border-radius-topleft: 3px;
     border-top-left-radius: 3px;
     -moz-border-radius-bottomleft: 3px;

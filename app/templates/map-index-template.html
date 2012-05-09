@@ -49,6 +49,7 @@
      <script type="text/javascript" src="../../../js/mol.map.metadata.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.splash.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.help.js"></script>
+     <script type="text/javascript" src="../../../js/mol.map.sidebar.js"></script>
     {% endif %}
 
     <meta charset="utf-8" />
@@ -70,8 +71,7 @@
   </head>
   <body>
     <div id="map_container" class="map_container"></div>
-    <div style="position:fixed; z-index: 999; left: -5px; top: 320px; width: 16px; height: 100px;"><button id="mol_feedback"><img src="/static/buttons/feedback_fr.png"></button></div>
-	 <script type="text/javascript">
+    <script type="text/javascript">
       $(document).ready(function() {
           {% if prod %}
           <!-- Production, so load app without logging and run it. -->
@@ -106,6 +106,8 @@
              spe.start()
              hd = new env.map.help.HelpDialog(proxy, bus)
              hd.start()
+             sb = new env.map.sidebar.SidebarEngine(proxy, bus)
+             sb.start()
           });
           {% else %}
           env = mol(function(env) {
@@ -139,6 +141,8 @@
              spe.start()
              hd = new env.map.help.HelpDialog(proxy, bus)
              hd.start()
+             sb = new env.map.sidebar.SidebarEngine(proxy, bus)
+             sb.start()
           });
           {% endif %}
       });

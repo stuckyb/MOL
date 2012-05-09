@@ -49,7 +49,7 @@ mol.modules.map.menu = function(mol) {
                             new mol.bus.Event('feedback-display-toggle')
                         );
                     }
-                ); 
+                );
 
                 this.display.searchItem.click(
                     function(event) {
@@ -134,10 +134,9 @@ mol.modules.map.menu = function(mol) {
                     '       <img class="layersToggle" height="21px" width="24px" src="/static/maps/layers/collapse.png">' +
                     '    </div>' +
                     '    <div title="Toggle taxonomy dashboard." id="dashboard" class="widgetTheme search button">Dashboard</div>' +
-                    '    <div title="Toggle layer search tools." id="search" class="widgetTheme search button">Search</div>' +
                     '    <div title="Toggle map legend." id="legend" class="widgetTheme legend button">Legend</div>' +
                     '    <div title="Toggle species list radius tool (right-click to use)" id="list" class="widgetTheme legend button">Species&nbsp;Lists</div>' +
-                    '    <div title="Display help" id="help" class="widgetTheme list button" style="width: 50px">Help</div>' +
+                    '    <div title="Toggle layer search tools." id="search" class="widgetTheme search button">Search</div>' +
                     '</div>';
 
                 this._super(html);

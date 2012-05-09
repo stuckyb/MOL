@@ -15,7 +15,8 @@ mol.modules.map = function(mol) {
             'basemap',
             'metadata',
             'splash',
-            'help'
+            'help',
+            'sidebar'
     ];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
@@ -58,6 +59,12 @@ mol.modules.map = function(mol) {
                 controls[ControlPosition.TOP_LEFT].clear();
                 controls[ControlPosition.TOP_LEFT].push(this.ctlLeft.element);
 
+                // Add left center map control.
+                this.ctlLeftCenter = new ControlDisplay('LeftCenterControl');
+                controls[ControlPosition.LEFT_CENTER].clear();
+                controls[ControlPosition.LEFT_CENTER].push(this.ctlLeftCenter.element);
+
+
                 // Add bottom left map control.
                 this.ctlBottom = new ControlDisplay('LeftBottomControl');
                 controls[ControlPosition.BOTTOM_LEFT].clear();
@@ -88,6 +95,9 @@ mol.modules.map = function(mol) {
                     break;
                 case ControlPosition.TOP_LEFT:
                     control = this.ctlLeft;
+                    break;
+                case ControlPosition.LEFT_CENTER:
+                    control = this.ctlLeftCenter;
                     break;
                 case ControlPosition.BOTTOM_LEFT:
                     control = this.ctlBottom;

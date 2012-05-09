@@ -670,7 +670,8 @@ mol.modules.map = function(mol) {
             'basemap',
             'metadata',
             'splash',
-            'help'
+            'help',
+            'sidebar'
     ];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
@@ -713,6 +714,12 @@ mol.modules.map = function(mol) {
                 controls[ControlPosition.TOP_LEFT].clear();
                 controls[ControlPosition.TOP_LEFT].push(this.ctlLeft.element);
 
+                // Add left center map control.
+                this.ctlLeftCenter = new ControlDisplay('LeftCenterControl');
+                controls[ControlPosition.LEFT_CENTER].clear();
+                controls[ControlPosition.LEFT_CENTER].push(this.ctlLeftCenter.element);
+
+
                 // Add bottom left map control.
                 this.ctlBottom = new ControlDisplay('LeftBottomControl');
                 controls[ControlPosition.BOTTOM_LEFT].clear();
@@ -743,6 +750,9 @@ mol.modules.map = function(mol) {
                     break;
                 case ControlPosition.TOP_LEFT:
                     control = this.ctlLeft;
+                    break;
+                case ControlPosition.LEFT_CENTER:
+                    control = this.ctlLeftCenter;
                     break;
                 case ControlPosition.BOTTOM_LEFT:
                     control = this.ctlBottom;
@@ -1695,7 +1705,7 @@ mol.modules.map.menu = function(mol) {
                             new mol.bus.Event('feedback-display-toggle')
                         );
                     }
-                ); 
+                );
 
                 this.display.searchItem.click(
                     function(event) {
@@ -1780,10 +1790,9 @@ mol.modules.map.menu = function(mol) {
                     '       <img class="layersToggle" height="21px" width="24px" src="/static/maps/layers/collapse.png">' +
                     '    </div>' +
                     '    <div title="Toggle taxonomy dashboard." id="dashboard" class="widgetTheme search button">Dashboard</div>' +
-                    '    <div title="Toggle layer search tools." id="search" class="widgetTheme search button">Search</div>' +
                     '    <div title="Toggle map legend." id="legend" class="widgetTheme legend button">Legend</div>' +
                     '    <div title="Toggle species list radius tool (right-click to use)" id="list" class="widgetTheme legend button">Species&nbsp;Lists</div>' +
-                    '    <div title="Display help" id="help" class="widgetTheme list button" style="width: 50px">Help</div>' +
+                    '    <div title="Toggle layer search tools." id="search" class="widgetTheme search button">Search</div>' +
                     '</div>';
 
                 this._super(html);
@@ -4620,6 +4629,100 @@ mol.modules.map.help = function(mol) {
                 this._super(html);
 
                 // this.iframe_content = $(this).find('.iframe_content');
+            }
+        }
+    );
+};
+
+
+
+mol.modules.map.sidebar = function(mol) {
+
+    mol.map.sidebar = {};
+
+    mol.map.sidebar.SidebarEngine = mol.mvp.Engine.extend(
+        {
+            init: function(proxy, bus) {
+                this.proxy = proxy;
+                this.bus = bus;
+            },
+
+            /**
+             * Starts the MenuEngine. Note that the container parameter is
+             * ignored.
+             */
+            start: function() {
+                this.display = new mol.map.sidebar.SidebarDisplay();
+                this.display.toggle(true);
+                this.addEventHandlers();
+                this.fireEvents();
+            },
+
+            /**
+             * Adds a handler for the 'search-display-toggle' event which
+             * controls display visibility. Also adds UI event handlers for the
+             * display.
+             */
+            addEventHandlers: function() {
+                var self = this;
+
+                this.display.about.click(
+                    function(Event) {
+                        window.open('/about/');
+                    }
+                );
+
+
+                this.display.help.click(
+                    function(Event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('help-display-dialog')
+                        );
+                    }
+                );
+
+                this.display.feedback.click(
+                    function(Event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('feedback-display-toggle')
+                        );
+                    }
+                );
+
+
+            },
+
+            /**
+             * Fires the 'add-map-control' event. The mol.map.MapEngine handles
+             * this event and adds the display to the map.
+             */
+            fireEvents: function() {
+                var params = {
+                        display: this.display,
+                        slot: mol.map.ControlDisplay.Slot.FIRST,
+                        position: google.maps.ControlPosition.LEFT_CENTER
+                    },
+                    event = new mol.bus.Event('add-map-control', params);
+
+                this.bus.fireEvent(event);
+            }
+        }
+    );
+     mol.map.sidebar.SidebarDisplay = mol.mvp.View.extend(
+        {
+            init: function() {
+                var html = '' +
+                    '<div class="mol-Sidebar">' +
+                    '    <button title="About the Map of Life Project." class="widgetTheme about button">About</button>' +
+                    '    <button title="Submit feedback." class="widgetTheme feedback button">Feedback</button>' +
+                    '    <button title="Get help." class="widgetTheme help button">Help</button>' +
+                    '</div>';
+
+                this._super(html);
+                this.about = $(this).find('.about');
+                this.help = $(this).find('.help');
+                this.feedback = $(this).find('.feedback');
+                $(this).attr("style").left = $(this).width()/2+'px';
             }
         }
     );
