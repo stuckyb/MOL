@@ -219,7 +219,7 @@ class Query(object):
             self.q.task_done()
 
 def create_autocomplete_index():
-    #names()
+    names()
     writer = csv_unicode.UnicodeDictWriter(open('names_index.csv', 'w'), ['id', 'string'])
     writer.writeheader()
     conn = setup_cacheitem_db()
