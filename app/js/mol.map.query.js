@@ -353,7 +353,7 @@ mol.modules.map.query = function(mol) {
                         $(self.display.types).find('.ecoregion').toggle(false);
                         $(self.display.types).find('.ecoregion').removeClass('selected');
                         if($(self.display.types).find('.range').hasClass('selected')) {
-                            alert('Available for North America only.');
+                           alert('Available for North America only.');
                         };
 
                     } else if($(this).val().toLowerCase().indexOf('reptil')>0) {
@@ -380,7 +380,7 @@ mol.modules.map.query = function(mol) {
         init : function(names) {
             var className = 'mol-Map-QueryDisplay',
                 html = '' +
-                        '<div title="Use this control to select species group and radius. Then right click (Mac Users: \'control-click\') on focal location on map. Note that currently type \'Expert map\' is not available outside N America for for Reptiles and Fishes and actual search radius for type \'Ecoregion\' varies strongly by region." class="' + className + ' widgetTheme">' +
+                        '<div title="Use this control to select species group and radius. Then right click (Mac Users: \'control-click\') on focal location on map." class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
                         '     Search Radius <select class="radius">' +
                         '       <option selected value="50">50 km</option>' +

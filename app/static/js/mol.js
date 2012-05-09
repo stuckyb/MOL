@@ -3825,14 +3825,21 @@ mol.modules.map.query = function(mol) {
                     if($(this).val().toLowerCase().indexOf('fish')>0) {
                         $(self.display.types).find('.ecoregion').toggle(false);
                         $(self.display.types).find('.ecoregion').removeClass('selected');
-                        $(self.display.types).find('.range').addClass('selected');
-                    } else if($(this).val().toLowerCase().indexOf('reptil')) {
+                        if($(self.display.types).find('.range').hasClass('selected')) {
+                           alert('Available for North America only.');
+                        };
+
+                    } else if($(this).val().toLowerCase().indexOf('reptil')>0) {
                         $(self.display.types).find('.ecoregion').toggle(true);
                         $(self.display.types).find('.ecoregion').removeClass('selected');
-                        $(self.display.types).find('.range').addClass('selected');
+                        //$(self.display.types).find('.range').addClass('selected');
+                        if($(self.display.types).find('.range').hasClass('selected')) {
+                            alert('Available for North America only.');
+                        };
                     } else {
-                        $(self.display.types).find('.ecoregion').toggle(true);
+                        $(self.display.types).find('.ecoregion').toggle(false);
                         $(self.display.types).find('.range').toggle(true);
+                        $(self.display.types).find('.range').addClass('selected');
                     }
 
                 }
@@ -3846,7 +3853,7 @@ mol.modules.map.query = function(mol) {
         init : function(names) {
             var className = 'mol-Map-QueryDisplay',
                 html = '' +
-                        '<div title="Use this control to select species group and radius. Then right click (Mac Users: \'control-click\') on focal location on map. Note that currently type \'Expert map\' is not available outside N America for for Reptiles and Fishes and actual search radius for type \'Ecoregion\' varies strongly by region." class="' + className + ' widgetTheme">' +
+                        '<div title="Use this control to select species group and radius. Then right click (Mac Users: \'control-click\') on focal location on map." class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
                         '     Search Radius <select class="radius">' +
                         '       <option selected value="50">50 km</option>' +
@@ -3873,6 +3880,7 @@ mol.modules.map.query = function(mol) {
             this.radiusInput=$(this).find('.radius');
             this.classInput=$(this).find('.class');
             this.types=$(this).find('.types');
+            $(this.types).find('.ecoregion').toggle(false);
         }
     }
     );
@@ -3953,12 +3961,21 @@ mol.modules.map.query = function(mol) {
             var className = 'mol-Map-LegendDisplay',
                 html = '' +
                         '<div class="' + className + ' widgetTheme">' +
-                        '       Seasonality Key' +
-                        '       <div class="legendRow"><div class="seasonality1 legendItem"></div> Resident</div>' +
-                        '       <div class="legendRow"><div class="seasonality2 legendItem"></div> Breeding Season</div>' +
-                        '       <div class="legendRow"><div class="seasonality3 legendItem"></div> Non-breeding Season</div>' +
-                        '       <div class="legendRow"><div class="seasonality4 legendItem"></div> Passage</div>' +
-                        '       <div class="legendRow"><div class="seasonality5 legendItem"></div> Seasonality Uncertain</div>' +
+                        '       <div class="legendCategory">' +
+                        '           Type' +
+                        '           <div class="legendRow"><div class="ecoregion legendItem"></div> Regional checklist</div>' +
+                        '           <div class="legendRow"><div class="protectedarea legendItem"></div> Local inventory</div>' +
+                        '           <div class="legendRow"><div class="seasonality1 legendItem narrow"></div><div class="seasonality2 legendItem narrow"></div><div class="seasonality3 legendItem narrow"></div><div class="seasonality4 legendItem narrow"></div><div class="seasonality5 legendItem narrow"></div> Expert range map</div>' +
+                        '           <div class="legendRow"><div class="legendItem"><img class="point" src="/static/maps/placemarks/mol_sprite.png"></div> Point observation</div>' +
+                        '       </div>' +
+                        '       <div class="legendCategory">' +
+                        '           Expert Range Map Seasonality' +
+                        '           <div class="legendRow"><div class="seasonality1 legendItem"></div> Resident</div>' +
+                        '           <div class="legendRow"><div class="seasonality2 legendItem"></div> Breeding Season</div>' +
+                        '           <div class="legendRow"><div class="seasonality3 legendItem"></div> Non-breeding Season</div>' +
+                        '           <div class="legendRow"><div class="seasonality4 legendItem"></div> Passage</div>' +
+                        '           <div class="legendRow"><div class="seasonality5 legendItem"></div> Seasonality Uncertain</div>' +
+                        '       </div>' +
                         '</div>';
 
             this._super(html);
