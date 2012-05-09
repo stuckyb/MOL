@@ -621,7 +621,7 @@ mol.modules.services.cartodb = function(mol) {
                         type_title: row.type_title,
                         source_title: row.source_title,
                         sourcetype : row.sourcetype,
-                        _class: row._class
+                        _class: row["class"]
                     };
                 }
                 return layers;
@@ -2703,7 +2703,7 @@ mol.modules.map.search = function(mol) {
                                             if(row.n != undefined){
                                                    sci = row.n;
                                                    eng = (row.v == null)? '' : ', {0}'.format(row.v.replace(/'S/g, "'s"));
-                                                   names.push({label:'<span class="sci">{0}</spae ern><span class="eng">{1}</span>'.format(sci, eng), value:sci});
+                                                   names.push({label:'<span class="sci">{0}</span><span class="eng">{1}</span>'.format(sci, eng), value:sci});
                                                    scinames.push(sci)
 
                                            }
@@ -3415,8 +3415,8 @@ mol.modules.map.dashboard = function(mol) {
                     '      <td class="class amphibia">5,662 species names with 1,794,441 records</td>' +
                     '      <td class="class aves">13,000 species names with 132,412,174 records</td>' +
                     '      <td class="class mammalia">14,095 species names with 4,351,065 records</td>' +
-                    '      <td class="class osteichthyes">11,445 species names with 1,695,170 records</td>' +
-                    '      <td></td>' +
+                    '      <td class="class reptilia">11,445 species names with 1,695,170 records</td>' +
+                    '      <td class="class fish">37,850 species names with 7,635,630 records</td>' +
                     '   </tr>' +
                     '   <tr>' +
                     '       <td class="type range">Expert maps</td>' +
@@ -3433,7 +3433,7 @@ mol.modules.map.dashboard = function(mol) {
                     '       <td class="class amphibia ">5,966 species with 18,852 records</td>' +
                     '       <td></td>' +
                     '       <td class="class mammalia">4,081 species with 38,673 records</td>' +
-                    '       <td></td>' +
+                    '       <td class="class reptilia">2,532 species with 25,652 records</td>' +
                     '       <td></td>' +
                     '   </tr>' +
                     '   <tr class="provider wdpa">' +

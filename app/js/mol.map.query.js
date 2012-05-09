@@ -352,14 +352,21 @@ mol.modules.map.query = function(mol) {
                     if($(this).val().toLowerCase().indexOf('fish')>0) {
                         $(self.display.types).find('.ecoregion').toggle(false);
                         $(self.display.types).find('.ecoregion').removeClass('selected');
-                        $(self.display.types).find('.range').addClass('selected');
-                    } else if($(this).val().toLowerCase().indexOf('reptil')) {
+                        if($(self.display.types).find('.range').hasClass('selected')) {
+                            alert('Available for North America only.');
+                        };
+
+                    } else if($(this).val().toLowerCase().indexOf('reptil')>0) {
                         $(self.display.types).find('.ecoregion').toggle(true);
                         $(self.display.types).find('.ecoregion').removeClass('selected');
-                        $(self.display.types).find('.range').addClass('selected');
+                        //$(self.display.types).find('.range').addClass('selected');
+                        if($(self.display.types).find('.range').hasClass('selected')) {
+                            alert('Available for North America only.');
+                        };
                     } else {
-                        $(self.display.types).find('.ecoregion').toggle(true);
+                        $(self.display.types).find('.ecoregion').toggle(false);
                         $(self.display.types).find('.range').toggle(true);
+                        $(self.display.types).find('.range').addClass('selected');
                     }
 
                 }
@@ -400,6 +407,7 @@ mol.modules.map.query = function(mol) {
             this.radiusInput=$(this).find('.radius');
             this.classInput=$(this).find('.class');
             this.types=$(this).find('.types');
+            $(this.types).find('.ecoregion').toggle(false);
         }
     }
     );

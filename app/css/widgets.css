@@ -996,10 +996,29 @@ padding: 3px;
 }
 .mol-Map-LegendDisplay .legendItem {
      display:inline-block;
-     width: 8px;
+     width: 15px;
      height: 8px;
 }
-
+.mol-Map-LegendDisplay .point {
+     position:relative;
+     left:5px;
+     bottom:6px;
+}
+.mol-Map-LegendDisplay .narrow {
+     width: 3px;
+}
+.mol-Map-LegendDisplay .ecoregion {
+      background-color:#000000;
+      opacity:0.50;
+      border: 1px solid #000000;
+}
+.mol-Map-LegendDisplay .protectedarea {
+      background-color:#6A0085;
+      border:1px solid #000000;
+}
+.mol-Map-LegendDisplay . {
+      background-color:#99CC00
+}
 .mol-Map-LegendDisplay .seasonality1 {
       background-color:#99CC00
 }
