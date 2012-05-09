@@ -85,7 +85,7 @@ mol.modules.core = function(mol) {
             source = $.trim(layer.source.toLowerCase()).replace(/,/g, "").replace(/ /g, "_"),
             type_title = $.trim(layer.type_title).replace(/,/g, "").replace(/ /g, "_"),
             source_title = $.trim(layer.source_title).replace(/,/g, "").replace(/ /g, "_"),
-            names = $.trim(layer.names).replace(/ /g, "_"),
+            names = $.trim(layer.names).replace(/'S/g, "'s").replace(/ /g, "_"),
             feature_count = $.trim(layer.feature_count).replace(/ /g, "_");
             sourcetype =  $.trim(layer.sourcetype).replace(/ /g, "_");
             _class = $.trim(layer._class).replace(/ /g, "_");
@@ -843,59 +843,6 @@ mol.modules.map = function(mol) {
                         }
                 );
 
-
-                /**
-                 * Handles the layer-toggle event. The event.layer is a layer
-                 * object {name, type} and event.showing is true if the layer
-                 * is showing, false otherwise.
-                 */
-               /* this.bus.addHandler(
-                    'layer-toggle',
-                    function(event) {
-                        var name = event.layer.name,
-                            type = event.layer.type,
-                            id = 'layer-{0}-{1}'.format(name, type),
-                            overlayMapTypes = self.display.map.overlayMapTypes;
-
-                        overlayMapTypes.forEach(
-                            function(layer, index) {
-                                if (layer.name === id) {
-                                    overlayMapTypes.removeAt(index);
-                                }
-                            }
-                        );
-                    }
-                );
-                /**
-                 * Handles the layer-toggle event. The event.layer is a layer
-                 * object {name, type} and event.showing is true if the layer
-                 * is showing, false otherwise.
-                 */
-                /*this.bus.addHandler(
-                    'toggle-overlays',
-                    function(event) {
-                        var toggle = event.toggle,
-                        overlayMapTypes = self.display.map.overlayMapTypes;
-                        if(toggle == false) {
-                            self.layerList = [];
-                            overlayMapTypes.forEach(
-                                function(layer, index) {
-                                    self.layerList.push(layer);
-                                    overlayMapTypes.removeAt(index);
-                                }
-                            )
-                            overlayMapTypes.clear();
-                        } else {
-                            _.each(
-                                self.layerList,
-                                function(layer){
-                                    self.display.map.overlayMapTypes.push(layer);
-                                }
-                            )
-                        }
-
-                    }
-                );*/
                 this.bus.addHandler(
                     'add-map-control',
 
@@ -1193,7 +1140,6 @@ mol.modules.map.layers = function(mol) {
                         _.each(
                             $(self.display).find(".toggle"),
                             function(checkbox){
-                                    //$(checkbox).attr('checked', !$(checkbox).attr('checked'));
                                     checkbox.click({currentTarget : this})
                             }
                         );
@@ -2874,7 +2820,7 @@ mol.modules.map.search = function(mol) {
                              $(self.display.searchBox).one(
                                 "autocompleteopen",
                                 function(event, ui) {
-                                    self.searching = false;
+                                    self.searching[$(this).val()] = false;
                                     self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
                                     term = self.names.join(",");
                                     $(self.display.searchBox).autocomplete("close");
@@ -2916,7 +2862,7 @@ mol.modules.map.search = function(mol) {
              */
             search: function(term) {
                         var self = this;
-                        self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search-{0}".format(term)}));
+                        self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search".format(term)}));
                         self.bus.fireEvent(new mol.bus.Event('results-display-toggle',{visible : false}));
                         $(self.display.searchBox).autocomplete('disable');
                         $(self.display.searchBox).autocomplete('enable');
@@ -2927,7 +2873,7 @@ mol.modules.map.search = function(mol) {
                                 },
                                 function (response) {
                                     var results = {term:term, response:response};
-                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search-{0}".format(term)}));
+                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search".format(term)}));
                                     self.bus.fireEvent(new mol.bus.Event('search-results', results));
                                 },
                                 'json'

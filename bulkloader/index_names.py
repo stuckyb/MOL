@@ -11,11 +11,11 @@ import threading
 
 def names():
     print 'Getting names...'
-    url = "http://mol.cartodb.com/api/v2/sql?q=select%20distinct(scientificname)%20from%20scientificnames%20where%20type%20=%20'protectedarea'%20or%20type%20=%20'range'%20or%20type%20=%20'ecoregion'%20or%20type='points'%20order%20by%20scientificname"
+    url = "http://mol.cartodb.com/api/v2/sql?q=select%20n%20as%20scientificname%20from%20ac%20order%20by%20scientificname"
     response = urllib2.urlopen(url)
     rows = json.loads(response.read())['rows']
 
-    writer = csv_unicode.UnicodeDictWriter(open('names.csv', 'w'), 
+    writer = csv_unicode.UnicodeDictWriter(open('names.csv', 'w'),
                                            ['scientificname', 'binomial', 'binomial_index', 'state', 'type'])
     writer.writeheader()
 
@@ -26,7 +26,7 @@ def names():
         if not sn:
             row['state'] = 'NO_NAME'
             writer.writerow(row)
-            continue        
+            continue
 
         if len(sn.split()) < 2:
             row['type'] = 'MONOMIAL'
@@ -36,7 +36,7 @@ def names():
 
         if len(sn.split()) == 2:
             row['type'] = 'BINOMIAL'
-            
+
         values = []
         for token in re.split('[^a-zA-Z0-9_-]', sn):
             if token.isalpha():
@@ -44,7 +44,7 @@ def names():
             else:
                 row['state'] = 'BAD_ENCODING'
                 writer.writerow(row)
-                continue                        
+                continue
         row['binomial_index'] = reduce(lambda x,y: '%s %s' % (x, y), values[:2])
         row['binomial'] = reduce(lambda x,y: '%s %s' % (x, y), sn.split()[:2])
 
@@ -57,8 +57,8 @@ def english_names():
     response = urllib2.urlopen(url)
     rows = json.loads(response.read())['rows']
 
-    writer = csv_unicode.UnicodeDictWriter(open('english_names.csv', 'w'), 
-                                           ['scientific', 'binomial', 'binomial_index', 
+    writer = csv_unicode.UnicodeDictWriter(open('english_names.csv', 'w'),
+                                           ['scientific', 'binomial', 'binomial_index',
                                             'commons', 'commons_index', 'keywords', 'state', 'type'])
     writer.writeheader()
 
@@ -95,7 +95,7 @@ def english_names():
             else:
                 row['state'] = 'BAD_ENCODING'
                 writer.writerow(row)
-                continue                        
+                continue
         row['binomial_index'] = reduce(lambda x,y: '%s %s' % (x, y), values[:2])
         row['binomial'] = reduce(lambda x,y: '%s %s' % (x, y), sn.split()[:2])
 
@@ -105,13 +105,13 @@ def english_names():
             values = [x for x in re.split('[^a-zA-Z0-9_-]', common) if x and len(x) >= 3]
             if len(values) > 0:
                 commons_index.add(reduce(
-                        lambda x,y:'%s %s' % (x.lower(), y.lower()), 
+                        lambda x,y:'%s %s' % (x.lower(), y.lower()),
                         values))
             else:
                 row['state'] = 'BAD_ENCODING'
 
         if len(commons_index) > 0:
-            row['commons_index'] = reduce(lambda x,y: '%s,%s' % (x.lower(), y.lower()), commons_index)        
+            row['commons_index'] = reduce(lambda x,y: '%s,%s' % (x.lower(), y.lower()), commons_index)
 
         uniques = set([x for x in re.split('[^a-zA-Z0-9_-]', row['commons']) if x and len(x) >= 3])
         if len(uniques) == 0:
@@ -122,20 +122,20 @@ def english_names():
 
     print 'Done creating english_names.csv'
 
-    
+
 def load_results():
-    url = "http://mol.cartodb.com/api/v2/sql?q=SELECT%20sn.provider%20AS%20source,%20sn.scientificname%20AS%20name,%20sn.type%20AS%20type%20FROM%20scientificnames%20sn"
+    url = "http://mol.cartodb.com/api/v2/sql?q=SELECT%20sn.provider%20AS%20source,%20sn.scientificname%20AS%20name,%20sn.type%20AS%20type%20FROM%20layer_metadata%20sn"
     response = urllib2.urlopen(url)
     rows = json.loads(response.read())['rows']
     print 'Results downloaded.'
     results = collections.defaultdict(list)
     for row in rows:
         results[row['name'].strip()].append(row)
-    
+
     final = {}
     for key,val in results.iteritems():
         final[key] = dict(rows=val)
-    
+
     with open('results.json', 'w') as f:
         f.write(json.dumps(final))
 
@@ -188,12 +188,12 @@ class Query(object):
         self.writer = writer
 
     def execute(self, name):
-        url = "http://mol.cartodb.com/api/v2/sql?%s" % urllib.urlencode(dict(q="SELECT s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, names, n.class as class, m.records as feature_count FROM scientificnames s LEFT JOIN ( SELECT scientific, initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),', '))) as names, class FROM master_taxonomy GROUP BY scientific, class HAVING scientific = '%s' ) n ON s.scientificname = n.scientific LEFT JOIN (( SELECT count(*) as records, 'points' as type, 'gbif' as provider FROM gbif_import WHERE lower(scientificname)=lower('%s')) UNION ALL (SELECT count(*) as records, type, provider FROM polygons GROUP BY scientificname, type, provider HAVING scientificname='%s' )) m ON s.type = m.type AND s.provider = m.provider LEFT JOIN types t ON s.type = t.type LEFT JOIN providers p ON s.provider = p.provider WHERE s.scientificname = '%s'" % (name, name, name, name)))
+        url = "http://mol.cartodb.com/api/v2/sql?%s" % urllib.urlencode(dict(q="SELECT s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, n.name as names, n.class as _class, m.records as feature_count FROM layer_metadata s LEFT JOIN (SELECT scientificname, replace(initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),', '))),'''S','''s') as names, class FROM master_taxonomy GROUP BY scientificname, class HAVING scientificname = '%s' ) n ON s.scientificname = n.scientificname LEFT JOIN (( SELECT count(*) as records, 'points' as type, 'gbif' as provider FROM gbif_import WHERE lower(scientificname)=lower('%s')) UNION ALL (SELECT count(*) as records, type, provider FROM polygons GROUP BY scientificname, type, provider HAVING scientificname='%s' )) m ON s.type = m.type AND s.provider = m.provider LEFT JOIN types t ON s.type = t.type LEFT JOIN providers p ON s.provider = p.provider WHERE s.scientificname = '%s'" % (name, name, name, name)))
 
         try:
             response = urllib2.urlopen(url)
             if response.code != 200 and response.code != 304: # OK or NOT MODIFIED
-                print 'skipping %s CartoDB response error %s' % (name, response.code)                
+                print 'skipping %s CartoDB response error %s' % (name, response.code)
             rows = json.loads(response.read())['rows']
             print 'CartoDB response received for %s: %s' % (name, rows)
         except urllib2.HTTPError, e:
@@ -202,7 +202,7 @@ class Query(object):
             print 'skipping because of URLError reason: %s, url: %s ' % (e.reason, url)
         #except:
         #    print 'skipping because of unknown cdb error. url: %s' % url
-        
+
         if len(rows) > 0:
             self.writer.writerow(dict(id=name.lower(), string=json.dumps(rows)))
 
@@ -226,7 +226,7 @@ def create_autocomplete_index():
     cur = conn.cursor()
 
     count = 10
-    
+
     queue = Queue()
     renderers = {}
     num_threads = 100
@@ -236,9 +236,9 @@ def create_autocomplete_index():
         render_thread.start()
         renderers[i] = render_thread
 
-    for row in csv_unicode.UnicodeDictReader(open('names.csv', 'r')): 
+    for row in csv_unicode.UnicodeDictReader(open('names.csv', 'r')):
 
-        binomial = row['binomial']  
+        binomial = row['binomial']
 
         if row['type'] == 'MONOMIAL':
             print 'skipping %s MONOMIAL' % binomial
@@ -269,7 +269,7 @@ def create_autocomplete_index():
         # except:
         #     print 'skipping because of unknown cdb error. url: %s' % url
         #     continue
-        
+
         # writer.writerow(dict(id=bi, string=reduce(lambda x,y: '%s,%s' % (x, y), [x for x in rows])))
 
         #if count == 0:
@@ -282,7 +282,7 @@ def create_autocomplete_index():
     queue.join()
     for i in range(num_threads):
         renderers[i].join()
-        
+
 if __name__ == '__main__':
     #names()
     #english_names()
@@ -290,6 +290,6 @@ if __name__ == '__main__':
     #load_names()
     create_autocomplete_index()
     pass
-    
-        
+
+
 
