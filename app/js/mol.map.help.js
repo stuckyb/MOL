@@ -94,7 +94,7 @@ mol.modules.map.help = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<iframe id="help_dialog" class="mol-help iframe_content" src="https://docs.google.com/document/pub?id=1I64XqsJcoJ8GZAZhy6KmtlhtEht4tlaOrd-g82VFq-w&amp;embedded=true"></iframe>';
+                    '<iframe id="help_dialog" class="mol-help iframe_content" src="/static/help/index.html"></iframe>';
 
                 this._super(html);
 

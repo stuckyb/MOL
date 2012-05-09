@@ -4482,7 +4482,7 @@ mol.modules.map.splash = function(mol) {
             init: function() {
                 var html = '' +
         '<div>' +
-        '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:350px; width: 95%;" src="https://docs.google.com/document/pub?id=1vrttRdCz4YReWFq5qQmm4K6WmyWayiouEYrYtPrAyvY&amp;embedded=true"></iframe>' +
+        '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:350px; width: 95%;" src="/static/splash/index.html"></iframe>' +
 	'<div id="footer_imgs" style="text-align: center">' +
         '<div>Our sponsors and partners</div>' +
 	'<a target="_blank" href="http://www.nsf.gov/"><button><img width="32px" height="32px" title="National Science Foundation" src="http://www.mappinglife.org/static/home/nsf.png"></button></a>' +
@@ -4602,7 +4602,7 @@ mol.modules.map.help = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<iframe id="help_dialog" class="mol-help iframe_content" src="https://docs.google.com/document/pub?id=1I64XqsJcoJ8GZAZhy6KmtlhtEht4tlaOrd-g82VFq-w&amp;embedded=true"></iframe>';
+                    '<iframe id="help_dialog" class="mol-help iframe_content" src="/static/help/index.html"></iframe>';
 
                 this._super(html);
 
