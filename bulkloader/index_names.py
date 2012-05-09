@@ -124,7 +124,7 @@ def english_names():
 
 
 def load_results():
-    url = "http://mol.cartodb.com/api/v2/sql?q=SELECT%20sn.provider%20AS%20source,%20sn.scientificname%20AS%20name,%20sn.type%20AS%20type%20FROM%20scientificnames%20sn"
+    url = "http://mol.cartodb.com/api/v2/sql?q=SELECT%20sn.provider%20AS%20source,%20sn.scientificname%20AS%20name,%20sn.type%20AS%20type%20FROM%20layer_metadata%20sn"
     response = urllib2.urlopen(url)
     rows = json.loads(response.read())['rows']
     print 'Results downloaded.'
