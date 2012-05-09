@@ -21,6 +21,7 @@ class GetHandler(webapp2.RequestHandler):
     def post(self):
         """Returns a cached value by key or None if it doesn't exist."""
         key = self.request.get('key', 'empty')
+        logging.info('SEARCH_KEY=%s' % key)
         sql = self.request.get('sql', None)
         cache_buster = self.request.get('cache_buster', None)
         if not cache_buster:
