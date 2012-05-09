@@ -1,4 +1,0 @@
-cron:
-- description: update modified tiles
-  url: /cron/interpolate
-  schedule: every 60 minutes

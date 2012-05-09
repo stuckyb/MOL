@@ -10,6 +10,8 @@ mol.modules.map.search = function(mol) {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
+                this.searching = {};
+                this.names = [];
                 this.sql = '' +
                     'SELECT ' +
                     '   s.provider as source, p.title as source_title, p.sourcetype as sourcetype, s.scientificname as name, s.type as type, t.title as type_title, n.name as names, n.class as _class, m.records as feature_count ' +
@@ -98,12 +100,11 @@ mol.modules.map.search = function(mol) {
                             $.post(
                                 'cache/get',
                                 {
-                                    key: 'acsql_{0}'.format(request.term),
-                                    sql:"SELECT n,v from ac where n~*'\\m" + request.term + "' OR v~*'\\m" + request.term + "'"
+                                    key: 'ac-sql-{0}'.format(request.term),
+                                    sql:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
                                 },
                                 function (json) {
-                                    var names = [];
-                                    self.names = [];
+                                    var names = [],scinames=[];
                                     _.each (
                                         json.rows,
                                         function(row) {
@@ -112,20 +113,36 @@ mol.modules.map.search = function(mol) {
                                                    sci = row.n;
                                                    eng = (row.v == null)? '' : ', {0}'.format(row.v.replace(/'S/g, "'s"));
                                                    names.push({label:'<span class="sci">{0}</span><span class="eng">{1}</span>'.format(sci, eng), value:sci});
-                                                   self.names.push(sci);
+                                                   scinames.push(sci)
 
                                            }
                                        }
                                     );
+                                    if(scinames.length>0) {
+                                        self.names=scinames;
+                                    }
                                     response(names);
+                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
                                  },
                                  'json'
                             );
                         },
                         select: function(event, ui) {
-                            self.names=[ui.item.value];
-                            $(this).autocomplete("close");
+                            self.searching[ui.item.value] = false;
+                            self.names = [ui.item.value];
+                            self.search(ui.item.value);
+                        },
+                        close: function(event,ui) {
 
+                        },
+                        search: function(event, ui) {
+                            self.searching[$(this).val()] = true;
+                            self.names=[];
+                            self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "autocomplete"}));
+                        },
+                        open: function(event, ui) {
+                            self.searching[$(this).val()] = false;
+                            self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
                         }
                   });
             },
@@ -159,6 +176,12 @@ mol.modules.map.search = function(mol) {
                     }
                 );
                 this.bus.addHandler(
+                    'close-autocomplete',
+                    function(event) {
+                        $(self.display.searchBox).autocomplete("close");
+                    }
+                );
+                this.bus.addHandler(
                     'search',
                     function(event) {
                         if (event.term != undefined) {
@@ -180,8 +203,8 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.goButton.click(
                     function(event) {
-                        $(self.display).autocomplete("close");
-						self.search(self.display.searchBox.val());
+
+						self.search(self.names.join(","));
                     }
                 );
 
@@ -206,16 +229,28 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.searchBox.keyup(
                     function(event) {
-                      var term = "SELECT "
                       if (event.keyCode === 13) {
-                       // if(self.names.length>0) {
-                         //   term = self.names.join('","');
-                        //} else {
-                            term = $(this).val().charAt(0).toUpperCase()+$(this).val().substring(1,$(this).val().length);
-                        //}
                         $(this).autocomplete("close");
-                        self.search(term);
-                      }
+                         self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
+                        //user hit return before autocomplete got a result.
+                        if (self.searching[$(this).val()] == undefined || self.searching[$(this).val()]) {
+                             $(self.display.searchBox).one(
+                                "autocompleteopen",
+                                function(event, ui) {
+                                    self.searching = false;
+                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
+                                    term = self.names.join(",");
+                                    $(self.display.searchBox).autocomplete("close");
+                                    self.search(term);
+                                }
+                             );
+                            $(this).autocomplete("search",$(this).val())
+                        } else if (self.names.length>0 && !self.searching[$(this).val()]) {
+                                term = self.names.join(",");
+                                $(self.display.searchBox).autocomplete("close");
+                                self.search(term);
+                            }
+                        }
                     }
                 );
             },
@@ -244,18 +279,18 @@ mol.modules.map.search = function(mol) {
              */
             search: function(term) {
                         var self = this;
+                        self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search-{0}".format(term)}));
+                        self.bus.fireEvent(new mol.bus.Event('results-display-toggle',{visible : false}));
+                        $(self.display.searchBox).autocomplete('disable');
+                        $(self.display.searchBox).autocomplete('enable');
                         $.post(
-                            'cache/get',
+                            'cartodb/results',
                                 {
-                                    //Note for Aaron: for multiple results, term is a comma delimited list --
-                                    //  (see this.display.searchBox.keyup)
-                                    //For all other cases it is just a scientificname.
-                                    key: 'acrsql_{0}'.format(term),
-                                    sql: self.sql.format(term)
+                                    names:term
                                 },
                                 function (response) {
-                                    var results = {term:self.names, response:response};
-                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search"}));
+                                    var results = {term:term, response:response};
+                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search-{0}".format(term)}));
                                     self.bus.fireEvent(new mol.bus.Event('search-results', results));
                                 },
                                 'json'

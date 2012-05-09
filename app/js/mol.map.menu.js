@@ -41,6 +41,14 @@ mol.modules.map.menu = function(mol) {
                             new mol.bus.Event('help-display-dialog')
                         );
                     }
+                );
+
+                this.display.feedbackButton.click(
+                    function(Event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('feedback-display-toggle')
+                        );
+                    }
                 ); 
 
                 this.display.searchItem.click(
@@ -123,7 +131,7 @@ mol.modules.map.menu = function(mol) {
                 var html = '' +
                     '<div class="mol-LayerControl-Menu ">' +
                     '    <div class="label">' +
-                    '       <img class="layersToggle" src="/static/maps/layers/collapse.png">' +
+                    '       <img class="layersToggle" height="21px" width="24px" src="/static/maps/layers/collapse.png">' +
                     '    </div>' +
                     '    <div title="Toggle taxonomy dashboard." id="dashboard" class="widgetTheme search button">Dashboard</div>' +
                     '    <div title="Toggle layer search tools." id="search" class="widgetTheme search button">Search</div>' +
@@ -139,6 +147,8 @@ mol.modules.map.menu = function(mol) {
                 this.speciesListItem = $(this).find('#list');
                 this.layersToggle = $(this).find('.layersToggle');
                 this.helpButton = $(this).find('#help');
+
+                this.feedbackButton = $('#mol_feedback');
             }
         }
     );

@@ -56,9 +56,21 @@
     <meta name="description" content="Map of Life - Range Map." />
     <meta name="keywords" content="map of life" />
 
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-26993916-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+         })();
+    </script>
   </head>
   <body>
     <div id="map_container" class="map_container"></div>
+    <div style="position:fixed; z-index: 999; left: -5px; top: 320px; width: 16px; height: 100px;"><button id="mol_feedback"><img src="/static/buttons/feedback_fr.png"></button></div>
 	 <script type="text/javascript">
       $(document).ready(function() {
           {% if prod %}

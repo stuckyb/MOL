@@ -48,7 +48,7 @@ mol.modules.map.metadata = function(mol) {
             getLayerMetadata: function (layer) {
                   var self = this,
                     sql = this.sql['layer'].format(layer.name, layer.type, layer.source),
-                    params = {sql:sql, cache_buster: true, key: 'layermetadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
+                    params = {sql:sql}, //cache_buster: true, key: 'layermetadata-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {layer:layer, response:response};
@@ -80,7 +80,7 @@ mol.modules.map.metadata = function(mol) {
                                  var self = this,
                     type = params.type,
                     sql = this.sql['types'].format(type),
-                    params = {sql:sql, cache_buster: true, key: 'type_metadata-{0}'.format(type)},
+                    params = {sql:sql}, //key: 'type_metadata-{0}'.format(type)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {type:type, response:response};
@@ -92,7 +92,7 @@ mol.modules.map.metadata = function(mol) {
                         } else {}
                     },
                     failure = function(action, response) {
-                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'metadata-{0}-{1}-{2}'.format(provider, type, _class)}));
+                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'type-metadata-{0}'.format(type)}));
                     };
 
                 if(this.displays['type-metadata-{0}'.format(type)] == undefined) {
@@ -111,7 +111,7 @@ mol.modules.map.metadata = function(mol) {
                     provider = params.provider,
                     _class = params._class,
                     sql = this.sql['dashboard'].format(provider, type, _class),
-                    params = {sql:sql, cache_buster: 'true', key: 'db-metadata-{0}-{1}-{2}'.format(provider, type, _class)},
+                    params = {sql:sql}, //cache_buster: 'true', key: 'db-metadata-{0}-{1}-{2}'.format(provider, type, _class)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {provider:provider, type:type, _class:_class, response:response};

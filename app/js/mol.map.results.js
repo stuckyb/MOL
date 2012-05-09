@@ -107,7 +107,20 @@ mol.modules.map.results = function(mol) {
                 this.bus.addHandler(
                     'search-results',
                     function(event) {
-                        self.results = mol.services.cartodb.convert(event.response);
+                        var response={rows:[]}
+                        _.each(
+                            event.response,
+                            function(sci, key, list){
+                                _.each(
+                                    sci,
+                                    function(row) {
+                                        response.rows.push(row);
+                                    }
+                                )
+                            }
+                        )
+                        self.bus.fireEvent(new mol.bus.Event('close-autocomplete'));
+                        self.results = mol.services.cartodb.convert(response);
                         self.profile = new mol.map.results.SearchProfile(self.results);
                         if (self.getLayersWithIds(self.results.layers).length > 0) {
                             self.showFilters(self.profile);
@@ -529,11 +542,11 @@ mol.modules.map.results = function(mol) {
                 mapped_name = name_mappings[name];
 
                 if(name == "All") {
-                    this._super('<div id="{0}" class="option" style="text-align: right; margin-right: 10px;"><strong>all</strong></div>'.format(name, mapped_name));
+                    this._super('<div id="{0}" class="option" style="text-align: right; margin-right: 10px;"><span class="option_text"><strong>all</strong></span></div>'.format(name, mapped_name));
                 } else if(!mapped_name) {
-                    this._super('<div id="{0}" class="option">{1}</div>'.format(name, name));
+                    this._super('<div id="{0}" class="option"><span class="option_text">{1}</span></div>'.format(name, name));
                 } else
-                    this._super('<div id="{0}" class="option"><button><img type="source" style="width: 12px; height: 12px; margin: 0.5px;" src="/static/maps/search/{0}.png"></button> {1}</div>'.format(name, mapped_name));
+                    this._super('<div id="{0}" class="option"><button><img type="source" style="width: 12px; height: 12px; margin: 0.5px;" src="/static/maps/search/{0}.png"></button> <span class="option_text">{1}</span></div>'.format(name, mapped_name));
 
             }
         }

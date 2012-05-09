@@ -227,7 +227,7 @@ mol.modules.map.layers = function(mol) {
 
                                 self.bus.fireEvent(e);
                                 l.remove();
-                                // Hide the layer widge toggle in the main menu if no layers exist
+                                // Hide the layer widget toggle in the main menu if no layers exist
                                 if(self.map.overlayMapTypes.length == 0) {
                                     self.bus.fireEvent(new mol.bus.Event('hide-layer-display-toggle'));
                                     self.display.toggle(false);
@@ -280,6 +280,11 @@ mol.modules.map.layers = function(mol) {
 
                             }
                         );
+
+                        //select first layer by default
+                        if(self.map.overlayMapTypes.length==1) {
+                            $(l.layer).addClass('.selected')
+                        }
 
                         // Click handler for info button fires 'metadata-toggle'
                         l.info.click(
@@ -395,7 +400,7 @@ mol.modules.map.layers = function(mol) {
                     '    <input class="keycatcher" type="text" />' +
                     '    <button title="Remove layer." class="close">x</button>' +
                     '    <button title="Zoom to layer extent." class="zoom">z</button>' +
-                    '    <button title="Layer metadata info." class="info">i</button>' +
+                    //'    <button title="Layer metadata info." class="info">i</button>' +
                     '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span title="Toggle layer visibility." class="customCheck"></span></label>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
