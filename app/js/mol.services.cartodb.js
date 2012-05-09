@@ -297,7 +297,7 @@ mol.modules.services.cartodb = function(mol) {
                         type_title: row.type_title,
                         source_title: row.source_title,
                         sourcetype : row.sourcetype,
-                        _class: row["class"]
+                        _class: row._class
                     };
                 }
                 return layers;

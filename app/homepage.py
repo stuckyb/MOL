@@ -21,6 +21,7 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 import os
 
+
 memcache = m.Client()
 
 if 'SERVER_SOFTWARE' in os.environ:
@@ -55,7 +56,7 @@ class TechPage(BaseHandler):
 
 class DemoPage(BaseHandler):
     def get(self):
-        self.push_html('demo.html')
+         self.redirect("/")
 
 class MainPage(BaseHandler):
     def get(self):
@@ -65,10 +66,15 @@ application = webapp.WSGIApplication(
          [('/about', MainPage),
           ('/about/', MainPage),
           ('/about/more', AboutPage),
+          ('/about/more/', AboutPage),
           ('/about/tech', TechPage),
+          ('/about/tech/', TechPage),
           ('/about/demo', DemoPage),
+          ('/about/demo/', DemoPage),
           ('/about/people', PeoplePage),
-          ('/about/partners', PartnersPage)],
+          ('/about/people/', PeoplePage),
+          ('/about/partners', PartnersPage),
+          ('/about/partners/', PartnersPage)],
          debug=True)
 
 def main():

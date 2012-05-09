@@ -621,7 +621,7 @@ mol.modules.services.cartodb = function(mol) {
                         type_title: row.type_title,
                         source_title: row.source_title,
                         sourcetype : row.sourcetype,
-                        _class: row["class"]
+                        _class: row._class
                     };
                 }
                 return layers;
@@ -3512,8 +3512,8 @@ mol.modules.map.query = function(mol) {
                         "                  MIN(class) as class, " + //these should be the same, even if there are duplicates
                         "                  MIN(_order) as _order, " +
                         "                  MIN(family) as family, " +
-                        "                  string_agg(red_list_status,' ') as red_list_status, " +
-                        "                  string_agg(year_assessed,' ') as year_assessed " +
+                        "                  string_agg(red_list_status,',') as red_list_status, " +
+                        "                  string_agg(year_assessed,',') as year_assessed " +
                         "           FROM master_taxonomy " +
                         "           GROUP BY scientificname ) t " +
                         "ON (p.scientificname = t.scientificname OR n.mol_scientificname = t.scientificname) " +
@@ -3653,7 +3653,7 @@ mol.modules.map.query = function(mol) {
                                         ((row.order != null) ? row.order : '')+ "</td><td class='wiki'>" +
                                         ((row.family != null) ? row.family : '')+ "</td><td>" +
                                         ((row.sequenceid != null) ? row.sequenceid : '')+ "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
-                                        ((row.redlist != null) ? row.redlist : '') + "</td></tr>");
+                                        ((redlist != null) ? redlist : '') + "</td></tr>");
                                         providers.push('<a class="type {0}">{1}</a>, <a class="provider {2}">{3}</a>'.format(row.type,row.type_title,row.provider,row.provider_title));
                                     if (year != null && year != '') {
                                         years.push(year)

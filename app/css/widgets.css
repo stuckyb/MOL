@@ -205,8 +205,12 @@ button:hover{
     height: 16px;
     padding-right: 2px;
 }
+.mol-LayerControl-Menu div.label {
+    padding-left: 14px;
+}
 .mol-LayerControl-Menu .layersToggle {
     visibility:hidden;
+
 }
 
 .mol-LayerControl-Layers{
