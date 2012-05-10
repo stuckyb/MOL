@@ -71,8 +71,8 @@ mol.modules.map.help = function(mol) {
                     {
                         autoOpen: false,
 			dialogClass: "mol-help",
-                        height: 500,
-                        width: 800
+                        height: 550,
+                        width: 850
                     }
                 );
 
@@ -80,8 +80,8 @@ mol.modules.map.help = function(mol) {
                     {
                         autoOpen: false,
 			dialogClass: "mol-help",
-                        height: 500,
-                        width: 800
+                        height: 550,
+                        width: 850
                     }
                 );
 

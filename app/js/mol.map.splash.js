@@ -21,8 +21,8 @@ mol.modules.map.splash = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: true,
-					    width: 800,
-					    height: 500,
+					    width: 850,
+					    height: 550,
 					    dialogClass: "mol-splash",
 					    modal: true
                     }
@@ -38,7 +38,7 @@ mol.modules.map.splash = function(mol) {
             init: function() {
                 var html = '' +
         '<div>' +
-        '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:320px; width: 95%;" src="/static/splash/index.html"></iframe>' +
+        '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:360px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
 	'<div id="footer_imgs" style="text-align: center">' +
         '<div>Our sponsors, partners and supporters</div>' +
         '<a target="_blank" href="http://www.yale.edu/jetz/"><button><img width="72px" height="36px" title="Jetz Lab, Yale University" src="/static/home/yale.png"></button></a>' +
