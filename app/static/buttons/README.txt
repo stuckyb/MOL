@@ -10,3 +10,5 @@ To create one of these buttons in GIMP:
 7. Try it out.
     For symmetry/aesthetic reasons, you'll probably have to tweak the image a little
     at this point. For instance, the "Status" button needs an extra pixel on top.
+
+Please see Status-work.xcf for a "behind the scenes" look at how I made status_fr.png. -- Gaurav, May 10, 2012.
