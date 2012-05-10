@@ -97,35 +97,47 @@ button:hover{
 
 .mol-Sidebar  {
         position:absolute;
-        left:-75px;
-        white-space:nowrap;
-         -moz-transform: rotate(-90deg);  /* FF3.5+ */
-       -o-transform: rotate(-90deg);  /* Opera 10.5 */
-  -webkit-transform: rotate(-90deg);  /* Saf3.1+, Chrome */
-             filter:  progid:DXImageTransform.Microsoft.BasicImage(rotation=-1.571);  /* IE6,IE7 */
-         -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=-1.571)"; /* IE8 */
-
+        left: -3px;
+        top: -50px;
+}
+.mol-Sidebar .button {
+    background-image: -ms-linear-gradient(rgba(29,43,82,0.65) 89%, rgba(29,43,82,0.75) 57%);
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.89, rgba(29,43,82,0.65)),
+        color-stop(0.57, rgba(29,43,82,0.75))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(29,43,82,0.65) 89%,
+        rgba(29,43,82,0.75) 57%
+    );
+    background-image: -o-linear-gradient(
+        bottom,
+        rgba(29,43,82,0.65) 89%,
+        rgba(29,43,82,0.75) 57%
+    );
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#A51D2B52', endColorstr='#BF1D2B52');
 
 }
-.mol-Sidebar div:first-child{
+
+.mol-Sidebar .about {
     -moz-border-radius-topleft: 3px;
     border-top-left-radius: 3px;
+    -moz-border-radius-topright: 3px;
+    border-top-right-radius: 3px;
+}
+.mol-Sidebar .help {
+    -moz-border-radius-bottomright: 3px;
+    border-bottom-right-radius: 3px;
     -moz-border-radius-bottomleft: 3px;
     border-bottom-left-radius: 3px;
 }
-.mol-Sidebar div:last-child{
-    -moz-border-radius-topright: 3px;
-    border-top-right-radius: 3px;
-    -moz-border-radius-bottomright: 3px;
-    border-bottom-right-radius: 3px;
-}
 .mol-Sidebar .button{
-        display:inline-block;
         padding:6px;
-        margin:0px;
         cursor:pointer;
-        margin:-3px;
-        left:-82PX;
 
 }
 
