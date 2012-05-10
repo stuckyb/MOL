@@ -50,6 +50,7 @@
      <script type="text/javascript" src="../../../js/mol.map.splash.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.help.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.sidebar.js"></script>
+      <script type="text/javascript" src="../../../js/mol.map.status.js"></script>
     {% endif %}
 
     <meta charset="utf-8" />
@@ -80,8 +81,8 @@
 	         proxy = new env.services.Proxy(bus)
 	         me = new env.map.MapEngine(proxy, bus)
 	         me.start('body');
-		 spe = new env.map.splash.SplashEngine(proxy, bus)
-                 spe.start()
+		     spe = new env.map.splash.SplashEngine(proxy, bus)
+             spe.start()
 	         se = new env.map.search.SearchEngine(proxy, bus)
 	         se.start(null)
 	         te = new env.map.tiles.TileEngine(proxy, bus, me.display.map)
@@ -108,6 +109,8 @@
              hd.start()
              sb = new env.map.sidebar.SidebarEngine(proxy, bus)
              sb.start()
+             st = new env.map.status.StatusEngine(proxy, bus)
+             st.start()
           });
           {% else %}
           env = mol(function(env) {
@@ -115,7 +118,7 @@
 	         proxy = new env.services.Proxy(bus)
 	         me = new env.map.MapEngine(proxy, bus)
 	         me.start('body');
-		 spe = new env.map.splash.SplashEngine(proxy, bus)
+		     spe = new env.map.splash.SplashEngine(proxy, bus)
            	 spe.start()
 	         se = new env.map.search.SearchEngine(proxy, bus)
 	         se.start(null)
@@ -143,6 +146,8 @@
              hd.start()
              sb = new env.map.sidebar.SidebarEngine(proxy, bus)
              sb.start()
+             st = new env.map.status.StatusEngine(proxy, bus)
+             st.start()
           });
           {% endif %}
       });

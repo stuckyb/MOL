@@ -671,7 +671,8 @@ mol.modules.map = function(mol) {
             'metadata',
             'splash',
             'help',
-            'sidebar'
+            'sidebar',
+            'status'
     ];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
@@ -4472,8 +4473,8 @@ mol.modules.map.splash = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: true,
-			width: 950,
-			height: 700,
+			width: 800,
+			height: 580,
 			dialogClass: "mol-splash",
 			modal: true
                     }
@@ -4503,7 +4504,7 @@ mol.modules.map.splash = function(mol) {
                 var html = '' +
         '<div>' +
 	'<div class="message"></div>' +
-        '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:520px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
+        '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:400px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
 	'<div id="footer_imgs" style="text-align: center">' +
         '<div>Sponsors, partners and supporters</div>' +
         '<a target="_blank" href="http://www.yale.edu/jetz/"><button><img width="72px" height="36px" title="Jetz Lab, Yale University" src="/static/home/yale.png"></button></a>' +
@@ -4703,6 +4704,14 @@ mol.modules.map.sidebar = function(mol) {
                     }
                 );
 
+                this.display.status.click(
+                    function(Event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('status-display-dialog')
+                        );
+                    }
+                );
+
                 this.display.feedback.click(
                     function(Event) {
                         self.bus.fireEvent(
@@ -4735,6 +4744,7 @@ mol.modules.map.sidebar = function(mol) {
             init: function() {
                 var html = '' +
                     '<div class="mol-Sidebar">' +
+                    '    <div title="Current known issues." class="widgetTheme status button"><img src="/static/buttons/status_fr.png"></div>' +
                     '    <div title="About the Map of Life Project." class="widgetTheme about button"><img src="/static/buttons/about_fr.png"></div>' +
                     '    <div title="Submit feedback." class="widgetTheme feedback button"><img src="/static/buttons/feedback_fr_2.png"></div>' +
                     '    <div title="Get help." class="widgetTheme help button"><img src="/static/buttons/help_fr.png"></div>' +
@@ -4744,6 +4754,75 @@ mol.modules.map.sidebar = function(mol) {
                 this.about = $(this).find('.about');
                 this.help = $(this).find('.help');
                 this.feedback = $(this).find('.feedback');
+                this.status = $(this).find('.status');
+
+            }
+        }
+    );
+};
+
+
+
+mol.modules.map.status = function(mol) {
+
+    mol.map.status = {};
+
+    mol.map.status.StatusEngine = mol.mvp.Engine.extend(
+        {
+            init: function(proxy, bus) {
+                this.proxy = proxy;
+                this.bus = bus;
+             },
+
+            /**
+             * Starts the MenuEngine. Note that the container parameter is
+             * ignored.
+             */
+            start: function() {
+
+                this.display = new mol.map.status.StatusDisplay();
+                this.addEventHandlers();
+            },
+
+            showStatus: function() {
+                this.display.dialog(
+                    {
+                        autoOpen: true,
+			width: 800,
+			height: 600,
+			dialogClass: "mol-status",
+			modal: true
+                    }
+                );
+                 $(this.display).width('98%');
+
+            },
+            addEventHandlers : function () {
+                 var self = this;
+                 this.bus.addHandler(
+                    'status-display-dialog',
+                    function (params) {
+                        self.showStatus();
+                    }
+                );
+            }
+        }
+    );
+
+    mol.map.status.StatusDisplay = mol.mvp.View.extend(
+        {
+            init: function() {
+                var html = '' +
+                '<div>' +
+	            '  <iframe class="mol-status iframe_content ui-dialog-content" style="height:600px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/status/index.html"></iframe>' +
+                '</div>';
+
+                this._super(html);
+                this.iframe_content = $(this).find('.iframe_content');
+		this.mesg = $(this).find('.message');
+
+
+
 
             }
         }

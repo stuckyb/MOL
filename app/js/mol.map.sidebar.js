@@ -43,6 +43,14 @@ mol.modules.map.sidebar = function(mol) {
                     }
                 );
 
+                this.display.status.click(
+                    function(Event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('status-display-dialog')
+                        );
+                    }
+                );
+
                 this.display.feedback.click(
                     function(Event) {
                         self.bus.fireEvent(
@@ -75,6 +83,7 @@ mol.modules.map.sidebar = function(mol) {
             init: function() {
                 var html = '' +
                     '<div class="mol-Sidebar">' +
+                    '    <div title="Current known issues." class="widgetTheme status button"><img src="/static/buttons/status_fr.png"></div>' +
                     '    <div title="About the Map of Life Project." class="widgetTheme about button"><img src="/static/buttons/about_fr.png"></div>' +
                     '    <div title="Submit feedback." class="widgetTheme feedback button"><img src="/static/buttons/feedback_fr_2.png"></div>' +
                     '    <div title="Get help." class="widgetTheme help button"><img src="/static/buttons/help_fr.png"></div>' +
@@ -84,6 +93,7 @@ mol.modules.map.sidebar = function(mol) {
                 this.about = $(this).find('.about');
                 this.help = $(this).find('.help');
                 this.feedback = $(this).find('.feedback');
+                this.status = $(this).find('.status');
 
             }
         }
