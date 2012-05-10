@@ -23,7 +23,7 @@ div#header #title{
     font-family: 'Ubuntu', san-sarif;
     padding-left: 5px; 
     padding-right: 5px; 
-    width: 210px;
+    width: 225px;
     font-weight: bold; 
     font-size: 40px;
     line-height: 40px;
@@ -39,7 +39,7 @@ div#header #subtitle{
 }
 div#header #menu{ 
     float: right;
-    width: 310px;
+    width: 250px;
     margin-right: 10px;
 }
 div#header #menu .item a{ 
