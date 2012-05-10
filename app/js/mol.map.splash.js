@@ -38,7 +38,7 @@ mol.modules.map.splash = function(mol) {
             init: function() {
                 var html = '' +
         '<div>' +
-        '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:330px; width: 95%;" src="/static/splash/index.html"></iframe>' +
+        '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:320px; width: 95%;" src="/static/splash/index.html"></iframe>' +
 	'<div id="footer_imgs" style="text-align: center">' +
         '<div>Our sponsors, partners and supporters</div>' +
         '<a target="_blank" href="http://www.yale.edu/jetz/"><button><img width="72px" height="36px" title="Jetz Lab, Yale University" src="/static/home/yale.png"></button></a>' +
