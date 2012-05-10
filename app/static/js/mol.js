@@ -4788,8 +4788,8 @@ mol.modules.map.status = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: true,
-			width: 800,
-			height: 600,
+			width: 680,
+			height: 390,
 			dialogClass: "mol-status",
 			modal: true
                     }
