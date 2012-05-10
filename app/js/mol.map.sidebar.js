@@ -75,9 +75,9 @@ mol.modules.map.sidebar = function(mol) {
             init: function() {
                 var html = '' +
                     '<div class="mol-Sidebar">' +
-                    '    <div title="About the Map of Life Project." class="widgetTheme about button">About</div>' +
-                    '    <div title="Submit feedback." class="widgetTheme feedback button">Feedback</div>' +
-                    '    <div title="Get help." class="widgetTheme help button">Help</div>' +
+                    '    <div title="About the Map of Life Project." class="widgetTheme about button"><img src="/static/buttons/about_fr.png"></div>' +
+                    '    <div title="Submit feedback." class="widgetTheme feedback button"><img src="/static/buttons/feedback_fr_2.png"></div>' +
+                    '    <div title="Get help." class="widgetTheme help button"><img src="/static/buttons/help_fr.png"></div>' +
                     '</div>';
 
                 this._super(html);
