@@ -46,9 +46,9 @@ class PeoplePage(BaseHandler):
     def get(self):
         self.push_html('people.html')
 
-class PartnersPage(BaseHandler):
-    def get(self):
-        self.push_html('partners.html')
+# class PartnersPage(BaseHandler):
+#    def get(self):
+#        self.push_html('partners.html')
 
 class TechPage(BaseHandler):
     def get(self):
@@ -72,9 +72,10 @@ application = webapp.WSGIApplication(
           ('/about/demo', DemoPage),
           ('/about/demo/', DemoPage),
           ('/about/people', PeoplePage),
-          ('/about/people/', PeoplePage),
-          ('/about/partners', PartnersPage),
-          ('/about/partners/', PartnersPage)],
+          ('/about/people/', PeoplePage)
+#          ('/about/partners', PartnersPage),
+#          ('/about/partners/', PartnersPage)
+          ],
          debug=True)
 
 def main():
