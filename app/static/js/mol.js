@@ -4454,8 +4454,16 @@ mol.modules.map.splash = function(mol) {
 			//old ie8, please upgrade
 			this.display.iframe_content.src='/static/splash/ie8.html';
 			this.initDialog();
-			$(this.display).find('.ui-dialog-titlebar-close').toggle(false);
+			//$(this.display).find('.ui-dialog-titlebar-close').toggle(false);
+			//$(this.display).dialog( "option", "closeOnEscape", false );
+			this.display.mesg.append($("<font color='red'>Your version of Internet Explorer is not supported. <br> Please use the latest version of Chrome, Safari, Firefox, or Internet Explorer.</font>"));
 			$(this.display).dialog( "option", "closeOnEscape", false );
+			$(this.display).bind( "dialogbeforeclose", function(event, ui) {
+				alert('Your version of Internet Explorer is not supported. Please use the latest version of Chrome, Safari, Firefox, or Internet Explorer.');
+  				return false;
+			});
+		        window.stop();
+
 		} else {
 			this.initDialog();
 		}
@@ -4464,8 +4472,8 @@ mol.modules.map.splash = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: true,
-			width: 800,
-			height: 500,
+			width: 850,
+			height: 550,
 			dialogClass: "mol-splash",
 			modal: true
                     }
@@ -4494,6 +4502,7 @@ mol.modules.map.splash = function(mol) {
             init: function() {
                 var html = '' +
         '<div>' +
+	'<div class="message"></div>' +
         '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:360px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
 	'<div id="footer_imgs" style="text-align: center">' +
         '<div>Our sponsors, partners and supporters</div>' +
@@ -4516,6 +4525,7 @@ mol.modules.map.splash = function(mol) {
 
                 this._super(html);
                 this.iframe_content = $(this).find('.iframe_content');
+		this.mesg = $(this).find('.message');
 		
 
 
