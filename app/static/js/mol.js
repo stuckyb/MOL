@@ -4448,22 +4448,44 @@ mol.modules.map.splash = function(mol) {
              * ignored.
              */
             start: function() {
+		
                 this.display = new mol.map.splash.splashDisplay();
-                this.initDialog();
+		if(this.getIEVersion()<9 && this.getIEVersion()>=0) {
+			//old ie8, please upgrade
+			this.display.iframe_content.src='/static/splash/ie8.html';
+			this.initDialog();
+			$(this.display).find('.ui-dialog-titlebar-close').toggle(false);
+			$(this.display).dialog( "option", "closeOnEscape", false );
+		} else {
+			this.initDialog();
+		}
             },
             initDialog: function() {
                 this.display.dialog(
                     {
                         autoOpen: true,
-					    width: 800,
-					    height: 500,
-					    dialogClass: "mol-splash",
-					    modal: true
+			width: 800,
+			height: 500,
+			dialogClass: "mol-splash",
+			modal: true
                     }
                 );
                  $(this.display).width('98%');
 
-            }
+            },
+	    // Returns the version of Internet Explorer or a -1
+            // (indicating the use of another browser).
+	    getIEVersion: function() {
+  			var rv = -1, ua,re; // Return value assumes failure.
+  			if (navigator.appName == 'Microsoft Internet Explorer'){
+    				ua = navigator.userAgent;
+   				re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+    				if (re.exec(ua) != null){
+      					rv = parseFloat( RegExp.$1 );
+				}  			
+			}
+  			return rv;
+		}
         }
     );
 
@@ -4472,7 +4494,7 @@ mol.modules.map.splash = function(mol) {
             init: function() {
                 var html = '' +
         '<div>' +
-        '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:320px; width: 95%;" src="/static/splash/index.html"></iframe>' +
+        '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:360px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
 	'<div id="footer_imgs" style="text-align: center">' +
         '<div>Our sponsors, partners and supporters</div>' +
         '<a target="_blank" href="http://www.yale.edu/jetz/"><button><img width="72px" height="36px" title="Jetz Lab, Yale University" src="/static/home/yale.png"></button></a>' +
@@ -4494,6 +4516,9 @@ mol.modules.map.splash = function(mol) {
 
                 this._super(html);
                 this.iframe_content = $(this).find('.iframe_content');
+		
+
+
 
             }
         }
@@ -4575,8 +4600,8 @@ mol.modules.map.help = function(mol) {
                     {
                         autoOpen: false,
 			dialogClass: "mol-help",
-                        height: 500,
-                        width: 800
+                        height: 550,
+                        width: 850
                     }
                 );
 
@@ -4584,8 +4609,8 @@ mol.modules.map.help = function(mol) {
                     {
                         autoOpen: false,
 			dialogClass: "mol-help",
-                        height: 500,
-                        width: 800
+                        height: 550,
+                        width: 850
                     }
                 );
 
@@ -4700,9 +4725,9 @@ mol.modules.map.sidebar = function(mol) {
             init: function() {
                 var html = '' +
                     '<div class="mol-Sidebar">' +
-                    '    <div title="About the Map of Life Project." class="widgetTheme about button">About</div>' +
-                    '    <div title="Submit feedback." class="widgetTheme feedback button">Feedback</div>' +
-                    '    <div title="Get help." class="widgetTheme help button">Help</div>' +
+                    '    <div title="About the Map of Life Project." class="widgetTheme about button"><img src="/static/buttons/about_fr.png"></div>' +
+                    '    <div title="Submit feedback." class="widgetTheme feedback button"><img src="/static/buttons/feedback_fr_2.png"></div>' +
+                    '    <div title="Get help." class="widgetTheme help button"><img src="/static/buttons/help_fr.png"></div>' +
                     '</div>';
 
                 this._super(html);
