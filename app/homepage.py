@@ -38,10 +38,6 @@ class BaseHandler(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), "templates/homepage", f)
         self.response.out.write(open(path, 'r').read())
 
-class AboutPage(BaseHandler):
-    def get(self):
-        self.push_html('about.html')
-
 class PeoplePage(BaseHandler):
     def get(self):
         self.push_html('people.html')
@@ -65,8 +61,6 @@ class MainPage(BaseHandler):
 application = webapp.WSGIApplication(
          [('/about', MainPage),
           ('/about/', MainPage),
-          ('/about/more', AboutPage),
-          ('/about/more/', AboutPage),
           ('/about/tech', TechPage),
           ('/about/tech/', TechPage),
           ('/about/demo', DemoPage),
