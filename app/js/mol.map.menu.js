@@ -35,22 +35,6 @@ mol.modules.map.menu = function(mol) {
                     }
                 );
 
-                this.display.helpButton.click(
-                    function(Event) {
-                        self.bus.fireEvent(
-                            new mol.bus.Event('help-display-dialog')
-                        );
-                    }
-                );
-
-                this.display.feedbackButton.click(
-                    function(Event) {
-                        self.bus.fireEvent(
-                            new mol.bus.Event('feedback-display-toggle')
-                        );
-                    }
-                );
-
                 this.display.searchItem.click(
                     function(event) {
                         self.bus.fireEvent(
@@ -145,9 +129,6 @@ mol.modules.map.menu = function(mol) {
                 this.dashboardItem = $(this).find('#dashboard');
                 this.speciesListItem = $(this).find('#list');
                 this.layersToggle = $(this).find('.layersToggle');
-                this.helpButton = $(this).find('#help');
-
-                this.feedbackButton = $('#mol_feedback');
             }
         }
     );
