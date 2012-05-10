@@ -14,7 +14,7 @@ mol.modules.map.splash = function(mol) {
              * ignored.
              */
             start: function() {
-		
+
                 this.display = new mol.map.splash.splashDisplay();
 		if(this.getIEVersion()<9 && this.getIEVersion()>=0) {
 			//old ie8, please upgrade
@@ -38,8 +38,8 @@ mol.modules.map.splash = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: true,
-			width: 850,
-			height: 550,
+			width: 950,
+			height: 700,
 			dialogClass: "mol-splash",
 			modal: true
                     }
@@ -56,7 +56,7 @@ mol.modules.map.splash = function(mol) {
    				re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
     				if (re.exec(ua) != null){
       					rv = parseFloat( RegExp.$1 );
-				}  			
+				}
 			}
   			return rv;
 		}
@@ -69,9 +69,9 @@ mol.modules.map.splash = function(mol) {
                 var html = '' +
         '<div>' +
 	'<div class="message"></div>' +
-        '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:360px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
+        '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:520px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
 	'<div id="footer_imgs" style="text-align: center">' +
-        '<div>Our sponsors, partners and supporters</div>' +
+        '<div>Sponsors, partners and supporters</div>' +
         '<a target="_blank" href="http://www.yale.edu/jetz/"><button><img width="72px" height="36px" title="Jetz Lab, Yale University" src="/static/home/yale.png"></button></a>' +
         '<a target="_blank" href="http://sites.google.com/site/robgur/"><button><img width="149px" height="36px" title="Guralnick Lab, University of Colorado Boulder" src="/static/home/cuboulder.png"></button></a>' +
 
@@ -79,7 +79,7 @@ mol.modules.map.splash = function(mol) {
         '<a target="_blank" href="http://www.gbif.org/"><button><img width="33px" height="32px" title="Global Biodiversity Information Facility" src="/static/home/gbif.png"></button></a>' +
 	'<a target="_blank" href="http://www.eol.org/"><button><img width="51px" height="32px" title="Encyclopedia of Life" src="http://www.mappinglife.org/static/home/eol.png"></button></a>' +
 	'<a target="_blank" href="http://www.nasa.gov/"><button><img width="37px" height="32px" title="National Aeronautics and Space Administration" src="http://www.mappinglife.org/static/home/nasa.png"></button></a>' +
-        '<br>' + 
+        '<br>' +
 	'<a target="_blank" href="http://www.nceas.ucsb.edu/"><button><img width="30px" height="32px" title="National Center for Ecological Analysis and Synthesis" src="http://www.mappinglife.org/static/home/nceas.png"></button></a>' +
 	'<a target="_blank" href="http://www.iplantcollaborative.org/"><button><img width="105px" height="32px" title="iPlant Collaborative" src="http://www.mappinglife.org/static/home/iplant.png"></button></a>' +
 	'<a target="_blank" href="http://www.nsf.gov/"><button><img width="32px" height="32px" title="National Science Foundation" src="http://www.mappinglife.org/static/home/nsf.png"></button></a>' +
@@ -92,7 +92,7 @@ mol.modules.map.splash = function(mol) {
                 this._super(html);
                 this.iframe_content = $(this).find('.iframe_content');
 		this.mesg = $(this).find('.message');
-		
+
 
 
 

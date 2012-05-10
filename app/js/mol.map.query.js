@@ -389,7 +389,7 @@ mol.modules.map.query = function(mol) {
                         '       <option value="1000">1000 km</option>' +
                         '     </select>' +
                         '     Group <select class="class" value="">' +
-                        '       <option selected value=" AND p.class=\'aves\' ">Birds</option>' +
+                        '       <option selected value=" AND  p.polygonres = 1000 ">Birds</option>' +
                         '       <option value=" AND p.provider = \'fishes\' ">NA Fishes</option>' +
                         '       <option value=" AND p.class=\'reptilia\' ">Reptiles</option>' +
                         '       <option value=" AND p.class=\'amphibia\' ">Amphibians</option>' +
