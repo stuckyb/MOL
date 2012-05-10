@@ -14,22 +14,44 @@ mol.modules.map.splash = function(mol) {
              * ignored.
              */
             start: function() {
+		
                 this.display = new mol.map.splash.splashDisplay();
-                this.initDialog();
+		if(this.getIEVersion()<9 && this.getIEVersion()>=0) {
+			//old ie8, please upgrade
+			this.display.iframe_content.src='/static/splash/ie8.html';
+			this.initDialog();
+			$(this.display).find('.ui-dialog-titlebar-close').toggle(false);
+			$(this.display).dialog( "option", "closeOnEscape", false );
+		} else {
+			this.initDialog();
+		}
             },
             initDialog: function() {
                 this.display.dialog(
                     {
                         autoOpen: true,
-					    width: 850,
-					    height: 550,
-					    dialogClass: "mol-splash",
-					    modal: true
+			width: 800,
+			height: 500,
+			dialogClass: "mol-splash",
+			modal: true
                     }
                 );
                  $(this.display).width('98%');
 
-            }
+            },
+	    // Returns the version of Internet Explorer or a -1
+            // (indicating the use of another browser).
+	    getIEVersion: function() {
+  			var rv = -1, ua,re; // Return value assumes failure.
+  			if (navigator.appName == 'Microsoft Internet Explorer'){
+    				ua = navigator.userAgent;
+   				re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+    				if (re.exec(ua) != null){
+      					rv = parseFloat( RegExp.$1 );
+				}  			
+			}
+  			return rv;
+		}
         }
     );
 
@@ -60,6 +82,9 @@ mol.modules.map.splash = function(mol) {
 
                 this._super(html);
                 this.iframe_content = $(this).find('.iframe_content');
+		
+
+
 
             }
         }
