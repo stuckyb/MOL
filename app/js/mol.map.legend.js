@@ -65,12 +65,21 @@ mol.modules.map.legend = function(mol) {
             var className = 'mol-Map-LegendDisplay',
                 html = '' +
                         '<div class="' + className + ' widgetTheme">' +
-                        '       Seasonality Key' +
-                        '       <div class="legendRow"><div class="seasonality1 legendItem"></div> Resident</div>' +
-                        '       <div class="legendRow"><div class="seasonality2 legendItem"></div> Breeding Season</div>' +
-                        '       <div class="legendRow"><div class="seasonality3 legendItem"></div> Non-breeding Season</div>' +
-                        '       <div class="legendRow"><div class="seasonality4 legendItem"></div> Passage</div>' +
-                        '       <div class="legendRow"><div class="seasonality5 legendItem"></div> Seasonality Uncertain</div>' +
+                        '       <div class="legendCategory">' +
+                        '           Type' +
+                        '           <div class="legendRow"><div class="ecoregion legendItem"></div> Regional checklist</div>' +
+                        '           <div class="legendRow"><div class="protectedarea legendItem"></div> Local inventory</div>' +
+                        '           <div class="legendRow"><div class="seasonality1 legendItem narrow"></div><div class="seasonality2 legendItem narrow"></div><div class="seasonality3 legendItem narrow"></div><div class="seasonality4 legendItem narrow"></div><div class="seasonality5 legendItem narrow"></div> Expert range map</div>' +
+                        '           <div class="legendRow"><div class="legendItem"><img class="point" src="/static/maps/placemarks/mol_sprite.png"></div> Point observation</div>' +
+                        '       </div>' +
+                        '       <div class="legendCategory">' +
+                        '           Expert Range Map Seasonality' +
+                        '           <div class="legendRow"><div class="seasonality1 legendItem"></div> Resident</div>' +
+                        '           <div class="legendRow"><div class="seasonality2 legendItem"></div> Breeding Season</div>' +
+                        '           <div class="legendRow"><div class="seasonality3 legendItem"></div> Non-breeding Season</div>' +
+                        '           <div class="legendRow"><div class="seasonality4 legendItem"></div> Passage</div>' +
+                        '           <div class="legendRow"><div class="seasonality5 legendItem"></div> Seasonality Uncertain</div>' +
+                        '       </div>' +
                         '</div>';
 
             this._super(html);

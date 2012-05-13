@@ -30,8 +30,8 @@ mol.modules.map.query = function(mol) {
                         "                  MIN(class) as class, " + //these should be the same, even if there are duplicates
                         "                  MIN(_order) as _order, " +
                         "                  MIN(family) as family, " +
-                        "                  string_agg(red_list_status,' ') as red_list_status, " +
-                        "                  string_agg(year_assessed,' ') as year_assessed " +
+                        "                  string_agg(red_list_status,',') as red_list_status, " +
+                        "                  string_agg(year_assessed,',') as year_assessed " +
                         "           FROM master_taxonomy " +
                         "           GROUP BY scientificname ) t " +
                         "ON (p.scientificname = t.scientificname OR n.mol_scientificname = t.scientificname) " +
@@ -171,15 +171,15 @@ mol.modules.map.query = function(mol) {
                                         ((row.order != null) ? row.order : '')+ "</td><td class='wiki'>" +
                                         ((row.family != null) ? row.family : '')+ "</td><td>" +
                                         ((row.sequenceid != null) ? row.sequenceid : '')+ "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
-                                        ((row.redlist != null) ? row.redlist : '') + "</td></tr>");
-                                        providers.push('<a class="type ' + row.type+ '">'+row.type_title+'</a>", ' + row.provider);
+                                        ((redlist != null) ? redlist : '') + "</td></tr>");
+                                        providers.push('<a class="type {0}">{1}</a>, <a class="provider {2}">{3}</a>'.format(row.type,row.type_title,row.provider,row.provider_title));
                                     if (year != null && year != '') {
                                         years.push(year)
                                     }
                                     scientificnames[row.scientificname]=redlist;
                             }
                         );
-
+                        years = _.uniq(years);
                         tablerows = _.uniq(tablerows);
                         providers = _.uniq(providers);
 
@@ -211,7 +211,7 @@ mol.modules.map.query = function(mol) {
                                             speciestotal + ' '+
                                             stats +
                                            '<br>' +
-                                           'Data type/source:&nbsp;' + providers.join(', ') +
+                                           'Data type/source:&nbsp;' + providers.join(', ') + '.&nbsp;All&nbsp;seasonalities.' +
                                     '   </div> ' +
                                     '   <div> ' +
                                     '       <table class="tablesorter">' +
@@ -352,14 +352,21 @@ mol.modules.map.query = function(mol) {
                     if($(this).val().toLowerCase().indexOf('fish')>0) {
                         $(self.display.types).find('.ecoregion').toggle(false);
                         $(self.display.types).find('.ecoregion').removeClass('selected');
-                        $(self.display.types).find('.range').addClass('selected');
-                    } else if($(this).val().toLowerCase().indexOf('reptil')) {
+                        if($(self.display.types).find('.range').hasClass('selected')) {
+                           alert('Available for North America only.');
+                        };
+
+                    } else if($(this).val().toLowerCase().indexOf('reptil')>0) {
                         $(self.display.types).find('.ecoregion').toggle(true);
                         $(self.display.types).find('.ecoregion').removeClass('selected');
-                        $(self.display.types).find('.range').addClass('selected');
+                        //$(self.display.types).find('.range').addClass('selected');
+                        if($(self.display.types).find('.range').hasClass('selected')) {
+                            alert('Available for North America only.');
+                        };
                     } else {
-                        $(self.display.types).find('.ecoregion').toggle(true);
+                        $(self.display.types).find('.ecoregion').toggle(false);
                         $(self.display.types).find('.range').toggle(true);
+                        $(self.display.types).find('.range').addClass('selected');
                     }
 
                 }
@@ -373,7 +380,7 @@ mol.modules.map.query = function(mol) {
         init : function(names) {
             var className = 'mol-Map-QueryDisplay',
                 html = '' +
-                        '<div title="Use this control to select species group and radius. Then right click (Mac Users: \'control-click\') on focal location on map. Note that currently type \'Expert map\' is not available outside N America for for Reptiles and Fishes and actual search radius for type \'Ecoregion\' varies strongly by region." class="' + className + ' widgetTheme">' +
+                        '<div title="Use this control to select species group and radius. Then right click (Mac Users: \'control-click\') on focal location on map." class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
                         '     Search Radius <select class="radius">' +
                         '       <option selected value="50">50 km</option>' +
@@ -382,7 +389,7 @@ mol.modules.map.query = function(mol) {
                         '       <option value="1000">1000 km</option>' +
                         '     </select>' +
                         '     Group <select class="class" value="">' +
-                        '       <option selected value=" AND p.class=\'aves\' ">Birds</option>' +
+                        '       <option selected value=" AND  p.polygonres = 1000 ">Birds</option>' +
                         '       <option value=" AND p.provider = \'fishes\' ">NA Fishes</option>' +
                         '       <option value=" AND p.class=\'reptilia\' ">Reptiles</option>' +
                         '       <option value=" AND p.class=\'amphibia\' ">Amphibians</option>' +
@@ -400,6 +407,7 @@ mol.modules.map.query = function(mol) {
             this.radiusInput=$(this).find('.radius');
             this.classInput=$(this).find('.class');
             this.types=$(this).find('.types');
+            $(this.types).find('.ecoregion').toggle(false);
         }
     }
     );

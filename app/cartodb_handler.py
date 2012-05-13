@@ -27,7 +27,7 @@ class ResultsHandler(webapp2.RequestHandler):
         names = self.request.get('names').split(',')
         results = {}
         for name in names:
-            key = 'sn-%s' % name
+            key = 'latin-%s' % name
             value = memcache.get(key)
             if value:
                 logging.info('memcache value: %s' % value)
@@ -36,13 +36,13 @@ class ResultsHandler(webapp2.RequestHandler):
                 logging.info('cache value: %s' % value)
                 memcache.add(key, value)
             results[name] = value
-        self.response.headers["Content-Type"] = "application/json"        
+        self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(json.dumps(results))
-                    
+
 application = webapp2.WSGIApplication(
-    [('/cartodb/results', ResultsHandler),], 
+    [('/cartodb/results', ResultsHandler),],
     debug=True)
-         
+
 def main():
     run_wsgi_app(application)
 

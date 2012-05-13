@@ -14,7 +14,15 @@ mol.modules.map.search = function(mol) {
                 this.names = [];
                 this.sql = '' +
                     'SELECT ' +
-                    '   s.provider as source, p.title as source_title, p.sourcetype as sourcetype, s.scientificname as name, s.type as type, t.title as type_title, n.name as names, n.class as _class, m.records as feature_count ' +
+                    '   s.provider as source, ' +
+                    '   p.title as source_title, ' +
+                    '   p.sourcetype as sourcetype, ' +
+                    '   s.scientificname as name, ' +
+                    '   s.type as type, ' +
+                    '   t.title as type_title, ' +
+                    '   n.name as names, ' +
+                    '   n.class as _class, ' +
+                    '   m.records as feature_count ' +
                     'FROM  layer_metadata s ' +
                     'LEFT JOIN ( ' +
                     '   SELECT ' +
@@ -237,7 +245,7 @@ mol.modules.map.search = function(mol) {
                              $(self.display.searchBox).one(
                                 "autocompleteopen",
                                 function(event, ui) {
-                                    self.searching = false;
+                                    self.searching[$(this).val()] = false;
                                     self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
                                     term = self.names.join(",");
                                     $(self.display.searchBox).autocomplete("close");
@@ -279,7 +287,7 @@ mol.modules.map.search = function(mol) {
              */
             search: function(term) {
                         var self = this;
-                        self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search-{0}".format(term)}));
+                        self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search".format(term)}));
                         self.bus.fireEvent(new mol.bus.Event('results-display-toggle',{visible : false}));
                         $(self.display.searchBox).autocomplete('disable');
                         $(self.display.searchBox).autocomplete('enable');
@@ -290,7 +298,7 @@ mol.modules.map.search = function(mol) {
                                 },
                                 function (response) {
                                     var results = {term:term, response:response};
-                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search-{0}".format(term)}));
+                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search".format(term)}));
                                     self.bus.fireEvent(new mol.bus.Event('search-results', results));
                                 },
                                 'json'

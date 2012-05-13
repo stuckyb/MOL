@@ -431,70 +431,30 @@ var CartoDB = CartoDB || {};
 
     if (this.params_.table_name == 'gbif_import') {
           infowindow_sql = "SELECT  " +
-            "'Point' AS \"Type\", " +
+            "'Point observation' AS \"Type\", " +
             "'GBIF' AS \"Source\", " +
             "scientificname AS  \"Species name\", " +
             "CollectionID AS \"Collection\", " +
             "CONCAT('<a target=\"_gbif\" onclick=\"window.open(this.href)\" href=\"http://data.gbif.org/occurrences/',identifier,'\">',identifier, '</a>') as \"Source ID\", " +
             "SurveyStartDate as \"Observed on\" " +
             "FROM {0} WHERE cartodb_id={1}".format("gbif_import", feature);
-    } else { // I'll see your hack and raise you 50.
-        if(this.params_.mol_layer.type == 'ecoregion') {
+    } else {
             infowindow_sql = "SELECT  " +
-            "'Ecoregion' AS \"Type\", " +
-            "'<a href=\" http://www.worldwildlife.org/science/wildfinder/\">World Wildlife Fund' AS \"Source\", " +
-            "p.scientificname AS  \"Species name\", " +
-            "regionname AS \"Region\", " +
-            "e.ecoregion_code AS \"Ecoregion Code\", " +
-            "p.datesubmitted as \"Date\" " +
-            "FROM polygons p " +
+            "   p.scientificname AS  \"Species name\", " +
+            "   pv.title AS \"Source\", " +
+            "   t.title AS \"Type\", " +
+            "   CASE WHEN p.seasonality = Null THEN 'unknown' ELSE TEXT(p.seasonality) END AS \"Seasonality\", " +
+            "   p.regionname AS \"Region\", " +
+            "   e.ecoregion_code AS \"Ecoregion Code\", " +
+            "   pv.pubdate as \"Date\" " +
+            "   FROM polygons p " +
+            "LEFT JOIN types t " +
+            "    ON p.type=t.type " +
+            "LEFT JOIN providers pv " +
+            "   ON p.provider = pv.provider " +
             "LEFT JOIN ecoregion_species e " +
-            "ON p.ecoregion_list_id = e.id WHERE p.cartodb_id={0}".format(feature);
-        }
-        if(this.params_.mol_layer.type == 'protectedarea') {
-            infowindow_sql = "SELECT  " +
-            "'Local inventory' AS \"Type\", " +
-            "'Scientist provided' AS \"Source\", " +
-            "scientificname AS  \"Species name\", " +
-            "regionname AS \"Region\", " +
-            "'ca. 1980-2005' as \"Date\", " +
-            "seasonality AS \"Seasonality\" " +
-            "FROM polygons " +
-            "WHERE cartodb_id={0}".format(feature);
-        }
-        if(this.params_.mol_layer.type == 'range' && this.params_.mol_layer.source == 'fishes') {
-            infowindow_sql = "SELECT  " +
-            "'Expert range map' AS \"Type\", " +
-            "'Page and Burr 2011' AS \"Source\", " +
-            "scientificname AS  \"Species name\", " +
-            "'ca. 1980-2010' as \"Date\", " +
-            "seasonality as \"Seasonality\" " +
-            "FROM polygons " +
-            "WHERE cartodb_id={0}".format(feature);
-        }
-        if(this.params_.mol_layer.type == 'range' && this.params_.mol_layer.source.toLowerCase() == 'jetz') {
-            infowindow_sql = "SELECT  " +
-            "'Expert range map' AS \"Type\", " +
-            "'Jetz et al 2012' AS \"Source\", " +
-            "scientificname AS  \"Species name\", " +
-            "'ca. 1980-2010' as \"Date\", " +
-            "seasonality as \"Seasonality\" " +
-            "FROM polygons " +
-            "WHERE cartodb_id={0}".format(feature);
-        }
-        if(this.params_.mol_layer.type == 'range' && this.params_.mol_layer.source.toLowerCase() == 'iucn') {
-            infowindow_sql = "SELECT  " +
-            "'Expert range map' AS \"Type\", " +
-            "'IUCN' AS \"Source\", " +
-            "scientificname AS  \"Species name\", " +
-            "'ca. 1980-2010' as \"Date\", " +
-            "seasonality as \"Seasonality\", " +
-            "establishmentmeans as \"Origin\" " +
-            "FROM polygons " +
-            "WHERE cartodb_id={0}".format(feature);
-        }
-
-
+            "   ON p.ecoregion_list_id = e.id " +
+            "WHERE p.cartodb_id={0}".format(feature);
     }
 
     // If the table is private, you can't run any api methods
@@ -528,7 +488,7 @@ var CartoDB = CartoDB || {};
 
         // List all the new variables
         for (p in variables) {
-          if (p!='cartodb_id' && p!='cdb_centre' && p!='the_geom_webmercator') {
+          if (p!='cartodb_id' && p!='cdb_centre' && p!='the_geom_webmercator' && variables[p]!=null && variables[p]!='') {
             $('div.cartodb_infowindow div.outer_top div.top').append('<label>'+p+'</label><p class="'+((variables[p]!=null && variables[p]!='')?'':'empty')+'">'+(variables[p] || 'empty')+'</p>');
           }
         }
