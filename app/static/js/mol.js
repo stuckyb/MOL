@@ -3409,7 +3409,7 @@ mol.modules.map.dashboard = function(mol) {
                     '      <th><b>Birds</b></th>' +
                     '      <th><b>Mammals</b></th>' +
                     '      <th><b>Reptiles</b></th>' +
-                    '      <th><b>Fish</b></th>' +
+                    '      <th><b>Freshwater fishes</b></th>' +
                     '    </tr>' +
                     '   </thead>' +
                     '   <tbody>' +
@@ -3867,7 +3867,7 @@ mol.modules.map.query = function(mol) {
                         '     </select>' +
                         '     Group <select class="class" value="">' +
                         '       <option selected value=" AND  p.polygonres = 1000 ">Birds</option>' +
-                        '       <option value=" AND p.provider = \'fishes\' ">NA Fishes</option>' +
+                        '       <option value=" AND p.provider = \'fishes\' ">NA Freshwater Fishes</option>' +
                         '       <option value=" AND p.class=\'reptilia\' ">Reptiles</option>' +
                         '       <option value=" AND p.class=\'amphibia\' ">Amphibians</option>' +
                         '       <option value=" AND p.class=\'mammalia\' ">Mammals</option>' +
@@ -3898,7 +3898,8 @@ mol.modules.map.query = function(mol) {
         }
     }
     );
-};mol.modules.map.legend = function(mol) {
+};
+mol.modules.map.legend = function(mol) {
 
     mol.map.legend = {};
 
