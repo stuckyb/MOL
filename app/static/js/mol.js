@@ -4517,8 +4517,7 @@ mol.modules.map.splash = function(mol) {
                 var html = '' +
         '<div>' +
 	'<div class="message"></div>' +
-	    '<span><font color="red">[5/14/2012 11:55 EDT] A large number of species are currently offline. Please stand by. </font></span>' +
-        '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:400px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
+	    '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:400px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
 	'<div id="footer_imgs" style="text-align: center">' +
         '<div>Sponsors, partners and supporters</div>' +
         '<a target="_blank" href="http://www.yale.edu/jetz/"><button><img width="72px" height="36px" title="Jetz Lab, Yale University" src="/static/home/yale.png"></button></a>' +
