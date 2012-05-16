@@ -4517,6 +4517,7 @@ mol.modules.map.splash = function(mol) {
                 var html = '' +
         '<div>' +
 	'<div class="message"></div>' +
+	'<div><font color="red">Due to high traffic we are currently experiencing slow map rendering.<br>We hope to have addressed this very soon.</font></div>' +
 	    '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:400px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
 	'<div id="footer_imgs" style="text-align: center">' +
         '<div>Sponsors, partners and supporters</div>' +
