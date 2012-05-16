@@ -311,7 +311,6 @@ mol.modules.map.tiles = function(mol) {
                     style_table_name = table,
                     info_query = sql;
                     tile_style =  null,
-                    hostname = window.location.hostname,
                     infowindow = true;
 
                 if (layer.type === 'points') {

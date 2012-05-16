@@ -133,7 +133,7 @@
 	         te.start()
 	         le = new env.map.layers.LayerEngine(proxy, bus, me.display.map)
 	         le.start()
-	         re = new env.map.results.ResultsEngine(proxy, bus)
+	         re = new env.map.results.ResultsEngine(proxy, bus, me.display.map)
 	         re.start()
 	         ne = new env.map.menu.MenuEngine(proxy, bus)
 	         ne.start()

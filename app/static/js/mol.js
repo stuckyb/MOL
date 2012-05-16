@@ -82,7 +82,7 @@ mol.modules.core = function(mol) {
     mol.core.getLayerId = function(layer) {
         var name = $.trim(layer.name.toLowerCase()).replace(/ /g, "_"),
             type = $.trim(layer.type.toLowerCase()).replace(/ /g, "_"),
-            source = $.trim(layer.source).replace(/,/g, "").replace(/ /g, "_"),
+            source = $.trim(layer.source.toLowerCase()).replace(/,/g, "").replace(/ /g, "_"),
             type_title = $.trim(layer.type_title).replace(/,/g, "").replace(/ /g, "_"),
             source_title = $.trim(layer.source_title).replace(/,/g, "").replace(/ /g, "_"),
             names = $.trim(layer.names).replace(/'S/g, "'s").replace(/ /g, "_"),
@@ -3235,7 +3235,6 @@ mol.modules.map.tiles = function(mol) {
                     style_table_name = table,
                     info_query = sql;
                     tile_style =  null,
-                    hostname = window.location.hostname,
                     infowindow = true;
 
                 if (layer.type === 'points') {
@@ -3550,7 +3549,7 @@ mol.modules.map.query = function(mol) {
         },
         getList: function(lat, lng, listradius, constraints, className) {
                 var self = this,
-                    sql = this.sql.format((lng+' '+lat), listradius.radius, constraints, 'polygons'),
+                    sql = this.sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons'),
                     params = {sql:sql, key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius+constraints))},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
@@ -3866,8 +3865,7 @@ mol.modules.map.query = function(mol) {
                         '     Search Radius <select class="radius">' +
                         '       <option selected value="50">50 km</option>' +
                         '       <option value="100">100 km</option>' +
-                        '       <option value="500">500 km</option>' +
-                        '       <option value="1000">1000 km</option>' +
+                        '       <option value="300">300 km</option>' +
                         '     </select>' +
                         '     Group <select class="class" value="">' +
                         '       <option selected value=" AND  p.polygonres = 1000 ">Birds</option>' +
@@ -4483,6 +4481,13 @@ mol.modules.map.splash = function(mol) {
 			});
 		        window.stop();
 
+		} else if(false) {
+            this.initDialog();
+            this.display.mesg.append($("<font color='red'>Map of Life is down for maintenance. We will be back up shortly.</font>"));
+            $(this.display).dialog( "option", "closeOnEscape", false );
+            $(this.display).bind( "dialogbeforeclose", function(event, ui) {
+                return false;
+            });
 		} else {
 			this.initDialog();
 		}
@@ -4521,8 +4526,7 @@ mol.modules.map.splash = function(mol) {
             init: function() {
                 var html = '' +
         '<div>' +
-	'<div class="message"></div>' +
-	'<div><font color="red">Please note that tile drawing may be temporarily slow due to high traffic. <br>It should be back up to normal very soon.</font></div>' +
+	    '<div class="message"></div>' +
 	    '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:400px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
 	'<div id="footer_imgs" style="text-align: center">' +
         '<div>Sponsors, partners and supporters</div>' +

@@ -30,6 +30,13 @@ mol.modules.map.splash = function(mol) {
 			});
 		        window.stop();
 
+		} else if(false) {
+            this.initDialog();
+            this.display.mesg.append($("<font color='red'>Map of Life is down for maintenance. We will be back up shortly.</font>"));
+            $(this.display).dialog( "option", "closeOnEscape", false );
+            $(this.display).bind( "dialogbeforeclose", function(event, ui) {
+                return false;
+            });
 		} else {
 			this.initDialog();
 		}
@@ -68,8 +75,7 @@ mol.modules.map.splash = function(mol) {
             init: function() {
                 var html = '' +
         '<div>' +
-	'<div class="message"></div>' +
-	'<div><font color="red">Please note that tile drawing may be temporarily slow due to high traffic. <br>It should be back up to normal very soon.</font></div>' +
+	    '<div class="message"></div>' +
 	    '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:400px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
 	'<div id="footer_imgs" style="text-align: center">' +
         '<div>Sponsors, partners and supporters</div>' +

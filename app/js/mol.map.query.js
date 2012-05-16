@@ -385,8 +385,7 @@ mol.modules.map.query = function(mol) {
                         '     Search Radius <select class="radius">' +
                         '       <option selected value="50">50 km</option>' +
                         '       <option value="100">100 km</option>' +
-                        '       <option value="500">500 km</option>' +
-                        '       <option value="1000">1000 km</option>' +
+                        '       <option value="300">300 km</option>' +
                         '     </select>' +
                         '     Group <select class="class" value="">' +
                         '       <option selected value=" AND  p.polygonres = 1000 ">Birds</option>' +
