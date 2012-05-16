@@ -82,7 +82,7 @@ mol.modules.core = function(mol) {
     mol.core.getLayerId = function(layer) {
         var name = $.trim(layer.name.toLowerCase()).replace(/ /g, "_"),
             type = $.trim(layer.type.toLowerCase()).replace(/ /g, "_"),
-            source = $.trim(layer.source.toLowerCase()).replace(/,/g, "").replace(/ /g, "_"),
+            source = $.trim(layer.source).replace(/,/g, "").replace(/ /g, "_"),
             type_title = $.trim(layer.type_title).replace(/,/g, "").replace(/ /g, "_"),
             source_title = $.trim(layer.source_title).replace(/,/g, "").replace(/ /g, "_"),
             names = $.trim(layer.names).replace(/'S/g, "'s").replace(/ /g, "_"),
@@ -890,7 +890,7 @@ mol.modules.map = function(mol) {
 
                 mapOptions = {
                     zoom: 2,
-                    maxZoom: 15,
+                    maxZoom: 10,
                     minZoom: 2,
                     minLat: -85,
                     maxLat: 85,
@@ -1805,9 +1805,10 @@ mol.modules.map.results = function(mol) {
             /**
              * @param bus mol.bus.Bus
              */
-            init: function(proxy, bus) {
+            init: function(proxy, bus, map) {
                 this.proxy = proxy;
                 this.bus = bus;
+                this.map = map;
             },
 
             /**
@@ -1852,15 +1853,18 @@ mol.modules.map.results = function(mol) {
                                 return mol.core.getLayerFromId(id);
                             }
                         );
-
-                        self.bus.fireEvent(
-                            new mol.bus.Event(
-                                'add-layers',
-                                {
-                                    layers: layers
-                                }
-                            )
-                        );
+                        if(self.map.overlayMapTypes.length + layers.length > 15) {
+                            alert('The map is currently limited to 15 layers at a time. Please remove some layers before adding more.');
+                        } else {
+                            self.bus.fireEvent(
+                                new mol.bus.Event(
+                                    'add-layers',
+                                    {
+                                        layers: layers
+                                    }
+                                )
+                            );
+                        }
                     }
                 );
                 /**
@@ -4518,7 +4522,7 @@ mol.modules.map.splash = function(mol) {
                 var html = '' +
         '<div>' +
 	'<div class="message"></div>' +
-	'<div><font color="red">Due to high traffic we are currently experiencing slow map rendering.<br>We hope to have addressed this very soon.</font></div>' +
+	'<div><font color="red">Please note that tile drawing may be temporarily slow due to high traffic. <br>It should be back up to normal very soon.</font></div>' +
 	    '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:400px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
 	'<div id="footer_imgs" style="text-align: center">' +
         '<div>Sponsors, partners and supporters</div>' +

@@ -235,7 +235,7 @@ mol.modules.map = function(mol) {
 
                 mapOptions = {
                     zoom: 2,
-                    maxZoom: 15,
+                    maxZoom: 10,
                     minZoom: 2,
                     minLat: -85,
                     maxLat: 85,
