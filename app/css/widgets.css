@@ -537,18 +537,19 @@ padding: 3px;
     border-radius: 4px;
     white-space: nowrap;
     pointer-events: auto;
+    -moz-user-select: text;
 }
 .mol-LayerControl-Search .title{
     display:inline-block;
     line-height: 25px;
     font-size: 1.1em;
     margin-right: 2px;
+    -moz-user-select: none;
 }
 .mol-LayerControl-Search .value{
     display:inline-block;
     margin-right: 5px;
     /*width: 55%;*/
-
 }
 
 .ui-autocomplete {
