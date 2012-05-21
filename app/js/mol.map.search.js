@@ -105,11 +105,11 @@ mol.modules.map.search = function(mol) {
                     {
                         minLength: 3, // Note: Auto-complete indexes are min length 3.
                         source: function(request, response) {
-                            $.post(
-                                'cache/get',
+                            $.getJSON(
+                                'http://dtredc0xh764j.cloudfront.net/api/v2/sql',
                                 {
-                                    key: 'ac-sql-{0}'.format(request.term),
-                                    sql:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
+                                    //key: 'auto-{0}'.format(request.term),
+                                    q:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
                                 },
                                 function (json) {
                                     var names = [],scinames=[];
@@ -183,14 +183,14 @@ mol.modules.map.search = function(mol) {
                         self.bus.fireEvent(e);
                     }
                 );
-                
+
                 this.bus.addHandler(
                     'close-autocomplete',
                     function(event) {
                         $(self.display.searchBox).autocomplete("close");
                     }
                 );
-                
+
                 this.bus.addHandler(
                     'search',
                     function(event) {
@@ -207,7 +207,7 @@ mol.modules.map.search = function(mol) {
                         }
                    }
                 );
-                
+
                 /**
                  * Clicking the go button executes a search.
                  */
@@ -292,7 +292,7 @@ mol.modules.map.search = function(mol) {
                     self.bus.fireEvent(new mol.bus.Event('results-display-toggle',{visible : false}));
                     $(self.display.searchBox).autocomplete('disable');
                     $(self.display.searchBox).autocomplete('enable');
-                
+
                 // Update count for term.
                 $.post(
                     'cartodb/results/count',
@@ -303,7 +303,7 @@ mol.modules.map.search = function(mol) {
                         // NO-OP
                     }
                 );
-                
+
                 $.post(
                     'cartodb/results',
                                 {

@@ -2683,11 +2683,11 @@ mol.modules.map.search = function(mol) {
                     {
                         minLength: 3, // Note: Auto-complete indexes are min length 3.
                         source: function(request, response) {
-                            $.post(
-                                'cache/get',
+                            $.getJSON(
+                                'http://dtredc0xh764j.cloudfront.net/api/v2/sql',
                                 {
-                                    key: 'ac-sql-{0}'.format(request.term),
-                                    sql:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
+                                    //key: 'auto-{0}'.format(request.term),
+                                    q:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
                                 },
                                 function (json) {
                                     var names = [],scinames=[];
@@ -2761,14 +2761,14 @@ mol.modules.map.search = function(mol) {
                         self.bus.fireEvent(e);
                     }
                 );
-                
+
                 this.bus.addHandler(
                     'close-autocomplete',
                     function(event) {
                         $(self.display.searchBox).autocomplete("close");
                     }
                 );
-                
+
                 this.bus.addHandler(
                     'search',
                     function(event) {
@@ -2785,7 +2785,7 @@ mol.modules.map.search = function(mol) {
                         }
                    }
                 );
-                
+
                 /**
                  * Clicking the go button executes a search.
                  */
@@ -2870,7 +2870,7 @@ mol.modules.map.search = function(mol) {
                     self.bus.fireEvent(new mol.bus.Event('results-display-toggle',{visible : false}));
                     $(self.display.searchBox).autocomplete('disable');
                     $(self.display.searchBox).autocomplete('enable');
-                
+
                 // Update count for term.
                 $.post(
                     'cartodb/results/count',
@@ -2881,7 +2881,7 @@ mol.modules.map.search = function(mol) {
                         // NO-OP
                     }
                 );
-                
+
                 $.post(
                     'cartodb/results',
                                 {
@@ -3231,7 +3231,7 @@ mol.modules.map.tiles = function(mol) {
                 var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type = '{2}' and provider = '{3}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
                     tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
-                    hostname = window.location.hostname,
+                    hostname = 'dtredc0xh764j.cloudfront.net',//window.location.hostname,
                     style_table_name = table,
                     info_query = sql;
                     tile_style =  null,
@@ -4458,6 +4458,7 @@ mol.modules.map.splash = function(mol) {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
+                this.IE8 = false;
              },
 
             /**
@@ -4468,18 +4469,20 @@ mol.modules.map.splash = function(mol) {
 
                 this.display = new mol.map.splash.splashDisplay();
 		if(this.getIEVersion()<9 && this.getIEVersion()>=0) {
+		    this.IE8 = true;
 			//old ie8, please upgrade
 			this.display.iframe_content.src='/static/splash/ie8.html';
 			this.initDialog();
 			//$(this.display).find('.ui-dialog-titlebar-close').toggle(false);
 			//$(this.display).dialog( "option", "closeOnEscape", false );
-			this.display.mesg.append($("<font color='red'>Your version of Internet Explorer is not supported. <br> Please use the latest version of Chrome, Safari, Firefox, or Internet Explorer.</font>"));
+			this.display.mesg.append($("<div class='IEwarning'>Your version of Internet Explorer requires the Google Chrome Frame Plugin to view the Map of Life. Chrome Frame is available at <a href='http://www.google.com/chromeframe'>http://www.google.com/chromeframe/</a>. Otherwise, please use the latest version of Chrome, Safari, Firefox, or Internet Explorer.</div>"));
 			$(this.display).dialog( "option", "closeOnEscape", false );
 			$(this.display).bind( "dialogbeforeclose", function(event, ui) {
-				alert('Your version of Internet Explorer is not supported. Please use the latest version of Chrome, Safari, Firefox, or Internet Explorer.');
+				alert('Your version of Internet Explorer is not supported. Please install Google Chrome Frame, or use the latest version of Chrome, Safari, Firefox, or IE.');
   				return false;
 			});
-		        window.stop();
+			$(this.display.iframe_content).height(320);
+
 
 		} else if(false) {
             this.initDialog();
@@ -4525,7 +4528,7 @@ mol.modules.map.splash = function(mol) {
         {
             init: function() {
                 var html = '' +
-        '<div>' +
+        '<div class="mol-Splash">' +
 	    '<div class="message"></div>' +
 	    '<iframe class="mol-splash iframe_content ui-dialog-content" style="height:400px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
 	'<div id="footer_imgs" style="text-align: center">' +
