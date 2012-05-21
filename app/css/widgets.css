@@ -93,7 +93,10 @@ button:hover{
  * Add, Delete
  * Layer Stack
  */
-
+.mol-Splash .IEwarning {
+    color: red;
+    font-size: 10pt;
+}
 
 .mol-Sidebar  {
         position:absolute;
