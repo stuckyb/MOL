@@ -3525,6 +3525,42 @@ mol.modules.map.query = function(mol) {
                         "   ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " + //radius test
                         "   {2} " + //other constraints
                         "ORDER BY s.sequenceid, p.scientificname asc";
+                this.csv_sql = "" +
+                        "SELECT DISTINCT "+
+                        "   p.scientificname as ScientificName, "+
+                        '   t.common_names_eng as EnglishName, '+
+                        '   initcap(lower(t._order)) as Order, ' +
+                        '   initcap(lower(t.Family)) as Family, ' +
+                        '   t.red_list_status as IUCN_Red_List_Status, ' +
+                        '   initcap(lower(t.class)) as Class, ' +
+                        '   dt.title as Type, ' +
+                        '   pv.title as Source, ' +
+                        '   t.year_assessed as Year_Assessed, ' +
+                        '   s.sequenceid as Sequence_ID ' +
+                        "FROM {3} p " +
+                        "LEFT JOIN synonym_metadata n " +
+                        "ON p.scientificname = n.scientificname " +
+                        "LEFT JOIN (SELECT scientificname, " +
+                        "                  replace(initcap(string_agg(common_names_eng, ',')),'''S','''s')  as common_names_eng, " + //using string_agg in case there are duplicates
+                        "                  MIN(class) as class, " + //these should be the same, even if there are duplicates
+                        "                  MIN(_order) as _order, " +
+                        "                  MIN(family) as family, " +
+                        "                  string_agg(red_list_status,',') as red_list_status, " +
+                        "                  string_agg(year_assessed,',') as year_assessed " +
+                        "           FROM master_taxonomy " +
+                        "           GROUP BY scientificname ) t " +
+                        "ON (p.scientificname = t.scientificname OR n.mol_scientificname = t.scientificname) " +
+                        "LEFT JOIN sequence_metadata s " +
+                        "   ON t.family = s.family " +
+                        "LEFT JOIN types dt ON " +
+                        "   p.type = dt.type " +
+                        "LEFT JOIN providers pv ON " +
+                        "   p.provider = pv.provider " +
+                        "WHERE " +
+                        "   ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " + //radius test
+                        "   {2} " + //other constraints
+                        "ORDER BY s.sequenceid, p.scientificname asc";
+                 this.queryct=0;
 
         },
         start : function() {
@@ -3550,18 +3586,27 @@ mol.modules.map.query = function(mol) {
         getList: function(lat, lng, listradius, constraints, className) {
                 var self = this,
                     sql = this.sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons'),
-                    params = {sql:sql, key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius+constraints))},
-                    action = new mol.services.Action('cartodb-sql-query', params),
-                    success = function(action, response) {
-                        var results = {listradius:listradius,  constraints: constraints, className : className, response:response},
-                        event = new mol.bus.Event('species-list-query-results', results);
-                        self.bus.fireEvent(event);
-                    },
-                    failure = function(action, response) {
+                    csv_sql = this.csv_sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons'),
+                    params = {sql:sql, key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius+constraints))};
 
-                    };
-
-                this.proxy.execute(action, new mol.services.Callback(success, failure));
+                    if(self.queryct>0) {
+                        alert('Please wait for your last specied list request to complete before starting another.')
+                    } else {
+                    self.queryct++;
+                    $.getJSON(
+                        'http://mol.cartodb.com/api/v2/sql',
+                        {
+                            q:sql,
+                        },
+                        function(data, textStatus, jqXHR) {
+                            self.queryct--;
+                            var results = {listradius:listradius,  constraints: constraints, className : className, response:data, sql:csv_sql},
+                            event = new mol.bus.Event('species-list-query-results', results);
+                            self.bus.fireEvent(event);
+                        }
+                    );
+                   }
+                //this.proxy.execute(action, new mol.services.Callback(success, failure));
 
         },
         addEventHandlers : function () {
@@ -3691,7 +3736,8 @@ mol.modules.map.query = function(mol) {
                                             speciestotal + ' '+
                                             stats +
                                            '<br>' +
-                                           'Data type/source:&nbsp;' + providers.join(', ') + '.&nbsp;All&nbsp;seasonalities.' +
+                                           'Data type/source:&nbsp;' + providers.join(', ') + '.&nbsp;All&nbsp;seasonalities.<br>' +
+                                           '<a href="http://mol.cartodb.com/api/v2/sql?q='+event.sql+'&format=csv">download csv</a>' +
                                     '   </div> ' +
                                     '   <div> ' +
                                     '       <table class="tablesorter">' +
