@@ -2905,7 +2905,7 @@ mol.modules.map.search = function(mol) {
                 var html = '' +
                     '<div class="mol-LayerControl-Search widgetTheme">' +
                     '    <div class="title ui-autocomplete-input">Search:</div>' +
-                    '    <input class="value" type="text" placeholder="Search by name">' +
+                    '    <input class="value" type="text" placeholder="Search by species name">' +
                     '    <button class="execute">Go</button>' +
                     '    <button class="cancel">&nbsp;</button>' +
                     '</div>';
