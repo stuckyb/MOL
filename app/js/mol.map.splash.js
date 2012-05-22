@@ -45,6 +45,8 @@ mol.modules.map.splash = function(mol) {
 		}
             },
             initDialog: function() {
+                var self = this;
+
                 this.display.dialog(
                     {
                         autoOpen: true,
@@ -55,6 +57,10 @@ mol.modules.map.splash = function(mol) {
                     }
                 );
                  $(this.display).width('98%');
+
+                 $(".ui-widget-overlay").live("click", function() {  
+                    self.display.dialog("close"); 
+                });
 
             },
 	    // Returns the version of Internet Explorer or a -1
