@@ -11,7 +11,7 @@ import threading
 
 def names():
     print 'Getting names...'
-    url = "http://mol.cartodb.com/api/v2/sql?q=select%20n%20as%20scientificname%20from%20ac%20order%20by%20scientificname"
+    url = "http://mol.cartodb.com/api/v2/sql?q=select%20distinct%20binomial%20as%20scientificname%20from%20append%20order%20by%20scientificname"
     response = urllib2.urlopen(url)
     rows = json.loads(response.read())['rows']
 
@@ -124,7 +124,7 @@ def english_names():
 
 
 def load_results():
-    url = "http://mol.cartodb.com/api/v2/sql?q=SELECT%20sn.provider%20AS%20source,%20sn.scientificname%20AS%20name,%20sn.type%20AS%20type%20FROM%20layer_metadata%20sn"
+    url = "http://mol.cartodb.com/api/v2/sql?q=SELECT%20sn.provider%20AS%20source,%20sn.scientificname%20AS%20name,%20sn.type%20AS%20type%20FROM%20layer_metadata%20sn%20WHERE%20sn.provider='iucn'"
     response = urllib2.urlopen(url)
     rows = json.loads(response.read())['rows']
     print 'Results downloaded.'
@@ -188,7 +188,7 @@ class Query(object):
         self.writer = writer
 
     def execute(self, name):
-        url = "http://mol.cartodb.com/api/v2/sql?%s" % urllib.urlencode(dict(q="SELECT s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, n.names as names, n.class as _class, m.records as feature_count FROM layer_metadata s LEFT JOIN (select * from synonym_metadata where scientificname='%s') sn ON s.scientificname = sn.scientificname LEFT JOIN (SELECT scientificname, replace(initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),', '))),'''S','''s') as names, class FROM master_taxonomy GROUP BY scientificname, class) n ON (s.scientificname = n.scientificname OR sn.mol_scientificname=n.scientificname) LEFT JOIN (( SELECT count(*) as records, 'points' as type, 'gbif' as provider FROM gbif_import WHERE lower(scientificname)=lower('%s')) UNION ALL (SELECT count(*) as records, type, provider FROM polygons GROUP BY scientificname, type, provider HAVING scientificname='%s' )) m ON s.type = m.type AND s.provider = m.provider LEFT JOIN types t ON s.type = t.type LEFT JOIN providers p ON s.provider = p.provider WHERE s.scientificname = '%s'" % (name, name, name, name)))
+        url = "http://mol.cartodb.com/api/v2/sql?%s" % urllib.urlencode(dict(q="SELECT s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, n.names as names, n.class as _class, m.records as feature_count FROM layer_metadata s LEFT JOIN (select * from synonym_metadata where scientificname='%s') sn ON s.scientificname = sn.scientificname LEFT JOIN (SELECT scientificname,  common_names_eng as names, class FROM taxonomy) n ON (s.scientificname = n.scientificname OR sn.mol_scientificname=n.scientificname) LEFT JOIN (( SELECT count(*) as records, 'points' as type, 'gbif' as provider FROM gbif_import WHERE lower(scientificname)=lower('%s')) UNION ALL (SELECT count(*) as records, type, provider FROM polygons GROUP BY scientificname, type, provider HAVING scientificname='%s' )) m ON s.type = m.type AND s.provider = m.provider LEFT JOIN types t ON s.type = t.type LEFT JOIN providers p ON s.provider = p.provider WHERE s.scientificname = '%s'" % (name, name, name, name)))
 
         try:
             response = urllib2.urlopen(url)
@@ -219,7 +219,7 @@ class Query(object):
             self.q.task_done()
 
 def create_autocomplete_index():
-    #names()
+    names()
     writer = csv_unicode.UnicodeDictWriter(open('names_index.csv', 'w'), ['id', 'string'])
     writer.writeheader()
     conn = setup_cacheitem_db()

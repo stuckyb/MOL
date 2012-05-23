@@ -219,7 +219,7 @@ mol.modules.map.query = function(mol) {
                             scientificnames,
                             function(red_list_status) {
                                 speciestotal++;
-                                speciesthreatened += ((red_list_status.indexOf('RN')>=0) || (red_list_status.indexOf('VU')>=0) || (red_list_status.indexOf('CR')>=0) )  ? 1 : 0;
+                                speciesthreatened += ((red_list_status.indexOf('EN')>=0) || (red_list_status.indexOf('VU')>=0) || (red_list_status.indexOf('CR')>=0) || (red_list_status.indexOf('EX')>=0) || (red_list_status.indexOf('EW')>=0) )  ? 1 : 0;
                                 speciesdd += (red_list_status.indexOf('DD')>0)  ? 1 : 0;
                             }
                         )

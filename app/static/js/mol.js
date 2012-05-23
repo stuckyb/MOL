@@ -1852,8 +1852,8 @@ mol.modules.map.results = function(mol) {
                                 return mol.core.getLayerFromId(id);
                             }
                         );
-                        if(self.map.overlayMapTypes.length + layers.length > 15) {
-                            alert('The map is currently limited to 15 layers at a time. Please remove some layers before adding more.');
+                        if(self.map.overlayMapTypes.length + layers.length > 100) {
+                            alert('The map is currently limited to 100 layers at a time. Please remove some layers before adding more.');
                         } else {
                             self.bus.fireEvent(
                                 new mol.bus.Event(
@@ -3573,7 +3573,7 @@ mol.modules.map.query = function(mol) {
                     params = {sql:sql, key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius+constraints))};
 
                     if(self.queryct>0) {
-                        alert('Please wait for your last specied list request to complete before starting another.')
+                        alert('Please wait for your last species list request to complete before starting another.')
                     } else {
                     self.queryct++;
                     $.getJSON(
@@ -3698,7 +3698,7 @@ mol.modules.map.query = function(mol) {
                             scientificnames,
                             function(red_list_status) {
                                 speciestotal++;
-                                speciesthreatened += ((red_list_status.indexOf('RN')>=0) || (red_list_status.indexOf('VU')>=0) || (red_list_status.indexOf('CR')>=0) )  ? 1 : 0;
+                                speciesthreatened += ((red_list_status.indexOf('EN')>=0) || (red_list_status.indexOf('VU')>=0) || (red_list_status.indexOf('CR')>=0) || (red_list_status.indexOf('EX')>=0) || (red_list_status.indexOf('EW')>=0) )  ? 1 : 0;
                                 speciesdd += (red_list_status.indexOf('DD')>0)  ? 1 : 0;
                             }
                         )
@@ -4525,6 +4525,8 @@ mol.modules.map.splash = function(mol) {
 		}
             },
             initDialog: function() {
+                var self = this;
+
                 this.display.dialog(
                     {
                         autoOpen: true,
@@ -4535,6 +4537,10 @@ mol.modules.map.splash = function(mol) {
                     }
                 );
                  $(this.display).width('98%');
+
+                 $(".ui-widget-overlay").live("click", function() {  
+                    self.display.dialog("close"); 
+                });
 
             },
 	    // Returns the version of Internet Explorer or a -1
