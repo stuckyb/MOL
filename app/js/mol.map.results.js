@@ -58,8 +58,8 @@ mol.modules.map.results = function(mol) {
                                 return mol.core.getLayerFromId(id);
                             }
                         );
-                        if(self.map.overlayMapTypes.length + layers.length > 15) {
-                            alert('The map is currently limited to 15 layers at a time. Please remove some layers before adding more.');
+                        if(self.map.overlayMapTypes.length + layers.length > 100) {
+                            alert('The map is currently limited to 100 layers at a time. Please remove some layers before adding more.');
                         } else {
                             self.bus.fireEvent(
                                 new mol.bus.Event(

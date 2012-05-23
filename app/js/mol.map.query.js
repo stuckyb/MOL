@@ -25,15 +25,7 @@ mol.modules.map.query = function(mol) {
                         "FROM {3} p " +
                         "LEFT JOIN synonym_metadata n " +
                         "ON p.scientificname = n.scientificname " +
-                        "LEFT JOIN (SELECT scientificname, " +
-                        "                  replace(initcap(string_agg(common_names_eng, ',')),'''S','''s')  as common_names_eng, " + //using string_agg in case there are duplicates
-                        "                  MIN(class) as class, " + //these should be the same, even if there are duplicates
-                        "                  MIN(_order) as _order, " +
-                        "                  MIN(family) as family, " +
-                        "                  string_agg(red_list_status,',') as red_list_status, " +
-                        "                  string_agg(year_assessed,',') as year_assessed " +
-                        "           FROM master_taxonomy " +
-                        "           GROUP BY scientificname ) t " +
+                        "LEFT JOIN taxonomy t " +
                         "ON (p.scientificname = t.scientificname OR n.mol_scientificname = t.scientificname) " +
                         "LEFT JOIN sequence_metadata s " +
                         "   ON t.family = s.family " +
@@ -47,28 +39,20 @@ mol.modules.map.query = function(mol) {
                         "ORDER BY s.sequenceid, p.scientificname asc";
                 this.csv_sql = "" +
                         "SELECT DISTINCT "+
-                        "   p.scientificname as ScientificName, "+
-                        '   t.common_names_eng as EnglishName, '+
-                        '   initcap(lower(t._order)) as Order, ' +
-                        '   initcap(lower(t.Family)) as Family, ' +
-                        '   t.red_list_status as IUCN_Red_List_Status, ' +
-                        '   initcap(lower(t.class)) as Class, ' +
-                        '   dt.title as Type, ' +
-                        '   pv.title as Source, ' +
-                        '   t.year_assessed as Year_Assessed, ' +
-                        '   s.sequenceid as Sequence_ID ' +
+                        '   p.scientificname as "Scientific Name", '+
+                        '   t.common_names_eng as "Common Name (English)", '+
+                        '   initcap(lower(t._order)) as "Order", ' +
+                        '   initcap(lower(t.Family)) as "Family", ' +
+                        '   t.red_list_status as "IUCN Red List Status", ' +
+                        '   initcap(lower(t.class)) as "Class", ' +
+                        '   dt.title as "Type", ' +
+                        '   pv.title as "Source", ' +
+                        '   t.year_assessed as "Year Assessed", ' +
+                        '   s.sequenceid as "Sequence ID" ' +
                         "FROM {3} p " +
                         "LEFT JOIN synonym_metadata n " +
                         "ON p.scientificname = n.scientificname " +
-                        "LEFT JOIN (SELECT scientificname, " +
-                        "                  replace(initcap(string_agg(common_names_eng, ',')),'''S','''s')  as common_names_eng, " + //using string_agg in case there are duplicates
-                        "                  MIN(class) as class, " + //these should be the same, even if there are duplicates
-                        "                  MIN(_order) as _order, " +
-                        "                  MIN(family) as family, " +
-                        "                  string_agg(red_list_status,',') as red_list_status, " +
-                        "                  string_agg(year_assessed,',') as year_assessed " +
-                        "           FROM master_taxonomy " +
-                        "           GROUP BY scientificname ) t " +
+                        "LEFT JOIN taxonomy t " +
                         "ON (p.scientificname = t.scientificname OR n.mol_scientificname = t.scientificname) " +
                         "LEFT JOIN sequence_metadata s " +
                         "   ON t.family = s.family " +
@@ -79,7 +63,7 @@ mol.modules.map.query = function(mol) {
                         "WHERE " +
                         "   ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " + //radius test
                         "   {2} " + //other constraints
-                        "ORDER BY s.sequenceid, p.scientificname asc";
+                        'ORDER BY "Sequence ID", "Scientific Name" asc';
                  this.queryct=0;
 
         },
@@ -106,11 +90,11 @@ mol.modules.map.query = function(mol) {
         getList: function(lat, lng, listradius, constraints, className) {
                 var self = this,
                     sql = this.sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons'),
-                    csv_sql = this.csv_sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons'),
+                    csv_sql = escape(this.csv_sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons')),
                     params = {sql:sql, key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius+constraints))};
 
                     if(self.queryct>0) {
-                        alert('Please wait for your last specied list request to complete before starting another.')
+                        alert('Please wait for your last species list request to complete before starting another.')
                     } else {
                     self.queryct++;
                     $.getJSON(
@@ -434,7 +418,7 @@ mol.modules.map.query = function(mol) {
                         '       <option value="300">300 km</option>' +
                         '     </select>' +
                         '     Group <select class="class" value="">' +
-                        '       <option selected value=" AND  p.polygonres = 1000 ">Birds</option>' +
+                        '       <option selected value=" AND  p.polygonres = 100 ">Birds</option>' +
                         '       <option value=" AND p.provider = \'fishes\' ">NA Freshwater Fishes</option>' +
                         '       <option value=" AND p.class=\'reptilia\' ">Reptiles</option>' +
                         '       <option value=" AND p.class=\'amphibia\' ">Amphibians</option>' +
