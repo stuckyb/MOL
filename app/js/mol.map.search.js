@@ -105,11 +105,11 @@ mol.modules.map.search = function(mol) {
                     {
                         minLength: 3, // Note: Auto-complete indexes are min length 3.
                         source: function(request, response) {
-                            $.post(
-                                'cache/get',
+                            $.getJSON(
+                                'http://dtredc0xh764j.cloudfront.net/api/v2/sql',
                                 {
-                                    key: 'ac-sql-{0}'.format(request.term),
-                                    sql:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
+                                    //key: 'auto-{0}'.format(request.term),
+                                    q:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
                                 },
                                 function (json) {
                                     var names = [],scinames=[];
@@ -183,36 +183,37 @@ mol.modules.map.search = function(mol) {
                         self.bus.fireEvent(e);
                     }
                 );
+
                 this.bus.addHandler(
                     'close-autocomplete',
                     function(event) {
                         $(self.display.searchBox).autocomplete("close");
                     }
                 );
+
                 this.bus.addHandler(
                     'search',
                     function(event) {
                         if (event.term != undefined) {
-                            if(!self.display.is(':visible')) {
+                            if (!self.display.is(':visible')) {
                                 self.bus.fireEvent(new mol.bus.Event('search-display-toggle',{visible : true}));
                             }
 
                             self.search(event.term);
 
-                            if(self.display.searchBox.val()=='') {
-                                self.display.searchBox.val(event.term)
+                            if (self.display.searchBox.val()=='') {
+                                self.display.searchBox.val(event.term);
                             }
-
                         }
                    }
-               );
+                );
+
                 /**
                  * Clicking the go button executes a search.
                  */
                 this.display.goButton.click(
                     function(event) {
-
-						self.search(self.names.join(","));
+						      self.search(self.names.join(","));
                     }
                 );
 
@@ -237,24 +238,24 @@ mol.modules.map.search = function(mol) {
                  */
                 this.display.searchBox.keyup(
                     function(event) {
-                      if (event.keyCode === 13) {
-                        $(this).autocomplete("close");
-                         self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
-                        //user hit return before autocomplete got a result.
-                        if (self.searching[$(this).val()] == undefined || self.searching[$(this).val()]) {
-                             $(self.display.searchBox).one(
-                                "autocompleteopen",
-                                function(event, ui) {
-                                    self.searching[$(this).val()] = false;
-                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
-                                    term = self.names.join(",");
-                                    $(self.display.searchBox).autocomplete("close");
-                                    self.search(term);
+                        if (event.keyCode === 13) {
+                            $(this).autocomplete("close");
+                            self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
+                            //user hit return before autocomplete got a result.
+                            if (self.searching[$(this).val()] == undefined || self.searching[$(this).val()]) {
+                                $(self.display.searchBox).one(
+                                    "autocompleteopen",
+                                    function(event, ui) {
+                                        var term = self.names.join(",");
+                                        self.searching[$(this).val()] = false;
+                                        self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
+                                        $(self.display.searchBox).autocomplete("close");
+                                        self.search(term);
                                 }
                              );
-                            $(this).autocomplete("search",$(this).val())
+                            $(this).autocomplete("search",$(this).val());
                         } else if (self.names.length>0 && !self.searching[$(this).val()]) {
-                                term = self.names.join(",");
+                                var term = self.names.join(",");
                                 $(self.display.searchBox).autocomplete("close");
                                 self.search(term);
                             }
@@ -286,13 +287,25 @@ mol.modules.map.search = function(mol) {
              * @param term the search term (scientific name)
              */
             search: function(term) {
-                        var self = this;
-                        self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search".format(term)}));
-                        self.bus.fireEvent(new mol.bus.Event('results-display-toggle',{visible : false}));
-                        $(self.display.searchBox).autocomplete('disable');
-                        $(self.display.searchBox).autocomplete('enable');
-                        $.post(
-                            'cartodb/results',
+                var self = this;
+                    self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search".format(term)}));
+                    self.bus.fireEvent(new mol.bus.Event('results-display-toggle',{visible : false}));
+                    $(self.display.searchBox).autocomplete('disable');
+                    $(self.display.searchBox).autocomplete('enable');
+
+                // Update count for term.
+                $.post(
+                    'cartodb/results/count',
+                    {
+                        name: self.display.searchBox.val()
+                    },
+                    function (response) {
+                        // NO-OP
+                    }
+                );
+
+                $.post(
+                    'cartodb/results',
                                 {
                                     names:term
                                 },
@@ -314,7 +327,7 @@ mol.modules.map.search = function(mol) {
                 var html = '' +
                     '<div class="mol-LayerControl-Search widgetTheme">' +
                     '    <div class="title ui-autocomplete-input">Search:</div>' +
-                    '    <input class="value" type="text" placeholder="Search by name">' +
+                    '    <input class="value" type="text" placeholder="Search by species name">' +
                     '    <button class="execute">Go</button>' +
                     '    <button class="cancel">&nbsp;</button>' +
                     '</div>';

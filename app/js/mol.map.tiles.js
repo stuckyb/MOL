@@ -307,11 +307,10 @@ mol.modules.map.tiles = function(mol) {
                 var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type = '{2}' and provider = '{3}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
                     tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
-                    hostname = window.location.hostname,
+                    hostname = 'dtredc0xh764j.cloudfront.net',//window.location.hostname,
                     style_table_name = table,
                     info_query = sql;
                     tile_style =  null,
-                    hostname = window.location.hostname,
                     infowindow = true;
 
                 if (layer.type === 'points') {

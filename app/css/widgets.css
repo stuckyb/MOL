@@ -93,6 +93,56 @@ button:hover{
  * Add, Delete
  * Layer Stack
  */
+.mol-Splash .IEwarning {
+    color: red;
+    font-size: 10pt;
+}
+
+.mol-Sidebar  {
+        position:absolute;
+        left: -3px;
+        top: -50px;
+}
+.mol-Sidebar .button {
+    background-image: -ms-linear-gradient(rgba(29,43,82,0.65) 89%, rgba(29,43,82,0.75) 57%);
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.89, rgba(29,43,82,0.65)),
+        color-stop(0.57, rgba(29,43,82,0.75))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(29,43,82,0.65) 89%,
+        rgba(29,43,82,0.75) 57%
+    );
+    background-image: -o-linear-gradient(
+        bottom,
+        rgba(29,43,82,0.65) 89%,
+        rgba(29,43,82,0.75) 57%
+    );
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#A51D2B52', endColorstr='#BF1D2B52');
+
+}
+
+.mol-Sidebar .status {
+    -moz-border-radius-topleft: 3px;
+    border-top-left-radius: 3px;
+    -moz-border-radius-topright: 3px;
+    border-top-right-radius: 3px;
+}
+.mol-Sidebar .help {
+    -moz-border-radius-bottomright: 3px;
+    border-bottom-right-radius: 3px;
+    -moz-border-radius-bottomleft: 3px;
+    border-bottom-left-radius: 3px;
+}
+.mol-Sidebar .button{
+        padding:6px;
+        cursor:pointer;
+
+}
 
 .mol-LayerControl-Menu {
     width: 100%;
@@ -112,7 +162,7 @@ button:hover{
     padding: 5px;
     width: 90px;
 }
-.mol-LayerControl-Menu div.add{
+.mol-LayerControl-Menu div:last-child{
     -moz-border-radius-topleft: 3px;
     border-top-left-radius: 3px;
     -moz-border-radius-bottomleft: 3px;
@@ -170,8 +220,12 @@ button:hover{
     height: 16px;
     padding-right: 2px;
 }
+.mol-LayerControl-Menu div.label {
+    padding-left: 14px;
+}
 .mol-LayerControl-Menu .layersToggle {
     visibility:hidden;
+
 }
 
 .mol-LayerControl-Layers{
@@ -486,18 +540,19 @@ padding: 3px;
     border-radius: 4px;
     white-space: nowrap;
     pointer-events: auto;
+    -moz-user-select: text;
 }
 .mol-LayerControl-Search .title{
     display:inline-block;
     line-height: 25px;
     font-size: 1.1em;
     margin-right: 2px;
+    -moz-user-select: none;
 }
 .mol-LayerControl-Search .value{
     display:inline-block;
     margin-right: 5px;
     /*width: 55%;*/
-
 }
 
 .ui-autocomplete {
@@ -996,10 +1051,29 @@ padding: 3px;
 }
 .mol-Map-LegendDisplay .legendItem {
      display:inline-block;
-     width: 8px;
+     width: 15px;
      height: 8px;
 }
-
+.mol-Map-LegendDisplay .point {
+     position:relative;
+     left:5px;
+     bottom:6px;
+}
+.mol-Map-LegendDisplay .narrow {
+     width: 3px;
+}
+.mol-Map-LegendDisplay .ecoregion {
+      background-color:#000000;
+      opacity:0.50;
+      border: 1px solid #000000;
+}
+.mol-Map-LegendDisplay .protectedarea {
+      background-color:#6A0085;
+      border:1px solid #000000;
+}
+.mol-Map-LegendDisplay . {
+      background-color:#99CC00
+}
 .mol-Map-LegendDisplay .seasonality1 {
       background-color:#99CC00
 }

@@ -25,15 +25,7 @@ mol.modules.map.query = function(mol) {
                         "FROM {3} p " +
                         "LEFT JOIN synonym_metadata n " +
                         "ON p.scientificname = n.scientificname " +
-                        "LEFT JOIN (SELECT scientificname, " +
-                        "                  replace(initcap(string_agg(common_names_eng, ',')),'''S','''s')  as common_names_eng, " + //using string_agg in case there are duplicates
-                        "                  MIN(class) as class, " + //these should be the same, even if there are duplicates
-                        "                  MIN(_order) as _order, " +
-                        "                  MIN(family) as family, " +
-                        "                  string_agg(red_list_status,' ') as red_list_status, " +
-                        "                  string_agg(year_assessed,' ') as year_assessed " +
-                        "           FROM master_taxonomy " +
-                        "           GROUP BY scientificname ) t " +
+                        "LEFT JOIN taxonomy t " +
                         "ON (p.scientificname = t.scientificname OR n.mol_scientificname = t.scientificname) " +
                         "LEFT JOIN sequence_metadata s " +
                         "   ON t.family = s.family " +
@@ -45,6 +37,34 @@ mol.modules.map.query = function(mol) {
                         "   ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " + //radius test
                         "   {2} " + //other constraints
                         "ORDER BY s.sequenceid, p.scientificname asc";
+                this.csv_sql = "" +
+                        "SELECT DISTINCT "+
+                        '   p.scientificname as "Scientific Name", '+
+                        '   t.common_names_eng as "Common Name (English)", '+
+                        '   initcap(lower(t._order)) as "Order", ' +
+                        '   initcap(lower(t.Family)) as "Family", ' +
+                        '   t.red_list_status as "IUCN Red List Status", ' +
+                        '   initcap(lower(t.class)) as "Class", ' +
+                        '   dt.title as "Type", ' +
+                        '   pv.title as "Source", ' +
+                        '   t.year_assessed as "Year Assessed", ' +
+                        '   s.sequenceid as "Sequence ID" ' +
+                        "FROM {3} p " +
+                        "LEFT JOIN synonym_metadata n " +
+                        "ON p.scientificname = n.scientificname " +
+                        "LEFT JOIN taxonomy t " +
+                        "ON (p.scientificname = t.scientificname OR n.mol_scientificname = t.scientificname) " +
+                        "LEFT JOIN sequence_metadata s " +
+                        "   ON t.family = s.family " +
+                        "LEFT JOIN types dt ON " +
+                        "   p.type = dt.type " +
+                        "LEFT JOIN providers pv ON " +
+                        "   p.provider = pv.provider " +
+                        "WHERE " +
+                        "   ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " + //radius test
+                        "   {2} " + //other constraints
+                        'ORDER BY "Sequence ID", "Scientific Name" asc';
+                 this.queryct=0;
 
         },
         start : function() {
@@ -69,19 +89,28 @@ mol.modules.map.query = function(mol) {
         },
         getList: function(lat, lng, listradius, constraints, className) {
                 var self = this,
-                    sql = this.sql.format((lng+' '+lat), listradius.radius, constraints, 'polygons'),
-                    params = {sql:sql, key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius+constraints))},
-                    action = new mol.services.Action('cartodb-sql-query', params),
-                    success = function(action, response) {
-                        var results = {listradius:listradius,  constraints: constraints, className : className, response:response},
-                        event = new mol.bus.Event('species-list-query-results', results);
-                        self.bus.fireEvent(event);
-                    },
-                    failure = function(action, response) {
+                    sql = this.sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons'),
+                    csv_sql = escape(this.csv_sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons')),
+                    params = {sql:sql, key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius+constraints))};
 
-                    };
-
-                this.proxy.execute(action, new mol.services.Callback(success, failure));
+                    if(self.queryct>0) {
+                        alert('Please wait for your last species list request to complete before starting another.')
+                    } else {
+                    self.queryct++;
+                    $.getJSON(
+                        'http://mol.cartodb.com/api/v2/sql',
+                        {
+                            q:sql,
+                        },
+                        function(data, textStatus, jqXHR) {
+                            self.queryct--;
+                            var results = {listradius:listradius,  constraints: constraints, className : className, response:data, sql:csv_sql},
+                            event = new mol.bus.Event('species-list-query-results', results);
+                            self.bus.fireEvent(event);
+                        }
+                    );
+                   }
+                //this.proxy.execute(action, new mol.services.Callback(success, failure));
 
         },
         addEventHandlers : function () {
@@ -171,7 +200,7 @@ mol.modules.map.query = function(mol) {
                                         ((row.order != null) ? row.order : '')+ "</td><td class='wiki'>" +
                                         ((row.family != null) ? row.family : '')+ "</td><td>" +
                                         ((row.sequenceid != null) ? row.sequenceid : '')+ "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
-                                        ((row.redlist != null) ? row.redlist : '') + "</td></tr>");
+                                        ((redlist != null) ? redlist : '') + "</td></tr>");
                                         providers.push('<a class="type {0}">{1}</a>, <a class="provider {2}">{3}</a>'.format(row.type,row.type_title,row.provider,row.provider_title));
                                     if (year != null && year != '') {
                                         years.push(year)
@@ -190,7 +219,7 @@ mol.modules.map.query = function(mol) {
                             scientificnames,
                             function(red_list_status) {
                                 speciestotal++;
-                                speciesthreatened += ((red_list_status.indexOf('RN')>=0) || (red_list_status.indexOf('VU')>=0) || (red_list_status.indexOf('CR')>=0) )  ? 1 : 0;
+                                speciesthreatened += ((red_list_status.indexOf('EN')>=0) || (red_list_status.indexOf('VU')>=0) || (red_list_status.indexOf('CR')>=0) || (red_list_status.indexOf('EX')>=0) || (red_list_status.indexOf('EW')>=0) )  ? 1 : 0;
                                 speciesdd += (red_list_status.indexOf('DD')>0)  ? 1 : 0;
                             }
                         )
@@ -211,7 +240,8 @@ mol.modules.map.query = function(mol) {
                                             speciestotal + ' '+
                                             stats +
                                            '<br>' +
-                                           'Data type/source:&nbsp;' + providers.join(', ') + '.&nbsp;All&nbsp;seasonalities.' +
+                                           'Data type/source:&nbsp;' + providers.join(', ') + '.&nbsp;All&nbsp;seasonalities.<br>' +
+                                           '<a href="http://mol.cartodb.com/api/v2/sql?q='+event.sql+'&format=csv">download csv</a>' +
                                     '   </div> ' +
                                     '   <div> ' +
                                     '       <table class="tablesorter">' +
@@ -352,14 +382,21 @@ mol.modules.map.query = function(mol) {
                     if($(this).val().toLowerCase().indexOf('fish')>0) {
                         $(self.display.types).find('.ecoregion').toggle(false);
                         $(self.display.types).find('.ecoregion').removeClass('selected');
-                        $(self.display.types).find('.range').addClass('selected');
-                    } else if($(this).val().toLowerCase().indexOf('reptil')) {
+                        if($(self.display.types).find('.range').hasClass('selected')) {
+                           alert('Available for North America only.');
+                        };
+
+                    } else if($(this).val().toLowerCase().indexOf('reptil')>0) {
                         $(self.display.types).find('.ecoregion').toggle(true);
                         $(self.display.types).find('.ecoregion').removeClass('selected');
-                        $(self.display.types).find('.range').addClass('selected');
+                        //$(self.display.types).find('.range').addClass('selected');
+                        if($(self.display.types).find('.range').hasClass('selected')) {
+                            alert('Available for North America only.');
+                        };
                     } else {
-                        $(self.display.types).find('.ecoregion').toggle(true);
+                        $(self.display.types).find('.ecoregion').toggle(false);
                         $(self.display.types).find('.range').toggle(true);
+                        $(self.display.types).find('.range').addClass('selected');
                     }
 
                 }
@@ -373,17 +410,16 @@ mol.modules.map.query = function(mol) {
         init : function(names) {
             var className = 'mol-Map-QueryDisplay',
                 html = '' +
-                        '<div title="Use this control to select species group and radius. Then right click (Mac Users: \'control-click\') on focal location on map. Note that currently type \'Expert map\' is not available outside N America for for Reptiles and Fishes and actual search radius for type \'Ecoregion\' varies strongly by region." class="' + className + ' widgetTheme">' +
+                        '<div title="Use this control to select species group and radius. Then right click (Mac Users: \'control-click\') on focal location on map." class="' + className + ' widgetTheme">' +
                         '   <div class="controls">' +
                         '     Search Radius <select class="radius">' +
                         '       <option selected value="50">50 km</option>' +
                         '       <option value="100">100 km</option>' +
-                        '       <option value="500">500 km</option>' +
-                        '       <option value="1000">1000 km</option>' +
+                        '       <option value="300">300 km</option>' +
                         '     </select>' +
                         '     Group <select class="class" value="">' +
-                        '       <option selected value=" AND p.class=\'aves\' ">Birds</option>' +
-                        '       <option value=" AND p.provider = \'fishes\' ">NA Fishes</option>' +
+                        '       <option selected value=" AND  p.polygonres = 100 ">Birds</option>' +
+                        '       <option value=" AND p.provider = \'fishes\' ">NA Freshwater Fishes</option>' +
                         '       <option value=" AND p.class=\'reptilia\' ">Reptiles</option>' +
                         '       <option value=" AND p.class=\'amphibia\' ">Amphibians</option>' +
                         '       <option value=" AND p.class=\'mammalia\' ">Mammals</option>' +
@@ -400,6 +436,7 @@ mol.modules.map.query = function(mol) {
             this.radiusInput=$(this).find('.radius');
             this.classInput=$(this).find('.class');
             this.types=$(this).find('.types');
+            $(this.types).find('.ecoregion').toggle(false);
         }
     }
     );

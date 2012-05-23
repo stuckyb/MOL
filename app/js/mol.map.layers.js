@@ -174,7 +174,8 @@ mol.modules.map.layers = function(mol) {
             addLayers: function(layers) {
                 var all = [],
                     layerIds = [],
-                    sortedLayers = this.sortLayers(layers);
+                    sortedLayers = this.sortLayers(layers),
+                    first = (this.display.find('.layer').length==0) ? true : false;
 
                 _.each(
                     sortedLayers,
@@ -280,11 +281,6 @@ mol.modules.map.layers = function(mol) {
                             }
                         );
 
-                        //select first layer by default
-                        if(self.map.overlayMapTypes.length==1) {
-                            $(l.layer).addClass('.selected')
-                        }
-
                         // Click handler for info button fires 'metadata-toggle'
                         l.info.click(
                             function(event) {
@@ -347,6 +343,9 @@ mol.modules.map.layers = function(mol) {
                     },
                     this
                 );
+                if(first) {
+                    this.display.list.find('.layer')[0].click();
+                }
             },
 
 			   /**

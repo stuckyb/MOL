@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 2011 The Regents of the University of California 
+# Copyright 2011 The Regents of the University of California
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ def load_names():
     for row in csv_unicode.UnicodeDictReader(open('english_names.csv', 'r')):
         names_map[row['scientific'].strip()].append(row)
 
-load_names()
+#load_names()
 
 def name_keys(name):
     """Generates name keys that are at least 3 characters long.
@@ -80,9 +80,9 @@ def create_key():
         return transform.create_foreign_key('CacheItem')(value)
     return wrapper
 
-def build_index(input_dict, instance, bulkload_state_copy):    
+def build_index(input_dict, instance, bulkload_state_copy):
     """Adds dynamic properties from the CSV input_dict to the entity instance."""
-    
+
     entities = [instance]
     names = names_map[input_dict['scientificname']]
     logging.info('Names %s' % names)

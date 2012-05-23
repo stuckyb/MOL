@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html>
+<html xmlns:og="http://ogp.me/ns#"
+      xmlns:fb="https://www.facebook.com/2008/fbml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <link rel="stylesheet" href="../../../js/lib/jquery/css/ui-lightness/jquery-ui-1.8.18.custom.css">
     <link rel="stylesheet" href="../../../css/mol.css">
     <link rel="stylesheet" href="../../../css/widgets.css">
     <!--<link rel="stylesheet" href="../../../css/metadata.css">-->
     <link rel="stylesheet" href="../../../css/cartodb.css">
     <link rel="stylesheet" href="../../../css/tablesorter.css">
-
-
 
     <!-- <link rel="stylesheet" href="../../../css/wri-style.css"> -->
 
@@ -49,12 +49,22 @@
      <script type="text/javascript" src="../../../js/mol.map.metadata.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.splash.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.help.js"></script>
+     <script type="text/javascript" src="../../../js/mol.map.sidebar.js"></script>
+      <script type="text/javascript" src="../../../js/mol.map.status.js"></script>
     {% endif %}
 
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-    <meta name="description" content="Map of Life - Range Map." />
-    <meta name="keywords" content="map of life" />
+    <title>Map of Life</title>
+    <meta name="description" content="A knowledge-base and platform for species distribution map development." />
+    <meta name="keywords" content="map of life, biodiversity informatics, expert range maps, point occurrence, species occurrence, regional checklists, local inventories" />
+
+    <meta property="og:title" content="Map of Life" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="http://www.mappinglife.org/" />
+    <meta property="og:image" content="http://www.mappinglife.org/static/demo/ochotona-princeps-thumb.png"/>
+    <meta property="fb:admins" content="gaurav.vaidya"/>
+    <meta property="og:description" content="By bringing together all types of information about species distributions, providing model-based integration, and providing a system for users to build upon our knowledge, the Map of Life project hopes to support our community in understanding and saving the world's biodiversity." />
 
     <script type="text/javascript">
         var _gaq = _gaq || [];
@@ -70,8 +80,7 @@
   </head>
   <body>
     <div id="map_container" class="map_container"></div>
-    <div style="position:fixed; z-index: 999; left: -5px; top: 320px; width: 16px; height: 100px;"><button id="mol_feedback"><img src="/static/buttons/feedback_fr.png"></button></div>
-	 <script type="text/javascript">
+    <script type="text/javascript">
       $(document).ready(function() {
           {% if prod %}
           <!-- Production, so load app without logging and run it. -->
@@ -80,32 +89,38 @@
 	         proxy = new env.services.Proxy(bus)
 	         me = new env.map.MapEngine(proxy, bus)
 	         me.start('body');
-	         se = new env.map.search.SearchEngine(proxy, bus)
-	         se.start(null)
-	         te = new env.map.tiles.TileEngine(proxy, bus, me.display.map)
-	         te.start()
-	         le = new env.map.layers.LayerEngine(proxy, bus, me.display.map)
-	         le.start()
-	         re = new env.map.results.ResultsEngine(proxy, bus)
-	         re.start()
-	         ne = new env.map.menu.MenuEngine(proxy, bus)
-	         ne.start()
-	         le = new env.map.loading.LoadingEngine(proxy, bus)
-             le.start()
-             de = new env.map.dashboard.DashboardEngine(proxy, bus)
-             de.start()
-             qe = new env.map.query.QueryEngine(proxy, bus, me.display.map)
-             qe.start()
-             lge = new env.map.legend.LegendEngine(proxy, bus)
-             lge.start()
-             bme = new env.map.basemap.BaseMapEngine(proxy, bus, me.display.map)
-             bme.start()
-             mde = new env.map.metadata.MetadataEngine(proxy, bus)
-             mde.start()
-             spe = new env.map.splash.SplashEngine(proxy, bus)
+		     spe = new env.map.splash.SplashEngine(proxy, bus)
              spe.start()
-             hd = new env.map.help.HelpDialog(proxy, bus)
-             hd.start()
+             if(!spe.IE8) {
+	           se = new env.map.search.SearchEngine(proxy, bus)
+	           se.start(null)
+	           te = new env.map.tiles.TileEngine(proxy, bus, me.display.map)
+	           te.start()
+	           le = new env.map.layers.LayerEngine(proxy, bus, me.display.map)
+	           le.start()
+	           re = new env.map.results.ResultsEngine(proxy, bus, me.display.map)
+	           re.start()
+	           ne = new env.map.menu.MenuEngine(proxy, bus)
+	           ne.start()
+	           le = new env.map.loading.LoadingEngine(proxy, bus)
+                le.start()
+                de = new env.map.dashboard.DashboardEngine(proxy, bus)
+                de.start()
+                qe = new env.map.query.QueryEngine(proxy, bus, me.display.map)
+                qe.start()
+                lge = new env.map.legend.LegendEngine(proxy, bus)
+                lge.start()
+                bme = new env.map.basemap.BaseMapEngine(proxy, bus, me.display.map)
+                bme.start()
+                mde = new env.map.metadata.MetadataEngine(proxy, bus)
+                mde.start()
+                hd = new env.map.help.HelpDialog(proxy, bus)
+                hd.start()
+                sb = new env.map.sidebar.SidebarEngine(proxy, bus)
+                sb.start()
+                st = new env.map.status.StatusEngine(proxy, bus)
+                st.start()
+             }
           });
           {% else %}
           env = mol(function(env) {
@@ -113,35 +128,42 @@
 	         proxy = new env.services.Proxy(bus)
 	         me = new env.map.MapEngine(proxy, bus)
 	         me.start('body');
-	         se = new env.map.search.SearchEngine(proxy, bus)
-	         se.start(null)
-	         te = new env.map.tiles.TileEngine(proxy, bus, me.display.map)
-	         te.start()
-	         le = new env.map.layers.LayerEngine(proxy, bus, me.display.map)
-	         le.start()
-	         re = new env.map.results.ResultsEngine(proxy, bus)
-	         re.start()
-	         ne = new env.map.menu.MenuEngine(proxy, bus)
-	         ne.start()
-	         le = new env.map.loading.LoadingEngine(proxy, bus)
-             le.start()
-             de = new env.map.dashboard.DashboardEngine(proxy, bus);
-             de.start()
-             qe = new env.map.query.QueryEngine(proxy, bus, me.display.map);
-             qe.start()
-             lge = new env.map.legend.LegendEngine(proxy, bus)
-             lge.start()
-             bme = new env.map.basemap.BaseMapEngine(proxy, bus, me.display.map)
-             bme.start()
-             mde = new env.map.metadata.MetadataEngine(proxy, bus)
-             mde.start()
-             spe = new env.map.splash.SplashEngine(proxy, bus)
-             spe.start()
-             hd = new env.map.help.HelpDialog(proxy, bus)
-             hd.start()
+		     spe = new env.map.splash.SplashEngine(proxy, bus)
+           	 spe.start()
+           	 if(!spe.IE8) {
+	           se = new env.map.search.SearchEngine(proxy, bus)
+	           se.start(null)
+	           te = new env.map.tiles.TileEngine(proxy, bus, me.display.map)
+	           te.start()
+	           le = new env.map.layers.LayerEngine(proxy, bus, me.display.map)
+	           le.start()
+	           re = new env.map.results.ResultsEngine(proxy, bus, me.display.map)
+	           re.start()
+	           ne = new env.map.menu.MenuEngine(proxy, bus)
+	           ne.start()
+	           le = new env.map.loading.LoadingEngine(proxy, bus)
+                le.start()
+                de = new env.map.dashboard.DashboardEngine(proxy, bus);
+                 de.start()
+                qe = new env.map.query.QueryEngine(proxy, bus, me.display.map);
+                qe.start()
+                lge = new env.map.legend.LegendEngine(proxy, bus)
+                lge.start()
+                bme = new env.map.basemap.BaseMapEngine(proxy, bus, me.display.map)
+                bme.start()
+                mde = new env.map.metadata.MetadataEngine(proxy, bus)
+                mde.start()
+                hd = new env.map.help.HelpDialog(proxy, bus)
+                hd.start()
+                sb = new env.map.sidebar.SidebarEngine(proxy, bus)
+                sb.start()
+                st = new env.map.status.StatusEngine(proxy, bus)
+                st.start()
+             }
           });
           {% endif %}
       });
+
     </script>
   </body>
 </html>

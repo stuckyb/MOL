@@ -135,7 +135,7 @@ mol.modules.map.dashboard = function(mol) {
                     '      <th><b>Birds</b></th>' +
                     '      <th><b>Mammals</b></th>' +
                     '      <th><b>Reptiles</b></th>' +
-                    '      <th><b>Fish</b></th>' +
+                    '      <th><b>Freshwater fishes</b></th>' +
                     '    </tr>' +
                     '   </thead>' +
                     '   <tbody>' +
@@ -145,8 +145,8 @@ mol.modules.map.dashboard = function(mol) {
                     '      <td class="class amphibia">5,662 species names with 1,794,441 records</td>' +
                     '      <td class="class aves">13,000 species names with 132,412,174 records</td>' +
                     '      <td class="class mammalia">14,095 species names with 4,351,065 records</td>' +
-                    '      <td class="class osteichthyes">11,445 species names with 1,695,170 records</td>' +
-                    '      <td></td>' +
+                    '      <td class="class reptilia">11,445 species names with 1,695,170 records</td>' +
+                    '      <td class="class fish">37,850 species names with 7,635,630 records</td>' +
                     '   </tr>' +
                     '   <tr>' +
                     '       <td class="type range">Expert maps</td>' +
@@ -163,7 +163,7 @@ mol.modules.map.dashboard = function(mol) {
                     '       <td class="class amphibia ">5,966 species with 18,852 records</td>' +
                     '       <td></td>' +
                     '       <td class="class mammalia">4,081 species with 38,673 records</td>' +
-                    '       <td></td>' +
+                    '       <td class="class reptilia">2,532 species with 25,652 records</td>' +
                     '       <td></td>' +
                     '   </tr>' +
                     '   <tr class="provider wdpa">' +

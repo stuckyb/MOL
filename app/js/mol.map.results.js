@@ -10,9 +10,10 @@ mol.modules.map.results = function(mol) {
             /**
              * @param bus mol.bus.Bus
              */
-            init: function(proxy, bus) {
+            init: function(proxy, bus, map) {
                 this.proxy = proxy;
                 this.bus = bus;
+                this.map = map;
             },
 
             /**
@@ -57,15 +58,18 @@ mol.modules.map.results = function(mol) {
                                 return mol.core.getLayerFromId(id);
                             }
                         );
-
-                        self.bus.fireEvent(
-                            new mol.bus.Event(
-                                'add-layers',
-                                {
-                                    layers: layers
-                                }
-                            )
-                        );
+                        if(self.map.overlayMapTypes.length + layers.length > 100) {
+                            alert('The map is currently limited to 100 layers at a time. Please remove some layers before adding more.');
+                        } else {
+                            self.bus.fireEvent(
+                                new mol.bus.Event(
+                                    'add-layers',
+                                    {
+                                        layers: layers
+                                    }
+                                )
+                            );
+                        }
                     }
                 );
                 /**
