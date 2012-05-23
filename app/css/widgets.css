@@ -1174,7 +1174,9 @@ padding: 3px;
     max-width:350px;
 }
 
-
+div.cartodb_infowindow div.top p {
+    padding-top:1px;
+}
 
 
 

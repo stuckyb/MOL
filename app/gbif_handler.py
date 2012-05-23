@@ -25,7 +25,7 @@ class GBIFHandler(webapp2.RequestHandler):
     def post(self):
 
         oid = self.request.get('oid')
-        search_url = 'http://data.gbif.org/ws/rest/occurrence/get/' % oid
+        search_url = 'http://data.gbif.org/ws/rest/occurrence/get/%s' % oid
         result = urlfetch.fetch(search_url, deadline=60).content
         self.response.out.write(result)
 

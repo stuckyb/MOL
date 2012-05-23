@@ -436,7 +436,8 @@ var CartoDB = CartoDB || {};
             "scientificname AS  \"Species name\", " +
             "CollectionID AS \"Collection\", " +
             "CONCAT('<a target=\"_gbif\" onclick=\"window.open(this.href)\" href=\"http://data.gbif.org/occurrences/',identifier,'\">',identifier, '</a>') as \"Source ID\", " +
-            "SurveyStartDate as \"Observed on\" " +
+            "SurveyStartDate as \"Observed on\", " +
+            "identifier as oid " +
             "FROM {0} WHERE cartodb_id={1}".format("gbif_import", feature);
     } else {
             infowindow_sql = "SELECT  " +
@@ -462,14 +463,38 @@ var CartoDB = CartoDB || {};
       infowindow_sql = encodeURIComponent(this.params_.feature.replace('{{feature}}',feature));
     }
 
+    if(this.params_.table_name == 'gbif_import'){
+        $.post(
+            'cache/get',
+            {sql: infowindow_sql, key: 'polygons-'+feature},
+            function(result) {
+                getGbifInfo(result.rows[0],latlng);
+            }
+        );
+    } else {
+        $.post(
+            'cache/get',
+            {sql: infowindow_sql, key: 'polygons-'+feature},
+            function(result) {
+                positionateInfowindow(result.rows[0],latlng);
+            }
+        );
+    }
 
-    $.post(
-      'cache/get',
-      {sql: infowindow_sql, key: 'polygons-'+feature},
-      function(result) {
-        positionateInfowindow(result.rows[0],latlng);
-      }
-    );
+    function getGbifInfo (variables, center) {
+        $.post(
+            'gbif/occurrence',
+            {oid : variables.oid},
+            function(xml) {
+                var institutionCode = $($.parseXML(xml)).find('institutionCode').text();
+                delete variables.oid;
+                if(institutionCode != '' && institutionCode != null) {
+                    variables['Institution Code'] = institutionCode;
+                }
+                positionateInfowindow(variables, center);
+            }
+        );
+    }
 
     function positionateInfowindow(variables,center) {
       if (that.div_) {
