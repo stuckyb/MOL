@@ -162,7 +162,7 @@ mol.modules.map.dashboard = function(mol) {
                     '       <td class="providertitle">IUCN</td>' +
                     '       <td class="class amphibia ">5,966 species with 18,852 records</td>' +
                     '       <td></td>' +
-                    '       <td class="class mammalia">4,081 species with 38,673 records</td>' +
+                    '       <td class="class mammalia">5,275 species with 43,410 records</td>' +
                     '       <td class="class reptilia">2,532 species with 25,652 records</td>' +
                     '       <td></td>' +
                     '   </tr>' +
