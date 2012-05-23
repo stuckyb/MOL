@@ -2696,8 +2696,8 @@ mol.modules.map.search = function(mol) {
                                             var sci, eng;
                                             if(row.n != undefined){
                                                    sci = row.n;
-                                                   eng = (row.v == null)? '' : ', {0}'.format(row.v.replace(/'S/g, "'s"));
-                                                   names.push({label:'<span class="sci">{0}</span><span class="eng">{1}</span>'.format(sci, eng), value:sci});
+                                                   eng = (row.v == null || row.v == '') ? '' : ', {0}'.format(row.v.replace(/'S/g, "'s"));
+                                                   names.push({label:'<div class="ac-item"><span class="sci">{0}</span><span class="eng">{1}</span></div>'.format(sci, eng), value:sci});
                                                    scinames.push(sci)
 
                                            }
@@ -3438,7 +3438,7 @@ mol.modules.map.dashboard = function(mol) {
                     '       <td class="providertitle">IUCN</td>' +
                     '       <td class="class amphibia ">5,966 species with 18,852 records</td>' +
                     '       <td></td>' +
-                    '       <td class="class mammalia">4,081 species with 38,673 records</td>' +
+                    '       <td class="class mammalia">5,275 species with 43,410 records</td>' +
                     '       <td class="class reptilia">2,532 species with 25,652 records</td>' +
                     '       <td></td>' +
                     '   </tr>' +

@@ -119,8 +119,8 @@ mol.modules.map.search = function(mol) {
                                             var sci, eng;
                                             if(row.n != undefined){
                                                    sci = row.n;
-                                                   eng = (row.v == null)? '' : ', {0}'.format(row.v.replace(/'S/g, "'s"));
-                                                   names.push({label:'<span class="sci">{0}</span><span class="eng">{1}</span>'.format(sci, eng), value:sci});
+                                                   eng = (row.v == null || row.v == '') ? '' : ', {0}'.format(row.v.replace(/'S/g, "'s"));
+                                                   names.push({label:'<div class="ac-item"><span class="sci">{0}</span><span class="eng">{1}</span></div>'.format(sci, eng), value:sci});
                                                    scinames.push(sci)
 
                                            }

@@ -557,22 +557,20 @@ padding: 3px;
 
 .ui-autocomplete {
         max-height: 500px;
-
+        max-width: 600px;
         overflow-y: auto;
         /* prevent horizontal scrollbar */
         overflow-x: hidden;
         /* add padding to account for vertical scrollbar */
-        padding-right: 20px;
         pointer-events: auto;
-        font-size:10pt;
+
+        font-size:9pt;
+        line-height:1;
         font-weight:400;
     }
-.ui-autocomplete .ui-menu-item {
-    padding-left: 1em;
-    max-width: 600px;
-}
-.ui-autocomplete .ui-corner-all {
-    text-indent: -1em;
+.ui-autocomplete .ac-item {
+    text-indent:-0.5em;
+    padding-left:1.0em;
 }
 
 .ui-autocomplete .sci {
