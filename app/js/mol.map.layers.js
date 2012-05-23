@@ -38,7 +38,6 @@ mol.modules.map.layers = function(mol) {
                         _.each(
                             $(self.display).find(".toggle"),
                             function(checkbox){
-                                    //$(checkbox).attr('checked', !$(checkbox).attr('checked'));
                                     checkbox.click({currentTarget : this})
                             }
                         );

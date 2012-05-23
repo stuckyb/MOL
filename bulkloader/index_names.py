@@ -188,8 +188,7 @@ class Query(object):
         self.writer = writer
 
     def execute(self, name):
-        url = "http://mol.cartodb.com/api/v2/sql?%s" % urllib.urlencode(dict(q="SELECT s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, n.names as names, n.class as _class, m.records as feature_count FROM layer_metadata s LEFT JOIN (SELECT scientificname, replace(initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),', '))),'''S','''s') as names, class FROM master_taxonomy GROUP BY scientificname, class HAVING scientificname = '%s' ) n ON s.scientificname = n.scientificname LEFT JOIN (( SELECT count(*) as records, 'points' as type, 'gbif' as provider FROM gbif_import WHERE lower(scientificname)=lower('%s')) UNION ALL (SELECT count(*) as records, type, provider FROM polygons GROUP BY scientificname, type, provider HAVING scientificname='%s' )) m ON s.type = m.type AND s.provider = m.provider LEFT JOIN types t ON s.type = t.type LEFT JOIN providers p ON s.provider = p.provider WHERE s.scientificname = '%s'" % (name, name, name, name)))
-        print url
+        url = "http://mol.cartodb.com/api/v2/sql?%s" % urllib.urlencode(dict(q="SELECT s.provider as source, p.title as source_title, s.scientificname as name, s.type as type, t.title as type_title, n.names as names, n.class as _class, m.records as feature_count FROM layer_metadata s LEFT JOIN (select * from synonym_metadata where scientificname='%s') sn ON s.scientificname = sn.scientificname LEFT JOIN (SELECT scientificname, replace(initcap(lower(array_to_string(array_sort(array_agg(common_names_eng)),', '))),'''S','''s') as names, class FROM master_taxonomy GROUP BY scientificname, class) n ON (s.scientificname = n.scientificname OR sn.mol_scientificname=n.scientificname) LEFT JOIN (( SELECT count(*) as records, 'points' as type, 'gbif' as provider FROM gbif_import WHERE lower(scientificname)=lower('%s')) UNION ALL (SELECT count(*) as records, type, provider FROM polygons GROUP BY scientificname, type, provider HAVING scientificname='%s' )) m ON s.type = m.type AND s.provider = m.provider LEFT JOIN types t ON s.type = t.type LEFT JOIN providers p ON s.provider = p.provider WHERE s.scientificname = '%s'" % (name, name, name, name)))
         try:
             response = urllib2.urlopen(url)
             if response.code != 200 and response.code != 304: # OK or NOT MODIFIED
@@ -204,7 +203,7 @@ class Query(object):
         #    print 'skipping because of unknown cdb error. url: %s' % url
 
         if len(rows) > 0:
-            self.writer.writerow(dict(id=name.lower(), string=json.dumps(rows)))
+            self.writer.writerow(dict(id='latin-%s' % name.lower(), string=json.dumps(rows)))
 
     def loop(self):
         while True:

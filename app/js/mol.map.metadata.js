@@ -20,9 +20,18 @@ mol.modules.map.metadata = function(mol) {
                         '    AND s.type = t.type ' +
                         'LIMIT 1',
                     dashboard: '' +
-                        'SELECT Coverage as "Coverage", Taxon as "Taxon", Description as "Description", ' +
+                        'SELECT Coverage as "Coverage", Taxon as "Taxon", ' +
+                        '   Description as "Description", ' +
                         '   CASE WHEN URL IS NOT NULL THEN CONCAT(\'<a target="_dashlink" href="\',URL, \'">\', URL, \'</a>\') ' +
-                        '   ELSE Null END AS "URL", Spatial_metadata as "Spatial Metadata", Taxonomy_metadata as "Taxonomy Metadata", date_range as "Date", date_more as "Date further info",  Recommended_citation as "Recommended Citation", Contact as "Contact" ' +
+                        '   ELSE Null END AS "URL", ' +
+                        '   Spatial_metadata as "Spatial Metadata", ' +
+                        '   Taxonomy_metadata as "Taxonomy Metadata", ' +
+                        '   seasonality as "Seasonality", ' +
+                        '   seasonality_more as "Seasonality further info", ' +
+                        '   date_range as "Date", ' +
+                        '   date_more as "Date further info", ' +
+                        '   Recommended_citation as "Recommended Citation", ' +
+                        '   Contact as "Contact" ' +
                         'FROM dashboard_metadata ' +
                         'WHERE ' +
                         '   provider = \'{0}\' ' +

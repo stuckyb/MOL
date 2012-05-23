@@ -172,14 +172,14 @@ mol.modules.map.query = function(mol) {
                                         ((row.family != null) ? row.family : '')+ "</td><td>" +
                                         ((row.sequenceid != null) ? row.sequenceid : '')+ "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
                                         ((row.redlist != null) ? row.redlist : '') + "</td></tr>");
-                                        providers.push('<a class="type ' + row.type+ '">'+row.type_title+'</a>", ' + row.provider);
+                                        providers.push('<a class="type {0}">{1}</a>, <a class="provider {2}">{3}</a>'.format(row.type,row.type_title,row.provider,row.provider_title));
                                     if (year != null && year != '') {
                                         years.push(year)
                                     }
                                     scientificnames[row.scientificname]=redlist;
                             }
                         );
-
+                        years = _.uniq(years);
                         tablerows = _.uniq(tablerows);
                         providers = _.uniq(providers);
 
@@ -211,7 +211,7 @@ mol.modules.map.query = function(mol) {
                                             speciestotal + ' '+
                                             stats +
                                            '<br>' +
-                                           'Data type/source:&nbsp;' + providers.join(', ') +
+                                           'Data type/source:&nbsp;' + providers.join(', ') + '.&nbsp;All&nbsp;seasonalities.' +
                                     '   </div> ' +
                                     '   <div> ' +
                                     '       <table class="tablesorter">' +

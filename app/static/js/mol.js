@@ -2597,7 +2597,15 @@ mol.modules.map.search = function(mol) {
                 this.names = [];
                 this.sql = '' +
                     'SELECT ' +
-                    '   s.provider as source, p.title as source_title, p.sourcetype as sourcetype, s.scientificname as name, s.type as type, t.title as type_title, n.name as names, n.class as _class, m.records as feature_count ' +
+                    '   s.provider as source, ' +
+                    '   p.title as source_title, ' +
+                    '   p.sourcetype as sourcetype, ' +
+                    '   s.scientificname as name, ' +
+                    '   s.type as type, ' +
+                    '   t.title as type_title, ' +
+                    '   n.name as names, ' +
+                    '   n.class as _class, ' +
+                    '   m.records as feature_count ' +
                     'FROM  layer_metadata s ' +
                     'LEFT JOIN ( ' +
                     '   SELECT ' +
@@ -2695,7 +2703,7 @@ mol.modules.map.search = function(mol) {
                                             if(row.n != undefined){
                                                    sci = row.n;
                                                    eng = (row.v == null)? '' : ', {0}'.format(row.v.replace(/'S/g, "'s"));
-                                                   names.push({label:'<span class="sci">{0}</span><span class="eng">{1}</span>'.format(sci, eng), value:sci});
+                                                   names.push({label:'<span class="sci">{0}</spae ern><span class="eng">{1}</span>'.format(sci, eng), value:sci});
                                                    scinames.push(sci)
 
                                            }
@@ -3637,14 +3645,14 @@ mol.modules.map.query = function(mol) {
                                         ((row.family != null) ? row.family : '')+ "</td><td>" +
                                         ((row.sequenceid != null) ? row.sequenceid : '')+ "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
                                         ((row.redlist != null) ? row.redlist : '') + "</td></tr>");
-                                        providers.push('<a class="type ' + row.type+ '">'+row.type_title+'</a>", ' + row.provider);
+                                        providers.push('<a class="type {0}">{1}</a>, <a class="provider {2}">{3}</a>'.format(row.type,row.type_title,row.provider,row.provider_title));
                                     if (year != null && year != '') {
                                         years.push(year)
                                     }
                                     scientificnames[row.scientificname]=redlist;
                             }
                         );
-
+                        years = _.uniq(years);
                         tablerows = _.uniq(tablerows);
                         providers = _.uniq(providers);
 
@@ -3676,7 +3684,7 @@ mol.modules.map.query = function(mol) {
                                             speciestotal + ' '+
                                             stats +
                                            '<br>' +
-                                           'Data type/source:&nbsp;' + providers.join(', ') +
+                                           'Data type/source:&nbsp;' + providers.join(', ') + '.&nbsp;All&nbsp;seasonalities.' +
                                     '   </div> ' +
                                     '   <div> ' +
                                     '       <table class="tablesorter">' +
@@ -4202,9 +4210,18 @@ mol.modules.map.metadata = function(mol) {
                         '    AND s.type = t.type ' +
                         'LIMIT 1',
                     dashboard: '' +
-                        'SELECT Coverage as "Coverage", Taxon as "Taxon", Description as "Description", ' +
+                        'SELECT Coverage as "Coverage", Taxon as "Taxon", ' +
+                        '   Description as "Description", ' +
                         '   CASE WHEN URL IS NOT NULL THEN CONCAT(\'<a target="_dashlink" href="\',URL, \'">\', URL, \'</a>\') ' +
-                        '   ELSE Null END AS "URL", Spatial_metadata as "Spatial Metadata", Taxonomy_metadata as "Taxonomy Metadata", date_range as "Date", date_more as "Date further info",  Recommended_citation as "Recommended Citation", Contact as "Contact" ' +
+                        '   ELSE Null END AS "URL", ' +
+                        '   Spatial_metadata as "Spatial Metadata", ' +
+                        '   Taxonomy_metadata as "Taxonomy Metadata", ' +
+                        '   seasonality as "Seasonality", ' +
+                        '   seasonality_more as "Seasonality further info", ' +
+                        '   date_range as "Date", ' +
+                        '   date_more as "Date further info", ' +
+                        '   Recommended_citation as "Recommended Citation", ' +
+                        '   Contact as "Contact" ' +
                         'FROM dashboard_metadata ' +
                         'WHERE ' +
                         '   provider = \'{0}\' ' +
