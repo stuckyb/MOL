@@ -97,10 +97,11 @@ mol.modules.map.query = function(mol) {
                         alert('Please wait for your last species list request to complete before starting another.')
                     } else {
                     self.queryct++;
-                    $.getJSON(
-                        'http://mol.cartodb.com/api/v2/sql',
+                    $.post(
+                        'cache/get',
                         {
-                            q:sql,
+                            key: 'lq-{0}-{1}-{2}-{3}'.format(lat,lng,listradius.radius,constraints),
+                            sql:sql
                         },
                         function(data, textStatus, jqXHR) {
                             self.queryct--;
