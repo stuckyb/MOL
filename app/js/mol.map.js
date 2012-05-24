@@ -247,7 +247,7 @@ mol.modules.map = function(mol) {
                       {
                         featureType: "administrative",
                         stylers: [
-                          { visibility: "simplified" }
+                          { visibility: "on" }
                         ]
                       },
                       {

@@ -902,7 +902,7 @@ mol.modules.map = function(mol) {
                       {
                         featureType: "administrative",
                         stylers: [
-                          { visibility: "simplified" }
+                          { visibility: "on" }
                         ]
                       },
                       {
@@ -2788,24 +2788,28 @@ mol.modules.map.search = function(mol) {
              */
             search: function(term) {
                 var self = this;
-                    self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search".format(term)}));
+                    self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : "search-{0}".format(term)}));
                     self.bus.fireEvent(new mol.bus.Event('results-display-toggle',{visible : false}));
                     $(self.display.searchBox).autocomplete('disable');
                     $(self.display.searchBox).autocomplete('enable');
-
-                $.post(
-                    'cache/get',
+                    if(term.length<3) {
+                        alert('Please enter at least 3 characters in the search box.');
+                    } else {
+                        $(self.display.searchBox).val(term);
+                        $.post(
+                                'cache/get',
                                 {
-                                    key:'search-results-{0}'.format(this.display.searchBox.val()),
-                                    sql:this.sql.format(this.display.searchBox.val())
+                                    key:'search-results-{0}'.format(term),
+                                    sql:this.sql.format(term)
                                 },
                                 function (response) {
                                     var results = {term:term, response:response};
-                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search".format(term)}));
+                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "search-{0}".format(term)}));
                                     self.bus.fireEvent(new mol.bus.Event('search-results', results));
                                 },
                                 'json'
-                            );
+                        );
+                   }
 
             }
         }
@@ -2879,9 +2883,10 @@ mol.modules.map.tiles = function(mol) {
                         if (showing) {
                             self.map.overlayMapTypes.forEach(
                                 function(maptype, index) {
-                                    if ((maptype != undefined) && (maptype.name === layer.id)) {
+                                    if ((maptype != undefined) && (maptype.name == layer.id)) {
                                         params = {
-                                            layer: layer
+                                            layer: layer,
+                                            opacity: maptype.opacity_visible
                                         };
                                         e = new mol.bus.Event('layer-opacity', params);
                                         self.bus.fireEvent(e);
@@ -2897,7 +2902,8 @@ mol.modules.map.tiles = function(mol) {
                         } else { // Remove layer from map.
                             self.map.overlayMapTypes.forEach(
                                 function(maptype, index) {
-                                    if ((maptype != undefined) && (maptype.name === layer.id)) {
+                                    if ((maptype != undefined) && (maptype.name == layer.id)) {
+                                        maptype.opacity_visible = maptype.opacity;
                                         params = {
                                             layer: layer,
                                             opacity: 0

@@ -43,9 +43,10 @@ mol.modules.map.tiles = function(mol) {
                         if (showing) {
                             self.map.overlayMapTypes.forEach(
                                 function(maptype, index) {
-                                    if ((maptype != undefined) && (maptype.name === layer.id)) {
+                                    if ((maptype != undefined) && (maptype.name == layer.id)) {
                                         params = {
-                                            layer: layer
+                                            layer: layer,
+                                            opacity: maptype.opacity_visible
                                         };
                                         e = new mol.bus.Event('layer-opacity', params);
                                         self.bus.fireEvent(e);
@@ -61,7 +62,8 @@ mol.modules.map.tiles = function(mol) {
                         } else { // Remove layer from map.
                             self.map.overlayMapTypes.forEach(
                                 function(maptype, index) {
-                                    if ((maptype != undefined) && (maptype.name === layer.id)) {
+                                    if ((maptype != undefined) && (maptype.name == layer.id)) {
+                                        maptype.opacity_visible = maptype.opacity;
                                         params = {
                                             layer: layer,
                                             opacity: 0
