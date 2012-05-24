@@ -486,7 +486,9 @@ var CartoDB = CartoDB || {};
             'gbif/occurrence',
             {oid : variables.oid},
             function(xml) {
-                var institutionCode = $($.parseXML(xml)).find('institutionCode').text();
+                var institutionCode = $((new window.DOMParser()).parseFromString(xml, "text/xml")).find('institutionCode').text();
+
+
                 delete variables.oid;
                 if(institutionCode != '' && institutionCode != null) {
                     variables['Institution Code'] = institutionCode;

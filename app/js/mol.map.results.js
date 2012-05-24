@@ -111,18 +111,7 @@ mol.modules.map.results = function(mol) {
                 this.bus.addHandler(
                     'search-results',
                     function(event) {
-                        var response={rows:[]}
-                        _.each(
-                            event.response,
-                            function(sci, key, list){
-                                _.each(
-                                    sci,
-                                    function(row) {
-                                        response.rows.push(row);
-                                    }
-                                )
-                            }
-                        )
+                        var response= event.response;
                         self.bus.fireEvent(new mol.bus.Event('close-autocomplete'));
                         self.results = mol.services.cartodb.convert(response);
                         self.profile = new mol.map.results.SearchProfile(self.results);
