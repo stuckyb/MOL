@@ -17,7 +17,8 @@ mol.modules.map = function(mol) {
             'splash',
             'help',
             'sidebar',
-            'status'
+            'status',
+            'images'
     ];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(

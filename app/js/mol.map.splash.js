@@ -58,8 +58,8 @@ mol.modules.map.splash = function(mol) {
                 );
                  $(this.display).width('98%');
 
-                 $(".ui-widget-overlay").live("click", function() {  
-                    self.display.dialog("close"); 
+                 $(".ui-widget-overlay").live("click", function() {
+                    self.display.dialog("close");
                 });
 
             },
@@ -91,7 +91,7 @@ mol.modules.map.splash = function(mol) {
         '<a target="_blank" href="http://www.yale.edu/jetz/"><button><img width="72px" height="36px" title="Jetz Lab, Yale University" src="/static/home/yale.png"></button></a>' +
         '<a target="_blank" href="http://sites.google.com/site/robgur/"><button><img width="149px" height="36px" title="Guralnick Lab, University of Colorado Boulder" src="/static/home/cuboulder.png"></button></a>' +
 
-        '<a target="_blank" href="http://www.iucn.org/"><button><img width="33px" height="32px" title="International Union for Conservation of Nature" src="/static/home/iucn.png"></button></a>' +
+        /*'<a target="_blank" href="http://www.iucn.org/"><button><img width="33px" height="32px" title="International Union for Conservation of Nature" src="/static/home/iucn.png"></button></a>' + */
         '<a target="_blank" href="http://www.gbif.org/"><button><img width="33px" height="32px" title="Global Biodiversity Information Facility" src="/static/home/gbif.png"></button></a>' +
 	'<a target="_blank" href="http://www.eol.org/"><button><img width="51px" height="32px" title="Encyclopedia of Life" src="http://www.mappinglife.org/static/home/eol.png"></button></a>' +
 	'<a target="_blank" href="http://www.nasa.gov/"><button><img width="37px" height="32px" title="National Aeronautics and Space Administration" src="http://www.mappinglife.org/static/home/nasa.png"></button></a>' +

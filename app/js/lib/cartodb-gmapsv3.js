@@ -447,6 +447,7 @@ var CartoDB = CartoDB || {};
             "   CASE WHEN p.seasonality = Null THEN 'unknown' ELSE TEXT(p.seasonality) END AS \"Seasonality\", " +
             "   p.regionname AS \"Region\", " +
             "   e.ecoregion_code AS \"Ecoregion Code\", " +
+            "   CASE WHEN p.provider = 'iucn' THEN p.bibliographiccitation ELSE Null END AS \"Citation\", " +
             "   pv.pubdate as \"Date\" " +
             "   FROM polygons p " +
             "LEFT JOIN types t " +

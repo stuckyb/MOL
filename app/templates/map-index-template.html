@@ -49,6 +49,7 @@
      <script type="text/javascript" src="../../../js/mol.map.help.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.sidebar.js"></script>
       <script type="text/javascript" src="../../../js/mol.map.status.js"></script>
+      <script type="text/javascript" src="../../../js/mol.map.images.js"></script>
     {% endif %}
 
     <meta charset="utf-8" />
@@ -118,6 +119,9 @@
                 sb.start()
                 st = new env.map.status.StatusEngine(proxy, bus)
                 st.start()
+                ie = new env.map.images.ImagesEngine(proxy, bus)
+                ie.start()
+
              }
           });
           {% else %}
@@ -157,6 +161,8 @@
                 sb.start()
                 st = new env.map.status.StatusEngine(proxy, bus)
                 st.start()
+                ie = new env.map.images.ImagesEngine(proxy, bus)
+                ie.start()
              }
           });
           {% endif %}
