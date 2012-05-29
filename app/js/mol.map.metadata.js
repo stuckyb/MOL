@@ -21,23 +21,25 @@ mol.modules.map.metadata = function(mol) {
                         'LIMIT 1',
                     dashboard: '' +
                         'SELECT Coverage as "Coverage", Taxon as "Taxon", ' +
-                        '   Description as "Description", ' +
-                        '   CASE WHEN URL IS NOT NULL THEN CONCAT(\'<a target="_dashlink" href="\',URL, \'">\', URL, \'</a>\') ' +
+                        '   dm.Description as "Description", ' +
+                        '   CASE WHEN URL IS NOT NULL THEN CONCAT(\'<a target="_dashlink" href="\',dm.URL, \'">\', dm.URL, \'</a>\') ' +
                         '   ELSE Null END AS "URL", ' +
-                        '   Spatial_metadata as "Spatial Metadata", ' +
-                        '   Taxonomy_metadata as "Taxonomy Metadata", ' +
-                        '   seasonality as "Seasonality", ' +
-                        '   seasonality_more as "Seasonality further info", ' +
-                        '   date_range as "Date", ' +
-                        '   date_more as "Date further info", ' +
-                        '   Recommended_citation as "Recommended Citation", ' +
-                        '   Contact as "Contact" ' +
-                        'FROM dashboard_metadata ' +
+                        '   dm.Spatial_metadata as "Spatial Metadata", ' +
+                        '   dm.Taxonomy_metadata as "Taxonomy Metadata", ' +
+                        '   dm.seasonality as "Seasonality", ' +
+                        '   dm.seasonality_more as "Seasonality further info", ' +
+                        '   dm.date_range as "Date", ' +
+                        '   dm.date_more as "Date further info", ' +
+                        '   CASE WHEN sm.sc <> \'\' THEN CONCAT(sm.sc,\', [\', sm.scientificname, \']. \', dm.Recommended_citation) ELSE dm.Recommended_citation END as "Recommended Citation", ' +
+                        '   dm.Contact as "Contact" ' +
+                        'FROM dashboard_metadata dm ' +
+                        'LEFT JOIN (SELECT scientificname, array_to_string(array_sort(array_agg(bibliographiccitation)), \',\') as sc, provider FROM polygons group by scientificname, provider having provider=\'iucn\' AND scientificname = \'{3}\') sm ' +
+                        'ON dm.provider = sm.provider ' +
                         'WHERE ' +
-                        '   provider = \'{0}\' ' +
-                        '   AND type =  \'{1}\' ' +
-                        '   AND (class = \'{2}\' OR class = \'all\') ' +
-                        '   AND show ' +
+                        '   dm.provider = \'{0}\' ' +
+                        '   AND dm.type =  \'{1}\' ' +
+                        '   AND (dm.class = \'{2}\' OR dm.class = \'all\') ' +
+                        '   AND dm.show ' +
                         'ORDER BY' +
                         '   class ASC',
                     types: '' +
@@ -57,7 +59,7 @@ mol.modules.map.metadata = function(mol) {
             getLayerMetadata: function (layer) {
                   var self = this,
                     sql = this.sql['layer'].format(layer.name, layer.type, layer.source),
-                    params = {sql:sql, key: 'lm514-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
+                    params = {sql:sql, key: 'lm529-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {layer:layer, response:response};
@@ -119,8 +121,9 @@ mol.modules.map.metadata = function(mol) {
                     type = params.type,
                     provider = params.provider,
                     _class = params._class,
-                    sql = this.sql['dashboard'].format(provider, type, _class),
-                    params = {sql:sql, key: 'dm514-{0}-{1}-{2}'.format(provider, type, _class)},
+                    name = params.name,
+                    sql = this.sql['dashboard'].format(provider, type, _class, name),
+                    params = {sql:sql, key: 'dm521-{0}-{1}-{2}'.format(provider, type, _class)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {provider:provider, type:type, _class:_class, response:response};

@@ -467,7 +467,7 @@ var CartoDB = CartoDB || {};
     if(this.params_.table_name == 'gbif_import'){
         $.post(
             'cache/get',
-            {sql: infowindow_sql, key: 'polygons-'+feature},
+            {sql: infowindow_sql, key: 'infowindow-'+feature},
             function(result) {
                 getGbifInfo(result.rows[0],latlng);
             }
@@ -475,7 +475,7 @@ var CartoDB = CartoDB || {};
     } else {
         $.post(
             'cache/get',
-            {sql: infowindow_sql, key: 'polygons-'+feature},
+            {sql: infowindow_sql, key: 'infowindow-'+feature},
             function(result) {
                 positionateInfowindow(result.rows[0],latlng);
             }

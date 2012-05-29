@@ -308,7 +308,7 @@ mol.modules.map.layers = function(mol) {
                         );
                         l.source.click(
                             function(event) {
-                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { provider: layer.source, type: layer.type, _class: layer._class}}));
+                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { provider: layer.source, type: layer.type, _class: layer._class, name: layer.name}}));
                                 event.stopPropagation();
                                 event.cancelBubble = true;
                             }

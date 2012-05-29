@@ -84,6 +84,16 @@ mol.modules.map.images = function(mol) {
             }
         }
     );
+      mol.map.images.ThumbnailDisplay = mol.mvp.View.extend(
+        {
+            init: function(src) {
+                var html = '' +
+                '<img class="mol-Thumbnail" src="{0}">';
+
+                this._super(html.format(src));
+            }
+        }
+    );
 };
 
 
