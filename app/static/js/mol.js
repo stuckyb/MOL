@@ -1959,7 +1959,7 @@ mol.modules.map.results = function(mol) {
                     // TODO: Wire up results.
                         result.source.click(
                             function(event) {
-                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { type: result.layerObj.type, provider: result.layerObj.source, _class: result.layerObj._class }}));
+                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { type: result.layerObj.type, provider: result.layerObj.source, _class: result.layerObj._class, name: result.layerObj.name }}));
                                 event.stopPropagation();
                                 event.cancelBubble = true;
                             }
@@ -4194,7 +4194,7 @@ mol.modules.map.metadata = function(mol) {
                         '   dm.seasonality_more as "Seasonality further info", ' +
                         '   dm.date_range as "Date", ' +
                         '   dm.date_more as "Date further info", ' +
-                        '   CASE WHEN sm.sc <> \'\' THEN CONCAT(sm.sc,\', [\', sm.scientificname, \']. \', dm.Recommended_citation) ELSE dm.Recommended_citation END as "Recommended Citation", ' +
+                        '   CASE WHEN sm.sc <> \'\' THEN CONCAT(sm.sc,\', [\', sm.scientificname, \']. In: \', dm.Recommended_citation) ELSE dm.Recommended_citation END as "Recommended Citation", ' +
                         '   dm.Contact as "Contact" ' +
                         'FROM dashboard_metadata dm ' +
                         'LEFT JOIN (SELECT scientificname, array_to_string(array_sort(array_agg(bibliographiccitation)), \',\') as sc, provider FROM polygons group by scientificname, provider having provider=\'iucn\' AND scientificname = \'{3}\') sm ' +
@@ -4287,14 +4287,14 @@ mol.modules.map.metadata = function(mol) {
                     _class = params._class,
                     name = params.name,
                     sql = this.sql['dashboard'].format(provider, type, _class, name),
-                    params = {sql:sql, key: 'dm521-{0}-{1}-{2}'.format(provider, type, _class)},
+                    params = {sql:sql, key: 'dm0521-{0}-{1}-{2}-{3}'.format(provider, type, _class, name)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {provider:provider, type:type, _class:_class, response:response};
                         //self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)}));
                         if(!results.response.error) {
                             if(results.response.total_rows > 0) {
-                                self.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)]  = new mol.map.metadata.MetadataDisplay(results);
+                                self.displays['dash-metadata-{0}-{1}-{2}-{3}'.format(provider, type, _class, name)]  = new mol.map.metadata.MetadataDisplay(results);
                             }
                         } else {
  //                           self.getDasboardMetadata({provider:provider, type:type, _class:_class});
@@ -4304,14 +4304,14 @@ mol.modules.map.metadata = function(mol) {
                         self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : 'metadata-{0}-{1}-{2}'.format(provider, type, _class)}));
                     };
 
-                if(this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)] == undefined) {
+                if(this.displays['dash-metadata-{0}-{1}-{2}-{3}'.format(provider, type, _class, name)] == undefined) {
                     //self.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source : 'metadata-{0}-{1}-{2}'.format(provider, type, _class)}));
                     this.proxy.execute(action, new mol.services.Callback(success, failure));
                 } else {
-                    if(this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("isOpen")) {
+                    if(this.displays['dash-metadata-{0}-{1}-{2}-{3}'.format(provider, type, _class, name)].dialog("isOpen")) {
                         //this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("close");
                     } else {
-                        this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("open");
+                        this.displays['dash-metadata-{0}-{1}-{2}-{3}'.format(provider, type, _class, name)].dialog("open");
                     }
                 }
 

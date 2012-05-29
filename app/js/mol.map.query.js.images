@@ -194,7 +194,7 @@ mol.modules.map.query = function(mol) {
                                         year = (row.year_assessed != null) ? _.uniq(row.year_assessed.split(',')).join(',') : '',
                                         redlist = (row.redlist != null) ? _.uniq(row.redlist.split(',')).join(',') : '';
 
-                                    tablerows.push("<tr><td><button value='"+row.scientificname+"'>map</button></td>" +
+                                    tablerows.push("<tr><td><button class='mapit' value='"+row.scientificname+"'>map</button>&nbsp;<a class='"+row.scientificname.replace(/ /g,'_')+"-thumb'></a></td>" +
                                         "<td class='wiki'>" +
                                         row.scientificname + "</td><td class='wiki english'>" +
                                         ((english != null) ? english : '') + "</td><td class='wiki'>" +
@@ -295,7 +295,7 @@ mol.modules.map.query = function(mol) {
                          );
 
                          _.each(
-                             $('button',$(infoWindow.content)),
+                             $('.mapit',$(infoWindow.content)),
                              function(button) {
                                  $(button).click(
                                      function(event) {
@@ -328,10 +328,46 @@ mol.modules.map.query = function(mol) {
                                  }
                              }
                          );
+                         _.each(
+                             $('.getimages',$(infoWindow.content)),
+                           function(a) {
+                                 $(a).click(
+                                     function(event) {
+
+                                    }
+                                 );
+                            }
+                         );
+                         $.post(
+                            'eol/images',
+                            {
+                                names : _.keys(scientificnames).join(',')
+                            },
+                            function(response) {
+                               _.each(
+                                   response,
+                                   function(species, scientificname) {
+                                       if(species) {
+                                           scientificname = scientificname.trim();
+                                           if(species.dataObjects) {
+                                                $(infoWindow.content).find('.{0}-thumb'.format(scientificname.replace(/ /g, '_'))).append(new mol.map.images.ThumbnailDisplay(species.dataObjects[0].eolThumbnailURL));
+                                                $(infoWindow.content).find('.{0}-thumb'.format(scientificname.replace(/ /g, '_'))).click(
+                                                    function(event) {
+                                                        self.bus.fireEvent(new mol.bus.Event('get-images',{names:scientificname}));
+                                                    }
+                                                );
+                                            }
+                                       }
+                                   }
+                               );
+                            }
+                         );
                         } else {
                             listradius.setMap(null);
                             delete(self.features[listradius.center.toString()+listradius.radius]);
                         }
+
+
 
                     self.bus.fireEvent( new mol.bus.Event('hide-loading-indicator', {source : 'listradius'}));
 

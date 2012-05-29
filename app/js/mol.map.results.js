@@ -164,7 +164,7 @@ mol.modules.map.results = function(mol) {
                     // TODO: Wire up results.
                         result.source.click(
                             function(event) {
-                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { type: result.layerObj.type, provider: result.layerObj.source, _class: result.layerObj._class }}));
+                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle', {params : { type: result.layerObj.type, provider: result.layerObj.source, _class: result.layerObj._class, name: result.layerObj.name }}));
                                 event.stopPropagation();
                                 event.cancelBubble = true;
                             }
