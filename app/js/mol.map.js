@@ -291,7 +291,7 @@ mol.modules.map = function(mol) {
                       },{
                         featureType: "administrative",
                         stylers: [
-                          { visibility: "off" }
+                          { visibility: "on" }
                         ]
                       },{
                         featureType: "administrative.country",
