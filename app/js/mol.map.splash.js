@@ -98,7 +98,7 @@ mol.modules.map.splash = function(mol) {
                   function(event) {
                       $(self.display).dialog('option','modal','false');
                       $(self.display.parent()).animate({left: '{0}px'.format($(window).width()/3-400)}, 'slow');
-                      self.bus.fireEvent(new mol.bus.Event('layer-display-toggle'){visible : false});
+                      self.bus.fireEvent(new mol.bus.Event('layer-display-toggle',{visible: false}));
                       self.bus.fireEvent(new mol.bus.Event('species-list-query-click', {gmaps_event:{latLng : new google.maps.LatLng(-2.263,39.045)}, map : self.map}));
                   }
             );
