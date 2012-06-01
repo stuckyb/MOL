@@ -4,9 +4,10 @@ mol.modules.map.splash = function(mol) {
 
     mol.map.splash.SplashEngine = mol.mvp.Engine.extend(
         {
-            init: function(proxy, bus) {
+            init: function(proxy, bus, map) {
                 this.proxy = proxy;
                 this.bus = bus;
+                this.map = map;
                 this.IE8 = false;
              },
 
@@ -17,6 +18,7 @@ mol.modules.map.splash = function(mol) {
             start: function() {
 
                 this.display = new mol.map.splash.splashDisplay();
+                this.addEventHandlers();
 		if(this.getIEVersion()<9 && this.getIEVersion()>=0) {
 		    this.IE8 = true;
 			//old ie8, please upgrade
@@ -53,13 +55,13 @@ mol.modules.map.splash = function(mol) {
 			width: 800,
 			height: 580,
 			dialogClass: "mol-splash",
-			modal: true
+			//modal: true
                     }
                 );
                  $(this.display).width('98%');
 
                  $(".ui-widget-overlay").live("click", function() {
-                    self.display.dialog("close");
+                   // self.display.dialog("close");
                 });
 
             },
@@ -75,6 +77,34 @@ mol.modules.map.splash = function(mol) {
 				}
 			}
   			return rv;
+		},
+		addIframeHandlers: function () {
+		    var self = this;
+		    $(this.display.iframe_content[0].contentDocument.body).find('.getspecies').click(
+		          function(event) {
+		               $(self.display.parent()).animate({left: '{0}px'.format($(window).width()/(3/2)-400)}, 'slow');
+		               self.bus.fireEvent(new mol.bus.Event('search', {term:'Puma'}));
+
+		          }
+		    );
+            $(this.display.iframe_content[0].contentDocument.body).find('.listdemo1').click(
+                  function(event) {
+
+                      $(self.display.parent()).animate({left: '{0}px'.format($(window).width()/3-400)}, 'slow');
+                      self.bus.fireEvent(new mol.bus.Event('species-list-query-click', {gmaps_event:{latLng : new google.maps.LatLng(-2.263,39.045)}, map : self.map}));
+
+                  }
+            );
+
+		},
+		addEventHandlers: function () {
+		    var self = this;
+		    $(this.display.iframe_content).load(
+		        function(event) {
+                       self.addIframeHandlers();
+
+		        }
+		    );
 		}
         }
     );

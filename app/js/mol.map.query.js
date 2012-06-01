@@ -195,10 +195,10 @@ mol.modules.map.query = function(mol) {
                                         redlist = (row.redlist != null) ? _.uniq(row.redlist.split(',')).join(',') : '';
 
                                     tablerows.push("<tr><td><button value='"+row.scientificname+"'>map</button></td>" +
-                                        "<td class='wiki'>" +
-                                        row.scientificname + "</td><td class='wiki english'>" +
-                                        ((english != null) ? english : '') + "</td><td class='wiki'>" +
-                                        ((row.order != null) ? row.order : '')+ "</td><td class='wiki'>" +
+                                        "<td class='wiki' data-wikiname='"+row.scientificname+"'>" +
+                                        row.scientificname + "</td><td class='wiki english' data-wikiname='"+row.scientificname+"'>" +
+                                        ((english != null) ? english : '') + "</td><td class='wiki' data-wikiname='"+row.order+"'>" +
+                                        ((row.order != null) ? row.order : '')+ "</td><td class='wiki' data-wikiname='"+row.family+"'>" +
                                         ((row.family != null) ? row.family : '')+ "</td><td>" +
                                         ((row.sequenceid != null) ? row.sequenceid : '')+ "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
                                         ((redlist != null) ? redlist : '') + "</td></tr>");
@@ -309,7 +309,7 @@ mol.modules.map.query = function(mol) {
                              function(wiki) {
                                  $(wiki).click(
                                      function(event) {
-                                        var win = window.open('http://en.wikipedia.com/wiki/'+$(this).text().split(',')[0].replace(/ /g, '_'));
+                                        var win = window.open('http://en.wikipedia.com/wiki/'+$(this).data('wikiname').replace(/ /g, '_'));
                                         win.focus();
                                     }
                                  );
@@ -321,7 +321,7 @@ mol.modules.map.query = function(mol) {
                                  if($(iucn).data('scientificname')!='') {
                                     $(iucn).click(
                                          function(event) {
-                                            var win = window.open('http://www.iucnredlist.org/apps/redlist/search/external?text='+$(this).data('scientificname'));
+                                            var win = window.open('http://www.iucnredlist.org/apps/redlist/search/external?text='+$(this).data('scientificname').replace(/ /g, '_'));
                                             win.focus();
                                         }
                                     );
