@@ -129,7 +129,7 @@ def cache_eol():
 
     queue = Queue()
     renderers = {}
-    num_threads = 100
+    num_threads = 20
     for i in range(num_threads): # number of threads
         renderer = Query(queue, writer)
         render_thread = threading.Thread(target=renderer.loop)
