@@ -58,20 +58,20 @@ def names():
     print 'Done creating names.csv'
 
 class Query(object):
-    "Class that encapsulates work related to harvesting an EOL image result."
+    "Class that encapsulates work related to harvesting a Flickr image result."
 
     def __init__(self, q, writer):
         self.q = q
         self.writer = writer
 
-    def get_eol(self, url, name):
+    def get_flickr(self, url, name):
         "Download URL and return response content."
         try:
             response = urllib2.urlopen(url)
             if response.code != 200 and response.code != 304: # OK or NOT MODIFIED
-                print 'skipping %s EOL response error %s' % (name, response.code)
+                print 'skipping %s Flickr response error %s' % (name, response.code)
             content = json.loads(response.read())
-            #print 'EOL response received for %s' % name
+            #print 'Flickr response received for %s' % name
             return content
         except urllib2.HTTPError, e:
             print 'skipping because of HTTPError code: %s, url: %s' % (e.code, url)
@@ -81,31 +81,23 @@ class Query(object):
     def execute(self, name):
         "Write image result to CSV."
         try:
-            value = None
-            search_url = 'http://eol.org/api/search/%s.json?exact=1' % urllib.quote(name)
-            result = self.get_eol(search_url, name) #json.loads(urlfetch.fetch(search_url, deadline=60).content)
-            page_id = result['results'][0]['id']
-            page_url = 'http://eol.org/api/pages/1.0/%s.json' % page_id
-            result = self.get_eol(page_url, name) #json.loads(urlfetch.fetch(page_url, deadline=60).content)
-            object_id = None
-            eolthumbnailurl = None
-            eolmediaurl = None
-            mediaurl = None
-            for x in result['dataObjects']:
-                if x['dataType'].endswith('StillImage'):
-                    object_id = x['identifier']
-            if object_id:
-                object_url = 'http://eol.org/api/data_objects/1.0/%s.json' % object_id
-                value = self.get_eol(object_url, name) #json.loads(urlfetch.fetch(object_url, deadline=60).content)
-                eolthumbnailurl = value['dataObjects'][0]['eolThumbnailURL']
-                eolmediaurl = value['dataObjects'][0]['eolMediaURL']
-                mediaurl = value['dataObjects'][0]['mediaURL']
-            if value:
-                self.writer.writerow(dict(scientificname=name, eolthumbnailurl=eolthumbnailurl, eolmediaurl=eolmediaurl, mediaurl=mediaurl)) #, result=json.dumps(value)))
-                print "Harvested EOL image for %s" % name
+            result = None
+            url_sq = None
+            url_o = None
+            url_m = None
+            jsonStr = None
+            flickr_url = 'http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=9e1987871bbe32244303a45a42763f08&safe_search=1&per_page=1&extras=url_sq,url_m,url_o&format=json&nojsoncallback=1&tags=%s' % urllib.quote(name)
+            result = self.get_flickr(flickr_url, name) #self.get_flickr(flickr_url, name)
+            if result:
+                if result['photos']['photo'][0]:
+                    url_sq = result['photos']['photo'][0]['url_sq']
+                    url_o = result['photos']['photo'][0]['url_o']
+                    url_m = result['photos']['photo'][0]['url_m']
+                    self.writer.writerow(dict(name=name, bookmarkurl=url_sq, originalurl=url_o, mediumurl=url_m, result=json.dumps(result)))
+                    print "Harvested Flickr image for %s" % name
         except Exception, e:
-            nevermind = None
-            #print "Unable to harvest EOL image for %s" % name
+                foo = None
+                #print "Unable to harvest Flickr image for %s" % name
 
     def loop(self):
         while True:
@@ -119,10 +111,9 @@ class Query(object):
             self.execute(name)
             self.q.task_done()
 
-def cache_eol():
-    "Cache EOL image JSON responses for all names in names.csv"
-    names()
-    writer = csv_unicode.UnicodeDictWriter(open('eol_images.csv', 'w'), ['scientificname', 'eolthumbnailurl', 'eolmediaurl', 'mediaurl' ])
+def cache_flickr():
+    "Cache Flickr image JSON responses for all names in names.csv"
+    writer = csv_unicode.UnicodeDictWriter(open('flickr_images.csv', 'w'), ['name', 'bookmarkurl', 'originalurl', 'mediumurl'])
     writer.writeheader()
 
     count = 10
@@ -157,6 +148,6 @@ def cache_eol():
 
 if __name__ == '__main__':
     names()
-    cache_eol()
+    cache_flickr()
     pass
 
