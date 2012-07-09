@@ -89,6 +89,7 @@ class Query(object):
             result = self.get_eol(page_url, name) #json.loads(urlfetch.fetch(page_url, deadline=60).content)
             object_id = None
             eolthumbnailurl = None
+
             eolmediaurl = None
             mediaurl = None
             for x in result['dataObjects']:
@@ -101,7 +102,7 @@ class Query(object):
                 eolmediaurl = value['dataObjects'][0]['eolMediaURL']
                 mediaurl = value['dataObjects'][0]['mediaURL']
             if value:
-                self.writer.writerow(dict(scientificname=name, eolthumbnailurl=eolthumbnailurl, eolmediaurl=eolmediaurl, mediaurl=mediaurl)) #, result=json.dumps(value)))
+                self.writer.writerow(dict(scientificname=name, eolspeciesurl=pageurl, eolthumbnailurl=eolthumbnailurl, eolmediaurl=eolmediaurl, mediaurl=mediaurl)) #, result=json.dumps(value)))
                 print "Harvested EOL image for %s" % name
         except Exception, e:
             nevermind = None
