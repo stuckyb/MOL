@@ -130,7 +130,7 @@ def cache_eol():
 
     queue = Queue()
     renderers = {}
-    num_threads = 5
+    num_threads = 3
     for i in range(num_threads): # number of threads
         renderer = Query(queue, writer)
         render_thread = threading.Thread(target=renderer.loop)
@@ -157,7 +157,6 @@ def cache_eol():
         renderers[i].join()
 
 if __name__ == '__main__':
-    names()
     cache_eol()
     pass
 
