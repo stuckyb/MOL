@@ -71,7 +71,7 @@ class Query(object):
             if response.code != 200 and response.code != 304: # OK or NOT MODIFIED
                 print 'skipping %s EOL response error %s' % (name, response.code)
             content = json.loads(response.read())
-            #print 'EOL response received for %s' % name
+            print 'EOL response code %s received for %s' % (response.code, name)
             return content
         except urllib2.HTTPError, e:
             print 'skipping because of HTTPError code: %s, url: %s' % (e.code, url)
@@ -89,7 +89,6 @@ class Query(object):
             result = self.get_eol(page_url, name) #json.loads(urlfetch.fetch(page_url, deadline=60).content)
             object_id = None
             eolthumbnailurl = None
-
             eolmediaurl = None
             mediaurl = None
             for x in result['dataObjects']:
@@ -102,11 +101,11 @@ class Query(object):
                 eolmediaurl = value['dataObjects'][0]['eolMediaURL']
                 mediaurl = value['dataObjects'][0]['mediaURL']
             if value:
-                self.writer.writerow(dict(scientificname=name, pageurl=pageurl, eolthumbnailurl=eolthumbnailurl, eolmediaurl=eolmediaurl, mediaurl=mediaurl)) #, result=json.dumps(value)))
+                self.writer.writerow(dict(scientificname=name, pageurl=page_url, eolthumbnailurl=eolthumbnailurl, eolmediaurl=eolmediaurl, mediaurl=mediaurl)) #, result=json.dumps(value)))
                 print "Harvested EOL image for %s" % name
         except Exception, e:
             nevermind = None
-            #print "Unable to harvest EOL image for %s" % name
+            print "Unable to harvest EOL image for %s. Exception: %s" % (name, e)
 
     def loop(self):
         while True:
@@ -130,7 +129,7 @@ def cache_eol():
 
     queue = Queue()
     renderers = {}
-    num_threads = 3
+    num_threads = 5
     for i in range(num_threads): # number of threads
         renderer = Query(queue, writer)
         render_thread = threading.Thread(target=renderer.loop)
