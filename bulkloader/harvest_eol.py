@@ -102,7 +102,7 @@ class Query(object):
                 eolmediaurl = value['dataObjects'][0]['eolMediaURL']
                 mediaurl = value['dataObjects'][0]['mediaURL']
             if value:
-                self.writer.writerow(dict(scientificname=name, eolspeciesurl=pageurl, eolthumbnailurl=eolthumbnailurl, eolmediaurl=eolmediaurl, mediaurl=mediaurl)) #, result=json.dumps(value)))
+                self.writer.writerow(dict(scientificname=name, pageurl=pageurl, eolthumbnailurl=eolthumbnailurl, eolmediaurl=eolmediaurl, mediaurl=mediaurl)) #, result=json.dumps(value)))
                 print "Harvested EOL image for %s" % name
         except Exception, e:
             nevermind = None
@@ -123,7 +123,7 @@ class Query(object):
 def cache_eol():
     "Cache EOL image JSON responses for all names in names.csv"
     names()
-    writer = csv_unicode.UnicodeDictWriter(open('eol_images.csv', 'w'), ['scientificname', 'eolthumbnailurl', 'eolmediaurl', 'mediaurl' ])
+    writer = csv_unicode.UnicodeDictWriter(open('eol_images.csv', 'w'), ['scientificname', 'pageurl', 'eolthumbnailurl', 'eolmediaurl', 'mediaurl' ])
     writer.writeheader()
 
     count = 10
