@@ -22,7 +22,7 @@ mol.modules.map.query = function(mol) {
                         "   pv.provider as provider, " +
                         "   t.year_assessed as year_assessed, " +
                         "   s.sequenceid as sequenceid, " +
-                        "   e.page_id as eol_page_id " +
+                        "   page_id as eol_page_id " +
                         "FROM {3} p " +
                         "LEFT JOIN eol e " +
                         "ON p.scientificname = e.scientificname " +
@@ -103,7 +103,7 @@ mol.modules.map.query = function(mol) {
                     $.post(
                         'cache/get',
                         {
-                            key: 'lq-{0}-{1}-{2}-{3}'.format(lat,lng,listradius.radius,constraints),
+                            key: 'listq-{0}-{1}-{2}-{3}'.format(lat,lng,listradius.radius,constraints),
                             sql:sql
                         },
                         function(data, textStatus, jqXHR) {
@@ -197,7 +197,10 @@ mol.modules.map.query = function(mol) {
                                         year = (row.year_assessed != null) ? _.uniq(row.year_assessed.split(',')).join(',') : '',
                                         redlist = (row.redlist != null) ? _.uniq(row.redlist.split(',')).join(',') : '';
 
-                                    tablerows.push("<tr><td><button class='mapit' value='"+row.scientificname+"'>MAP</button>&nbsp;<button class='eol' value='"+row.eol_page_id+"'>EOL</button></td>" +
+                                    tablerows.push("<tr><td>" +
+                                        "<button class='mapit' value='"+row.scientificname+"'>MAP</button>&nbsp;" +
+                                        "<button class='eol' data-sciname='"+row.scientificname+"' value='"+row.eol_page_id+"'>EOL</button>&nbsp;"+
+                                        "<button class='wiki' data-wikiname='"+row.scientificname+"'>WIKI</button></td>" +
                                         "<td class='wiki' data-wikiname='"+row.scientificname+"'>" +
                                         row.scientificname + "</td><td class='wiki english' data-wikiname='"+row.scientificname+"'>" +
                                         ((english != null) ? english : '') + "</td><td class='wiki' data-wikiname='"+row.order+"'>" +
@@ -270,7 +273,8 @@ mol.modules.map.query = function(mol) {
                         infoWindow= new google.maps.InfoWindow( {
                             content: content[0],
                             position: listradius.center,
-                            height: height+100
+                            height: height+100,
+                            maxWidth:800
                         });
 
                         self.features[listradius.center.toString()+listradius.radius] = {
@@ -311,7 +315,12 @@ mol.modules.map.query = function(mol) {
                              $('.eol',$(infoWindow.content)),
                              function(button) {
                                  if(button.value==''||button.value=='null') {
-                                     $(button).hide()
+                                    $(button).click(
+                                         function(event) {
+                                            var win = window.open('http://eol.org/search/?q={0}'.format($(this).data('sciname')));
+                                            win.focus();
+                                        }
+                                    )
                                  } else {
                                     $(button).click(
                                          function(event) {
