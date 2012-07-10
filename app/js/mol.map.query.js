@@ -21,8 +21,11 @@ mol.modules.map.query = function(mol) {
                         "   dt.type as type, " +
                         "   pv.provider as provider, " +
                         "   t.year_assessed as year_assessed, " +
-                        "   s.sequenceid as sequenceid " +
+                        "   s.sequenceid as sequenceid, " +
+                        "   e.page_id as eol_page_id " +
                         "FROM {3} p " +
+                        "LEFT JOIN eol e " +
+                        "ON p.scientificname = e.scientificname " +
                         "LEFT JOIN synonym_metadata n " +
                         "ON p.scientificname = n.scientificname " +
                         "LEFT JOIN taxonomy t " +
@@ -194,7 +197,7 @@ mol.modules.map.query = function(mol) {
                                         year = (row.year_assessed != null) ? _.uniq(row.year_assessed.split(',')).join(',') : '',
                                         redlist = (row.redlist != null) ? _.uniq(row.redlist.split(',')).join(',') : '';
 
-                                    tablerows.push("<tr><td><button value='"+row.scientificname+"'>map</button></td>" +
+                                    tablerows.push("<tr><td><button class='mapit' value='"+row.scientificname+"'>MAP</button>&nbsp;<button class='eol' value='"+row.eol_page_id+"'>EOL</button></td>" +
                                         "<td class='wiki' data-wikiname='"+row.scientificname+"'>" +
                                         row.scientificname + "</td><td class='wiki english' data-wikiname='"+row.scientificname+"'>" +
                                         ((english != null) ? english : '') + "</td><td class='wiki' data-wikiname='"+row.order+"'>" +
@@ -246,7 +249,7 @@ mol.modules.map.query = function(mol) {
                                     '   </div> ' +
                                     '   <div> ' +
                                     '       <table class="tablesorter">' +
-                                    '           <thead><tr><th></th><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>Rank&nbsp;&nbsp;&nbsp;</th><th>IUCN&nbsp;&nbsp;</th></tr></thead>' +
+                                    '           <thead><tr><th></th><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>Rank&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th><th>IUCN&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th></tr></thead>' +
                                     '           <tbody class="tablebody">' +
                                                     tablerows.join('') +
                                     '           </tbody>' +
@@ -295,13 +298,28 @@ mol.modules.map.query = function(mol) {
                          );
 
                          _.each(
-                             $('button',$(infoWindow.content)),
+                             $('.mapit',$(infoWindow.content)),
                              function(button) {
                                  $(button).click(
                                      function(event) {
                                         self.bus.fireEvent(new mol.bus.Event('search',{term:$(button).val()}));
                                     }
                                  );
+                             }
+                         );
+                         _.each(
+                             $('.eol',$(infoWindow.content)),
+                             function(button) {
+                                 if(button.value==''||button.value=='null') {
+                                     $(button).hide()
+                                 } else {
+                                    $(button).click(
+                                         function(event) {
+                                            var win = window.open('http://eol.org/pages/{0}/overview'.format(this.value));
+                                            win.focus();
+                                        }
+                                    );
+                                }
                              }
                          );
                          _.each(
@@ -430,6 +448,7 @@ mol.modules.map.query = function(mol) {
                         '           <button class="ecoregion" value=" AND p.type=\'ecoregion\' "><img title="Click to use Regional checklists for query." src="/static/maps/search/ecoregion.png"></button>' +
                         '       </span>'+
                         '   </div>' +
+                        //'   <div>> Species List Tool</div>' +
                         '</div>';
 
             this._super(html);
