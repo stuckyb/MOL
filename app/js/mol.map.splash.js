@@ -19,105 +19,103 @@ mol.modules.map.splash = function(mol) {
 
                 this.display = new mol.map.splash.splashDisplay();
                 this.addEventHandlers();
-		if(this.getIEVersion()<9 && this.getIEVersion()>=0) {
-		    this.IE8 = true;
-			//old ie8, please upgrade
-			this.display.iframe_content.src='/static/splash/ie8.html';
-			this.initDialog();
-			//$(this.display).find('.ui-dialog-titlebar-close').toggle(false);
-			//$(this.display).dialog( "option", "closeOnEscape", false );
-			this.display.mesg.append($("<div class='IEwarning'>Your version of Internet Explorer requires the Google Chrome Frame Plugin to view the Map of Life. Chrome Frame is available at <a href='http://www.google.com/chromeframe'>http://www.google.com/chromeframe/</a>. Otherwise, please use the latest version of Chrome, Safari, Firefox, or Internet Explorer.</div>"));
-			$(this.display).dialog( "option", "closeOnEscape", false );
-			$(this.display).bind( "dialogbeforeclose", function(event, ui) {
-				alert('Your version of Internet Explorer is not supported. Please install Google Chrome Frame, or use the latest version of Chrome, Safari, Firefox, or IE.');
-  				return false;
-			});
-			$(this.display.iframe_content).height(320);
-
-
-		} else if(false) {
-            this.initDialog();
-            this.display.mesg.append($("<font color='red'>Map of Life is down for maintenance. We will be back up shortly.</font>"));
-            $(this.display).dialog( "option", "closeOnEscape", false );
-            $(this.display).bind( "dialogbeforeclose", function(event, ui) {
-                return false;
-            });
-		} else {
-			this.initDialog();
-		}
-            },
-            initDialog: function() {
-                var self = this;
-
-
-
-                this.display.dialog(
-                    {
-                        autoOpen: true,
-			            width: 800,
-			            height: 580,
-			            dialogClass: "mol-splash",
-			            //modal: true
-                    }
-                );
-                 $(this.display).width('98%');
-
-                 $(".ui-widget-overlay").live("click", function() {
-                    self.display.dialog("close");
-                });
 
             },
-	    // Returns the version of Internet Explorer or a -1
+	        // Returns the version of Internet Explorer or a -1
             // (indicating the use of another browser).
-	    getIEVersion: function() {
-  			var rv = -1, ua,re; // Return value assumes failure.
-  			if (navigator.appName == 'Microsoft Internet Explorer'){
+	        getIEVersion: function() {
+  			   var rv = -1, ua,re; // Return value assumes failure.
+  			   if (navigator.appName == 'Microsoft Internet Explorer'){
     				ua = navigator.userAgent;
-   				re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+   				    re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
     				if (re.exec(ua) != null){
       					rv = parseFloat( RegExp.$1 );
-				}
-			}
-  			return rv;
-		},
-		addIframeHandlers: function () {
-		    var self = this;
+				    }
+			   }
+  			   return rv;
+		    },
+		    addIframeHandlers: function () {
+		      var self = this;
 
-		    $(this.display.iframe_content[0].contentDocument.body).find('.getspecies').click(
+              $(this.display.iframe_content[0].contentDocument.body).find('.getspecies').click(
 		          function(event) {
-		               $(self.display).dialog('option','modal','false');
-		               $(self.display.parent()).animate({left: '{0}px'.format($(window).width()/(7/4)-400)}, 'slow');
-		               self.bus.fireEvent(new mol.bus.Event('search', {term:'Puma concolor'}));
-		               setTimeout(function() {self.bus.fireEvent(new mol.bus.Event('results-select-all'))},1000);
-		               setTimeout(function() {self.bus.fireEvent(new mol.bus.Event('results-map-selected'))},2000);
-
-
+		              $(self.display).dialog('option','modal','false');
+		              $(self.display.parent()).animate({left: '{0}px'.format($(window).width()/(7/4)-400)}, 'slow');
+		              self.bus.fireEvent(new mol.bus.Event('search', {term:'Puma concolor'}));
+		              setTimeout(function() {self.bus.fireEvent(new mol.bus.Event('results-select-all'))},1000);
+		              setTimeout(function() {self.bus.fireEvent(new mol.bus.Event('results-map-selected'))},2000);
 		          }
-		    );
-            $(this.display.iframe_content[0].contentDocument.body).find('.listdemo1').click(
+		      );
+              $(this.display.iframe_content[0].contentDocument.body).find('.listdemo1').click(
                   function(event) {
                       $(self.display).dialog('option','modal','false');
                       $(self.display.parent()).animate({left: '{0}px'.format($(window).width()/3-400)}, 'slow');
                       self.bus.fireEvent(new mol.bus.Event('layer-display-toggle',{visible: false}));
                       self.bus.fireEvent(new mol.bus.Event('species-list-query-click', {gmaps_event:{latLng : new google.maps.LatLng(-2.263,39.045)}, map : self.map}));
                   }
-            );
-
-		},
-		addEventHandlers: function () {
-		    var self = this;
-		    if(!self.IE8) {
-		        $(this.display.iframe_content).load(
-		          function(event) {
-                       self.addIframeHandlers();
-
-		          }
-		        );
-		    }
+               );
+		    },
+		    initDialog: function() {
+                var self = this;
+                this.display.dialog(
+                    {
+                        autoOpen: true,
+                        width: 800,
+                        height: 580,
+                        DialogClass: "mol-splash",
+                        //modal: true
+                    }
+                );
+                $(this.display).width('98%');
+                $(".ui-widget-overlay").live(
+                    "click",
+                    function() {
+                        self.display.dialog("close");
+                    }
+                );
+            },
+            addEventHandlers: function () {
+		      var self = this;
+		      this.bus.addHandler(
+		        'toggle-splash',
+		        function(event) {
+		            if(self.IEVersion()<9 && self.getIEVersion()>=0) {
+                        self.IE8 = true;
+                        //old ie8, please upgrade
+                        self.display.iframe_content.src='/static/splash/ie8.html';
+                        self.initDialog();
+                        self.display.mesg.append($("<div class='IEwarning'>Your version of Internet Explorer requires the Google Chrome Frame Plugin to view the Map of Life. Chrome Frame is available at <a href='http://www.google.com/chromeframe'>http://www.google.com/chromeframe/</a>. Otherwise, please use the latest version of Chrome, Safari, Firefox, or Internet Explorer.</div>"));
+                        $(self.display).dialog( "option", "closeOnEscape", false );
+                        $(self.display).bind(
+                            "dialogbeforeclose",
+                            function(event, ui) {
+                                alert('Your version of Internet Explorer is not supported. Please install Google Chrome Frame, or use the latest version of Chrome, Safari, Firefox, or IE.');
+                                return false;
+                            }
+                        );
+                        $(self.display.iframe_content).height(320);
+                    } else if(self.MOL_Down) {
+                        self.initDialog();
+                        self.display.mesg.append($("<font color='red'>Map of Life is down for maintenance. We will be back up shortly.</font>"));
+                        $(self.display).dialog( "option", "closeOnEscape", false );
+                        $(self.display).bind( "dialogbeforeclose", function(event, ui) {
+                            return false;
+                        });
+                   } else {
+                        self.initDialog();
+                   }
+                   if(!self.IE8) {
+                        $(self.display.iframe_content).load(
+                            function(event) {
+                                self.addIframeHandlers();
+                            }
+                        );
+                   }
+                }
+             );
+          }
         }
-    }
     );
-
     mol.map.splash.splashDisplay = mol.mvp.View.extend(
         {
             init: function() {
