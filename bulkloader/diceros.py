@@ -20,6 +20,7 @@
 """
 
 import logging
+import psycopg2
 import os
 import pprint
 import subprocess
@@ -38,7 +39,10 @@ cartodb = None
 cartodb_settings = None
 
 def uploadToCartoDB():
+    table_definition = ''
+    set_table_definition = False
     dumpfile = _getoptions().dumpfile
+
     logging.info("Opening dumpfile '%s'." % dumpfile)
 
     # How many SQL statements should we run together?
@@ -48,19 +52,41 @@ def uploadToCartoDB():
         f = open( dumpfile , 'r')
         sql_statements = set()
 
-        for line in f:            # Prepare SQL for upload to CartoDB.
+        for line in f:
+            # Prepare SQL for upload to CartoDB.
             if(line.startswith('INSERT') and line.endswith(';\n')):
+                #already sent table definition, collect inserts that end with ;\n
                 sql_statements.add(line)
             else:
+                #skipping this line
                 logging.info('Skipping SQL: %s' % line)
-
-            if(len(sql_statements) >= sql_statements_to_send_at_once):
+            if(len(sql_statements) >= sql_statements_to_send_at_once and table_definition != None):
                 logging.info("\tBatch-transmitting %d SQL statements to CartoDB." % len(sql_statements))
                 sendSQLStatementToCartoDB("".join(sql_statements))
                 logging.info("Uploaded %d lines from dumpfile '%s'", len(sql_statements), dumpfile)
                 sql_statements.clear()
     finally:
         logging.info("Processing of dumpfile '%s' completed." % dumpfile)
+
+def createCartoDBTable():
+    con = None
+    create_table_sql = None
+    sql = "SELECT CONCAT('CREATE TABLE %s (', string_agg(typedef, ', '), ');') FROM (SELECT typedef, TEXT('g') as grouper FROM (SELECT CONCAT(a.attname, ' ', pg_catalog.format_type(a.atttypid, a.atttypmod)) as typedef  FROM  pg_catalog.pg_attribute a,  (SELECT  c.oid, n.nspname, c.relname  FROM pg_catalog.pg_class c  LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace  WHERE c.relname ~ '^(%s)$'  AND pg_catalog.pg_table_is_visible(c.oid)  ORDER BY 2, 3 ) b  WHERE a.attrelid = b.oid  AND a.attnum > 0  AND NOT a.attisdropped ORDER BY a.attnum  ) t ) s group by grouper" % (_getoptions().dumpfile.replace('.sql',''), _getoptions().dumpfile.replace('.sql',''))
+    print(sql)
+    try:
+        con = psycopg2.connect(host='litoria.eeb.yale.edu', database='cartodb_dev_user_2_db', user='postgres')
+
+        cur = con.cursor()
+        cur.execute(sql)
+
+        rows = cur.fetchall()
+
+        for row in rows:
+            create_table_sql = row[0]
+        sendSQLStatementToCartoDB('DROP TABLE %s' % _getoptions().dumpfile.replace('.sql',''))
+        sendSQLStatementToCartoDB(create_table_sql)
+    finally:
+        nevermind = None
 
 def sendSQLStatementToCartoDB(sql):
     """ A helper method for sending an SQL statement (or multiple SQL statements in a
@@ -152,7 +178,7 @@ def main():
         logging.error("Could not load CartoDB setting file 'cartodb.json': %s" % ex)
         exit(1)
 
-
+    createCartoDBTable()
     uploadToCartoDB()
 
 
