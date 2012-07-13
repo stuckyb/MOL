@@ -1,3 +1,7 @@
+/*
+ *  Module to bootstrap the MOL UI from parameters passed on the querystring.
+ * 
+ */
 mol.modules.map.boot = function(mol) {
 
     mol.map.boot = {};
@@ -14,8 +18,7 @@ mol.modules.map.boot = function(mol) {
              },
 
             /**
-             * Starts the BootEngine. Note that the container parameter is
-             * ignored.
+             * Starts the BootEngine. 
              */
             start: function() {
                this.boot();
@@ -39,10 +42,10 @@ mol.modules.map.boot = function(mol) {
                         function (response) {
                             var results = mol.services.cartodb.convert(response);
                             if(results.length==0) {
+                            	//we got nothin', so splash
                                 self.bus.fireEvent(new mol.bus.Event('toggle-splash'));
                             } else {
                                 //parse the results
-
                                 self.loadLayers(results.layers);
                             }
                         },
@@ -51,7 +54,8 @@ mol.modules.map.boot = function(mol) {
                 }
             },
             loadLayers: function(layers) {
-                if(Object.keys(layers).length<100) {
+                if(Object.keys(layers).length<=25) {
+                	//Map layers if there are 25 or less
                     this.bus.fireEvent(new mol.bus.Event('add-layers',{layers: layers}))
                 } else if (this.term != null) {
                     this.bus.fireEvent(new mol.bus.Event('search',{term: this.term}));
