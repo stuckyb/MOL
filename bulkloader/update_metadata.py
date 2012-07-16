@@ -42,7 +42,7 @@ cartodb_settings = None
 def update_layers():
     "Download all layers from CartoDB and store in CSV file"
     print 'Getting layer definitions...'
-    url = "http://mol.cartodb.com/api/v2/sql?q=select%20scientificname,%20type,%20provider%20from%20layer_metadata%20order%20by%20scientificname"
+    url = "http://mol.cartodb.com/api/v2/sql?q=select%20scientificname,%20type,%20provider%20from%20layer_metadata%20where%20feature_count%20is%20null%or%extent%20is%20null%20order%20by%20scientificname"
     response = urllib2.urlopen(url)
     rows = json.loads(response.read())['rows']
 
@@ -64,7 +64,7 @@ def update_layers():
             sendSQLStatementToCartoDB(sql)
 
     finally:
-        logging.info("Yoink")
+        logging.info("Crash and burn!")
 
 
     print 'Done updating layer metadata'
