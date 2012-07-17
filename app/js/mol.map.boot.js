@@ -54,7 +54,7 @@ mol.modules.map.boot = function(mol) {
                     $.post(
                         'cache/get',
                         {
-                            key:'layers-{0}'.format(self.term),
+                            key:'layer-metadata-{0}'.format(self.term),
                             sql:this.sql.format(self.term)
                         },
                         function (response) {

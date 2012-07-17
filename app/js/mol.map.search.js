@@ -76,7 +76,7 @@ mol.modules.map.search = function(mol) {
                             $.post(
                                 'cache/get',//http://dtredc0xh764j.cloudfront.net/api/v2/sql',
                                 {
-                                    key: 'layers-{0}'.format(request.term),
+                                    key: 'layer-metadata-{0}'.format(request.term),
                                     sql:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
                                 },
                                 function (json) {
