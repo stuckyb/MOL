@@ -17,7 +17,7 @@ mol.modules.map.search = function(mol) {
                     '       l.type as type,'+
                     '       t.title as type_title,'+
                     '       l.provider as source, '+
-                    '       p.title as provider_title,'+
+                    '       p.title as source_title,'+
                     '       n.class as _class, ' +
                     '       l.feature_count as feature_count,'+
                     '       n.common_names_eng as names,' +
