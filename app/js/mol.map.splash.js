@@ -79,7 +79,7 @@ mol.modules.map.splash = function(mol) {
 		      this.bus.addHandler(
 		        'toggle-splash',
 		        function(event) {
-		            if(self.IEVersion()<9 && self.getIEVersion()>=0) {
+		            if(self.getIEVersion()<9 && self.getIEVersion()>=0) {
                         self.IE8 = true;
                         //old ie8, please upgrade
                         self.display.iframe_content.src='/static/splash/ie8.html';

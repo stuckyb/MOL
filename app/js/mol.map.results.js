@@ -403,7 +403,8 @@ mol.modules.map.results = function(mol) {
                             type_title = layer.type_title,
                             source_title = layer.source_title,
                             sourcetype = layer.sourcetype,
-                            result = new mol.map.results.ResultDisplay(name, id, source, type, names, feature_count, type_title, source_title, sourcetype);
+                            extenet = layer.extent,
+                            result = new mol.map.results.ResultDisplay(name, id, source, type, names, feature_count, type_title, source_title, sourcetype, extent);
                             result.layerObj = layer;
                         this.resultList.append(result);
                         return result;
@@ -470,7 +471,7 @@ mol.modules.map.results = function(mol) {
      */
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
-            init: function(name, id, source, type, names, feature_count, type_title, source_title) {
+            init: function(name, id, source, type, names, feature_count, type_title, source_title, extent) {
                 var self=this, html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +

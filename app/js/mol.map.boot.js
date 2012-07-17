@@ -1,6 +1,6 @@
 /*
  *  Module to bootstrap the MOL UI from parameters passed on the querystring.
- * 
+ *
  */
 mol.modules.map.boot = function(mol) {
 
@@ -13,12 +13,29 @@ mol.modules.map.boot = function(mol) {
                 this.bus = bus;
                 this.IE8 = false;
                 this.sql = '' +
-                    'SELECT * from get_search_results(\'{0}\'); ';
+                    'SELECT DISTINCT l.scientificname as name,' +
+                    '       l.type as type,'+
+                    '       t.title as type_title,'+
+                    '       l.provider as source, '+
+                    '       p.title as provider_title,'+
+                    '       n.class as _class, ' +
+                    '       l.feature_count as feature_count,'+
+                    '       n.common_names_eng as names,' +
+                    '       CONCAT(\'{sw:{lat:\',ST_XMin(l.extent),\', lng:\',ST_YMin(l.extent),\'} , ne:{lat:\',ST_XMax(l.extent),\', lng:\',ST_YMax(l.extent),\'}}\') as extent ' +
+                    'FROM layer_metadata l ' +
+                    'LEFT JOIN types t ON ' +
+                    '       l.type = t.type ' +
+                    'LEFT JOIN providers p ON ' +
+                    '       l.provider = p.provider ' +
+                    'LEFT JOIN taxonomy n ON ' +
+                    '       l.scientificname = n.scientificname ' +
+                    'WHERE ' +
+                    "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}'";
                 this.term = null;
              },
 
             /**
-             * Starts the BootEngine. 
+             * Starts the BootEngine.
              */
             start: function() {
                this.boot();
@@ -31,17 +48,18 @@ mol.modules.map.boot = function(mol) {
 
                 if((this.getIEVersion()>=0&&this.getIEVersion()<=8)||this.term=='') {
                     //If on IE8- or no query params fire the splash event
+                    this.bus.fireEvent(new mol.bus.Event('toggle-splash'));
                 } else {
                     //Otherwise, try and get a result using term
                     $.post(
                         'cache/get',
                         {
-                            key:'search-results-{0}'.format(self.term),
+                            key:'layers-{0}'.format(self.term),
                             sql:this.sql.format(self.term)
                         },
                         function (response) {
                             var results = mol.services.cartodb.convert(response);
-                            if(results.length==0) {
+                            if(Object.keys(results.layers).length==0) {
                             	//we got nothin', so splash
                                 self.bus.fireEvent(new mol.bus.Event('toggle-splash'));
                             } else {
@@ -74,31 +92,7 @@ mol.modules.map.boot = function(mol) {
 				}
 			}
   			return rv;
-		},
-		addIframeHandlers: function () {
-		    var self = this;
-
-		    $(this.display.iframe_content[0].contentDocument.body).find('.getspecies').click(
-		          function(event) {
-		               $(self.display).dialog('option','modal','false');
-		               $(self.display.parent()).animate({left: '{0}px'.format($(window).width()/(7/4)-400)}, 'slow');
-		               self.bus.fireEvent(new mol.bus.Event('search', {term:'Puma concolor'}));
-		               setTimeout(function() {self.bus.fireEvent(new mol.bus.Event('results-select-all'))},1000);
-		               setTimeout(function() {self.bus.fireEvent(new mol.bus.Event('results-map-selected'))},2000);
-
-
-		          }
-		    );
-            $(this.display.iframe_content[0].contentDocument.body).find('.listdemo1').click(
-                  function(event) {
-                      $(self.display).dialog('option','modal','false');
-                      $(self.display.parent()).animate({left: '{0}px'.format($(window).width()/3-400)}, 'slow');
-                      self.bus.fireEvent(new mol.bus.Event('layer-display-toggle',{visible: false}));
-                      self.bus.fireEvent(new mol.bus.Event('species-list-query-click', {gmaps_event:{latLng : new google.maps.LatLng(-2.263,39.045)}, map : self.map}));
-                  }
-            );
-
-		},
+		}
     }
     );
 };

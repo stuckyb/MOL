@@ -66,6 +66,7 @@ mol.modules.map.layers = function(mol) {
                 this.bus.addHandler(
                     'add-layers',
                     function(event) {
+                        var bounds = new google.maps.LatLngBounds();
                         _.each(
                             event.layers,
                             function(layer) { // Removes duplicate layers.
@@ -74,7 +75,22 @@ mol.modules.map.layers = function(mol) {
                                 }
                             }
                         );
+                        _.each(
+                            event.layers,
+                            function(layer) {
+                                var extent = eval('({0})'.format(layer.extent));
+                                var layer_bounds = new google.maps.LatLngBounds(
+                                        new google.maps.LatLng(extent.sw.lng,extent.sw.lat),
+                                        new google.maps.LatLng(extent.ne.lng,extent.ne.lat)
+                                     );
+
+                                bounds.union(layer_bounds)
+
+                            }
+                        )
                         self.addLayers(event.layers);
+                        self.map.fitBounds(bounds)
+
                     }
                 );
                 this.bus.addHandler(
@@ -244,12 +260,12 @@ mol.modules.map.layers = function(mol) {
                                 var params = {
                                         layer: layer,
                                         auto_bound: true
-                                    },
-                                    e = new mol.bus.Event('layer-zoom-extent', params),
-                                    le = new mol.bus.Event('show-loading-indicator',{source : "map"});
+                                },
+                                    extent = eval('({0})'.format(layer.extent)),
+                                    bounds = new google.maps.LatLngBounds(new google.maps.LatLng(extent.sw.lng, extent.sw.lat), new google.maps.LatLng(extent.ne.lng, extent.ne.lat));
 
-                                self.bus.fireEvent(e);
-                                self.bus.fireEvent(le);
+                                self.map.fitBounds(bounds);
+
                                 event.stopPropagation();
                                 event.cancelBubble = true;
                             }
