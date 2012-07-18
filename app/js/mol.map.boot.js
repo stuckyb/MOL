@@ -21,7 +21,7 @@ mol.modules.map.boot = function(mol) {
                     '       n.class as _class, ' +
                     '       l.feature_count as feature_count,'+
                     '       n.common_names_eng as names,' +
-                    '       CONCAT(\'{sw:{lat:\',ST_XMin(l.extent),\', lng:\',ST_YMin(l.extent),\'} , ne:{lat:\',ST_XMax(l.extent),\', lng:\',ST_YMax(l.extent),\'}}\') as extent ' +
+                    '       CONCAT(\'{sw:{lng:\',ST_XMin(l.extent),\', lat:\',ST_YMin(l.extent),\'} , ne:{lng:\',ST_XMax(l.extent),\', lat:\',ST_YMax(l.extent),\'}}\') as extent ' +
                     'FROM layer_metadata l ' +
                     'LEFT JOIN types t ON ' +
                     '       l.type = t.type ' +
@@ -54,7 +54,7 @@ mol.modules.map.boot = function(mol) {
                     $.post(
                         'cache/get',
                         {
-                            key:'layer-metadata-{0}'.format(self.term),
+                            key:'lms-{0}'.format(self.term),
                             sql:this.sql.format(self.term)
                         },
                         function (response) {
@@ -64,18 +64,31 @@ mol.modules.map.boot = function(mol) {
                                 self.bus.fireEvent(new mol.bus.Event('toggle-splash'));
                             } else {
                                 //parse the results
-                                self.loadLayers(results.layers);
+                                self.loadLayers(self.getLayersWithIds(results.layers));
                             }
                         },
                         'json'
                      );
                 }
             },
+            /*
+             * Method to add ids to the layer objects
+             */
+            getLayersWithIds: function(layers) {
+                return  _.map(
+                    layers,
+                    function(layer) {
+                        return _.extend(layer, {id: mol.core.getLayerId(layer)});
+                    }
+                );
+            },
+
             loadLayers: function(layers) {
                 if(Object.keys(layers).length<=25) {
                 	//Map layers if there are 25 or less
                     this.bus.fireEvent(new mol.bus.Event('add-layers',{layers: layers}))
                 } else if (this.term != null) {
+                    this.bus.fireEvent(new mol.bus.Event('initialize-map'));
                     this.bus.fireEvent(new mol.bus.Event('search',{term: this.term}));
                 }
             },

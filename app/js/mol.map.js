@@ -224,6 +224,15 @@ mol.modules.map = function(mol) {
                         control.slot(display, slot);
                     }
                 );
+                /**
+                 *  Handler to initialize map to a default extent.
+                 */
+                this.bus.addHandler(
+                    'initialize-map',
+                    function(event) {
+                        self.display.map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(-60,-150), new google.maps.LatLng(65,160)));
+                    }
+                );
             }
         }
     );
@@ -236,14 +245,16 @@ mol.modules.map = function(mol) {
                 this._super(element);
 
                 mapOptions = {
-                    zoom: 3,
+                    zoom: 4,
                     maxZoom: 10,
                     minZoom: 2,
-                    minLat: -85,
-                    maxLat: 85,
+                    minLat: -89,
+                    maxLat: 89,
+                    minLon:-180,
+                    maxLon:180,
                     mapTypeControl: false,
                     //mapTypeControlOptions: {position: google.maps.ControlPosition.BOTTOM_LEFT},
-                    center: new google.maps.LatLng(0,-50),
+                    //center: new google.maps.LatLng(10,0),
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     styles: [
                       {

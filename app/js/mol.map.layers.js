@@ -66,7 +66,7 @@ mol.modules.map.layers = function(mol) {
                 this.bus.addHandler(
                     'add-layers',
                     function(event) {
-                        var bounds = new google.maps.LatLngBounds();
+                        var bounds = null;
                         _.each(
                             event.layers,
                             function(layer) { // Removes duplicate layers.
@@ -80,12 +80,14 @@ mol.modules.map.layers = function(mol) {
                             function(layer) {
                                 var extent = eval('({0})'.format(layer.extent));
                                 var layer_bounds = new google.maps.LatLngBounds(
-                                        new google.maps.LatLng(extent.sw.lng,extent.sw.lat),
-                                        new google.maps.LatLng(extent.ne.lng,extent.ne.lat)
+                                        new google.maps.LatLng(extent.sw.lat,extent.sw.lng),
+                                        new google.maps.LatLng(extent.ne.lat,extent.ne.lng)
                                      );
-
-                                bounds.union(layer_bounds)
-
+                                if(!bounds) {
+                                    bounds = layer_bounds;
+                                } else {
+                                    bounds.union(layer_bounds)
+                                }
                             }
                         )
                         self.addLayers(event.layers);
@@ -262,8 +264,10 @@ mol.modules.map.layers = function(mol) {
                                         auto_bound: true
                                 },
                                     extent = eval('({0})'.format(layer.extent)),
-                                    bounds = new google.maps.LatLngBounds(new google.maps.LatLng(extent.sw.lng, extent.sw.lat), new google.maps.LatLng(extent.ne.lng, extent.ne.lat));
-
+                                    bounds = new google.maps.LatLngBounds(new google.maps.LatLng(extent.sw.lat, extent.sw.lng), new google.maps.LatLng(extent.ne.lat, extent.ne.lng));
+                                if(!$(l.layer).hasClass('selected')){
+                                    l.layer.click();
+                                }
                                 self.map.fitBounds(bounds);
 
                                 event.stopPropagation();

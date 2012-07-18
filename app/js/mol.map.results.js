@@ -170,7 +170,7 @@ mol.modules.map.results = function(mol) {
 
                 // Set layer results in display.
                  _.each(
-                    this.display.setResults(this.getLayersWithIds(layers)), //passing in self so I can fire events in resultdisplay
+                    this.display.setResults(this.getLayersWithIds(layers)),
                     function(result) {
                     // TODO: Wire up results.
                         result.source.click(

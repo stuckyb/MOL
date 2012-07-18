@@ -21,7 +21,7 @@ mol.modules.map.search = function(mol) {
                     '       n.class as _class, ' +
                     '       l.feature_count as feature_count,'+
                     '       n.common_names_eng as names,' +
-                    '       CONCAT(\'{sw:{lat:\',ST_XMin(l.extent),\', lng:\',ST_YMin(l.extent),\'} , ne:{lat:\',ST_XMax(l.extent),\', lng:\',ST_YMax(l.extent),\'}}\') as extent ' +
+                    '       CONCAT(\'{sw:{lng:\',ST_XMin(l.extent),\', lat:\',ST_YMin(l.extent),\'} , ne:{lng:\',ST_XMax(l.extent),\', lat:\',ST_YMax(l.extent),\'}}\') as extent ' +
                     'FROM layer_metadata l ' +
                     'LEFT JOIN types t ON ' +
                     '       l.type = t.type ' +
@@ -76,7 +76,7 @@ mol.modules.map.search = function(mol) {
                             $.post(
                                 'cache/get',//http://dtredc0xh764j.cloudfront.net/api/v2/sql',
                                 {
-                                    key: 'layer-metadata-{0}'.format(request.term),
+                                    key: 'acr-{0}'.format(request.term),
                                     sql:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
                                 },
                                 function (json) {
@@ -250,7 +250,7 @@ mol.modules.map.search = function(mol) {
                         $.post(
                                 'cache/get',
                                 {
-                                    key:'search-results-{0}'.format(term),
+                                    key:'lms-{0}'.format(term),
                                     sql:this.sql.format(term)
                                 },
                                 function (response) {

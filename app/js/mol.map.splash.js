@@ -16,7 +16,6 @@ mol.modules.map.splash = function(mol) {
              * ignored.
              */
             start: function() {
-
                 this.display = new mol.map.splash.splashDisplay();
                 this.addEventHandlers();
 
@@ -79,6 +78,9 @@ mol.modules.map.splash = function(mol) {
 		      this.bus.addHandler(
 		        'toggle-splash',
 		        function(event) {
+		            //splash means no params, so set to a default view. Set a bit smaller than full world view to avoid a wrapped map.
+                    self.map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(-60,-150), new google.maps.LatLng(65,160)));
+
 		            if(self.getIEVersion()<9 && self.getIEVersion()>=0) {
                         self.IE8 = true;
                         //old ie8, please upgrade

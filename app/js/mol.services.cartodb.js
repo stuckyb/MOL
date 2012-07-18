@@ -291,7 +291,7 @@ mol.modules.services.cartodb = function(mol) {
                         name: row.name.charAt(0).toUpperCase()+row.name.slice(1).toLowerCase(),
                         source: row.source.toLowerCase(),
                         type: row.type.toLowerCase(),
-                        // This removes duplicates:
+                        // This removes duplicate English names
                         names: (row.names != undefined) ? _.uniq(row.names.split(', ')).join(', ') : '',
                         feature_count: row.feature_count,
                         type_title: row.type_title,
