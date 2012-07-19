@@ -2,73 +2,71 @@ mol.modules.map.query = function(mol) {
 
     mol.map.query = {};
 
-    mol.map.query.QueryEngine = mol.mvp.Engine.extend(
-    {
+    mol.map.query.QueryEngine = mol.mvp.Engine.extend({
         init : function(proxy, bus, map) {
-                this.proxy = proxy;
-                this.bus = bus;
-                this.map = map;
-                this.sql = "" +
-                        "SELECT DISTINCT "+
-                        "   p.scientificname as scientificname, "+
-                        "   t.common_names_eng as english, "+
-                        "   initcap(lower(t._order)) as order, " +
-                        "   initcap(lower(t.Family)) as family, " +
-                        "   t.red_list_status as redlist, " +
-                        "   initcap(lower(t.class)) as className, " +
-                        "   dt.title as type_title, " +
-                        "   pv.title as provider_title, " +
-                        "   dt.type as type, " +
-                        "   pv.provider as provider, " +
-                        "   t.year_assessed as year_assessed, " +
-                        "   s.sequenceid as sequenceid, " +
-                        "   page_id as eol_page_id " +
-                        "FROM {3} p " +
-                        "LEFT JOIN eol e " +
-                        "ON p.scientificname = e.scientificname " +
-                        "LEFT JOIN synonym_metadata n " +
-                        "ON p.scientificname = n.scientificname " +
-                        "LEFT JOIN taxonomy t " +
-                        "ON (p.scientificname = t.scientificname OR n.mol_scientificname = t.scientificname) " +
-                        "LEFT JOIN sequence_metadata s " +
-                        "   ON t.family = s.family " +
-                        "LEFT JOIN types dt ON " +
-                        "   p.type = dt.type " +
-                        "LEFT JOIN providers pv ON " +
-                        "   p.provider = pv.provider " +
-                        "WHERE " +
-                        "   ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " + //radius test
-                        "   {2} " + //other constraints
-                        "ORDER BY s.sequenceid, p.scientificname asc";
-                this.csv_sql = "" +
-                        "SELECT DISTINCT "+
-                        '   p.scientificname as "Scientific Name", '+
-                        '   t.common_names_eng as "Common Name (English)", '+
-                        '   initcap(lower(t._order)) as "Order", ' +
-                        '   initcap(lower(t.Family)) as "Family", ' +
-                        '   t.red_list_status as "IUCN Red List Status", ' +
-                        '   initcap(lower(t.class)) as "Class", ' +
-                        '   dt.title as "Type", ' +
-                        '   pv.title as "Source", ' +
-                        '   t.year_assessed as "Year Assessed", ' +
-                        '   s.sequenceid as "Sequence ID" ' +
-                        "FROM {3} p " +
-                        "LEFT JOIN synonym_metadata n " +
-                        "ON p.scientificname = n.scientificname " +
-                        "LEFT JOIN taxonomy t " +
-                        "ON (p.scientificname = t.scientificname OR n.mol_scientificname = t.scientificname) " +
-                        "LEFT JOIN sequence_metadata s " +
-                        "   ON t.family = s.family " +
-                        "LEFT JOIN types dt ON " +
-                        "   p.type = dt.type " +
-                        "LEFT JOIN providers pv ON " +
-                        "   p.provider = pv.provider " +
-                        "WHERE " +
-                        "   ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText('POINT({0})',4326),3857),{1}) " + //radius test
-                        "   {2} " + //other constraints
-                        'ORDER BY "Sequence ID", "Scientific Name" asc';
-                 this.queryct=0;
-
+            this.proxy = proxy;
+            this.bus = bus;
+            this.map = map;
+            this.sql = '' +
+                'SELECT DISTINCT '+
+                '    p.scientificname as scientificname, '+
+                '    t.common_names_eng as english, '+
+                '    initcap(lower(t._order)) as order, ' +
+                '    initcap(lower(t.Family)) as family, ' +
+                '    t.red_list_status as redlist, ' +
+                '    initcap(lower(t.class)) as className, ' +
+                '    dt.title as type_title, ' +
+                '    pv.title as provider_title, ' +
+                '    dt.type as type, ' +
+                '    pv.provider as provider, ' +
+                '    t.year_assessed as year_assessed, ' +
+                '    s.sequenceid as sequenceid, ' +
+                '    page_id as eol_page_id ' +
+                'FROM {3} p ' +
+                'LEFT JOIN eol e ' +
+                '    ON p.scientificname = e.scientificname ' +
+                'LEFT JOIN synonym_metadata n ' +
+                '    ON p.scientificname = n.scientificname ' +
+                'LEFT JOIN taxonomy t ' +
+                '    ON (p.scientificname = t.scientificname OR n.mol_scientificname = t.scientificname) ' +
+                'LEFT JOIN sequence_metadata s ' +
+                '    ON t.family = s.family ' +
+                'LEFT JOIN types dt ON ' +
+                '    p.type = dt.type ' +
+                'LEFT JOIN providers pv ON ' +
+                '    p.provider = pv.provider ' +
+                'WHERE ' +
+                '    ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText(\'POINT({0})\',4326),3857),{1}) ' + //radius test
+                '    {2} ' + //other constraints
+                'ORDER BY s.sequenceid, p.scientificname asc';
+            this.csv_sql = '' +
+                'SELECT DISTINCT '+
+                '    p.scientificname as "Scientific Name", '+
+                '    t.common_names_eng as "Common Name (English)", '+
+                '    initcap(lower(t._order)) as "Order", ' +
+                '    initcap(lower(t.Family)) as "Family", ' +
+                '    t.red_list_status as "IUCN Red List Status", ' +
+                '    initcap(lower(t.class)) as "Class", ' +
+                '    dt.title as "Type", ' +
+                '    pv.title as "Source", ' +
+                '    t.year_assessed as "Year Assessed", ' +
+                '    s.sequenceid as "Sequence ID" ' +
+                'FROM {3} p ' +
+                'LEFT JOIN synonym_metadata n ' +
+                '    ON p.scientificname = n.scientificname ' +
+                'LEFT JOIN taxonomy t ' +
+                '    ON (p.scientificname = t.scientificname OR n.mol_scientificname = t.scientificname) ' +
+                'LEFT JOIN sequence_metadata s ' +
+                '    ON t.family = s.family ' +
+                'LEFT JOIN types dt ' +
+                '    ON p.type = dt.type ' +
+                'LEFT JOIN providers pv ' +
+                '    ON p.provider = pv.provider ' +
+                'WHERE ' +
+                '    ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText(\'POINT({0})\',4326),3857),{1}) ' + //radius test
+                '    {2} ' + //other constraints
+                'ORDER BY "Sequence ID", "Scientific Name" asc';
+            this.queryct=0;
         },
         start : function() {
             this.addQueryDisplay();
@@ -78,44 +76,41 @@ mol.modules.map.query = function(mol) {
          *  Build the loading display and add it as a control to the top center of the map display.
          */
         addQueryDisplay : function() {
-                var params = {
-                    display: null,
-                    slot: mol.map.ControlDisplay.Slot.BOTTOM,
-                    position: google.maps.ControlPosition.RIGHT_BOTTOM
-                 };
-                this.bus.fireEvent(new mol.bus.Event('register-list-click'));
-                this.enabled=true;
-                this.features={};
-                this.display = new mol.map.QueryDisplay();
-                params.display = this.display;
-                this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
+            var params = {
+                display: null,
+                slot: mol.map.ControlDisplay.Slot.BOTTOM,
+                position: google.maps.ControlPosition.RIGHT_BOTTOM
+            };
+            this.bus.fireEvent(new mol.bus.Event('register-list-click'));
+            this.enabled=true;
+            this.features={};
+            this.display = new mol.map.QueryDisplay();
+            params.display = this.display;
+            this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
         },
         getList: function(lat, lng, listradius, constraints, className) {
-                var self = this,
-                    sql = this.sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons'),
-                    csv_sql = escape(this.csv_sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons')),
-                    params = {sql:sql, key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius+constraints))};
+            var self = this,
+                sql = this.sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons'),
+                csv_sql = escape(this.csv_sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons')),
+                params = {sql:sql, key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius+constraints))};
 
-                    if(self.queryct>0) {
-                        alert('Please wait for your last species list request to complete before starting another.')
-                    } else {
-                    self.queryct++;
-                    $.post(
-                        'cache/get',
-                        {
-                            key: 'listq-{0}-{1}-{2}-{3}'.format(lat,lng,listradius.radius,constraints),
-                            sql:sql
-                        },
-                        function(data, textStatus, jqXHR) {
-                            self.queryct--;
-                            var results = {listradius:listradius,  constraints: constraints, className : className, response:data, sql:csv_sql},
-                            event = new mol.bus.Event('species-list-query-results', results);
-                            self.bus.fireEvent(event);
-                        }
-                    );
-                   }
-                //this.proxy.execute(action, new mol.services.Callback(success, failure));
-
+            if(self.queryct>0) {
+                alert('Please wait for your last species list request to complete before starting another.');
+            } else {
+                self.queryct++;
+                $.post(
+                    'cache/get',
+                    {
+                        key: 'listq-{0}-{1}-{2}-{3}'.format(lat,lng,listradius.radius,constraints),
+                        sql:sql
+                    },
+                    function(data, textStatus, jqXHR) {
+                        var results = {listradius:listradius,  constraints: constraints, className : className, response:data, sql:csv_sql};
+                        self.queryct--;
+                        self.bus.fireEvent(new mol.bus.Event('species-list-query-results', results));
+                    }
+                );
+             }
         },
         addEventHandlers : function () {
             var self = this;
@@ -130,7 +125,7 @@ mol.modules.map.query = function(mol) {
                                 alert('Available for North America only.');
                             }
                         }
-                    )
+                    );
                 }
             );
             /*
@@ -166,7 +161,7 @@ mol.modules.map.query = function(mol) {
                         self.getList(event.gmaps_event.latLng.lat(),event.gmaps_event.latLng.lng(),listradius, constraints, className);
                     }
                  }
-            );
+             );
              this.bus.addHandler(
                 'species-list-query-results',
                 function (event) {
@@ -182,6 +177,7 @@ mol.modules.map.query = function(mol) {
                         lngHem,
                         height,
                         redlistCt = {},
+                        stats,
                         speciestotal = 0,
                         speciesthreatened = 0,
                         speciesdd = 0;
@@ -190,29 +186,30 @@ mol.modules.map.query = function(mol) {
                         className = event.className;
                         latHem = (listradius.center.lat() > 0) ? 'N' : 'S';
                         lngHem = (listradius.center.lng() > 0) ? 'E' : 'W';
-                       _.each(
-                           event.response.rows,
+                        _.each(
+                            event.response.rows,
                             function(row) {
-                                    var english = (row.english != null) ? _.uniq(row.english.split(',')).join(',') : '',
-                                        year = (row.year_assessed != null) ? _.uniq(row.year_assessed.split(',')).join(',') : '',
-                                        redlist = (row.redlist != null) ? _.uniq(row.redlist.split(',')).join(',') : '';
+                                var english = (row.english != null) ? _.uniq(row.english.split(',')).join(',') : '',
+                                    year = (row.year_assessed != null) ? _.uniq(row.year_assessed.split(',')).join(',') : '',
+                                    redlist = (row.redlist != null) ? _.uniq(row.redlist.split(',')).join(',') : '';
 
-                                    tablerows.push("<tr><td>" +
-                                        "<button class='mapit' value='"+row.scientificname+"'>MAP</button>&nbsp;" +
-                                        "<button class='eol' data-sciname='"+row.scientificname+"' value='"+row.eol_page_id+"'>EOL</button>&nbsp;"+
-                                        "<button class='wiki' data-wikiname='"+row.scientificname+"'>WIKI</button></td>" +
-                                        "<td class='wiki' data-wikiname='"+row.scientificname+"'>" +
-                                        row.scientificname + "</td><td class='wiki english' data-wikiname='"+row.scientificname+"'>" +
-                                        ((english != null) ? english : '') + "</td><td class='wiki' data-wikiname='"+row.order+"'>" +
-                                        ((row.order != null) ? row.order : '')+ "</td><td class='wiki' data-wikiname='"+row.family+"'>" +
-                                        ((row.family != null) ? row.family : '')+ "</td><td>" +
-                                        ((row.sequenceid != null) ? row.sequenceid : '')+ "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
-                                        ((redlist != null) ? redlist : '') + "</td></tr>");
-                                        providers.push('<a class="type {0}">{1}</a>, <a class="provider {2}">{3}</a>'.format(row.type,row.type_title,row.provider,row.provider_title));
-                                    if (year != null && year != '') {
-                                        years.push(year)
-                                    }
-                                    scientificnames[row.scientificname]=redlist;
+                                tablerows.push("" +
+                                    "<tr><td>" +
+                                    "<button class='mapit' value='"+row.scientificname+"'>MAP</button>&nbsp;" +
+                                    "<button class='eol' data-sciname='"+row.scientificname+"' value='"+row.eol_page_id+"'>EOL</button>&nbsp;"+
+                                    "<button class='wiki' data-wikiname='"+row.scientificname+"'>WIKI</button></td>" +
+                                    "<td class='wiki' data-wikiname='"+row.scientificname+"'>" +
+                                     row.scientificname + "</td><td class='wiki english' data-wikiname='"+row.scientificname+"'>" +
+                                     ((english != null) ? english : '') + "</td><td class='wiki' data-wikiname='"+row.order+"'>" +
+                                     ((row.order != null) ? row.order : '')+ "</td><td class='wiki' data-wikiname='"+row.family+"'>" +
+                                     ((row.family != null) ? row.family : '')+ "</td><td>" +
+                                     ((row.sequenceid != null) ? row.sequenceid : '')+ "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
+                                     ((redlist != null) ? redlist : '') + "</td></tr>");
+                                     providers.push('<a class="type {0}">{1}</a>, <a class="provider {2}">{3}</a>'.format(row.type,row.type_title,row.provider,row.provider_title));
+                                if (year != null && year != '') {
+                                    years.push(year);
+                                }
+                                scientificnames[row.scientificname]=redlist;
                             }
                         );
                         years = _.uniq(years);
@@ -229,45 +226,47 @@ mol.modules.map.query = function(mol) {
                                 speciesthreatened += ((red_list_status.indexOf('EN')>=0) || (red_list_status.indexOf('VU')>=0) || (red_list_status.indexOf('CR')>=0) || (red_list_status.indexOf('EX')>=0) || (red_list_status.indexOf('EW')>=0) )  ? 1 : 0;
                                 speciesdd += (red_list_status.indexOf('DD')>0)  ? 1 : 0;
                             }
-                        )
+                        );
 
                         height = (90 + 22*speciestotal < 300) ? 90 + 22*speciestotal : 300;
 
                         stats = (speciesthreatened > 0) ? ('('+speciesthreatened+' considered threatened by <a href="http://www.iucnredlist.org" target="_iucn">IUCN</a> '+years.join(',')+')') : '';
 
                         if(speciestotal>0) {
-                            content=$('<div class="mol-Map-ListQueryInfoWindow" style="height:'+ height+'px">' +
-                                    '   <div>' +
-                                    '       <b>' +
+                            content=$('' +
+                                '<div class="mol-Map-ListQueryInfoWindow" style="height:'+ height+'px">' +
+                                '    <div>' +
+                                '        <b>' +
                                             className +
-                                    '       </b>' +
-                                            listradius.radius/1000 + ' km around ' +
-                                            Math.abs(Math.round(listradius.center.lat()*1000)/1000) + '&deg;&nbsp;' + latHem + '&nbsp;' +
-                                            Math.abs(Math.round(listradius.center.lng()*1000)/1000) + '&deg;&nbsp;' + lngHem + ':<br>' +
-                                            speciestotal + ' '+
-                                            stats +
-                                           '<br>' +
-                                           'Data type/source:&nbsp;' + providers.join(', ') + '.&nbsp;All&nbsp;seasonalities.<br>' +
-                                           '<a href="http://mol.cartodb.com/api/v2/sql?q='+event.sql+'&format=csv">download csv</a>' +
-                                    '   </div> ' +
-                                    '   <div> ' +
-                                    '       <table class="tablesorter">' +
-                                    '           <thead><tr><th></th><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>Rank&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th><th>IUCN&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th></tr></thead>' +
-                                    '           <tbody class="tablebody">' +
-                                                    tablerows.join('') +
-                                    '           </tbody>' +
-                                    '       </table>' +
-                                    '   </div>' +
-                                    '</div>');
+                                '        </b>' +
+                                         listradius.radius/1000 + ' km around ' +
+                                         Math.abs(Math.round(listradius.center.lat()*1000)/1000) + '&deg;&nbsp;' + latHem + '&nbsp;' +
+                                         Math.abs(Math.round(listradius.center.lng()*1000)/1000) + '&deg;&nbsp;' + lngHem + ':<br>' +
+                                         speciestotal + ' '+
+                                         stats +
+                                '        <br>' +
+                                '        Data type/source:&nbsp;' + providers.join(', ') + '.&nbsp;All&nbsp;seasonalities.<br>' +
+                                '        <a href="http://mol.cartodb.com/api/v2/sql?q='+event.sql+'&format=csv">download csv</a>' +
+                                '    </div> ' +
+                                '    <div> ' +
+                                '        <table class="tablesorter">' +
+                                '            <thead><tr><th></th><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>Rank&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th><th>IUCN&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th></tr></thead>' +
+                                '            <tbody class="tablebody">' +
+                                                 tablerows.join('') +
+                                '            </tbody>' +
+                                '        </table>' +
+                                '    </div>' +
+                                '</div>');
                         } else {
-                            content = $('<div class="mol-Map-ListQueryEmptyInfoWindow">' +
-                                    '       <b>' +
-                                    '        No ' + className.replace(/All/g, '') + ' species found within ' +
-                                            listradius.radius/1000 + ' km of ' +
-                                            Math.abs(Math.round(listradius.center.lat()*1000)/1000) + '&deg;&nbsp;' + latHem + '&nbsp;' +
-                                            Math.abs(Math.round(listradius.center.lng()*1000)/1000) + '&deg;&nbsp;' + lngHem +
-                                    '       </b>' +
-                                    '   </div>');
+                            content = $(''+
+                                '<div class="mol-Map-ListQueryEmptyInfoWindow">' +
+                                '    <b>' +
+                                '        No ' + className.replace(/All/g, '') + ' species found within ' +
+                                         listradius.radius/1000 + ' km of ' +
+                                         Math.abs(Math.round(listradius.center.lat()*1000)/1000) + '&deg;&nbsp;' + latHem + '&nbsp;' +
+                                         Math.abs(Math.round(listradius.center.lng()*1000)/1000) + '&deg;&nbsp;' + lngHem +
+                                '       </b>' +
+                                '</div>');
                         }
 
                         infoWindow= new google.maps.InfoWindow( {
@@ -289,17 +288,17 @@ mol.modules.map.query = function(mol) {
                                 listradius.setMap(null);
                                 delete(self.features[listradius.center.toString()+listradius.radius]);
                             }
-                         );
-                         self.features[listradius.center.toString()+listradius.radius] = {
-                             listradius : listradius,
-                             infoWindow : infoWindow
-                         };
+                        );
+                        self.features[listradius.center.toString()+listradius.radius] = {
+                            listradius : listradius,
+                            infoWindow : infoWindow
+                        };
 
                         infoWindow.open(self.map);
-                        //infoWindow.setSize(new google.maps.Size(height+200), 650)
-                        $(".tablesorter", $(infoWindow.content)
-                         ).tablesorter({ headers: { 0: { sorter: false}}, widthFixed: true}
-                         );
+
+                        $(".tablesorter", $(infoWindow.content)).tablesorter(
+                            { headers: { 0: { sorter: false}}, widthFixed: true}
+                        );
 
                          _.each(
                              $('.mapit',$(infoWindow.content)),
@@ -315,18 +314,18 @@ mol.modules.map.query = function(mol) {
                              $('.eol',$(infoWindow.content)),
                              function(button) {
                                  if(button.value==''||button.value=='null') {
-                                    $(button).click(
+                                     $(button).click(
                                          function(event) {
-                                            var win = window.open('http://eol.org/search/?q={0}'.format($(this).data('sciname')));
-                                            win.focus();
-                                        }
+                                             var win = window.open('http://eol.org/search/?q={0}'.format($(this).data('sciname')));
+                                             win.focus();
+                                         }
                                     )
                                  } else {
                                     $(button).click(
                                          function(event) {
-                                            var win = window.open('http://eol.org/pages/{0}/overview'.format(this.value));
-                                            win.focus();
-                                        }
+                                             var win = window.open('http://eol.org/pages/{0}/overview'.format(this.value));
+                                             win.focus();
+                                         }
                                     );
                                 }
                              }
@@ -336,9 +335,9 @@ mol.modules.map.query = function(mol) {
                              function(wiki) {
                                  $(wiki).click(
                                      function(event) {
-                                        var win = window.open('http://en.wikipedia.com/wiki/'+$(this).data('wikiname').replace(/ /g, '_'));
-                                        win.focus();
-                                    }
+                                         var win = window.open('http://en.wikipedia.com/wiki/'+$(this).data('wikiname').replace(/ /g, '_'));
+                                         win.focus();
+                                     }
                                  );
                              }
                          );
@@ -346,32 +345,30 @@ mol.modules.map.query = function(mol) {
                              $('.iucn',$(infoWindow.content)),
                              function(iucn) {
                                  if($(iucn).data('scientificname')!='') {
-                                    $(iucn).click(
+                                     $(iucn).click(
                                          function(event) {
-                                            var win = window.open('http://www.iucnredlist.org/apps/redlist/search/external?text='+$(this).data('scientificname').replace(/ /g, '_'));
-                                            win.focus();
-                                        }
-                                    );
+                                             var win = window.open('http://www.iucnredlist.org/apps/redlist/search/external?text='+$(this).data('scientificname').replace(/ /g, '_'));
+                                             win.focus();
+                                         }
+                                     );
                                  }
                              }
                          );
-                        } else {
-                            listradius.setMap(null);
-                            delete(self.features[listradius.center.toString()+listradius.radius]);
-                        }
-
-                    self.bus.fireEvent( new mol.bus.Event('hide-loading-indicator', {source : 'listradius'}));
-
-                }
-             );
+                     } else {
+                         listradius.setMap(null);
+                         delete(self.features[listradius.center.toString()+listradius.radius]);
+                     }
+                     self.bus.fireEvent( new mol.bus.Event('hide-loading-indicator', {source : 'listradius'}));
+                 }
+            );
 
             this.bus.addHandler(
                 'species-list-tool-toggle',
                 function(event) {
                     self.enabled = !self.enabled;
                     if (self.listradius) {
-                            self.listradius.setMap(null);
-                        }
+                        self.listradius.setMap(null);
+                    }
                     if(self.enabled == true) {
                         $(self.display).show();
                         _.each(
@@ -390,7 +387,7 @@ mol.modules.map.query = function(mol) {
                                 feature.infoWindow.setMap(null);
                             }
                         );
-                   }
+                    }
                 }
             );
             this.display.radiusInput.blur(
@@ -411,13 +408,12 @@ mol.modules.map.query = function(mol) {
                         $(self.display.types).find('.ecoregion').toggle(false);
                         $(self.display.types).find('.ecoregion').removeClass('selected');
                         if($(self.display.types).find('.range').hasClass('selected')) {
-                           alert('Available for North America only.');
+                            alert('Available for North America only.');
                         };
 
                     } else if($(this).val().toLowerCase().indexOf('reptil')>0) {
                         $(self.display.types).find('.ecoregion').toggle(true);
                         $(self.display.types).find('.ecoregion').removeClass('selected');
-                        //$(self.display.types).find('.range').addClass('selected');
                         if($(self.display.types).find('.range').hasClass('selected')) {
                             alert('Available for North America only.');
                         };
@@ -426,7 +422,6 @@ mol.modules.map.query = function(mol) {
                         $(self.display.types).find('.range').toggle(true);
                         $(self.display.types).find('.range').addClass('selected');
                     }
-
                 }
             )
         }
@@ -438,27 +433,26 @@ mol.modules.map.query = function(mol) {
         init : function(names) {
             var className = 'mol-Map-QueryDisplay',
                 html = '' +
-                        '<div title="Use this control to select species group and radius. Then right click (Mac Users: \'control-click\') on focal location on map." class="' + className + ' widgetTheme">' +
-                        '   <div class="controls">' +
-                        '     Search Radius <select class="radius">' +
-                        '       <option selected value="50">50 km</option>' +
-                        '       <option value="100">100 km</option>' +
-                        '       <option value="300">300 km</option>' +
-                        '     </select>' +
-                        '     Group <select class="class" value="">' +
-                        '       <option selected value=" AND  p.polygonres = 100 ">Birds</option>' +
-                        '       <option value=" AND p.provider = \'fishes\' ">NA Freshwater Fishes</option>' +
-                        '       <option value=" AND p.class=\'reptilia\' ">Reptiles</option>' +
-                        '       <option value=" AND p.class=\'amphibia\' ">Amphibians</option>' +
-                        '       <option value=" AND p.class=\'mammalia\' ">Mammals</option>' +
-                        '     </select>' +
-                        '      <span class="types">' +
-                        '           <button class="range selected" value=" AND p.type=\'range\'"><img title="Click to use Expert range maps for query." src="/static/maps/search/range.png"></button>' +
-                        '           <button class="ecoregion" value=" AND p.type=\'ecoregion\' "><img title="Click to use Regional checklists for query." src="/static/maps/search/ecoregion.png"></button>' +
-                        '       </span>'+
-                        '   </div>' +
-                        //'   <div>> Species List Tool</div>' +
-                        '</div>';
+                    '<div title="Use this control to select species group and radius. Then right click (Mac Users: \'control-click\') on focal location on map." class="' + className + ' widgetTheme">' +
+                    '   <div class="controls">' +
+                    '     Search Radius <select class="radius">' +
+                    '       <option selected value="50">50 km</option>' +
+                    '       <option value="100">100 km</option>' +
+                    '       <option value="300">300 km</option>' +
+                    '     </select>' +
+                    '     Group <select class="class" value="">' +
+                    '       <option selected value=" AND  p.polygonres = 100 ">Birds</option>' +
+                    '       <option value=" AND p.provider = \'fishes\' ">NA Freshwater Fishes</option>' +
+                    '       <option value=" AND p.class=\'reptilia\' ">Reptiles</option>' +
+                    '       <option value=" AND p.class=\'amphibia\' ">Amphibians</option>' +
+                    '       <option value=" AND p.class=\'mammalia\' ">Mammals</option>' +
+                    '     </select>' +
+                    '      <span class="types">' +
+                    '           <button class="range selected" value=" AND p.type=\'range\'"><img title="Click to use Expert range maps for query." src="/static/maps/search/range.png"></button>' +
+                    '           <button class="ecoregion" value=" AND p.type=\'ecoregion\' "><img title="Click to use Regional checklists for query." src="/static/maps/search/ecoregion.png"></button>' +
+                    '       </span>'+
+                    '   </div>' +
+                    '</div>';
 
             this._super(html);
             this.resultslist=$(this).find('.resultslist');
@@ -467,16 +461,12 @@ mol.modules.map.query = function(mol) {
             this.types=$(this).find('.types');
             $(this.types).find('.ecoregion').toggle(false);
         }
-    }
-    );
-    mol.map.QueryResultDisplay = mol.mvp.View.extend(
-    {
-        init : function(scientificname) {
-            var className = 'mol-Map-QueryResultDisplay',
-                 html = '{0}';
-            this._super(html.format(scientificname));
+    });
 
+    mol.map.QueryResultDisplay = mol.mvp.View.extend({
+        init : function(scientificname) {
+            var className = 'mol-Map-QueryResultDisplay', html = '{0}';
+            this._super(html.format(scientificname));
         }
-    }
-    );
+    });
 };
