@@ -8,7 +8,7 @@ mol.modules.map.query = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.map = map;
-                
+
                 // TODO: Docs for what this query does.
                 this.sql = '' +
                     'SELECT DISTINCT '+
@@ -42,7 +42,7 @@ mol.modules.map.query = function(mol) {
                     '    ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText(\'POINT({0})\',4326),3857),{1}) ' + //radius test
                     '    {2} ' + //other constraints
                     'ORDER BY s.sequenceid, p.scientificname asc';
-                
+
                 // TODO: Docs for what this query does.
                 this.csv_sql = '' +
                     'SELECT DISTINCT '+
@@ -73,14 +73,14 @@ mol.modules.map.query = function(mol) {
                     'ORDER BY "Sequence ID", "Scientific Name" asc';
                 this.queryct=0;
             },
-            
+
             start : function() {
                 this.addQueryDisplay();
                 this.addEventHandlers();
             },
-            
+
             /*
-             *  Build the loading display and add it as a control to the top center of the map display.
+             *  Add the species list tool controls to the map.
              */
             addQueryDisplay : function() {
                 var params = {
@@ -95,13 +95,15 @@ mol.modules.map.query = function(mol) {
                 params.display = this.display;
                 this.bus.fireEvent( new mol.bus.Event('add-map-control', params));
             },
-            
+            /*
+             *  Method to build and submit an AJAX call that retrieves species at a radius around a lat, long.
+             */
             getList: function(lat, lng, listradius, constraints, className) {
                 var self = this,
                     sql = this.sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons'),
                     csv_sql = escape(this.csv_sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons')),
                     params = {
-                        sql:sql, 
+                        sql:sql,
                         key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius+constraints))
                     };
 
@@ -117,10 +119,10 @@ mol.modules.map.query = function(mol) {
                         },
                         function(data, textStatus, jqXHR) {
                             var results = {
-                                listradius:listradius,  
-                                constraints: constraints, 
-                                className : className, 
-                                response:data, 
+                                listradius:listradius,
+                                constraints: constraints,
+                                className : className,
+                                response:data,
                                 sql:csv_sql
                             },
                             e = new mol.bus.Event('species-list-query-results', results);
@@ -130,9 +132,12 @@ mol.modules.map.query = function(mol) {
                     );
                 }
             },
-            
+
             addEventHandlers : function () {
                 var self = this;
+                /*
+                 * Attach some rules to the ecoregion / range button-switch in the controls.
+                 */
                 _.each(
                     $('button',$(this.display.types)),
                     function(button) {
@@ -147,21 +152,9 @@ mol.modules.map.query = function(mol) {
                         );
                     }
                 );
-                
                 /*
-                 * Handler in case other modules want to switch the query tool
+                 *  Map click handler that starts a list tool request.
                  */
-                this.bus.addHandler(
-                    'query-type-toggle',
-                    function (params) {
-                        var e = {
-                            params : params
-                        };
-                        self.changeTool(e);
-                    }
-                );
-
-                // TODO: Docstring
                 this.bus.addHandler(
                     'species-list-query-click',
                     function (event) {
@@ -184,8 +177,10 @@ mol.modules.map.query = function(mol) {
                         }
                     }
                 );
-                
-                // TODO: Docstring
+
+                /*
+                 *  Assembles HTML for an species list InfoWindow given results from an AJAX call made in getList.
+                 */
                 this.bus.addHandler(
                     'species-list-query-results',
                     function (event) {
@@ -205,8 +200,8 @@ mol.modules.map.query = function(mol) {
                             speciestotal = 0,
                             speciesthreatened = 0,
                             speciesdd = 0;
-                        
-                        // TODO: This if statement is insane. Need to break this apart into functions.
+
+                        // TODO: This if statement is insane. Need to break this apart into functions. See Github issue #114
                         if (!event.response.error) {
                             className = event.className;
                             latHem = (listradius.center.lat() > 0) ? 'N' : 'S';
@@ -242,12 +237,12 @@ mol.modules.map.query = function(mol) {
                             providers = _.uniq(providers);
 
                             years = _.sortBy(
-                                _.uniq(years), 
+                                _.uniq(years),
                                 function(val) {
                                     return val;
                                 }
                             );
-                        
+
                             years[years.length-1] = (years.length > 1) ? ' and '+years[years.length-1] : years[years.length-1];
 
                             _.each(
@@ -258,11 +253,11 @@ mol.modules.map.query = function(mol) {
                                     speciesdd += (red_list_status.indexOf('DD')>0)  ? 1 : 0;
                                 }
                             );
-                            
+
                             height = (90 + 22*speciestotal < 300) ? 90 + 22*speciestotal : 300;
-                            
+
                             stats = (speciesthreatened > 0) ? ('('+speciesthreatened+' considered threatened by <a href="http://www.iucnredlist.org" target="_iucn">IUCN</a> '+years.join(',')+')') : '';
-                            
+
                             if (speciestotal > 0) {
                                 content=$('' +
                                           '<div class="mol-Map-ListQueryInfoWindow" style="height:'+ height+'px">' +
@@ -300,7 +295,7 @@ mol.modules.map.query = function(mol) {
                                             '</div>');
                             }
 
-                            infoWindow= new google.maps.InfoWindow( 
+                            infoWindow= new google.maps.InfoWindow(
                                 {
                                     content: content[0],
                                     position: listradius.center,
@@ -322,14 +317,14 @@ mol.modules.map.query = function(mol) {
                                     delete(self.features[listradius.center.toString()+listradius.radius]);
                                 }
                             );
-                            
+
                             self.features[listradius.center.toString()+listradius.radius] = {
                                 listradius : listradius,
                                 infoWindow : infoWindow
                             };
 
                             infoWindow.open(self.map);
-                            
+
                             $(".tablesorter", $(infoWindow.content)).tablesorter(
                                 { headers: { 0: { sorter: false}}, widthFixed: true}
                             );
@@ -344,7 +339,7 @@ mol.modules.map.query = function(mol) {
                                     );
                                 }
                             );
-                            
+
                             _.each(
                                 $('.eol', $(infoWindow.content)),
                                 function(button) {
@@ -365,7 +360,7 @@ mol.modules.map.query = function(mol) {
                                     }
                                 }
                             );
-                            
+
                             _.each(
                                 $('.wiki',$(infoWindow.content)),
                                 function(wiki) {
@@ -377,7 +372,7 @@ mol.modules.map.query = function(mol) {
                                     );
                                 }
                             );
-                            
+
                             _.each(
                                 $('.iucn',$(infoWindow.content)),
                                 function(iucn) {
@@ -427,7 +422,7 @@ mol.modules.map.query = function(mol) {
                         }
                     }
                 );
-                
+
                 this.display.radiusInput.blur(
                     function(event) {
                         if (this.value > 1000) {
@@ -440,7 +435,7 @@ mol.modules.map.query = function(mol) {
                         }
                     }
                 );
-                
+
                 this.display.classInput.change(
                     function(event) {
                         if ($(this).val().toLowerCase().indexOf('fish') > 0) {
