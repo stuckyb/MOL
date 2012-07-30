@@ -309,7 +309,7 @@ mol.modules.map.tiles = function(mol) {
                 var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type = '{2}' and provider = '{3}'",
                     opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
                     tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
-                    hostname = 'dtredc0xh764j.cloudfront.net',//window.location.hostname,
+                    hostname = 'dtredc0xh764j.cloudfront.net',
                     style_table_name = table,
                     info_query = sql;
                     tile_style =  null,
@@ -341,7 +341,7 @@ mol.modules.map.tiles = function(mol) {
                         table_name: table,
                         mol_layer: layer,
                         style_table_name: style_table_name,
-                        query: sql,
+                        query: sql + '&cfv=2', // Hack to flush CF cache.
                         info_query: info_query,
                         tile_style: tile_style,
                         map_style: false,
