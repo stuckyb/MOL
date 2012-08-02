@@ -13,31 +13,33 @@ mol.modules.map.search = function(mol) {
                 this.searching = {};
                 this.names = [];
                 this.sql = '' +
-                    'SELECT DISTINCT l.scientificname as name,'+
-                    '    l.type as type,'+
-                    '    t.title as type_title,'+
+                    'SELECT DISTINCT ' +
+                    '	 l.scientificname as name, '+ //shapefile/data source name
+                    '    l.type as type, '+
+                    '    t.title as type_title, '+
                     '    l.provider as source, '+
-                    '    p.title as source_title,'+
+                    '    p.title as source_title, '+
                     '    n.class as _class, ' +
-                    '    l.feature_count as feature_count,'+
+                    '    s.mol_scientificname as mol_scientificname, ' + // mol taxonomy name
+                    '    l.feature_count as feature_count, '+
                     '    n.common_names_eng as names,' +
                     '    CONCAT(\'{sw:{lng:\',ST_XMin(l.extent),\', lat:\',ST_YMin(l.extent),\'} , ne:{lng:\',ST_XMax(l.extent),\', lat:\',ST_YMax(l.extent),\'}}\') as extent ' +
-                    'FROM layer_metadata l ' +
-                    'LEFT JOIN synonym_metadata s ON ' +
-                    '    l.scientificname = s.scientificname ' +
-                    'LEFT JOIN types t ON ' +
+                    "FROM (SELECT n FROM ac where not is_syn and n~*'\\m{0}' OR v~*'\\m{0}' or s~*'\\m{0}' ) ac " + //start with valid sci names 
+                    'LEFT JOIN synonym_metadata s ON ' + //add synonyms
+                    '    ac.n = s.mol_scientificname ' +
+                    'LEFT JOIN layer_metadata l ON ' + //add layers that match
+                    '	 s.scientificname = l.scientificname OR ac.n = l.scientificname ' +
+                    'LEFT JOIN types t ON ' + //add type metadata 
                     '    l.type = t.type ' +
-                    'LEFT JOIN providers p ON ' +
+                    'LEFT JOIN providers p ON ' + //add provider metadata
                     '    l.provider = p.provider ' +
-                    'LEFT JOIN taxonomy n ON ' +
-                    '    l.scientificname = n.scientificname ' +
-                    'WHERE ' +
-                    "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}' OR s.mol_scientificname~*'\\m{0}'";
+                    'LEFT JOIN taxonomy n ON ' + //add taxonomy metadata
+                    '    l.scientificname = n.scientificname OR s.mol_scientificname = n.scientificname ' + 
+                    'ORDER BY l.scientificname, l.provider, l.type' ;
             },
 
             /**
-             * Starts the SearchEngine. Note that the container parameter is
-             * ignored.
+             * Starts the SearchEngine. 
              */
             start: function() {
                 this.display = new mol.map.search.SearchDisplay();

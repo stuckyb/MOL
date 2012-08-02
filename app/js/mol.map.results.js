@@ -403,7 +403,7 @@ mol.modules.map.results = function(mol) {
                             type_title = layer.type_title,
                             source_title = layer.source_title,
                             sourcetype = layer.sourcetype,
-                            result = new mol.map.results.ResultDisplay(name, id, source, type, names, feature_count, type_title, source_title, sourcetype);
+                            result = new mol.map.results.ResultDisplay(layer);
                             result.layerObj = layer;
                         this.resultList.append(result);
                         return result;
@@ -470,7 +470,7 @@ mol.modules.map.results = function(mol) {
      */
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
-            init: function(name, id, source, type, names, feature_count, type_title, source_title) {
+            init: function(layer) {
                 var self=this, html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
@@ -479,6 +479,7 @@ mol.modules.map.results = function(mol) {
                     '<div class="resultName">' +
                     '  <div class="resultRecords">{5} features</div>' +
                     '  <div class="resultNomial">{1}</div>' +
+                    '  <div class="resultSynonymFor">{8}</div>' +
                     '  <div class="resultEnglishName" title="{4}">{4}</div>' +
                     '  <div class="resultAuthor"></div>' +
                     '</div>' +
@@ -490,7 +491,16 @@ mol.modules.map.results = function(mol) {
                     '<div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(id, name, source, type, names, feature_count, type_title, source_title));
+                this._super(html.format(layer.id, 
+                						layer.name, 
+                						layer.source, 
+                						layer.type, 
+                						layer.names, 
+                						layer.feature_count, 
+                						layer.type_title, 
+                						layer.source_title, 
+                						(layer.mol_name != null && layer.mol_name != layer.name) ? "Synonym for {0}".format(layer.mol_name) : ""
+                		));
 
                 this.infoLink = $(this).find('.info');
                 this.nameBox = $(this).find('.resultName');

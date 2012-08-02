@@ -825,6 +825,13 @@ padding: 3px;
     text-overflow: ellipsis;
     overflow: hidden;
 }
+.mol-LayerControl-Results .resultSynonymFor {
+    font-size: 0.6em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
 
 .mol-LayerControl-Results ul {
     padding-left: 0px;

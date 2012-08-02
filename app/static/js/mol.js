@@ -89,7 +89,8 @@ mol.modules.core = function(mol) {
             feature_count = $.trim(layer.feature_count).replace(/ /g, "_");
             sourcetype =  $.trim(layer.sourcetype).replace(/ /g, "_");
             _class = $.trim(layer._class).replace(/ /g, "_");
-        return 'layer--{0}--{1}--{2}--{3}--{4}--{5}--{6}--{7}--{8}'.format(name, type, source, names, feature_count, type_title, source_title, sourcetype, _class);
+            mol_scientificname = $.trim(layer.mol_scientificname).replace(/ /g, "_");
+        return 'layer--{0}--{1}--{2}--{3}--{4}--{5}--{6}--{7}--{8}--{9}'.format(name, type, source, names, feature_count, type_title, source_title, sourcetype, _class, mol_scientificname);
     };
 
     /**
@@ -106,6 +107,7 @@ mol.modules.core = function(mol) {
             source_title = tokens[7].replace(/_/g, " "),
             sourcetype = tokens[8].replace(/_/g, " ");
             _class = tokens[9].replace(/_/g, " ");
+            mol_scientificname = tokens[10].replace(/_/g, " ");
 
         name = name.charAt(0).toUpperCase()+name.slice(1).toLowerCase();
         source = source.toLowerCase();
@@ -122,7 +124,8 @@ mol.modules.core = function(mol) {
             type_title: type_title,
             source_title: source_title,
             sourcetype: sourcetype,
-            _class : _class
+            _class : _class,
+            mol_name: mol_scientificname
         };
     };
 };
@@ -621,7 +624,8 @@ mol.modules.services.cartodb = function(mol) {
                         type_title: row.type_title,
                         source_title: row.source_title,
                         sourcetype : row.sourcetype,
-                        _class: row._class
+                        _class: row._class,
+                        mol_name: row.mol_scientificname
                     };
                 }
                 return layers;
@@ -2198,7 +2202,7 @@ mol.modules.map.results = function(mol) {
                             type_title = layer.type_title,
                             source_title = layer.source_title,
                             sourcetype = layer.sourcetype,
-                            result = new mol.map.results.ResultDisplay(name, id, source, type, names, feature_count, type_title, source_title, sourcetype);
+                            result = new mol.map.results.ResultDisplay(layer);
                             result.layerObj = layer;
                         this.resultList.append(result);
                         return result;
@@ -2265,7 +2269,7 @@ mol.modules.map.results = function(mol) {
      */
     mol.map.results.ResultDisplay = mol.mvp.View.extend(
         {
-            init: function(name, id, source, type, names, feature_count, type_title, source_title) {
+            init: function(layer) {
                 var self=this, html = '' +
                     '<div>' +
                     '<ul id="{0}" class="result">' +
@@ -2274,6 +2278,7 @@ mol.modules.map.results = function(mol) {
                     '<div class="resultName">' +
                     '  <div class="resultRecords">{5} features</div>' +
                     '  <div class="resultNomial">{1}</div>' +
+                    '  <div class="resultSynonymFor">{8}</div>' +
                     '  <div class="resultEnglishName" title="{4}">{4}</div>' +
                     '  <div class="resultAuthor"></div>' +
                     '</div>' +
@@ -2285,7 +2290,16 @@ mol.modules.map.results = function(mol) {
                     '<div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(id, name, source, type, names, feature_count, type_title, source_title));
+                this._super(html.format(layer.id, 
+                						layer.name, 
+                						layer.source, 
+                						layer.type, 
+                						layer.names, 
+                						layer.feature_count, 
+                						layer.type_title, 
+                						layer.source_title, 
+                						(layer.mol_name != null && layer.mol_name != layer.name) ? "Synonym for {0}".format(layer.mol_name) : ""
+                		));
 
                 this.infoLink = $(this).find('.info');
                 this.nameBox = $(this).find('.resultName');
@@ -2591,31 +2605,33 @@ mol.modules.map.search = function(mol) {
                 this.searching = {};
                 this.names = [];
                 this.sql = '' +
-                    'SELECT DISTINCT l.scientificname as name,'+
-                    '    l.type as type,'+
-                    '    t.title as type_title,'+
+                    'SELECT DISTINCT ' +
+                    '	 l.scientificname as name, '+ //shapefile/data source name
+                    '    l.type as type, '+
+                    '    t.title as type_title, '+
                     '    l.provider as source, '+
-                    '    p.title as source_title,'+
+                    '    p.title as source_title, '+
                     '    n.class as _class, ' +
-                    '    l.feature_count as feature_count,'+
+                    '    s.mol_scientificname as mol_scientificname, ' + // mol taxonomy name
+                    '    l.feature_count as feature_count, '+
                     '    n.common_names_eng as names,' +
                     '    CONCAT(\'{sw:{lng:\',ST_XMin(l.extent),\', lat:\',ST_YMin(l.extent),\'} , ne:{lng:\',ST_XMax(l.extent),\', lat:\',ST_YMax(l.extent),\'}}\') as extent ' +
-                    'FROM layer_metadata l ' +
-                    'LEFT JOIN synonym_metadata s ON ' +
-                    '    l.scientificname = s.scientificname ' +
-                    'LEFT JOIN types t ON ' +
+                    "FROM (SELECT n FROM ac where not is_syn and n~*'\\m{0}' OR v~*'\\m{0}' or s~*'\\m{0}' ) ac " + //start with valid sci names 
+                    'LEFT JOIN synonym_metadata s ON ' + //add synonyms
+                    '    ac.n = s.mol_scientificname ' +
+                    'LEFT JOIN layer_metadata l ON ' + //add layers that match
+                    '	 s.scientificname = l.scientificname OR ac.n = l.scientificname ' +
+                    'LEFT JOIN types t ON ' + //add type metadata 
                     '    l.type = t.type ' +
-                    'LEFT JOIN providers p ON ' +
+                    'LEFT JOIN providers p ON ' + //add provider metadata
                     '    l.provider = p.provider ' +
-                    'LEFT JOIN taxonomy n ON ' +
-                    '    l.scientificname = n.scientificname ' +
-                    'WHERE ' +
-                    "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}' OR s.mol_scientificname~*'\\m{0}'";
+                    'LEFT JOIN taxonomy n ON ' + //add taxonomy metadata
+                    '    l.scientificname = n.scientificname OR s.mol_scientificname = n.scientificname ' + 
+                    'ORDER BY l.scientificname, l.provider, l.type' ;
             },
 
             /**
-             * Starts the SearchEngine. Note that the container parameter is
-             * ignored.
+             * Starts the SearchEngine. 
              */
             start: function() {
                 this.display = new mol.map.search.SearchDisplay();
@@ -2667,9 +2683,9 @@ mol.modules.map.search = function(mol) {
                                             var sci, eng, syn;
                                             if(row.n != undefined){
                                                    sci = row.n;
-                                                   syn = row.s;
+                                                   syn = (row.s == null) ? '' : ',&nbsp;synonym{0}: {1}'.format((row.s.indexOf(',')>0) ? 's' : '', row.s);
                                                    eng = (row.v == null || row.v == '') ? '' : ', {0}'.format(row.v.replace(/'S/g, "'s"));
-                                                   names.push({label:'<div class="ac-item"><span class="sci">{0}</span>&nbsp;<span>syn: {2}</span><span class="eng">{1}</span></div>'.format(sci, eng, syn), value: sci});
+                                                   names.push({label:'<div class="ac-item"><span class="sci">{0}</span><span class="sci">{1}</span><span class="eng">{2}</span></div>'.format(sci, syn, eng), value: sci});
                                                    scinames.push(sci)
 
                                            }
