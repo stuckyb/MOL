@@ -24,22 +24,22 @@ mol.modules.map.search = function(mol) {
                     '    l.feature_count as feature_count, '+
                     '    n.common_names_eng as names,' +
                     '    CONCAT(\'{sw:{lng:\',ST_XMin(l.extent),\', lat:\',ST_YMin(l.extent),\'} , ne:{lng:\',ST_XMax(l.extent),\', lat:\',ST_YMax(l.extent),\'}}\') as extent ' +
-                    "FROM (SELECT n FROM ac where not is_syn and n~*'\\m{0}' OR v~*'\\m{0}' or s~*'\\m{0}' ) ac " + //start with valid sci names 
+                    "FROM (SELECT n FROM ac where not is_syn and n~*'\\m{0}' OR v~*'\\m{0}' or s~*'\\m{0}' ) ac " + //start with valid sci names
                     'LEFT JOIN synonym_metadata s ON ' + //add synonyms
                     '    ac.n = s.mol_scientificname ' +
                     'LEFT JOIN layer_metadata l ON ' + //add layers that match
                     '	 s.scientificname = l.scientificname OR ac.n = l.scientificname ' +
-                    'LEFT JOIN types t ON ' + //add type metadata 
+                    'LEFT JOIN types t ON ' + //add type metadata
                     '    l.type = t.type ' +
                     'LEFT JOIN providers p ON ' + //add provider metadata
                     '    l.provider = p.provider ' +
                     'LEFT JOIN taxonomy n ON ' + //add taxonomy metadata
-                    '    l.scientificname = n.scientificname OR s.mol_scientificname = n.scientificname ' + 
-                    'ORDER BY l.scientificname, l.provider, l.type' ;
+                    '    l.scientificname = n.scientificname OR s.mol_scientificname = n.scientificname ' +
+                    'ORDER BY l.scientificname, l.provider, l.type';
             },
 
             /**
-             * Starts the SearchEngine. 
+             * Starts the SearchEngine.
              */
             start: function() {
                 this.display = new mol.map.search.SearchDisplay();
@@ -80,7 +80,7 @@ mol.modules.map.search = function(mol) {
                             $.post(
                                 'cache/get',//http://dtredc0xh764j.cloudfront.net/api/v2/sql',
                                 {
-                                    key: 'autocpt-syn--{0}'.format(request.term),
+                                    key: 'ac080212333-{0}'.format(request.term),
                                     sql:"SELECT DISTINCT n,v,s  from ac where not is_syn and n~*'\\m{0}' OR v~*'\\m{0}' or s~*'\\m{0}'".format(request.term)
                                 },
                                 function (json) {
@@ -255,7 +255,7 @@ mol.modules.map.search = function(mol) {
                         $.post(
                                 'cache/get',
                                 {
-                                    key:'search-results-syno-{0}'.format(term),
+                                    key:'search080212333-{0}'.format(term),
                                     sql:this.sql.format(term)
                                 },
                                 function (response) {
