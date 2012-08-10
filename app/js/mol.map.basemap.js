@@ -33,14 +33,8 @@ mol.modules.map.basemap = function(mol) {
                                 {
                                     featureType: "administrative",
                                     stylers: [
-                                     { visibility: "on" }
+                                     { visibility: "off" }
                                     ]
-                                },
-                                {
-                                    featureType: "administrative.locality",
-                                    stylers: [
-                                      { visibility: "off" }
-                                  ]
                                 },
                                  {
                                    featureType: "landscape",
@@ -61,42 +55,35 @@ mol.modules.map.basemap = function(mol) {
                                  ]
                                },{
                                     featureType: "water",
+                                    labels: "off",
                                   stylers: [
                                     { visibility: "on" },
                                     { saturation: -65 },
                                     { lightness: -15 },
-                                   { gamma: 0.83 }
+                                   { gamma: 0.83 },
+
+                                    ]
+                                  },{
+                                    featureType: "water",
+                                    elementType: "labels",
+                                    stylers: [
+                                       { visibility: "off" }
                                     ]
                                   },
                                {
                                   featureType: "transit",
                                  stylers: [
                                       { visibility: "off" }
-                        ]
-                      },{
-                        featureType: "administrative",
-                        stylers: [
-                          { visibility: "on" }
-                        ]
-                      },{
-                        featureType: "administrative.country",
-                        stylers: [
-                          { visibility: "on" }
-                        ]
-                      },{
-                        featureType: "administrative.province",
-                       stylers: [
-                          { visibility: "on" }
-                        ]
-                      }
-                    ]});
+                                    ]
+                                 }
+                            ]});
                         break;
                         case 'Political' :
                         this.map.setOptions({styles : [
                             {
 featureType: "administrative.country",
 stylers: [
-{ visibility: "simplified" }
+{ visibility: "on" }
 ]
 },{
 featureType: "administrative.locality",
@@ -111,7 +98,7 @@ stylers: [
 },{
 featureType: "administrative.province",
 stylers: [
-{ visibility: "off" }
+{ visibility: "on" }
 ]
 },{
 featureType: "poi",
