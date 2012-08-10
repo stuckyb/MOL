@@ -298,6 +298,7 @@ mol.modules.services.cartodb = function(mol) {
                         source_title: row.source_title,
                         sourcetype : row.sourcetype,
                         _class: row._class,
+                        extent: row.extent,
                         data_table: row.data_table
                     };
                 }

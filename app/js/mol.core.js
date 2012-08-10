@@ -18,8 +18,8 @@ mol.modules.core = function(mol) {
             feature_count = $.trim(layer.feature_count).replace(/ /g, "_");
             sourcetype =  $.trim(layer.sourcetype).replace(/ /g, "_");
             _class = $.trim(layer._class).replace(/ /g, "_");
-            data_table = $.trim(layer.data_table);
-        return 'layer--{0}--{1}--{2}--{3}--{4}--{5}--{6}--{7}--{8}--{9}'.format(name, type, source, names, feature_count, type_title, source_title, sourcetype, _class, data_table);
+            extent = $.trim(layer.extent).replace(/ /g, "_").replace(/{/g,'lsq').replace(/}/g,'rsq');
+        return 'layer--{0}--{1}--{2}--{3}--{4}--{5}--{6}--{7}--{8}--{9}'.format(name, type, source, names, feature_count, type_title, source_title, sourcetype, _class, extent);
     };
 
     /**
@@ -36,7 +36,7 @@ mol.modules.core = function(mol) {
             source_title = tokens[7].replace(/_/g, " "),
             sourcetype = tokens[8].replace(/_/g, " ");
             _class = tokens[9].replace(/_/g, " ");
-            data_type = tokens[10];
+            extent = tokens[10].replace(/_/g, " ").replace(/lsq/g,'{').replace(/rsq/g,'}');
 
         name = name.charAt(0).toUpperCase()+name.slice(1).toLowerCase();
         source = source.toLowerCase();
@@ -54,7 +54,7 @@ mol.modules.core = function(mol) {
             source_title: source_title,
             sourcetype: sourcetype,
             _class : _class,
-            data_table: data_table
+            extent: extent
         };
     };
 };
