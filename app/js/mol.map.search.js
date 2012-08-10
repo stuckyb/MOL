@@ -21,7 +21,7 @@ mol.modules.map.search = function(mol) {
                     '       n.class as _class, ' +
                     '       l.feature_count as feature_count,'+
                     '       n.common_names_eng as names,' +
-                    '       CONCAT(\'{sw:{lng:\',ST_XMin(l.extent),\', lat:\',ST_YMin(l.extent),\'} , ne:{lng:\',ST_XMax(l.extent),\', lat:\',ST_YMax(l.extent),\'}}\') as extent ' +
+                    '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent ' +
                     'FROM layer_metadata l ' +
                     'LEFT JOIN types t ON ' +
                     '       l.type = t.type ' +
@@ -250,7 +250,7 @@ mol.modules.map.search = function(mol) {
                         $.post(
                                 'cache/get',
                                 {
-                                    key:'search-08102012134-{0}'.format(term),
+                                    key:'search-08102012210-{0}'.format(term),
                                     sql:this.sql.format(term)
                                 },
                                 function (response) {

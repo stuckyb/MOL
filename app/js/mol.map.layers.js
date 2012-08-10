@@ -78,7 +78,7 @@ mol.modules.map.layers = function(mol) {
                         _.each(
                             event.layers,
                             function(layer) {
-                                var extent = eval('({0})'.format(layer.extent));
+                                var extent = $.parseJSON(layer.extent);
                                 var layer_bounds = new google.maps.LatLngBounds(
                                         new google.maps.LatLng(extent.sw.lat,extent.sw.lng),
                                         new google.maps.LatLng(extent.ne.lat,extent.ne.lng)
