@@ -6,8 +6,6 @@ AS
 $$
   DECLARE sql TEXT;
   DECLARE data RECORD; -- a data table record
-  DECLARE taxo RECORD; -- a taxonomy table record
-  DECLARE geom RECORD; -- a geometry table record 
   BEGIN
       FOR data in (SELECT * from data_registry) LOOP
          IF data.type = 'range' THEN
@@ -19,15 +17,9 @@ $$
                   'ST_Extent(the_geom) as extent, ' || 
                   'count(*) as feature_count  FROM ' || data.table_name || ' GROUP BY ' || data.scientificname;                
          ELSIF data.type = 'checklist' and data.taxo_table <> '' THEN 		
-		-- Get the sciname and species_id field names from the checklist taxonomy table
-	        sql = 'SELECT d.scientificname, d.species_id INTO taxo FROM data_registry d WHERE d.table_name = ' || data.taxo_table  || ' LIMIT 1';
-	        EXECUTE sql;
-		-- Get the geom_id field from the checklist geometry table
-		sql = 'SELECT d.geom_id INTO geom FROM data_registry d WHERE table_name = ' || data.geom_table || 'LIMIT 1';
-	        EXECUTE sql;
                 -- Glue them all together
 		sql = ' SELECT ' || 
-                  '   t.' || taxo.scientificname || ', ' ||
+                  '   t.' || data.scientificname || ', ' ||
                   '   TEXT(''' || data.type || ''') as type, ' || 
                   '   TEXT(''' || data.provider || ''') as provider, ' ||
                   '   TEXT(''' || data.table_name || ''') as data_table, ' ||
@@ -35,17 +27,14 @@ $$
                   '   count(*) as feature_count ' ||
                   ' FROM ' || data.table_name || ' d ' ||
                   ' JOIN ' || data.taxo_table || ' t ON ' ||
-                  '   d.' || data.species_id || ' = t.' || taxo.species_id ||
-                  ' JOIN ' || data.geom_table ' g ON ' ||
-                  '   d.' || data.geom_id || ' = g.' || data.geom_link_id  ||
-		  ' GROUP BY t.' || taxo.scientificname; 
+                  '   d.' || data.species_id || ' = t.' || data.species_link_id ||
+                  'JOIN ' || data.geom_table || ' g ON' ||
+                   data.geom_id || ' = g.' || data.geom_link_id  ||
+		  ' GROUP BY t.' || data.scientificname; 
 	  ELSIF data.type = 'checklist' and data.taxo_table = '' and data.scientificname <> '' THEN 
-		-- Get the geom_id field from the checklist geometry table
-		sql = 'SELECT d.geom_id INTO geom FROM data_registry d WHERE table_name = ' || data.geom_table || 'LIMIT 1';
-	        EXECUTE sql;
-                -- Glue them all together
+		
 		sql = ' SELECT ' || 
-                  '   d.' || taxo.scientificname || ', ' ||
+                  '   d.' || data.scientificname || ', ' ||
                   '   TEXT(''' || data.type || ''') as type, ' || 
                   '   TEXT(''' || data.provider || ''') as provider, ' ||
                   '   TEXT(''' || data.table_name || ''') as data_table, ' ||
