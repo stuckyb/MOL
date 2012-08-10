@@ -1,8 +1,9 @@
---get_mol_metdata(texttext, text, text)
+--get_mol_metdata(text)
 -- Function to get tile data (the_geom_webmercator and cartodb_id) for a single MOL layer.
 -- Params:
 --	table_name-cartodb_id: data table name + cartodb_id	
 -- Returns:
+--	
 --- 	
 DROP function get_mol_metadata(text);
 CREATE FUNCTION get_mol_metadata(text)
@@ -16,16 +17,31 @@ $$
   DECLARE taxo RECORD; -- a taxonomy table record
   DECLARE geom RECORD; -- a geometry table record
   DECLARE result RECORD; -- the metadata record
-  DECALRE metadata_json; -- sql to output metadata as json 
+  DECLARE metadata_json text; -- SQL tha create the metadata json
+  DECLARE metadata_records text[];
+  DECLARE index int;
+  
   BEGIN
       table_name = split_part($1,'-', 1);
       cartodb_id = CAST(split_part($1,'-', 2) as Int);
-      metadata_json = '''{''' 
       sql = 'SELECT * from data_registry WHERE table_name = ''' || table_name || '''';
       FOR data in EXECUTE sql LOOP
+         --split the metadata fields up into title: value json
+      	 metadata_json =  '';
+      	 index=1;
+         metadata_records = string_to_array(data.metadata_fields,',');
+         WHILE index < (array_length(metadata_records,1)+1) LOOP
+         	IF metadata_json = '' THEN
+         		metadata_json = 'CONCAT(''{"' || split_part(metadata_records[index],':',1) || '":"'',' || split_part(metadata_records[index],':',2) || ',''"''';
+         	ELSE 
+         		metadata_json = metadata_json || ','',"' || split_part(metadata_records[index],':',1) || '":"'',' || split_part(metadata_records[index],':',2) || ',''"';
+         	END IF;
+         	index:=index+1;
+         END LOOP;
+         metadata_json = metadata_json || '}'')';
          -- basic range map or point data
          IF data.type = 'range' or data.type = 'points' THEN
-                sql = ('SELECT ' || data.metadata_fields ||' FROM ' || data.table_name || '  WHERE cartodb_id = ' ||  cartodb_id );
+                sql = ('SELECT ' || metadata_json ||' as mol_metadata FROM ' || data.table_name || '  WHERE cartodb_id = ' ||  cartodb_id);
 	 -- Checklist with a seperate geometry table and taxonomy table
          ELSIF data.type = 'checklist' and data.taxo_table <> Null and data.geom_table <> Null THEN 		
 		-- Get the sciname and species_id field names from the checklist taxonomy table
@@ -49,13 +65,8 @@ $$
 		sql = 'SELECT d.geom_id INTO geom FROM data_registry d WHERE table_name = ''' || data.geom_table || ''' LIMIT 1';
 	        EXECUTE sql;
                 -- Glue them all together
-		sql = 'SELECT ' || 
-                  '   d.' || taxo.scientificname || ', ' ||
-                  '   TEXT(''' || data.type || ''') as type, ' || 
-                  '   TEXT(''' || data.provider || ''') as provider, ' ||
-                  '   TEXT(''' || data.table_name || ''') as data_table, ' ||
-                  '   ST_Extent(g.the_geom) as extent, ' ||
-                  '   count(*) as feature_count ' ||
+		sql = 'SELECT ' ||
+			      data.metadata_fields || ' as mol_metadata ' ||
                   '  FROM ' || data.table_name || ' d ' ||
                   ' JOIN ' || data.geom_table || ' g ON ' ||
                   '   d.' || data.geom_id || ' = g.' || geom.geom_id  ||
@@ -63,8 +74,8 @@ $$
            ELSE
                 -- We got nuttin'
 	  END IF;
-          EXECUTE sql INTO result;
-	  RETURN result;
+      EXECUTE sql INTO result;
+	  RETURN TEXT(result.mol_metadata);
        END LOOP;
     END
 $$  language plpgsql;

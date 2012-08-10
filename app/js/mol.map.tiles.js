@@ -306,30 +306,14 @@ mol.modules.map.tiles = function(mol) {
     mol.map.tiles.CartoDbTile = Class.extend(
         {
             init: function(layer, table, map) {
-                var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type = '{2}' and provider = '{3}'",
-                    opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
-                    tile_style = opacity ? "#{0}{polygon-fill:#99cc00;}".format(table, opacity) : null,
-                    hostname = 'dtredc0xh764j.cloudfront.net',//window.location.hostname,
+                var sql =  "SELECT * FROM get_mol_tile('{0}','{1}','{2}','{3}')".format(layer.source, layer.type, layer.name, layer.data_table), 
+                    hostname = 'mol.cartodb.com',//window.location.hostname,
                     style_table_name = table,
-                    info_query = sql;
+                    info_query = sql, // "SELECT * FROM get_mol_metadata({0})",
+                    meta_query = "SELECT * FROM get_mol_metadata(TEXT('{0}'))",
                     tile_style =  null,
-                    infowindow = true;
-
-                if (layer.type === 'points') {
-                    sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, identifier " +
-                        "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
-                    table = 'gbif_import';
-                    style_table_name = 'names_old';
-                    info_query = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
-                    infowindow = true;
-                } else {
-                    info_query = sql = sql.format(table, layer.name, layer.type, layer.source);
-
-                    //info_query = ''; //sql
-                    infowindow = true;;
-                }
-
-                hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
+                    infowindow = true,
+                	hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
 
                 this.layer = new google.maps.CartoDBLayer(
                     {
@@ -343,6 +327,7 @@ mol.modules.map.tiles = function(mol) {
                         style_table_name: style_table_name,
                         query: sql,
                         info_query: info_query,
+                        meta_query: meta_query,
                         tile_style: tile_style,
                         map_style: false,
                         infowindow: infowindow,
