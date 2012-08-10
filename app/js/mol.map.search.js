@@ -250,7 +250,7 @@ mol.modules.map.search = function(mol) {
                         $.post(
                                 'cache/get',
                                 {
-                                    key:'search-08102012-{0}'.format(term),
+                                    key:'search-08102012134-{0}'.format(term),
                                     sql:this.sql.format(term)
                                 },
                                 function (response) {
