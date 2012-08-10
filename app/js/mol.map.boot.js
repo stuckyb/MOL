@@ -16,8 +16,9 @@ mol.modules.map.boot = function(mol) {
                 '       n.class as _class, ' +
                 '       l.feature_count as feature_count,'+
                 '       n.common_names_eng as names,' +
-                '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent ' +
-                'FROM layer_metadata l ' +
+                '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent, ' +
+                '       l.data_table as data_table ' +
+                'FROM layer_metadata_beta l ' +
                 'LEFT JOIN types t ON ' +
                 '       l.type = t.type ' +
                 'LEFT JOIN providers p ON ' +
@@ -47,7 +48,7 @@ mol.modules.map.boot = function(mol) {
                 $.post(
                 'cache/get',
                 {
-                    key: 'boot-results-08102012210-{0}'.format(self.term),
+                    key: 'boot-results-08102012305-{0}'.format(self.term),
                     sql: this.sql.format(self.term)
                 },
                 function(response) {

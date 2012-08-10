@@ -43,33 +43,26 @@ $$
          IF data.type = 'range' or data.type = 'points' THEN
                 sql = ('SELECT ' || metadata_json ||' as mol_metadata FROM ' || data.table_name || '  WHERE cartodb_id = ' ||  cartodb_id);
 	 -- Checklist with a seperate geometry table and taxonomy table
-         ELSIF data.type = 'checklist' and data.taxo_table <> Null and data.geom_table <> Null THEN 		
-		-- Get the sciname and species_id field names from the checklist taxonomy table
-	        sql = 'SELECT d.scientificname, d.species_id INTO taxo FROM data_registry d WHERE d.table_name = ''' || data.taxo_table  || ''' LIMIT 1';
-	        EXECUTE sql;
-		-- Get the geom_id field from the checklist geometry table
-		sql = 'SELECT d.geom_id INTO geom FROM data_registry d WHERE table_name = ''' || data.geom_table || ''' LIMIT 1';
-	        EXECUTE sql;
+         ELSIF data.type = 'ecoregion' THEN 		
                 -- Glue them all together
-		sql = 'SELECT ' || data.metadata_fields || 
+		sql = 'SELECT ' || metadata_json || 
                   ' FROM ' || data.table_name || ' d ' ||
                   ' JOIN ' || data.taxo_table || ' t ON ' ||
-                  '   d.' || data.species_id || ' = t.' || taxo.species_id ||
+                  '   d.' || data.species_id || ' = t.' || data.species_link_id ||
                   ' JOIN ' || data.geom_table || ' g ON ' ||
-                  '   d.' || data.geom_id || ' = g.' || geom.geom_id  ||
+                  '   d.' || data.geom_id || ' = g.' || data.geom_link_id  ||
 		  ' WHERE d.cartodb_id = ' || cartodb_id; 
 
 	  -- Checklist with a seperate geometry table but no taxonomy table
-	  ELSIF data.type = 'checklist' and data.taxo_table = Null and data.scientificname <> Null THEN 
+	  ELSIF data.type = 'protectedarea' THEN 
 		-- Get the geom_id field from the checklist geometry table
 		sql = 'SELECT d.geom_id INTO geom FROM data_registry d WHERE table_name = ''' || data.geom_table || ''' LIMIT 1';
 	        EXECUTE sql;
                 -- Glue them all together
-		sql = 'SELECT ' ||
-			      data.metadata_fields || ' as mol_metadata ' ||
+		sql = 'SELECT ' || metadata_json || ' as mol_metadata ' ||
                   '  FROM ' || data.table_name || ' d ' ||
                   ' JOIN ' || data.geom_table || ' g ON ' ||
-                  '   d.' || data.geom_id || ' = g.' || geom.geom_id  ||
+                  '   d.' || data.geom_id || ' = g.' || data.geom_link_id  ||
 		  ' where d.cartodb_id = ' || cartodb_id; 
            ELSE
                 -- We got nuttin'

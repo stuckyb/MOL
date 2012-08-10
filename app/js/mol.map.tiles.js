@@ -248,13 +248,14 @@ mol.modules.map.tiles = function(mol) {
 
                 switch (type) {
                 case 'points':
-                    maptype = new mol.map.tiles.CartoDbTile(layer, 'gbif_import', this.map);
+                    maptype = new mol.map.tiles.CartoDbTile(layer, 'points_style', this.map);
                     break;
                 case 'polygon':
                 case 'range':
                 case 'ecoregion':
                 case 'protectedarea':
-                    maptype = new mol.map.tiles.CartoDbTile(layer, 'polygons', this.map);
+                case 'checklist':
+                    maptype = new mol.map.tiles.CartoDbTile(layer, 'polygon_style', this.map);
                     break;
                 }
                 maptype.layer.params.layer.onbeforeload = function (){self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : layer.id}))};
@@ -306,7 +307,7 @@ mol.modules.map.tiles = function(mol) {
     mol.map.tiles.CartoDbTile = Class.extend(
         {
             init: function(layer, table, map) {
-                var sql =  "SELECT * FROM get_mol_tile('{0}','{1}','{2}','{3}')".format(layer.source, layer.type, layer.name, layer.data_table), 
+                var sql =  "SELECT * FROM get_mol_tile('{0}','{1}','{2}','{3}')".format(layer.source, layer.type, (layer.type != 'points' ) ? layer.name : layer.name.toLowerCase(), layer.data_table),
                     hostname = 'mol.cartodb.com',//window.location.hostname,
                     style_table_name = table,
                     info_query = sql, // "SELECT * FROM get_mol_metadata({0})",

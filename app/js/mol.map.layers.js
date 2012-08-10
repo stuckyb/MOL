@@ -90,8 +90,10 @@ mol.modules.map.layers = function(mol) {
                                 }
                             }
                         )
-                        self.addLayers(event.layers);
-                        self.map.fitBounds(bounds)
+                        if(event.layers.length>0) {
+                            self.addLayers(event.layers);
+                            self.map.fitBounds(bounds);
+                        }
 
                     }
                 );
