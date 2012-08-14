@@ -154,7 +154,12 @@ mol.modules.map.layers = function(mol) {
                                ['points', 'protectedarea', 'range', 'ecoregion'],
                                function(type) {
                                    if (group[type]) {
-                                       sorted.push(group[type][0]);
+                                       _.each(
+                                           group[type],
+                                           function(layer) {
+                                               sorted.push(layer);
+                                           }
+                                       );
                                    }
                                }
                            );
