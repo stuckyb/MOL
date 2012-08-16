@@ -434,19 +434,39 @@ var CartoDB = CartoDB || {};
       infowindow_sql = encodeURIComponent(this.params_.feature.replace('{{feature}}',feature));
     }
 
-    
+
     $.post(
     	'cache/get',
          {sql: infowindow_sql, key: 'infowindow-'+feature+Math.random()},
          	function(result) {
          		var content;
          		if(!result.error) {
-         			content = $.parseJSON(result.rows[0]['get_mol_metadata']);
+         			content = $.parseJSON(result.rows[0]['get_feature_metadata']);
          		}
-                positionateInfowindow(content,latlng);
+         		//GBIF temp hack!
+         		if(content['Source']=='GBIF') {
+         		    getGbifInfo(content,latlng);
+         		} else {
+                    positionateInfowindow(content,latlng);
+                }
             }
     );
-    
+
+    function getGbifInfo (variables, center) {
+        $.post(
+            'gbif/occurrence',
+            {oid : variables["Source ID"]},
+            function(xml) {
+                var institutionCode = $((new window.DOMParser()).parseFromString(xml, "text/xml")).find('institutionCode').text();
+
+                if(institutionCode != '' && institutionCode != null) {
+                    variables['Institution Code'] = institutionCode;
+                }
+                positionateInfowindow(variables, center);
+            }
+        );
+    }
+
     function positionateInfowindow(variables,center) {
       if (that.div_) {
         var div = that.div_;

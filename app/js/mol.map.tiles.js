@@ -311,7 +311,7 @@ mol.modules.map.tiles = function(mol) {
                     hostname = 'mol.cartodb.com',//window.location.hostname,
                     style_table_name = table,
                     info_query = sql, // "SELECT * FROM get_mol_metadata({0})",
-                    meta_query = "SELECT * FROM get_mol_metadata(TEXT('{0}'))",
+                    meta_query = "SELECT * FROM get_feature_metadata(TEXT('{0}'))",
                     tile_style =  null,
                     infowindow = true,
                 	hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;

@@ -878,8 +878,6 @@ mol.modules.map = function(mol) {
                     minLat: -85,
                     maxLat: 85,
                     mapTypeControl: false,
-                    //mapTypeControlOptions: {position: google.maps.ControlPosition.BOTTOM_LEFT},
-                    center: new google.maps.LatLng(0,-50),
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     styles: [
                       {
@@ -1250,7 +1248,12 @@ mol.modules.map.layers = function(mol) {
                                ['points', 'protectedarea', 'range', 'ecoregion'],
                                function(type) {
                                    if (group[type]) {
-                                       sorted.push(group[type][0]);
+                                       _.each(
+                                           group[type],
+                                           function(layer) {
+                                               sorted.push(layer);
+                                           }
+                                       );
                                    }
                                }
                            );
@@ -2646,7 +2649,7 @@ mol.modules.map.search = function(mol) {
                             $.post(
                                 'cache/get',//http://dtredc0xh764j.cloudfront.net/api/v2/sql',
                                 {
-                                    key: 'acr-{0}'.format(request.term),
+                                    key: 'ac-beta-{0}'.format(request.term),
                                     sql:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
                                 },
                                 function (json) {
@@ -3172,7 +3175,7 @@ mol.modules.map.tiles = function(mol) {
                     hostname = 'mol.cartodb.com',//window.location.hostname,
                     style_table_name = table,
                     info_query = sql, // "SELECT * FROM get_mol_metadata({0})",
-                    meta_query = "SELECT * FROM get_mol_metadata(TEXT('{0}'))",
+                    meta_query = "SELECT * FROM get_feature_metadata(TEXT('{0}'))",
                     tile_style =  null,
                     infowindow = true,
                 	hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
