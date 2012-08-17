@@ -4528,6 +4528,7 @@ mol.modules.map.splash = function(mol) {
                 DialogClass: "mol-splash",
             //modal: true
             });
+            this.map.setCenter(new google.maps.LatLng(0,-50));
             $(this.display).width('98%');
             $(".ui-widget-overlay").live("click", function() {
                 self.display.dialog("close");
