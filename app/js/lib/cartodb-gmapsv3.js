@@ -436,17 +436,21 @@ var CartoDB = CartoDB || {};
 
 
     $.post(
-    	'cache/get',
-         {sql: infowindow_sql, key: 'infowindow-'+feature+Math.random()},
-         	function(result) {
-         		var content;
-         		if(!result.error) {
-         			content = $.parseJSON(result.rows[0]['get_feature_metadata']);
-         		}
-         		//GBIF temp hack!
-         		if(content['Source']=='GBIF') {
-         		    getGbifInfo(content,latlng);
-         		} else {
+        'cache/get',
+         {sql: infowindow_sql, key: 'cdbinfo-'+feature+Math.random()},
+            function(result) {
+                var content;
+                if(!result.error) {
+                    content = $.parseJSON(result.rows[0]['get_feature_metadata']);
+                }
+                //GBIF temp hack!
+                if(content) {
+                    if(content['Source']) {
+                        if(content['Source']=='GBIF') {
+                            getGbifInfo(content,latlng);
+                        }
+                    }
+                } else {
                     positionateInfowindow(content,latlng);
                 }
             }
