@@ -25,7 +25,7 @@ mol.modules.map.search = function(mol) {
                     '    n.common_names_eng as names,' +
                     '    CONCAT(\'{sw:{lng:\',ST_XMin(l.extent),\', lat:\',ST_YMin(l.extent),\'} , ne:{lng:\',ST_XMax(l.extent),\', lat:\',ST_YMax(l.extent),\'}}\') as extent ' +
                     "FROM (SELECT n FROM ac where not is_syn and n~*'\\m{0}' OR v~*'\\m{0}' or s~*'\\m{0}' ) ac " + //start with valid sci names
-                    'LEFT JOIN synonym_metadata s ON ' + //add synonyms
+                    'LEFT JOIN synonyms ON ' + //add synonyms
                     '    ac.n = s.mol_scientificname ' +
                     'LEFT JOIN layer_metadata l ON ' + //add layers that match
                     '	 s.scientificname = l.scientificname OR ac.n = l.scientificname ' +
@@ -255,7 +255,7 @@ mol.modules.map.search = function(mol) {
                         $.post(
                                 'cache/get',
                                 {
-                                    key:'search080212333-{0}'.format(term),
+                                    key:'search-{0}-{1}'.format(term, Math.random()),
                                     sql:this.sql.format(term)
                                 },
                                 function (response) {
