@@ -1,6 +1,6 @@
 -- Function to get all MOL layers (checklist and polygon), cache this result in layers_metadata
-DROP function get_dashboard_counts();
-CREATE FUNCTION get_dashboard_counts() 
+DROP function get_dashboard_metadata();
+CREATE FUNCTION get_dashboard_metadata() 
 	RETURNS TABLE(provider text, type text, provider_id text, type_id text, taxa text, data_table text, species_count bigint, feature_count bigint) 
 AS
 $$
@@ -10,7 +10,6 @@ $$
   DECLARE type RECORD; 
   BEGIN
       FOR data in (SELECT * from data_registry) LOOP
-	 -- Just count species in the table, all the same taxa
 	 SELECT * INTO type FROM types t where t.type = data.type LIMIT 1;
 	 SELECT * INTO provider FROM providers p where p.provider = data.provider LIMIT 1;
          IF ((data.type = 'range' or data.type = 'points') and data.table_name <> 'gbif_import')  THEN
@@ -23,7 +22,7 @@ $$
                   '   TEXT(''' || data.table_name || ''') as data_table, ' ||
                   '   count(DISTINCT '|| data.scientificname || ') as species_count, ' ||
                   '   count(*) as feature_count FROM ' || data.table_name; 
-         ELSIF data.type = 'ecoregion'  THEN 		
+         ELSIF data.type = 'ecoregion' or data.type = 'taxogeochecklist' THEN 		
 		--ecoregion counts	
 		sql = ' SELECT ' || 
 		  '   TEXT(''' || provider.title || ''') as provider, ' ||
@@ -34,8 +33,8 @@ $$
                   '   TEXT(''' || data.table_name || ''') as data_table, ' ||
                   '   count(DISTINCT ' || data.species_id || ') as species_count, ' ||
                   '   count(*) as feature_count ' ||
-                  ' FROM ' || data.table_name;
-	   ELSIF data.type = 'protectedarea' THEN 		
+                  ' FROM ' || data.table_name || ' d';
+	 ELSIF data.type = 'protectedarea' or data.type = 'taxogeochecklist' THEN 		
 		--ecoregion counts	
 		sql = ' SELECT ' || 
 		  '   TEXT(''' || provider.title || ''') as provider, ' ||
@@ -46,7 +45,7 @@ $$
                   '   TEXT(''' || data.table_name || ''') as data_table, ' ||
                   '   count(DISTINCT ' || data.scientificname || ') as species_count, ' ||
                   '   count(*) as feature_count ' ||
-                  ' FROM ' || data.table_name;
+                  ' FROM ' || data.table_name || ' d';
 	  ELSE
                 -- We got nuttin'
 	  END IF;

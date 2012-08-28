@@ -8,7 +8,7 @@ mol.modules.map.dashboard = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.sql = '' +
-                    'select * from get_dashboard_counts() order by provider, taxa;';
+                    'select DISTINCT * from get_dashboard_metadata() order by provider, taxa;';
             },
             /**
              * Starts the MenuEngine. Note that the container parameter is
@@ -52,26 +52,23 @@ mol.modules.map.dashboard = function(mol) {
                 );
 
                 _.each(
-                    this.display.providers,
-                    function(tr) {
-                        var provider = $(tr).attr('class').replace('provider','').trim(),
-                            type = $(tr).find('.type').attr('class').replace('type','').trim();
-                        _.each(
-                            $(tr).find('.class'),
-                            function(td) {
-                                $(td).click (
-                                    function(event) {
-                                        var _class = $(td).attr('class').replace('class','').trim();
-                                        self.bus.fireEvent(new mol.bus.Event('metadata-toggle',{ params :{provider: provider, type: type, _class: _class, text: $(this).text()}}));
-                                    }
-                                )
+                    this.display.datasets,
+                    function(dataset) {
+                        var provider = $(dataset).find('.provider').attr('class').replace('provider','').trim(),
+                            type = $(dataset).find('.type').attr('class').replace('type','').trim(),
+                            _class = $(dataset).find('.class').attr('class').replace('class','').trim(),
+                            data_table = $(dataset).find('.table').attr('class').replace('table','').trim();
+
+                        $(dataset).find('.provider').click (
+                            function(event) {
+                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle',{ params :{provider: provider, type: type, _class: _class, text: data_table}}));
                             }
-                        )
+                        );
 
                     }
                 );
                 _.each(
-                    this.display.types,
+                    this.display.datasets.find('.type'),
                     function(td) {
                          var type = $(td).attr('class').replace('type','').trim();
                          $(td).click (
@@ -121,14 +118,14 @@ mol.modules.map.dashboard = function(mol) {
                     '  <div class="dashboard">' +
                     '  <div class="title">Dashboard</div>' +
                     '  <div class="subtitle">Statistics for data served by the Map of Life</div>' +
-                    '  <table>' +
+                    '  <table class="dashtable">' +
                     '   <thead>' +
                     '    <tr>' +
-                    '      <th width="50px"><b>Type</b></th>' +
-                    '      <th width="100px"><b>Source</b></th>' +
-                    '      <th><b>Taxa</b></th>' +
-                    '      <th width="50px"><b>Species names</b></th>' +
-                    '      <th width="50px"><b>Records</b></th>' +
+                    '      <th><b>Type</b></th>' +
+                    '      <th><b>Source</b></th>' +
+                    '      <th><b>Class</b></th>' +
+                    '      <th><b>Species names</b></th>' +
+                    '      <th><b>Records</b></th>' +
                     '    </tr>' +
                     '   </thead>' +
                     '   <tbody class="dashbody">' +
@@ -144,8 +141,13 @@ mol.modules.map.dashboard = function(mol) {
                          $(self).find('.dashbody').append(new mol.map.dashboard.DashboardRowDisplay(row));
                     }
                 )
-                this.providers = $(this).find('.provider');
-                this.types = $(this).find('.type');
+                this.dashtable = $(this).find('.dashtable');
+                this.dashtable.tablesorter(
+                                { headers: { 0: { sorter: false}}, widthFixed: true}
+                            );
+                this.datasets = $(this).find('.dataset');
+
+
 
 
 
@@ -156,14 +158,15 @@ mol.modules.map.dashboard = function(mol) {
         {
             init: function(row) {
                 var html = '' +
-                    '    <tr>' +
+                    '    <tr class="dataset">' +
+                    '      <td class="table {5}">{5}</td>' +
                     '      <td class="type {0}">{1}</td>' +
                     '      <td class="provider {2}">{3}</td>' +
-                    '      <td>{4}</td>' +
+                    '      <td class="class {4}">{4}</td>' +
                     '      <td>{5}</td>' +
                     '      <td>{6}</td>' +
                     '    </tr>';
-                this._super(html.format(row.type_id, row.type, row.provider_id, row.provider, row.taxa, row.species_count,row.feature_count));
+                this._super(html.format(row.type_id, row.type, row.provider_id, row.provider, row.taxa, row.species_count,row.feature_count, row.data_table));
             }
          }
     );
