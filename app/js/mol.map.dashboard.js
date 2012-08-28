@@ -93,7 +93,7 @@ mol.modules.map.dashboard = function(mol) {
                 $.post(
                     'cache/get',
                     {
-                        key: 'dashboard',
+                        key: 'dashboard-0825201244',
                         sql: this.sql
                     },
                     function(response) {

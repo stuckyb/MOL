@@ -30,7 +30,7 @@ $$
             IF json_string <> '' THEN
                 json_string = json_string || ','','',';
             END IF;    
-            json_string = CONCAT(json_string, '''"', metadata.title, '":"'',', (CASE WHEN metadata.field is not null and metadata.field <> '' THEN metadata.field || ',' ELSE '''' || metadata.value || ''',' END),'''"''');  
+            json_string = CONCAT(json_string, '''"', metadata.title, '":"'',', (CASE WHEN metadata.field is not null and metadata.field <> '' THEN metadata.field || ',' ELSE ''''',' END),'''"''');  
         END LOOP;
         sql = 'SELECT * from data_registry WHERE table_name = ''' || table_name || ''' LIMIT 1';
         EXECUTE sql INTO data;
@@ -38,7 +38,7 @@ $$
         IF data.type = 'range' or data.type = 'points' THEN              
             -- regular data table
             sql = 'SELECT CONCAT(''{'',' || json_string || ',''}'') as feature_metadata FROM ' || data.table_name || ' WHERE cartodb_id = ' || cartodb_id;     
-        ELSIF data.type = 'ecoregion' THEN 		
+        ELSIF data.type = 'ecoregion' or data.type = 'taxogeochecklist' THEN 		
             -- Checklist with a seperate geometry table and taxonomy table
 	    sql = 'SELECT CONCAT(''{'',' || json_string || ',''}'') as feature_metadata ' ||
                   ' FROM ' || data.table_name || ' d ' ||
@@ -47,7 +47,7 @@ $$
                   ' JOIN ' || data.geom_table || ' g ON ' ||
                   '   d.' || data.geom_id || ' = g.' || data.geom_link_id  ||
                   ' WHERE d.cartodb_id = ' || cartodb_id; 
-	ELSIF data.type = 'protectedarea' THEN 
+	ELSIF data.type = 'protectedarea' or data.type = 'geochecklist' THEN 
 	    -- Checklist with a seperate geometry table but no taxonomy table
 	    sql = 'SELECT CONCAT(''{'',' || json_string || ',''}'') as feature_metadata ' ||
                   '  FROM ' || data.table_name || ' d ' ||

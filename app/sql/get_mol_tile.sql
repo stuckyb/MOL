@@ -14,6 +14,7 @@
 
 DROP function get_mol_tile(text, text, text, text);
 CREATE FUNCTION get_mol_tile(text, text, text, text)
+--	RETURNS text
 	RETURNS TABLE(cartodb_id text, type text, provider text, seasonality int, the_geom_webmercator geometry) 
 AS
 $$
@@ -36,9 +37,9 @@ $$
                   ' FROM ' || data.table_name || 
                   ' WHERE ' ||  
                   data.scientificname || ' = ''' || $3 || '''';               
-         ELSIF data.type = 'ecoregion' THEN 		
+         ELSIF data.type = 'ecoregion' or data.type = 'taxogeochecklist' THEN 		
                 sql := 'SELECT ' ||
-		  ' DISTINCT CONCAT('''|| data.table_name ||'-'', d.cartodb_id) as cartodb_id, ' ||
+		  ' DISTINCT CONCAT('''|| data.table_name || '-'', d.cartodb_id) as cartodb_id, ' ||
                   ' TEXT('''||data.type||''') as type, TEXT('''||data.provider||''') as provider, ' ||
                   ' CAST(' || data.seasonality || ' as int) as seasonality, ' || 
                   ' g.' || data.geometry_field || 
@@ -47,8 +48,8 @@ $$
                   '   d.' || data.geom_id || ' = g.' || data.geom_link_id  ||
                   ' JOIN ' || data.taxo_table || ' t ON ' ||
                   '   d.' || data.species_id || ' = t.' || data.species_link_id ||
-		  ' WHERE t.' || data.scientificname || ' = ''' || $3 || ''''; 
-	  ELSIF data.type = 'protectedarea' THEN 
+		  ' WHERE ' || data.scientificname || ' = ''' || $3 || ''''; 
+	  ELSIF data.type = 'protectedarea' or data.type = 'geochecklist' THEN 
 		sql := 'SELECT ' ||
 		  ' DISTINCT CONCAT('''|| data.table_name ||'-'', d.cartodb_id) as cartodb_id, ' ||
                   ' TEXT('''||data.type||''') as type, TEXT('''||data.provider||''') as provider, ' ||
@@ -57,10 +58,11 @@ $$
                   ' FROM ' || data.table_name || ' d ' ||
                   ' JOIN ' || data.geom_table || ' g ON ' ||
                   '   d.' || data.geom_id || ' = g.' || data.geom_link_id  ||
-		  ' where d.' || data.scientificname || ' = ''' ||  $3 || '''';
+		  ' where ' || data.scientificname || ' = ''' ||  $3 || '''';
            ELSE
                 -- We got nuttin'
 	  END IF;
+	  --RETURN sql;
           RETURN QUERY EXECUTE sql;
        END LOOP;
     END

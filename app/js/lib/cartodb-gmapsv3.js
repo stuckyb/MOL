@@ -448,10 +448,12 @@ var CartoDB = CartoDB || {};
                     if(content['Source']) {
                         if(content['Source']=='GBIF') {
                             getGbifInfo(content,latlng);
+                        } else {
+                            positionateInfowindow(content,latlng);
                         }
+                    } else {
+                        positionateInfowindow(content,latlng);
                     }
-                } else {
-                    positionateInfowindow(content,latlng);
                 }
             }
     );
@@ -459,13 +461,14 @@ var CartoDB = CartoDB || {};
     function getGbifInfo (variables, center) {
         $.post(
             'gbif/occurrence',
-            {oid : variables["Source ID"]},
+            {oid : variables["oid"]},
             function(xml) {
                 var institutionCode = $((new window.DOMParser()).parseFromString(xml, "text/xml")).find('institutionCode').text();
 
                 if(institutionCode != '' && institutionCode != null) {
                     variables['Institution Code'] = institutionCode;
                 }
+                delete(variables.oid);
                 positionateInfowindow(variables, center);
             }
         );

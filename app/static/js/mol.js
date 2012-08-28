@@ -83,14 +83,14 @@ mol.modules.core = function(mol) {
         var name = $.trim(layer.name.toLowerCase()).replace(/ /g, "_"),
             type = $.trim(layer.type.toLowerCase()).replace(/ /g, "_"),
             source = $.trim(layer.source.toLowerCase()).replace(/,/g, "").replace(/ /g, "_");
-        return 'layer-{0}-{1}-{2}'.format(name, type, source);
+        return 'layer--{0}--{1}--{2}'.format(name, type, source);
     };
 
     /**
      * @param id The layer id of the form "layer--{name}--{type}--{source}--{englishname}".
      */
     mol.core.getLayerFromId = function(id) {
-        var tokens = id.split('-'),
+        var tokens = id.split('--'),
             name = tokens[1].replace(/_/g, " "),
             type = tokens[2].replace(/_/g, " "),
             source = tokens[3].replace(/_/g, " ");
@@ -590,7 +590,7 @@ mol.modules.services.cartodb = function(mol) {
                 for (i in rows) {
                     row = rows[i];
                     key = i + '';
-                    layers[key] = {
+                    layers[key] = row; /*{
                         name: row.name.charAt(0).toUpperCase()+row.name.slice(1).toLowerCase(),
                         source: row.source.toLowerCase(),
                         type: row.type.toLowerCase(),
@@ -603,7 +603,7 @@ mol.modules.services.cartodb = function(mol) {
                         _class: row._class,
                         extent: row.extent,
                         data_table: row.data_table
-                    };
+                    };*/
                 }
                 return layers;
             },
@@ -1172,16 +1172,22 @@ mol.modules.map.layers = function(mol) {
                         _.each(
                             event.layers,
                             function(layer) {
-                                var extent = $.parseJSON(layer.extent);
-                                var layer_bounds = new google.maps.LatLngBounds(
+                                var extent, layer_bounds;
+
+                                try {
+                                    extent = $.parseJSON(layer.extent),
+                                    layer_bounds = new google.maps.LatLngBounds(
                                         new google.maps.LatLng(extent.sw.lat,extent.sw.lng),
                                         new google.maps.LatLng(extent.ne.lat,extent.ne.lng)
                                      );
+
                                 if(!bounds) {
                                     bounds = layer_bounds;
                                 } else {
                                     bounds.union(layer_bounds)
                                 }
+                                } catch(e) {}
+
                             }
                         )
                         if(event.layers.length>0) {
@@ -1245,7 +1251,7 @@ mol.modules.map.layers = function(mol) {
                            var group = _.groupBy(_.groupBy(layers, "name")[name], "type");
 
                            _.each(
-                               ['points', 'protectedarea', 'range', 'ecoregion'],
+                               ['points', 'protectedarea', 'range', 'ecoregion', 'taxogeochecklist','geochecklist'],
                                function(type) {
                                    if (group[type]) {
                                        _.each(
@@ -1318,6 +1324,18 @@ mol.modules.map.layers = function(mol) {
                             break;
                         case 'range':
                             opacity = .5;
+                            break;
+                        case 'taxogeochecklist':
+                            opacity = .5;
+                            break;
+                        case 'geochecklist':
+                            opacity = .5;
+                            break;
+                        }
+
+                        switch (layer.style_table) {
+                        case 'points_style':
+                            opacity = 1.0;
                             break;
                         }
 
@@ -2584,18 +2602,22 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.searching = {};
                 this.names = [];
+                this.bornOnDate = Math.random();
                 this.sql = '' +
                     'SELECT DISTINCT l.scientificname as name,'+
                     '       l.type as type,'+
                     '       t.title as type_title,'+
-                    '       l.provider as source, '+
-                    '       p.title as source_title,'+
-                    '       n.class as _class, ' +
+                    '       CONCAT(l.provider,\'\') as source, '+
+                    '       CONCAT(p.title,\'\') as source_title,'+
+                    '       CONCAT(n.class,\'\') as _class, ' +
                     '       l.feature_count as feature_count,'+
-                    '       n.common_names_eng as names,' +
+                    '       CONCAT(n.common_names_eng,\'\') as names,' +
                     '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent, ' +
-                    '       l.data_table as data_table ' +
+                    '       l.data_table as data_table, ' +
+                    '       d.style_table as style_table ' +
                     'FROM layer_metadata_beta l ' +
+                    'LEFT JOIN data_registry d ON ' +
+                    '       l.data_table = d.table_name ' +
                     'LEFT JOIN types t ON ' +
                     '       l.type = t.type ' +
                     'LEFT JOIN providers p ON ' +
@@ -2649,8 +2671,8 @@ mol.modules.map.search = function(mol) {
                             $.post(
                                 'cache/get',//http://dtredc0xh764j.cloudfront.net/api/v2/sql',
                                 {
-                                    key: 'ac-beta-{0}'.format(request.term),
-                                    sql:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
+                                    key: 'ac-beta-{0}-{1}'.format(request.term, self.bornOnDate),
+                                    sql:"SELECT n,v from ac_beta where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
                                 },
                                 function (json) {
                                     var names = [],scinames=[];
@@ -2823,7 +2845,7 @@ mol.modules.map.search = function(mol) {
                         $.post(
                                 'cache/get',
                                 {
-                                    key:'search-08102012305-{0}'.format(term),
+                                    key:'search-{0}-{1}'.format(term,this.bornOnDate),
                                     sql:this.sql.format(term)
                                 },
                                 function (response) {
@@ -3118,7 +3140,9 @@ mol.modules.map.tiles = function(mol) {
                 case 'range':
                 case 'ecoregion':
                 case 'protectedarea':
-                case 'checklist':
+                case 'geochecklist':
+                case 'taxogeochecklist':
+                case 'taxochecklist':
                     maptype = new mol.map.tiles.CartoDbTile(layer, 'polygon_style', this.map);
                     break;
                 }
@@ -3173,7 +3197,7 @@ mol.modules.map.tiles = function(mol) {
             init: function(layer, table, map) {
                 var sql =  "SELECT * FROM get_mol_tile('{0}','{1}','{2}','{3}')".format(layer.source, layer.type, (layer.type != 'points' ) ? layer.name : layer.name.toLowerCase(), layer.data_table),
                     hostname = 'mol.cartodb.com',//window.location.hostname,
-                    style_table_name = table,
+                    style_table_name = layer.style_table;
                     info_query = sql, // "SELECT * FROM get_mol_metadata({0})",
                     meta_query = "SELECT * FROM get_feature_metadata(TEXT('{0}'))",
                     tile_style =  null,
@@ -3298,7 +3322,7 @@ mol.modules.map.dashboard = function(mol) {
                 $.post(
                     'cache/get',
                     {
-                        key: 'dashboard',
+                        key: 'dashboard-0825201244',
                         sql: this.sql
                     },
                     function(response) {

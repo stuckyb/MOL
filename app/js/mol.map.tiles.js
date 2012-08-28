@@ -254,7 +254,9 @@ mol.modules.map.tiles = function(mol) {
                 case 'range':
                 case 'ecoregion':
                 case 'protectedarea':
-                case 'checklist':
+                case 'geochecklist':
+                case 'taxogeochecklist':
+                case 'taxochecklist':
                     maptype = new mol.map.tiles.CartoDbTile(layer, 'polygon_style', this.map);
                     break;
                 }
@@ -309,7 +311,7 @@ mol.modules.map.tiles = function(mol) {
             init: function(layer, table, map) {
                 var sql =  "SELECT * FROM get_mol_tile('{0}','{1}','{2}','{3}')".format(layer.source, layer.type, (layer.type != 'points' ) ? layer.name : layer.name.toLowerCase(), layer.data_table),
                     hostname = 'mol.cartodb.com',//window.location.hostname,
-                    style_table_name = table,
+                    style_table_name = layer.style_table;
                     info_query = sql, // "SELECT * FROM get_mol_metadata({0})",
                     meta_query = "SELECT * FROM get_feature_metadata(TEXT('{0}'))",
                     tile_style =  null,

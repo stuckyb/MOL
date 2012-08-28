@@ -12,18 +12,22 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.searching = {};
                 this.names = [];
+                this.bornOnDate = Math.random();
                 this.sql = '' +
                     'SELECT DISTINCT l.scientificname as name,'+
                     '       l.type as type,'+
                     '       t.title as type_title,'+
-                    '       l.provider as source, '+
-                    '       p.title as source_title,'+
-                    '       n.class as _class, ' +
+                    '       CONCAT(l.provider,\'\') as source, '+
+                    '       CONCAT(p.title,\'\') as source_title,'+
+                    '       CONCAT(n.class,\'\') as _class, ' +
                     '       l.feature_count as feature_count,'+
-                    '       n.common_names_eng as names,' +
+                    '       CONCAT(n.common_names_eng,\'\') as names,' +
                     '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent, ' +
-                    '       l.data_table as data_table ' +
+                    '       l.data_table as data_table, ' +
+                    '       d.style_table as style_table ' +
                     'FROM layer_metadata_beta l ' +
+                    'LEFT JOIN data_registry d ON ' +
+                    '       l.data_table = d.table_name ' +
                     'LEFT JOIN types t ON ' +
                     '       l.type = t.type ' +
                     'LEFT JOIN providers p ON ' +
@@ -77,8 +81,8 @@ mol.modules.map.search = function(mol) {
                             $.post(
                                 'cache/get',//http://dtredc0xh764j.cloudfront.net/api/v2/sql',
                                 {
-                                    key: 'ac-beta-{0}'.format(request.term),
-                                    sql:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
+                                    key: 'ac-beta-{0}-{1}'.format(request.term, self.bornOnDate),
+                                    sql:"SELECT n,v from ac_beta where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
                                 },
                                 function (json) {
                                     var names = [],scinames=[];
@@ -251,7 +255,7 @@ mol.modules.map.search = function(mol) {
                         $.post(
                                 'cache/get',
                                 {
-                                    key:'search-08102012305-{0}'.format(term),
+                                    key:'search-{0}-{1}'.format(term,this.bornOnDate),
                                     sql:this.sql.format(term)
                                 },
                                 function (response) {

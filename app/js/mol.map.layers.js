@@ -78,16 +78,22 @@ mol.modules.map.layers = function(mol) {
                         _.each(
                             event.layers,
                             function(layer) {
-                                var extent = $.parseJSON(layer.extent);
-                                var layer_bounds = new google.maps.LatLngBounds(
+                                var extent, layer_bounds;
+
+                                try {
+                                    extent = $.parseJSON(layer.extent),
+                                    layer_bounds = new google.maps.LatLngBounds(
                                         new google.maps.LatLng(extent.sw.lat,extent.sw.lng),
                                         new google.maps.LatLng(extent.ne.lat,extent.ne.lng)
                                      );
+
                                 if(!bounds) {
                                     bounds = layer_bounds;
                                 } else {
                                     bounds.union(layer_bounds)
                                 }
+                                } catch(e) {}
+
                             }
                         )
                         if(event.layers.length>0) {
@@ -151,7 +157,7 @@ mol.modules.map.layers = function(mol) {
                            var group = _.groupBy(_.groupBy(layers, "name")[name], "type");
 
                            _.each(
-                               ['points', 'protectedarea', 'range', 'ecoregion'],
+                               ['points', 'protectedarea', 'range', 'ecoregion', 'taxogeochecklist','geochecklist'],
                                function(type) {
                                    if (group[type]) {
                                        _.each(
@@ -224,6 +230,18 @@ mol.modules.map.layers = function(mol) {
                             break;
                         case 'range':
                             opacity = .5;
+                            break;
+                        case 'taxogeochecklist':
+                            opacity = .5;
+                            break;
+                        case 'geochecklist':
+                            opacity = .5;
+                            break;
+                        }
+
+                        switch (layer.style_table) {
+                        case 'points_style':
+                            opacity = 1.0;
                             break;
                         }
 

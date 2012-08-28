@@ -287,7 +287,7 @@ mol.modules.services.cartodb = function(mol) {
                 for (i in rows) {
                     row = rows[i];
                     key = i + '';
-                    layers[key] = {
+                    layers[key] = row; /*{
                         name: row.name.charAt(0).toUpperCase()+row.name.slice(1).toLowerCase(),
                         source: row.source.toLowerCase(),
                         type: row.type.toLowerCase(),
@@ -300,7 +300,7 @@ mol.modules.services.cartodb = function(mol) {
                         _class: row._class,
                         extent: row.extent,
                         data_table: row.data_table
-                    };
+                    };*/
                 }
                 return layers;
             },
