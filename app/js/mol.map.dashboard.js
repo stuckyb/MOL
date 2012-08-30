@@ -90,7 +90,7 @@ mol.modules.map.dashboard = function(mol) {
                 $.post(
                     'cache/get',
                     {
-                        key: 'dashboard-0825201244',
+                        key: 'dashboard-0830201248',
                         sql: this.sql
                     },
                     function(response) {
@@ -98,7 +98,8 @@ mol.modules.map.dashboard = function(mol) {
                         self.display.dialog(
                             {
                                 autoOpen: false,
-                                width: 1000,
+                                width: 850,
+                                height:400,
                                 dialogClass: "mol-Dashboard"
                             }
                         );
@@ -121,6 +122,7 @@ mol.modules.map.dashboard = function(mol) {
                     '  <table class="dashtable">' +
                     '   <thead>' +
                     '    <tr>' +
+                    '      <th><b>Dataset</b></th>' +
                     '      <th><b>Type</b></th>' +
                     '      <th><b>Source</b></th>' +
                     '      <th><b>Class</b></th>' +
@@ -143,8 +145,8 @@ mol.modules.map.dashboard = function(mol) {
                 )
                 this.dashtable = $(this).find('.dashtable');
                 this.dashtable.tablesorter(
-                                { headers: { 0: { sorter: false}}, widthFixed: true}
-                            );
+                    { headers: { 0: { sorter: false}}, widthFixed: true}
+                );
                 this.datasets = $(this).find('.dataset');
 
 
@@ -159,7 +161,7 @@ mol.modules.map.dashboard = function(mol) {
             init: function(row) {
                 var html = '' +
                     '    <tr class="dataset">' +
-                    '      <td class="table {5}">{5}</td>' +
+                    '      <td class="table {7}">{7}</td>' +
                     '      <td class="type {0}">{1}</td>' +
                     '      <td class="provider {2}">{3}</td>' +
                     '      <td class="class {4}">{4}</td>' +

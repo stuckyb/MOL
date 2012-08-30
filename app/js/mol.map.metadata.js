@@ -59,7 +59,7 @@ mol.modules.map.metadata = function(mol) {
             getLayerMetadata: function (layer) {
                   var self = this,
                     sql = this.sql['layer'].format(layer.name, layer.type, layer.source),
-                    params = {sql:sql, key: 'lm529-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
+                    params = {sql:sql, key: 'lm529-{0}-{1}-{2}-{3}'.format(layer.name, layer.type, layer.source,Math.random())},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {layer:layer, response:response};

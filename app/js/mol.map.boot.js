@@ -8,25 +8,28 @@ mol.modules.map.boot = function(mol) {
             this.bus = bus;
             this.IE8 = false;
             this.sql = '' +
-                'SELECT DISTINCT l.scientificname as name,'+
-                '       l.type as type,'+
-                '       t.title as type_title,'+
-                '       l.provider as source, '+
-                '       p.title as source_title,'+
-                '       n.class as _class, ' +
-                '       l.feature_count as feature_count,'+
-                '       n.common_names_eng as names,' +
-                '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent, ' +
-                '       l.data_table as data_table ' +
-                'FROM layer_metadata_beta l ' +
-                'LEFT JOIN types t ON ' +
-                '       l.type = t.type ' +
-                'LEFT JOIN providers p ON ' +
-                '       l.provider = p.provider ' +
-                'LEFT JOIN taxonomy n ON ' +
-                '       l.scientificname = n.scientificname ' +
-                'WHERE ' +
-                "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}'";
+                    'SELECT DISTINCT l.scientificname as name,'+
+                    '       l.type as type,'+
+                    '       t.title as type_title,'+
+                    '       CONCAT(l.provider,\'\') as source, '+
+                    '       CONCAT(p.title,\'\') as source_title,'+
+                    '       CONCAT(n.class,\'\') as _class, ' +
+                    '       l.feature_count as feature_count,'+
+                    '       CONCAT(n.common_names_eng,\'\') as names,' +
+                    '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent, ' +
+                    '       l.data_table as data_table, ' +
+                    '       d.style_table as style_table ' +
+                    'FROM layer_metadata_beta l ' +
+                    'LEFT JOIN data_registry d ON ' +
+                    '       l.data_table = d.table_name ' +
+                    'LEFT JOIN types t ON ' +
+                    '       l.type = t.type ' +
+                    'LEFT JOIN providers p ON ' +
+                    '       l.provider = p.provider ' +
+                    'LEFT JOIN taxonomy n ON ' +
+                    '       l.scientificname = n.scientificname ' +
+                    'WHERE ' +
+                    "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}'";
         },
         start: function() {
             this.loadTerm();

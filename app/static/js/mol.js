@@ -3237,7 +3237,7 @@ mol.modules.map.dashboard = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.sql = '' +
-                    'select * from get_dashboard_counts() order by provider, taxa;';
+                    'select DISTINCT * from get_dashboard_metadata() order by provider, taxa;';
             },
             /**
              * Starts the MenuEngine. Note that the container parameter is
@@ -3281,26 +3281,23 @@ mol.modules.map.dashboard = function(mol) {
                 );
 
                 _.each(
-                    this.display.providers,
-                    function(tr) {
-                        var provider = $(tr).attr('class').replace('provider','').trim(),
-                            type = $(tr).find('.type').attr('class').replace('type','').trim();
-                        _.each(
-                            $(tr).find('.class'),
-                            function(td) {
-                                $(td).click (
-                                    function(event) {
-                                        var _class = $(td).attr('class').replace('class','').trim();
-                                        self.bus.fireEvent(new mol.bus.Event('metadata-toggle',{ params :{provider: provider, type: type, _class: _class, text: $(this).text()}}));
-                                    }
-                                )
+                    this.display.datasets,
+                    function(dataset) {
+                        var provider = $(dataset).find('.provider').attr('class').replace('provider','').trim(),
+                            type = $(dataset).find('.type').attr('class').replace('type','').trim(),
+                            _class = $(dataset).find('.class').attr('class').replace('class','').trim(),
+                            data_table = $(dataset).find('.table').attr('class').replace('table','').trim();
+
+                        $(dataset).find('.provider').click (
+                            function(event) {
+                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle',{ params :{provider: provider, type: type, _class: _class, text: data_table}}));
                             }
-                        )
+                        );
 
                     }
                 );
                 _.each(
-                    this.display.types,
+                    this.display.datasets.find('.type'),
                     function(td) {
                          var type = $(td).attr('class').replace('type','').trim();
                          $(td).click (
@@ -3322,7 +3319,7 @@ mol.modules.map.dashboard = function(mol) {
                 $.post(
                     'cache/get',
                     {
-                        key: 'dashboard-0825201244',
+                        key: 'dashboard-0830201248',
                         sql: this.sql
                     },
                     function(response) {
@@ -3330,7 +3327,8 @@ mol.modules.map.dashboard = function(mol) {
                         self.display.dialog(
                             {
                                 autoOpen: false,
-                                width: 1000,
+                                width: 850,
+                                height:400,
                                 dialogClass: "mol-Dashboard"
                             }
                         );
@@ -3350,14 +3348,15 @@ mol.modules.map.dashboard = function(mol) {
                     '  <div class="dashboard">' +
                     '  <div class="title">Dashboard</div>' +
                     '  <div class="subtitle">Statistics for data served by the Map of Life</div>' +
-                    '  <table>' +
+                    '  <table class="dashtable">' +
                     '   <thead>' +
                     '    <tr>' +
-                    '      <th width="50px"><b>Type</b></th>' +
-                    '      <th width="100px"><b>Source</b></th>' +
-                    '      <th><b>Taxa</b></th>' +
-                    '      <th width="50px"><b>Species names</b></th>' +
-                    '      <th width="50px"><b>Records</b></th>' +
+                    '      <th><b>Dataset</b></th>' +
+                    '      <th><b>Type</b></th>' +
+                    '      <th><b>Source</b></th>' +
+                    '      <th><b>Class</b></th>' +
+                    '      <th><b>Species names</b></th>' +
+                    '      <th><b>Records</b></th>' +
                     '    </tr>' +
                     '   </thead>' +
                     '   <tbody class="dashbody">' +
@@ -3373,8 +3372,13 @@ mol.modules.map.dashboard = function(mol) {
                          $(self).find('.dashbody').append(new mol.map.dashboard.DashboardRowDisplay(row));
                     }
                 )
-                this.providers = $(this).find('.provider');
-                this.types = $(this).find('.type');
+                this.dashtable = $(this).find('.dashtable');
+                this.dashtable.tablesorter(
+                    { headers: { 0: { sorter: false}}, widthFixed: true}
+                );
+                this.datasets = $(this).find('.dataset');
+
+
 
 
 
@@ -3385,14 +3389,15 @@ mol.modules.map.dashboard = function(mol) {
         {
             init: function(row) {
                 var html = '' +
-                    '    <tr>' +
+                    '    <tr class="dataset">' +
+                    '      <td class="table {7}">{7}</td>' +
                     '      <td class="type {0}">{1}</td>' +
                     '      <td class="provider {2}">{3}</td>' +
-                    '      <td>{4}</td>' +
+                    '      <td class="class {4}">{4}</td>' +
                     '      <td>{5}</td>' +
                     '      <td>{6}</td>' +
                     '    </tr>';
-                this._super(html.format(row.type_id, row.type, row.provider_id, row.provider, row.taxa, row.species_count,row.feature_count));
+                this._super(html.format(row.type_id, row.type, row.provider_id, row.provider, row.taxa, row.species_count,row.feature_count, row.data_table));
             }
          }
     );
@@ -4267,7 +4272,7 @@ mol.modules.map.metadata = function(mol) {
             getLayerMetadata: function (layer) {
                   var self = this,
                     sql = this.sql['layer'].format(layer.name, layer.type, layer.source),
-                    params = {sql:sql, key: 'lm529-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
+                    params = {sql:sql, key: 'lm529-{0}-{1}-{2}-{3}'.format(layer.name, layer.type, layer.source,Math.random())},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {layer:layer, response:response};
@@ -5010,25 +5015,28 @@ mol.modules.map.boot = function(mol) {
             this.bus = bus;
             this.IE8 = false;
             this.sql = '' +
-                'SELECT DISTINCT l.scientificname as name,'+
-                '       l.type as type,'+
-                '       t.title as type_title,'+
-                '       l.provider as source, '+
-                '       p.title as source_title,'+
-                '       n.class as _class, ' +
-                '       l.feature_count as feature_count,'+
-                '       n.common_names_eng as names,' +
-                '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent, ' +
-                '       l.data_table as data_table ' +
-                'FROM layer_metadata_beta l ' +
-                'LEFT JOIN types t ON ' +
-                '       l.type = t.type ' +
-                'LEFT JOIN providers p ON ' +
-                '       l.provider = p.provider ' +
-                'LEFT JOIN taxonomy n ON ' +
-                '       l.scientificname = n.scientificname ' +
-                'WHERE ' +
-                "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}'";
+                    'SELECT DISTINCT l.scientificname as name,'+
+                    '       l.type as type,'+
+                    '       t.title as type_title,'+
+                    '       CONCAT(l.provider,\'\') as source, '+
+                    '       CONCAT(p.title,\'\') as source_title,'+
+                    '       CONCAT(n.class,\'\') as _class, ' +
+                    '       l.feature_count as feature_count,'+
+                    '       CONCAT(n.common_names_eng,\'\') as names,' +
+                    '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent, ' +
+                    '       l.data_table as data_table, ' +
+                    '       d.style_table as style_table ' +
+                    'FROM layer_metadata_beta l ' +
+                    'LEFT JOIN data_registry d ON ' +
+                    '       l.data_table = d.table_name ' +
+                    'LEFT JOIN types t ON ' +
+                    '       l.type = t.type ' +
+                    'LEFT JOIN providers p ON ' +
+                    '       l.provider = p.provider ' +
+                    'LEFT JOIN taxonomy n ON ' +
+                    '       l.scientificname = n.scientificname ' +
+                    'WHERE ' +
+                    "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}'";
         },
         start: function() {
             this.loadTerm();
