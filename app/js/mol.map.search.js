@@ -12,7 +12,7 @@ mol.modules.map.search = function(mol) {
                 this.bus = bus;
                 this.searching = {};
                 this.names = [];
-                this.sql = '' +
+                this.sql = '' + //TODO replace with postgres function (issue #126) 
                 'SELECT DISTINCT l.scientificname as name,'+
                 '       l.type as type,'+
                 '       t.title as type_title,'+
