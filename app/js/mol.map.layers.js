@@ -201,7 +201,7 @@ mol.modules.map.layers = function(mol) {
                         self.bus.fireEvent(new mol.bus.Event('show-layer-display-toggle'));
 
                         // Set initial opacity based on layer type.
-                        //TODO, pull this from the types metadata table instead
+                        //TODO, pull this from the types metadata table instead (issue #125)
                         switch (layer.type) {
                         case 'points':
                             opacity = 1.0;
@@ -271,7 +271,8 @@ mol.modules.map.layers = function(mol) {
                                 event.cancelBubble = true;
                             }
                         );
-                        // Click handler for style toggle button fires 'apply-layer-style'. This will be replaced by a style picker widget.
+                        // Click handler for style toggle button fires 'apply-layer-style'
+                        //TODO replace with a style picker widget (issue #124)
                         l.styler.click(
                             function(event) {
                                 var params = {
