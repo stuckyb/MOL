@@ -196,6 +196,7 @@ mol.modules.map.query = function(mol) {
                     'species-list-query-results',
                     function (event) {
                         var content,
+                            dlConent,
                             className,
                             listradius  = event.listradius,
                             tablerows = [],
@@ -270,23 +271,25 @@ mol.modules.map.query = function(mol) {
                             stats = (speciesthreatened > 0) ? ('('+speciesthreatened+' considered threatened by <a href="http://www.iucnredlist.org" target="_iucn">IUCN</a> '+years.join(',')+')') : '';
 
                             if (speciestotal > 0) {
-                                content=$('' +
-                                          '<div class="mol-Map-ListQueryInfoWindow" style="height:'+ height+'px">' +
-                                          '    <div>' +
-                                                   stats +
-                                          '        <br>' +
-                                          '        Data type/source:&nbsp;' + providers.join(', ') + '.&nbsp;All&nbsp;seasonalities.<br>' +
-                                          '        <a href="http://mol.cartodb.com/api/v2/sql?q='+event.sql+'&format=csv">download csv</a>' +
-                                          '    </div> ' +
-                                          '    <div> ' +
-                                          '        <table class="tablesorter">' +
-                                          '            <thead><tr><th></th><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>Rank&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th><th>IUCN&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th></tr></thead>' +
-                                          '            <tbody class="tablebody">' +
-                                          tablerows.join('') +
-                                          '            </tbody>' +
-                                          '        </table>' +
-                                          '    </div>' +
-                                          '</div>');
+                                content = $('<div class="mol-Map-ListQueryInfoWindow">' +
+                                    '   <div>' + 
+                                           'Data type/source:&nbsp;' + providers.join(', ') + '.&nbsp;All&nbsp;seasonalities.<br>' +
+                                    '   </div> ' +
+                                    '   <div> ' +
+                                    '       <table class="tablesorter">' +
+                                    '           <thead><tr><th></th><th>Scientific Name</th><th>English Name</th><th>Order</th><th>Family</th><th>Rank&nbsp;&nbsp;&nbsp;</th><th>IUCN&nbsp;&nbsp;</th></tr></thead>' +
+                                    '           <tbody class="tablebody">' +
+                                                    tablerows.join('') +
+                                    '           </tbody>' +
+                                    '       </table>' +
+                                    '   </div>' +
+                                    '</div>');
+                                    
+                                dlContent = $('<div class="mol-Map-ListQueryInfoWindow">' +
+                                    '   <div>' +
+                                           '<a href="http://mol.cartodb.com/api/v2/sql?q='+event.sql+'&format=csv" class="mol-Map-ListQueryDownload">download csv</a>' +
+                                    '   </div> ' +
+                                    '</div>');
                             } else {
                                 content = $(''+
                                             '<div class="mol-Map-ListQueryEmptyInfoWindow">' +
@@ -297,10 +300,13 @@ mol.modules.map.query = function(mol) {
                                             Math.abs(Math.round(listradius.center.lng()*1000)/1000) + '&deg;&nbsp;' + lngHem +
                                             '       </b>' +
                                             '</div>');
+                                            
+                                dlContent = $('<div class="mol-Map-ListQueryEmptyInfoWindow">' +
+                                    '       <b>No list to download</b>' +
+                                    '   </div>');
                             }
 
                             listWindow = new mol.map.query.listDisplay();
-                            listWindow.html(content[0]);
 
                             self.features[listradius.center.toString()+listradius.radius] = {
                                 listradius : listradius,
@@ -319,8 +325,18 @@ mol.modules.map.query = function(mol) {
                             });
                                                       
                             $(".mol-Map-ListDialog").parent().bind("resize", function(){ 
-                                $(".mol-Map-ListQueryInfoWindow").height($(".mol-Map-ListDialog").height()-75); 
+                                $(".mol-Map-ListQueryInfoWindow").height($(".mol-Map-ListDialog").height()-115); 
                             });
+                            
+                            $(function() {
+                                listTabs = $("#tabs").tabs();
+                                
+                                $("#tabs > #listTab").html(content[0]);
+                                $("#tabs > #dlTab").html(dlContent[0]);
+                                
+                                $(".mol-Map-ListQueryDownload").button();
+                                $(".mol-Map-ListQueryInfoWindow").height($(".mol-Map-ListDialog").height()-115);
+                            })
                             
                             self.features[listradius.center.toString()+listradius.radius] = {
                                 listradius : listradius,
@@ -522,7 +538,17 @@ mol.modules.map.query = function(mol) {
     mol.map.query.listDisplay = mol.mvp.View.extend({
         init : function() {
             var html = '' + 
-                '<div class="mol-Map-ListDialogContent">' +
+                '<div class="mol-Map-ListDialogContent ui-tabs" id="tabs">' +
+                '   <ul class="ui-tabs-nav">' +
+                '      <li><a href="#listTab">List</a></li>' + 
+                '      <li><a href="#imagesTab">Images</a></li>' +
+                '      <li><a href="#iucnTab">IUCN</a></li>' + 
+                '      <li><a href="#dlTab">Download</a></li>' + 
+                '   </ul>' + 
+                '   <div id="listTab" class="ui-tabs-panel">Second Content.</div>' +
+                '   <div id="imagesTab" class="ui-tabs-panel"><div><span id="imgTotals"></span>Coming Soon. Source: <a href="http://eol.org/" target="_blank">Encyclopedia of Life</a></div><ul id="gallery" style="overflow: auto;"></ul></div>' +
+                '   <div id="iucnTab" class="ui-tabs-panel">Highlight of IUCN concern species. Coming Soon.</div>' +
+                '   <div id="dlTab" class="ui-tabs-panel">Download.</div>' +
                 '</div>';
             this._super(html);
         }
