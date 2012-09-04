@@ -212,8 +212,7 @@ mol.modules.map.query = function(mol) {
                             stats,
                             speciestotal = 0,
                             speciesthreatened = 0,
-                            speciesdd = 0,
-                            iucnList = [];
+                            speciesdd = 0;
 
                         // TODO: This if statement is insane. Need to break this apart into functions. See Github issue #114
                         if (!event.response.error) {
@@ -221,51 +220,26 @@ mol.modules.map.query = function(mol) {
                             latHem = (listradius.center.lat() > 0) ? 'N' : 'S';
                             lngHem = (listradius.center.lng() > 0) ? 'E' : 'W';
                             
-                            iucnList  = [
-                                        ['IUCN Status', 'Count'],
-                                        ['LC',0],
-                                        ['NT',0],
-                                        ['VU',0],
-                                        ['EN',0],
-                                        ['CR',0],
-                                        ['EW',0],
-                                        ['EX',0]
-                                    ];
-                            
                             _.each(
                                 event.response.rows,
                                 function(row) {
                                     var english = (row.english != null) ? _.uniq(row.english.split(',')).join(',') : '',
                                         year = (row.year_assessed != null) ? _.uniq(row.year_assessed.split(',')).join(',') : '',
-                                        redlist = (row.redlist != null) ? _.uniq(row.redlist.split(',')).join(',') : '';
+                                        redlist = (row.redlist != null) ? _.uniq(row.redlist.split(',')).join(',') : '',
+                                        tclass = "";
                                         
-                                    //parse iucn statuses here
+                                    //create a class for the three threatened iucn classes
+                                    //this will be used in the list formatting, in the near future
                                     switch(redlist) {
-                                        case "LC":
-                                            iucnList[1][1]++;
-                                            break;
-                                        case "NT":
-                                            iucnList[2][1]++;
-                                            break;
                                         case "VU":
-                                            iucnList[3][1]++;
                                             tclass = "iucnvu";
                                             break;
                                         case "EN":
-                                            iucnList[4][1]++;
                                             tclass = "iucnen";
                                             break;
                                         case "CR":
-                                            iucnList[5][1]++;
                                             tclass = "iucncr";
                                             break;
-                                        case "EW":
-                                            iucnList[6][1]++;
-                                            break;
-                                        case "EX":
-                                            iucnList[7][1]++;
-                                            break;
-                                            
                                     }
 
                                     tablerows.push("" +
@@ -390,7 +364,8 @@ mol.modules.map.query = function(mol) {
                                 //chart creation
                                 $("#iucnChartDiv").height($(".mol-Map-ListDialog").height()-130);
 
-                                var iucndata = google.visualization.arrayToDataTable(iucnList);
+                                var iucnlist = self.getRedListCounts(event.response.rows);
+                                var iucndata = google.visualization.arrayToDataTable(iucnlist);
                         
                                 var options = {
                                     width: 605,
@@ -405,7 +380,7 @@ mol.modules.map.query = function(mol) {
                                 chart.draw(iucndata, options);
                                 
                                 listTabs.tabs("select", 0);
-                            })
+                            });
                             
                             self.features[listradius.center.toString()+listradius.radius] = {
                                 listradius : listradius,
@@ -555,6 +530,53 @@ mol.modules.map.query = function(mol) {
                         }
                     }
                 );
+            },
+                    
+            /*
+             * Bins the IUCN species for a list query request into categories and returns an associate array with totals
+             */
+            getRedListCounts: function(rows) {
+                
+                var iucnListArray = [
+                        ['IUCN Status', 'Count'],
+                        ['LC',0],
+                        ['NT',0],
+                        ['VU',0],
+                        ['EN',0],
+                        ['CR',0],
+                        ['EW',0],
+                        ['EX',0]
+                    ];
+                
+                _.each(rows, function(row) {     
+                    var redlist = (row.redlist != null) ? _.uniq(row.redlist.split(',')).join(',') : '';
+                        
+                    switch(redlist) {
+                        case "LC":
+                            iucnListArray[1][1]++;
+                            break;
+                        case "NT":
+                            iucnListArray[2][1]++;
+                            break;
+                        case "VU":
+                            iucnListArray[3][1]++;
+                            break;
+                        case "EN":
+                            iucnListArray[4][1]++;
+                            break;
+                        case "CR":
+                            iucnListArray[5][1]++;
+                            break;
+                        case "EW":
+                            iucnListArray[6][1]++;
+                            break;
+                        case "EX":
+                            iucnListArray[7][1]++;
+                            break;
+                    }           
+                });
+                
+                return iucnListArray;
             }
         }
     );
