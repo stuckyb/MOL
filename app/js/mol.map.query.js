@@ -212,7 +212,11 @@ mol.modules.map.query = function(mol) {
                             stats,
                             speciestotal = 0,
                             speciesthreatened = 0,
-                            speciesdd = 0;
+                            speciesdd = 0,
+                            iucnlist,
+                            iucndata,
+                            options,
+                            chart;
 
                         // TODO: This if statement is insane. Need to break this apart into functions. See Github issue #114
                         if (!event.response.error) {
@@ -352,22 +356,23 @@ mol.modules.map.query = function(mol) {
                             });
                             
                             $(function() {
-                                listTabs = $("#tabs").tabs();
+                                var listTabs = $("#tabs").tabs();
                                 
                                 $("#tabs > #listTab").html(content[0]);
                                 $("#tabs > #dlTab").html(dlContent[0]);
                                 $("#tabs > #iucnTab").html(iucnContent[0]);
                                 
                                 $(".mol-Map-ListQueryDownload").button();
-                                $(".mol-Map-ListQueryInfoWindow").height($(".mol-Map-ListDialog").height()-115);
+                                var mmlHeight = $(".mol-Map-ListDialog").height();
+                                $(".mol-Map-ListQueryInfoWindow").height(mmlHeight-115);
                                 
                                 //chart creation
-                                $("#iucnChartDiv").height($(".mol-Map-ListDialog").height()-130);
+                                $("#iucnChartDiv").height(mmlHeight-130);
 
-                                var iucnlist = self.getRedListCounts(event.response.rows);
-                                var iucndata = google.visualization.arrayToDataTable(iucnlist);
+                                iucnlist = self.getRedListCounts(event.response.rows);
+                                iucndata = google.visualization.arrayToDataTable(iucnlist);
                         
-                                var options = {
+                                options = {
                                     width: 605,
                                     height: $("#iucnChartDiv").height(),
                                     backgroundColor: 'transparent',
@@ -376,7 +381,7 @@ mol.modules.map.query = function(mol) {
                                     chartArea: {left:125,top:25,width:"100%",height:"85%"}
                                 };
                         
-                                var chart = new google.visualization.PieChart(document.getElementById('iucnChartDiv'));
+                                chart = new google.visualization.PieChart(document.getElementById('iucnChartDiv'));
                                 chart.draw(iucndata, options);
                                 
                                 listTabs.tabs("select", 0);
@@ -546,10 +551,10 @@ mol.modules.map.query = function(mol) {
                         ['CR',0],
                         ['EW',0],
                         ['EX',0]
-                    ];
+                    ], redlist;
                 
                 _.each(rows, function(row) {     
-                    var redlist = (row.redlist != null) ? _.uniq(row.redlist.split(',')).join(',') : '';
+                    redlist = (row.redlist != null) ? _.uniq(row.redlist.split(',')).join(',') : '';
                         
                     switch(redlist) {
                         case "LC":
