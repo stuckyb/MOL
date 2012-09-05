@@ -24,6 +24,7 @@ mol.modules.map.query = function(mol) {
                     '    pv.provider as provider, ' +
                     '    t.year_assessed as year_assessed, ' +
                     '    s.sequenceid as sequenceid, ' +
+                    '    eolthumbnailurl as eol_thumb_url, ' +
                     '    page_id as eol_page_id ' +
                     'FROM {3} p ' +
                     'LEFT JOIN eol e ' +
@@ -246,18 +247,26 @@ mol.modules.map.query = function(mol) {
                                             break;
                                     }
 
-                                    tablerows.push("" +
-                                                   "<tr><td>" +
-                                                   "<button class='mapit' value='"+row.scientificname+"'>MAP</button>&nbsp;" +
-                                                   "<button class='eol' data-sciname='"+row.scientificname+"' value='"+row.eol_page_id+"'>EOL</button>&nbsp;"+
-                                                   "<button class='wiki' data-wikiname='"+row.scientificname+"'>WIKI</button></td>" +
-                                                   "<td class='wiki' data-wikiname='"+row.scientificname+"'>" +
-                                                   row.scientificname + "</td><td class='wiki english' data-wikiname='"+row.scientificname+"'>" +
-                                                   ((english != null) ? english : '') + "</td><td class='wiki' data-wikiname='"+row.order+"'>" +
-                                                   ((row.order != null) ? row.order : '')+ "</td><td class='wiki' data-wikiname='"+row.family+"'>" +
-                                                   ((row.family != null) ? row.family : '')+ "</td><td>" +
-                                                   ((row.sequenceid != null) ? row.sequenceid : '')+ "</td><td class='iucn' data-scientificname='"+row.scientificname+"'>" +
-                                                   ((redlist != null) ? redlist : '') + "</td></tr>");
+                                    //list row header
+                                    tablerows.push(""+
+                                        "<tr class='" + tclass + "'>" + 
+                                        "   <td class='arrowBox'>" + 
+                                        "       <div class='arrow'></div>" + 
+                                        "   </td>" +
+                                        "   <td class='wiki sci' value='" + row.eol_thumb_url + "'>" + row.scientificname + "</td>" + 
+                                        "   <td class='wiki english' value='" + row.eol_media_url + "' eol-page='" + row.eol_page_id + "'>" + ((english != null) ? english : '') + "</td>" + 
+                                        "   <td class='wiki'>" + ((row.order != null) ? row.order : '')+ "</td>" + 
+                                        "   <td class='wiki'>" + ((row.family != null) ? row.family : '')+ "</td>" + 
+                                        "   <td>" + ((row.sequenceid != null) ? row.sequenceid : '')+ "</td>" + 
+                                        "   <td class='iucn' data-scientificname='" + row.scientificname + "'>" + ((redlist != null) ? redlist : '') + "</td>" + 
+                                        "</tr>");
+                                        
+                                    //list row collapsible content
+                                    tablerows.push("" + 
+                                        "<tr class='expand-child'>" + 
+                                        "   <td colspan='7' value='" + row.scientificname + "'></td>" + 
+                                        "</tr>");           
+                                                   
                                     providers.push('<a class="type {0}">{1}</a>, <a class="provider {2}">{3}</a>'.format(row.type,row.type_title,row.provider,row.provider_title));
                                     if (year != null && year != '') {
                                         years.push(year);
@@ -360,6 +369,8 @@ mol.modules.map.query = function(mol) {
                                 $(".mol-Map-ListQueryInfoWindow").height($(".mol-Map-ListDialog").height()-115); 
                             });
                             
+                            //tabs() function needs document ready to
+                            //have been called on the dialog content
                             $(function() {
                                 var listTabs = $("#tabs").tabs();
                                 
@@ -646,7 +657,7 @@ mol.modules.map.query = function(mol) {
                 '      <li><a href="#iucnTab">IUCN</a></li>' + 
                 '      <li><a href="#dlTab">Download</a></li>' + 
                 '   </ul>' + 
-                '   <div id="listTab" class="ui-tabs-panel">Second Content.</div>' +
+                '   <div id="listTab" class="ui-tabs-panel">Content.</div>' +
                 '   <div id="imagesTab" class="ui-tabs-panel"><div><span id="imgTotals"></span>Coming Soon. Source: <a href="http://eol.org/" target="_blank">Encyclopedia of Life</a></div><ul id="gallery" style="overflow: auto;"></ul></div>' +
                 '   <div id="iucnTab" class="ui-tabs-panel">Highlight of IUCN concern species. Coming Soon.</div>' +
                 '   <div id="dlTab" class="ui-tabs-panel">Download.</div>' +
