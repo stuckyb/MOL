@@ -373,6 +373,8 @@ mol.modules.map.query = function(mol) {
                             //tabs() function needs document ready to
                             //have been called on the dialog content
                             $(function() {
+                                var mmlHeight;
+                                
                                 //initialize tabs and set height
                                 listTabs = $("#tabs").tabs();
                                 
@@ -381,7 +383,7 @@ mol.modules.map.query = function(mol) {
                                 $("#tabs > #iucnTab").html(iucnContent[0]);
                                 
                                 $(".mol-Map-ListQueryDownload").button();
-                                var mmlHeight = $(".mol-Map-ListDialog").height();
+                                mmlHeight = $(".mol-Map-ListDialog").height();
                                 $(".mol-Map-ListQueryInfoWindow").height(mmlHeight-115);
                                 
                                 //list table creation
@@ -458,8 +460,6 @@ mol.modules.map.query = function(mol) {
                                     if ($(iucn).data('scientificname') != '') {
                                         $(iucn).click(
                                             function(event) {
-                                                console.log("iucn click");
-                                                console.log($(this).data('scientificname'));
                                                 var win = window.open('' + 
                                                 'http://www.iucnredlist.org/apps/redlist/search/external?text=' 
                                                 +$(this).data('scientificname'));
@@ -562,7 +562,8 @@ mol.modules.map.query = function(mol) {
                     ], redlist;
                 
                 _.each(rows, function(row) {     
-                    redlist = (row.redlist != null) ? _.uniq(row.redlist.split(',')).join(',') : '';
+                    redlist = (row.redlist != null) ? 
+                        _.uniq(row.redlist.split(',')).join(',') : '';
                         
                     switch(redlist) {
                         case "LC":
@@ -623,7 +624,7 @@ mol.modules.map.query = function(mol) {
                     "&redirects=" +
                     "exintro=" + 
                     "&iwurl=" + 
-                    "&titles=" + qs +
+                    "&titles=" + unescape(qs) +
                     "&exchars=275",
                     function(data, textStatus, jqXHR) {
                         
@@ -633,7 +634,8 @@ mol.modules.map.query = function(mol) {
                             a,
                             imgtitle,
                             req,
-                            reqs;
+                            reqs,
+                            i;
     
                         if(textStatus == "success")
                         {
@@ -642,37 +644,55 @@ mol.modules.map.query = function(mol) {
                                 if(e != -1)
                                 {
                                     prop = data.query.pages[e];
-                                    wikidata = prop.extract.replace('...','');
-                                    wikidata = wikidata.replace('<b>','<strong>');
-                                    wikidata = wikidata.replace('<i>','<em>');
-                                    wikidata = wikidata.replace('</b>','</strong>');
-                                    wikidata = wikidata.replace('</i>','</em>');
-                                    wikidata = wikidata.replace('<br />', "");
-                                    wikidata = wikidata.replace(/<p>/g, '<div>');
-                                    wikidata = wikidata.replace(/<\/p>/g,'</div>');
-                                    wikidata = wikidata.replace(/<h2>/g, '<strong>');
-                                    wikidata = wikidata.replace(/<\/h2>/g,'</strong>');
-                                    wikidata = wikidata.replace(/<h3>/g, '<strong>');
-                                    wikidata = wikidata.replace(/<\/h3>/g,'</strong>');
-                                    wikidata = wikidata.replace(/\n/g, "");
-                                    wikidata = wikidata.replace('</div>\n<div>', " ");
-                                    wikidata = wikidata.replace('</div><div>', " ");
-                                    wikidata = wikidata.replace('</div><strong>', " <strong> ");
-                                    wikidata = wikidata.replace('</strong><div>', " </strong> ");                              
+                                    wikidata = prop.extract.replace('...',
+                                        '');
+                                    wikidata = wikidata.replace('<b>',
+                                        '<strong>');
+                                    wikidata = wikidata.replace('<i>',
+                                        '<em>');
+                                    wikidata = wikidata.replace('</b>',
+                                        '</strong>');
+                                    wikidata = wikidata.replace('</i>',
+                                        '</em>');
+                                    wikidata = wikidata.replace('<br />',
+                                        "");
+                                    wikidata = wikidata.replace(/<p>/g,
+                                        '<div>');
+                                    wikidata = wikidata.replace(/<\/p>/g,
+                                        '</div>');
+                                    wikidata = wikidata.replace(/<h2>/g,
+                                        '<strong>');
+                                    wikidata = wikidata.replace(/<\/h2>/g,
+                                        '</strong>');
+                                    wikidata = wikidata.replace(/<h3>/g,
+                                        '<strong>');
+                                    wikidata = wikidata.replace(/<\/h3>/g,
+                                        '</strong>');
+                                    wikidata = wikidata.replace(/\n/g,
+                                        "");
+                                    wikidata = wikidata.replace('</div>\n<div>',
+                                        " ");
+                                    wikidata = wikidata.replace('</div><div>',
+                                        " ");
+                                    wikidata = wikidata.replace('</div><strong>',
+                                        " <strong> ");
+                                    wikidata = wikidata.replace('</strong><div>',
+                                        " </strong> ");                              
                                     
                                     $(row).next().find('td').html(wikidata);
                                     $(row).next().find('td div br').remove();
         
                                     a = prop.images;
                                     
-                                    for(var i=0;i < a.length;i++)
+                                    for(i=0;i < a.length;i++)
                                     {
                                         imgtitle = a[i].title;
                                         
                                         req = new RegExp(unescape(q), "i");
                                         reqs = new RegExp(unescape(qs), "i");
                                         
-                                        if(imgtitle.search(req) != -1 || imgtitle.search(reqs) != -1)
+                                        if(imgtitle.search(req) != -1 || 
+                                           imgtitle.search(reqs) != -1)
                                         {
                                             wikiimg = imgtitle;
                                             break;
@@ -683,13 +703,21 @@ mol.modules.map.query = function(mol) {
                             
                             if(eolimg != "null")
                             {
-                                $('<a href="' + 'http://eol.org/pages/' + eolpage + '" target="_blank"><img src="' + eolimg + '" style="float:left; margin:0 4px 0 0;"/></a>').prependTo($(row).next().find('td'));
-                                $(row).next().find('td div:last').append('' + 
-                                    '... (Text Source:<a href="http://en.wikipedia.com/wiki/' + 
-                                    unescape(qs).replace(/ /g, '_') + 
-                                    '" target="_blank">Wikipedia</a>; Image Source:<a href="http://eol.org/pages/' + 
+                                $('<a href="http://eol.org/pages/' + 
                                     eolpage + 
-                                    '" target="_blank">EOL</a>)<p><button class="mapButton" value="' + 
+                                    '" target="_blank"><img src="' + 
+                                    eolimg + 
+                                    '" style="float:left; margin:0 4px 0 0;"/>' +
+                                    '</a>').prependTo($(row).next().find('td'));
+                                $(row).next().find('td div:last').append('' + 
+                                    '... (Text Source:' + 
+                                    '<a href="http://en.wikipedia.com/wiki/' + 
+                                    unescape(qs).replace(/ /g, '_') + 
+                                    '" target="_blank">Wikipedia</a>;' + 
+                                    ' Image Source:<a href="http://eol.org/pages/' + 
+                                    eolpage + 
+                                    '" target="_blank">EOL</a>)' + 
+                                    '<p><button class="mapButton" value="' + 
                                     unescape(qs) + '">Map</button></p>');
                             }
                             else if(wikiimg != null)
@@ -706,28 +734,37 @@ mol.modules.map.query = function(mol) {
                                 '&titles=' + wikiimg,
                                 function(data, textStatus, jqXHR) {
                                     
-                                        var imgurl,
-                                            z;
-                                    
-                                        if(textStatus == "success")
-                                        {        
-                                            for(var x in data.query.pages)
-                                            {
-                                                z = data.query.pages[x];                          
-                                                imgurl = z.imageinfo[0].thumburl;
-                                                
-                                                $('<a href="' + 'http://en.wikipedia.com/wiki/' + unescape(qs).replace(/ /g, '_') + '" target="_blank"><img src="' + imgurl + '" style="float:left; margin:0 4px 0 0;"/>').prependTo($(row).next().find('td'));
-                                                $(row).next().find('td div:last').append('' + 
-                                                    '... (Text Source:<a href="http://en.wikipedia.com/wiki/' + 
-                                                    unescape(qs).replace(/ /g, '_') + 
-                                                    '" target="_blank">Wikipedia</a>; Image Source:<a href="http://en.wikipedia.com/wiki/' + 
-                                                    wikiimg + 
-                                                    '" target="_blank">Wikipedia</a>)<p><button class="mapButton" value="' + 
-                                                    unescape(qs) + '">Map</button></p>');
-                                            }
-                                        }  
-                                    }, 'jsonp'
-                                );
+                                    var imgurl,
+                                        z;
+                                
+                                    if(textStatus == "success")
+                                    {        
+                                        for(var x in data.query.pages)
+                                        {
+                                            z = data.query.pages[x];                          
+                                            imgurl = z.imageinfo[0].thumburl;
+                                            
+                                            $('<a href="http://en.wikipedia.com/wiki/' +
+                                             unescape(qs).replace(/ /g, '_') + 
+                                             '" target="_blank"><img src="' + 
+                                             imgurl + 
+                                             '" style="float:left; margin:0 4px 0 0;"/>')
+                                                .prependTo($(row)
+                                                    .next()
+                                                        .find('td'));
+                                            $(row).next().find('td div:last')
+                                                .append('' + 
+                                                '... (Text Source:<a href="http://en.wikipedia.com/wiki/' + 
+                                                unescape(qs).replace(/ /g, '_') + 
+                                                '" target="_blank">Wikipedia</a>;' + 
+                                                ' Image Source:<a href="http://en.wikipedia.com/wiki/' + 
+                                                wikiimg + 
+                                                '" target="_blank">Wikipedia</a>)' + 
+                                                '<p><button class="mapButton" value="' + 
+                                                unescape(qs) + '">Map</button></p>');
+                                        }
+                                    }  
+                                }, 'jsonp');
                             }
                             
                             //check for link to eol, if true, add button
@@ -737,19 +774,23 @@ mol.modules.map.query = function(mol) {
                                 '<button class="eolButton" value="http://eol.org/pages/' + 
                                 eolpage + '">Encyclopedia of Life</button>');
                                 
-                                $('button.eolButton[value="http://eol.org/pages/' + eolpage + '"]').click(function(event) {
+                                $('button.eolButton[value="http://eol.org/pages/' +
+                                    eolpage + '"]').click(function(event) {
                                     var win = window.open(event.target.value);
                                     win.focus();
                                 });
                             }
                             
-                            $(row).find('td.arrowBox').html("<div class='arrow up'></div>");                        
+                            $(row).find('td.arrowBox')
+                                .html("<div class='arrow up'></div>");                       
                         }
                         else
                         {
                             //put html in saying information unavailable...
-                            $(row).find('td.arrowBox').html("<div class='arrow up'></div>");
-                            $(row).next().find('td').html('<p>Description unavailable.</p>');
+                            $(row).find('td.arrowBox')
+                                .html("<div class='arrow up'></div>");
+                            $(row).next().find('td')
+                                .html('<p>Description unavailable.</p>');
                         }
                         
                         $("button.mapButton").click(function(event) {
