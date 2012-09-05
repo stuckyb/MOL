@@ -373,6 +373,7 @@ mol.modules.map.query = function(mol) {
                             //tabs() function needs document ready to
                             //have been called on the dialog content
                             $(function() {
+                                //initialize tabs and set height
                                 listTabs = $("#tabs").tabs();
                                 
                                 $("#tabs > #listTab").html(content[0]);
@@ -382,6 +383,25 @@ mol.modules.map.query = function(mol) {
                                 $(".mol-Map-ListQueryDownload").button();
                                 var mmlHeight = $(".mol-Map-ListDialog").height();
                                 $(".mol-Map-ListQueryInfoWindow").height(mmlHeight-115);
+                                
+                                //list table creation
+                                $("table.tablesorter tr:odd").addClass("master");
+                                $("table.tablesorter tr:not(.master)").hide();
+                                $("table.tablesorter tr:first-child").show();                      
+                                $("table.tablesorter tr.master td.arrowBox").click(function(){                            
+                                    $(this).parent().next("tr").toggle();
+                                    $(this).parent().find(".arrow").toggleClass("up");
+                                    
+                                    if(!$(this).parent().hasClass('hasWiki'))
+                                    {
+                                        $(this).parent().addClass('hasWiki');
+                                        self.callWiki($(this).parent());
+                                    }
+                                        
+                                });
+                                $(".tablesorter", $(listWindow)).tablesorter({
+                                    sortList: [[5,0]] 
+                                });
                                 
                                 //chart creation
                                 $("#iucnChartDiv").height(mmlHeight-130);
@@ -411,54 +431,21 @@ mol.modules.map.query = function(mol) {
 
                             $(listWindow).dialog({
                                beforeClose: function(evt, ui) {
+                                   listTabs.tabs("destroy");
                                    $(".mol-Map-ListDialogContent").remove();
                                    listradius.setMap(null);
                                    delete (self.features[listradius.center.toString() + listradius.radius]);
                                }
                             });
 
-                            $(".tablesorter", $(listWindow)).tablesorter(
-                                { headers: { 0: { sorter: false}}, widthFixed: true}
-                            );
-
-                            _.each(
-                                $('.mapit',$(listWindow)),
-                                function(button) {
-                                    $(button).click(
-                                        function(event) {
-                                            self.bus.fireEvent(new mol.bus.Event('search',{term:$(button).val()}));
-                                        }
-                                    );
-                                }
-                            );
-
-                            _.each(
-                                $('.eol', $(listWindow)),
-                                function(button) {
-                                    if (button.value == '' || button.value == 'null') {
-                                        $(button).click(
-                                            function(event) {
-                                                var win = window.open('http://eol.org/search/?q={0}'.format($(this).data('sciname')));
-                                                win.focus();
-                                            }
-                                        );
-                                    } else {
-                                        $(button).click(
-                                            function(event) {
-                                                var win = window.open('http://eol.org/pages/{0}/overview'.format(this.value));
-                                                win.focus();
-                                            }
-                                        );
-                                    }
-                                }
-                            );
-
                             _.each(
                                 $('.wiki',$(listWindow)),
                                 function(wiki) {
                                     $(wiki).click(
                                         function(event) {
-                                            var win = window.open('http://en.wikipedia.com/wiki/'+$(this).data('wikiname').replace(/ /g, '_'));
+                                            var win = window.open('' + 
+                                                'http://en.wikipedia.com/wiki/' +
+                                                $(this).text().split(',')[0].replace(/ /g, '_'));
                                             win.focus();
                                         }
                                     );
@@ -466,12 +453,16 @@ mol.modules.map.query = function(mol) {
                             );
 
                             _.each(
-                                $('.iucn',$(listWindow.content)),
+                                $('.iucn',$(listWindow)),
                                 function(iucn) {
                                     if ($(iucn).data('scientificname') != '') {
                                         $(iucn).click(
                                             function(event) {
-                                                var win = window.open('http://www.iucnredlist.org/apps/redlist/search/external?text='+$(this).data('scientificname').replace(/ /g, '_'));
+                                                console.log("iucn click");
+                                                console.log($(this).data('scientificname'));
+                                                var win = window.open('' + 
+                                                'http://www.iucnredlist.org/apps/redlist/search/external?text=' 
+                                                +$(this).data('scientificname'));
                                                 win.focus();
                                             }
                                         );
@@ -599,6 +590,176 @@ mol.modules.map.query = function(mol) {
                 });
                 
                 return iucnListArray;
+            },
+            
+            /*
+             * Function to call Wikipedia and EOL image
+             */
+            
+            callWiki: function(row) {
+                var q,
+                    qs,
+                    eolimg,
+                    eolpage;
+                
+                $(row).find('td.arrowBox').html('' + 
+                    '<img src="/static/loading-small.gif" width="' + 
+                    $(row).find('td.arrowBox').height() +'" height="' + 
+                    $(row).find('td.arrowBox').width() + '" />');
+                
+                q = escape($(row).find('td.english').html());
+                qs = escape($(row).find('td.sci').html());
+                eolimg = $(row).find('td.sci').attr('value');
+                eolpage = $(row).find('td.english').attr('eol-page');
+                
+                $.post(
+                    "http://en.wikipedia.org/w/api.php?" + 
+                    "action=query" + 
+                    "&format=json" + 
+                    "&callback=test" + 
+                    "&prop=extracts|images" + 
+                    "&imlimit=10" + 
+                    "&exlimit=1" + 
+                    "&redirects=" +
+                    "exintro=" + 
+                    "&iwurl=" + 
+                    "&titles=" + qs +
+                    "&exchars=275",
+                    function(data, textStatus, jqXHR) {
+                        
+                        var wikidata,
+                            wikimg,
+                            prop,
+                            a,
+                            imgtitle,
+                            req,
+                            reqs;
+    
+                        if(textStatus == "success")
+                        {
+                            for(var e in data.query.pages)
+                            {                           
+                                if(e != -1)
+                                {
+                                    prop = data.query.pages[e];
+                                    wikidata = prop.extract.replace('...','');
+                                    wikidata = wikidata.replace('<b>','<strong>');
+                                    wikidata = wikidata.replace('<i>','<em>');
+                                    wikidata = wikidata.replace('</b>','</strong>');
+                                    wikidata = wikidata.replace('</i>','</em>');
+                                    wikidata = wikidata.replace('<br />', "");
+                                    wikidata = wikidata.replace(/<p>/g, '<div>');
+                                    wikidata = wikidata.replace(/<\/p>/g,'</div>');
+                                    wikidata = wikidata.replace(/<h2>/g, '<strong>');
+                                    wikidata = wikidata.replace(/<\/h2>/g,'</strong>');
+                                    wikidata = wikidata.replace(/<h3>/g, '<strong>');
+                                    wikidata = wikidata.replace(/<\/h3>/g,'</strong>');
+                                    wikidata = wikidata.replace(/\n/g, "");
+                                    wikidata = wikidata.replace('</div>\n<div>', " ");
+                                    wikidata = wikidata.replace('</div><div>', " ");
+                                    wikidata = wikidata.replace('</div><strong>', " <strong> ");
+                                    wikidata = wikidata.replace('</strong><div>', " </strong> ");                              
+                                    
+                                    $(row).next().find('td').html(wikidata);
+                                    $(row).next().find('td div br').remove();
+        
+                                    a = prop.images;
+                                    
+                                    for(var i=0;i < a.length;i++)
+                                    {
+                                        imgtitle = a[i].title;
+                                        
+                                        req = new RegExp(unescape(q), "i");
+                                        reqs = new RegExp(unescape(qs), "i");
+                                        
+                                        if(imgtitle.search(req) != -1 || imgtitle.search(reqs) != -1)
+                                        {
+                                            wikiimg = imgtitle;
+                                            break;
+                                        }
+                                    } 
+                                }
+                            }
+                            
+                            if(eolimg != "null")
+                            {
+                                $('<a href="' + 'http://eol.org/pages/' + eolpage + '" target="_blank"><img src="' + eolimg + '" style="float:left; margin:0 4px 0 0;"/></a>').prependTo($(row).next().find('td'));
+                                $(row).next().find('td div:last').append('' + 
+                                    '... (Text Source:<a href="http://en.wikipedia.com/wiki/' + 
+                                    unescape(qs).replace(/ /g, '_') + 
+                                    '" target="_blank">Wikipedia</a>; Image Source:<a href="http://eol.org/pages/' + 
+                                    eolpage + 
+                                    '" target="_blank">EOL</a>)<p><button class="mapButton" value="' + 
+                                    unescape(qs) + '">Map</button></p>');
+                            }
+                            else if(wikiimg != null)
+                            {
+                                $.post(
+                                'http://en.wikipedia.org/w/api.php?' + 
+                                'action=query' + 
+                                '&prop=imageinfo' + 
+                                '&format=json' + 
+                                '&iiprop=url' + 
+                                '&iilimit=10' + 
+                                '&iiurlwidth=91' + 
+                                '&iiurlheight=68' + 
+                                '&titles=' + wikiimg,
+                                function(data, textStatus, jqXHR) {
+                                    
+                                        var imgurl,
+                                            z;
+                                    
+                                        if(textStatus == "success")
+                                        {        
+                                            for(var x in data.query.pages)
+                                            {
+                                                z = data.query.pages[x];                          
+                                                imgurl = z.imageinfo[0].thumburl;
+                                                
+                                                $('<a href="' + 'http://en.wikipedia.com/wiki/' + unescape(qs).replace(/ /g, '_') + '" target="_blank"><img src="' + imgurl + '" style="float:left; margin:0 4px 0 0;"/>').prependTo($(row).next().find('td'));
+                                                $(row).next().find('td div:last').append('' + 
+                                                    '... (Text Source:<a href="http://en.wikipedia.com/wiki/' + 
+                                                    unescape(qs).replace(/ /g, '_') + 
+                                                    '" target="_blank">Wikipedia</a>; Image Source:<a href="http://en.wikipedia.com/wiki/' + 
+                                                    wikiimg + 
+                                                    '" target="_blank">Wikipedia</a>)<p><button class="mapButton" value="' + 
+                                                    unescape(qs) + '">Map</button></p>');
+                                            }
+                                        }  
+                                    }, 'jsonp'
+                                );
+                            }
+                            
+                            //check for link to eol, if true, add button
+                            if(eolpage != "null")
+                            {
+                                $(row).next().find('td p:last').append('' + 
+                                '<button class="eolButton" value="http://eol.org/pages/' + 
+                                eolpage + '">Encyclopedia of Life</button>');
+                                
+                                $('button.eolButton[value="http://eol.org/pages/' + eolpage + '"]').click(function(event) {
+                                    var win = window.open(event.target.value);
+                                    win.focus();
+                                });
+                            }
+                            
+                            $(row).find('td.arrowBox').html("<div class='arrow up'></div>");                        
+                        }
+                        else
+                        {
+                            //put html in saying information unavailable...
+                            $(row).find('td.arrowBox').html("<div class='arrow up'></div>");
+                            $(row).next().find('td').html('<p>Description unavailable.</p>');
+                        }
+                        
+                        $("button.mapButton").click(function(event) {
+                            self.bus.fireEvent(new mol.bus.Event('search', {
+                                term : event.target.value
+                            }));
+                        });
+                        
+                    }, 'jsonp'
+                );
             }
         }
     );
