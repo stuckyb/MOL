@@ -214,6 +214,7 @@ mol.modules.map.query = function(mol) {
                             speciestotal = 0,
                             speciesthreatened = 0,
                             speciesdd = 0,
+                            listTabs,
                             iucnlist,
                             iucndata,
                             options,
@@ -372,7 +373,7 @@ mol.modules.map.query = function(mol) {
                             //tabs() function needs document ready to
                             //have been called on the dialog content
                             $(function() {
-                                var listTabs = $("#tabs").tabs();
+                                listTabs = $("#tabs").tabs();
                                 
                                 $("#tabs > #listTab").html(content[0]);
                                 $("#tabs > #dlTab").html(dlContent[0]);
