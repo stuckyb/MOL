@@ -608,8 +608,8 @@ mol.modules.map.query = function(mol) {
                     $(row).find('td.arrowBox').height() +'" height="' + 
                     $(row).find('td.arrowBox').width() + '" />');
                 
-                q = escape($(row).find('td.english').html());
-                qs = escape($(row).find('td.sci').html());
+                q = $(row).find('td.english').html();
+                qs = $(row).find('td.sci').html();
                 eolimg = $(row).find('td.sci').attr('value');
                 eolpage = $(row).find('td.english').attr('eol-page');
                 
@@ -624,7 +624,7 @@ mol.modules.map.query = function(mol) {
                     "&redirects=" +
                     "exintro=" + 
                     "&iwurl=" + 
-                    "&titles=" + unescape(qs) +
+                    "&titles=" + qs +
                     "&exchars=275",
                     function(data, textStatus, jqXHR) {
                         
@@ -688,8 +688,8 @@ mol.modules.map.query = function(mol) {
                                     {
                                         imgtitle = a[i].title;
                                         
-                                        req = new RegExp(unescape(q), "i");
-                                        reqs = new RegExp(unescape(qs), "i");
+                                        req = new RegExp(q, "i");
+                                        reqs = new RegExp(qs, "i");
                                         
                                         if(imgtitle.search(req) != -1 || 
                                            imgtitle.search(reqs) != -1)
@@ -712,13 +712,13 @@ mol.modules.map.query = function(mol) {
                                 $(row).next().find('td div:last').append('' + 
                                     '... (Text Source:' + 
                                     '<a href="http://en.wikipedia.com/wiki/' + 
-                                    unescape(qs).replace(/ /g, '_') + 
+                                    qs.replace(/ /g, '_') + 
                                     '" target="_blank">Wikipedia</a>;' + 
                                     ' Image Source:<a href="http://eol.org/pages/' + 
                                     eolpage + 
                                     '" target="_blank">EOL</a>)' + 
                                     '<p><button class="mapButton" value="' + 
-                                    unescape(qs) + '">Map</button></p>');
+                                    qs + '">Map</button></p>');
                             }
                             else if(wikiimg != null)
                             {
@@ -745,7 +745,7 @@ mol.modules.map.query = function(mol) {
                                             imgurl = z.imageinfo[0].thumburl;
                                             
                                             $('<a href="http://en.wikipedia.com/wiki/' +
-                                             unescape(qs).replace(/ /g, '_') + 
+                                             qs.replace(/ /g, '_') + 
                                              '" target="_blank"><img src="' + 
                                              imgurl + 
                                              '" style="float:left; margin:0 4px 0 0;"/>')
@@ -755,13 +755,13 @@ mol.modules.map.query = function(mol) {
                                             $(row).next().find('td div:last')
                                                 .append('' + 
                                                 '... (Text Source:<a href="http://en.wikipedia.com/wiki/' + 
-                                                unescape(qs).replace(/ /g, '_') + 
+                                                qs.replace(/ /g, '_') + 
                                                 '" target="_blank">Wikipedia</a>;' + 
                                                 ' Image Source:<a href="http://en.wikipedia.com/wiki/' + 
                                                 wikiimg + 
                                                 '" target="_blank">Wikipedia</a>)' + 
                                                 '<p><button class="mapButton" value="' + 
-                                                unescape(qs) + '">Map</button></p>');
+                                                qs + '">Map</button></p>');
                                         }
                                     }  
                                 }, 'jsonp');
