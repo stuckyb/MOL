@@ -2622,7 +2622,7 @@ mol.modules.map.results = function(mol) {
                             $.post(
                                 'cache/get',//http://dtredc0xh764j.cloudfront.net/api/v2/sql',
                                 {
-                                    key: 'acr-{0}'.format(request.term),
+                                    key: 'ac-090720121735-{0}'.format(request.term),
                                     sql:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
                                 },
                                 function (json) {
@@ -2796,7 +2796,7 @@ mol.modules.map.results = function(mol) {
                         $.post(
                                 'cache/get',
                                 {
-                                    key:'search-08102012210-{0}'.format(term),
+                                    key:'search-090720121735-{0}'.format(term),
                                     sql:this.sql.format(term)
                                 },
                                 function (response) {
