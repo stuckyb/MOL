@@ -358,11 +358,10 @@ mol.modules.map.tiles = function(mol) {
                         "SELECT * FROM get_feature_metadata(TEXT('{0}'))",
                     tile_style =  null,
                     infowindow = true,
-                	hostname = (hostname === 'localhost') ? 
-                	   '{0}:8080'.format(hostname) : hostname;
+                    hostname = (hostname === 'localhost') ? 
+                       '{0}:8080'.format(hostname) : hostname;
 
-                this.layer = new google.maps.CartoDBLayer(
-                    {
+                this.layer = new google.maps.CartoDBLayer({
                         tile_name: layer.id,
                         hostname: hostname,
                         map_canvas: 'map_container',
@@ -378,8 +377,7 @@ mol.modules.map.tiles = function(mol) {
                         map_style: false,
                         infowindow: infowindow,
                         opacity: 0.5
-                    }
-                );
+                });
             }
         }
     );
