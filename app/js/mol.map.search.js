@@ -31,6 +31,11 @@ mol.modules.map.search = function(mol) {
                 '       l.scientificname = n.scientificname ' +
                 'WHERE ' +
                 "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}'";
+                this.ac_sql = "" +
+                    "http://dtredc0xh764j.cloudfront.net/" +
+                    "api/v2/sql?q=SELECT n,v from ac " +
+                    "where n~*'\\m{0}' OR v~*'\\m{0}'" +
+                    "&callback=?";
             },
 
             /**
@@ -71,36 +76,13 @@ mol.modules.map.search = function(mol) {
                 var self = this;
                 $(this.display.searchBox).autocomplete(
                     {
-                        minLength: 3, // Note: Auto-complete indexes are min length 3.
+                        minLength: 3, 
                         source: function(request, response) {
-                            $.post(
-                                'cache/get',//http://dtredc0xh764j.cloudfront.net/api/v2/sql',
-                                {
-                                    key: 'ac-090720121735-{0}'.format(request.term),
-                                    sql:"SELECT n,v from ac where n~*'\\m{0}' OR v~*'\\m{0}'".format(request.term)
-                                },
-                                function (json) {
-                                    var names = [],scinames=[];
-                                    _.each (
-                                        json.rows,
-                                        function(row) {
-                                            var sci, eng;
-                                            if(row.n != undefined){
-                                                   sci = row.n;
-                                                   eng = (row.v == null || row.v == '') ? '' : ', {0}'.format(row.v.replace(/'S/g, "'s"));
-                                                   names.push({label:'<div class="ac-item"><span class="sci">{0}</span><span class="eng">{1}</span></div>'.format(sci, eng), value:sci});
-                                                   scinames.push(sci)
-
-                                           }
-                                       }
-                                    );
-                                    if(scinames.length>0) {
-                                        self.names=scinames;
-                                    }
-                                    response(names);
-                                    self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source : "autocomplete"}));
-                                 },
-                                 'json'
+                            $.getJSON(
+                                self.ac_sql.format(request.term),
+                                function(json) {
+                                    self.formatAutocompleteResults(json);
+                                }
                             );
                         },
                         select: function(event, ui) {
@@ -228,6 +210,40 @@ mol.modules.map.search = function(mol) {
                     event = new mol.bus.Event('add-map-control', params);
 
                 this.bus.fireEvent(event);
+            },
+            formatAutocompleteResults: function (json) {
+                var names = [], 
+                    scinames = [];
+                    
+                _.each(json.rows, 
+                    function(row) {
+                        var sci, eng;
+                        if (row.n != undefined) {
+                            sci = row.n;
+                            eng = (row.v == null || row.v == '') 
+                                ? '' : ', {0}'.format(
+                                    row.v.replace(/'S/g, "'s")
+                                );
+                            names.push({
+                                label : '<div class="ac-item">' + 
+                                    '<span class="sci">{0}' + 
+                                    '</span><span class="eng">{1}</span>'+
+                                    '</div>'.format(sci, eng),
+                                value : sci
+                            });
+                            scinames.push(sci);
+                        }
+                    }
+                );
+                if (scinames.length > 0) {
+                    this.names = scinames;
+                }               
+                self.bus.fireEvent(
+                    new mol.bus.Event(
+                        'hide-loading-indicator', 
+                        { source : "autocomplete"}
+                    )
+                );
             },
 
             /**
