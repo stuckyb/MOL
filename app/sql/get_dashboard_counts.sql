@@ -12,7 +12,7 @@ $$
       FOR data in (SELECT * from data_registry) LOOP
 	 SELECT * INTO type FROM types t where t.type = data.type LIMIT 1;
 	 SELECT * INTO provider FROM providers p where p.provider = data.provider LIMIT 1;
-         IF ((data.type = 'range' or data.type = 'points') and data.table_name <> 'gbif_import')  THEN
+         IF ((data.type = 'range' or data.type = 'points') and data.provider <> 'gbif')  THEN
                 sql = 'SELECT ' || 
                   '   TEXT(''' || provider.title || ''') as provider, ' ||
 	          '   TEXT(''' || type.title || ''') as type, ' ||

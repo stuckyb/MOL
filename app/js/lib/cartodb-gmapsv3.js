@@ -441,38 +441,12 @@ var CartoDB = CartoDB || {};
             function(result) {
                 var content;
                 if(!result.error) {
-                    content = $.parseJSON(result.rows[0]['get_feature_metadata']);
-                }
-                //GBIF temp hack!
-                if(content) {
-                    if(content['Source']) {
-                        if(content['Source']=='GBIF') {
-                            getGbifInfo(content,latlng);
-                        } else {
-                            positionateInfowindow(content,latlng);
-                        }
-                    } else {
-                        positionateInfowindow(content,latlng);
-                    }
+                    content = $.parseJSON(
+                        result.rows[0]['get_feature_metadata']
+                    );
                 }
             }
     );
-
-    function getGbifInfo (variables, center) {
-        $.post(
-            'gbif/occurrence',
-            {oid : variables["oid"]},
-            function(xml) {
-                var institutionCode = $((new window.DOMParser()).parseFromString(xml, "text/xml")).find('institutionCode').text();
-
-                if(institutionCode != '' && institutionCode != null) {
-                    variables['Institution Code'] = institutionCode;
-                }
-                delete(variables.oid);
-                positionateInfowindow(variables, center);
-            }
-        );
-    }
 
     function positionateInfowindow(variables,center) {
       if (that.div_) {

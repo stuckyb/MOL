@@ -23,10 +23,10 @@ $$
   BEGIN
       --assemble some sql to get the tables we want. a a table was passed as a paramater, use that 
       sql = 'SELECT * from data_registry WHERE provider = ''' || $1 || ''' and type = ''' || $2 || '''' ||
-     CASE WHEN $4 <> '' THEN 
-	'  and table_name = ''' || $4 || ''''
+      CASE WHEN $4 <> '' THEN 
+	'  or table_name = ''' || $4 || ''''
 	ELSE ''
-     END;
+      END;
       FOR data in EXECUTE sql LOOP
          IF data.type = 'range' or data.type = 'points' THEN
                 sql := 'SELECT ' ||
@@ -37,7 +37,7 @@ $$
                   ' FROM ' || data.table_name || 
                   ' WHERE ' ||  
                   data.scientificname || ' = ''' || $3 || '''';               
-         ELSIF data.type = 'ecoregion' or data.type = 'taxogeochecklist' THEN 		
+         ELSIF data.type = 'ecoregion' or data.type = 'taxogeochecklist' or data.type = 'taxogeooccchecklist' THEN 		
                 sql := 'SELECT ' ||
 		  ' DISTINCT CONCAT('''|| data.table_name || '-'', d.cartodb_id) as cartodb_id, ' ||
                   ' TEXT('''||data.type||''') as type, TEXT('''||data.provider||''') as provider, ' ||

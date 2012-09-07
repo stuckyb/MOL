@@ -37,7 +37,18 @@ $$
         sql = '';
         IF data.type = 'range' or data.type = 'points' THEN              
             -- regular data table
-            sql = 'SELECT CONCAT(''{'',' || json_string || ',''}'') as feature_metadata FROM ' || data.table_name || ' WHERE cartodb_id = ' || cartodb_id;     
+            sql = 'SELECT CONCAT(''{'',' || json_string || ',''}'') as feature_metadata FROM ' || data.table_name || ' WHERE cartodb_id = ' || cartodb_id;   
+        ELSIF data.type = 'taxogeooccchecklist' THEN 		
+            -- GBIF!
+	    sql = 'SELECT CONCAT(''{'',' || json_string || ',''}'') as feature_metadata ' ||
+                  ' FROM ' || data.table_name || ' d ' ||
+                  ' JOIN ' || data.taxo_table || ' t ON ' ||
+                  '   d.' || data.species_id || ' = t.' || data.species_link_id ||
+                  ' JOIN ' || data.geom_table || ' g ON ' ||
+                  '   d.' || data.geom_id || ' = g.' || data.geom_link_id  ||
+	          ' JOIN ' || data.occurrence_table || ' o ON ' ||
+	          '   d.' || data.geom_id || ' = o.' || data.occurrence_geom_id ||
+                  ' WHERE d.cartodb_id = ' || cartodb_id;   
         ELSIF data.type = 'ecoregion' or data.type = 'taxogeochecklist' THEN 		
             -- Checklist with a seperate geometry table and taxonomy table
 	    sql = 'SELECT CONCAT(''{'',' || json_string || ',''}'') as feature_metadata ' ||

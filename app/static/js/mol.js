@@ -875,8 +875,8 @@ mol.modules.map = function(mol) {
                     zoom: 3,
                     maxZoom: 10,
                     minZoom: 2,
-                    minLat: -85,
-                    maxLat: 85,
+                    minLat: -80,
+                    maxLat: 70,
                     mapTypeControl: false,
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     styles: [
@@ -2899,28 +2899,27 @@ mol.modules.map.tiles = function(mol) {
      *
      * @see http://developers.cartodb.com/gallery/maps/densitygrid.html
      */
-    mol.map.tiles.TileEngine = mol.mvp.Engine.extend(
-        {
-            init: function(proxy, bus, map) {
-                this.proxy = proxy;
-                this.bus = bus;
-                this.map = map;
-                this.gmap_events = [];
-                this.addEventHandlers();
-            },
+    mol.map.tiles.TileEngine = mol.mvp.Engine.extend({
+        init: function(proxy, bus, map) {
+            this.proxy = proxy;
+            this.bus = bus;
+            this.map = map;
+            this.gmap_events = [];
+            this.addEventHandlers();
+        },
 
-            addEventHandlers: function() {
-                var self = this;
+        addEventHandlers: function() {
+            var self = this;
 
-                /**
-                 * Handler for when the layer-toggle event is fired. This renders
-                 * the layer on the map if visible, and removes it if not visible.
-                 *  The event.layer is a layer object {id, name, type, source}. event.showing
-                 * is true if visible, false otherwise.
-                 */
-                this.bus.addHandler(
-                    'layer-toggle',
-                    function(event) {
+            /**
+             * Handler for when the layer-toggle event is fired. This renders
+             * the layer on the map if visible, and removes it if not visible.
+             * The event.layer is a layer object {id, name, type, source}. event.showing
+             * is true if visible, false otherwise.
+             */
+             this.bus.addHandler(
+                'layer-toggle',
+                function(event) {
                         var showing = event.showing,
                             layer = event.layer,
                             params = null,
@@ -2928,11 +2927,11 @@ mol.modules.map.tiles = function(mol) {
 
                         if (showing) {
                             self.map.overlayMapTypes.forEach(
-                                function(maptype, index) {
-                                    if ((maptype != undefined) && (maptype.name == layer.id)) {
+                                function(mt, index) {
+                                    if (mt != undefined && mt.name == layer.id) {
                                         params = {
                                             layer: layer,
-                                            opacity: maptype.opacity_visible
+                                            opacity: mt.opacity_visible
                                         };
                                         e = new mol.bus.Event('layer-opacity', params);
                                         self.bus.fireEvent(e);
@@ -2947,18 +2946,21 @@ mol.modules.map.tiles = function(mol) {
                             //self.renderTiles([layer]);
                         } else { // Remove layer from map.
                             self.map.overlayMapTypes.forEach(
-                                function(maptype, index) {
-                                    if ((maptype != undefined) && (maptype.name == layer.id)) {
-                                        maptype.opacity_visible = maptype.opacity;
+                                function(mt, index) {
+                                    if (mt != undefined && mt.name == layer.id) {
+                                        mt.opacity_visible = mt.opacity;
                                         params = {
                                             layer: layer,
                                             opacity: 0
                                         };
-                                        e = new mol.bus.Event('layer-opacity', params);
+                                        e = new mol.bus.Event(
+                                            'layer-opacity', 
+                                            params
+                                        );
                                         self.bus.fireEvent(e);
-                                        if(maptype.interaction != undefined) {
-                                            maptype.interaction.remove();
-                                            maptype.interaction.clickAction="";
+                                        if(mt.interaction != undefined) {
+                                            mt.interaction.remove();
+                                            mt.interaction.clickAction="";
                                         }
                                         //self.map.overlayMapTypes.removeAt(index);
                                     }
@@ -3033,8 +3035,8 @@ mol.modules.map.tiles = function(mol) {
                             function(layer) { // "lid" is short for layer id.
                                 var lid = layer.id;
                                 mapTypes.forEach(
-                                    function(mt, index) { // "mt" is short for map type.
-                                        if ((mt != undefined) && (mt.name === lid)) {
+                                    function(mt, index) { 
+                                        if (mt != undefined && mt.name === lid) {
                                             if(mt.interaction != undefined) {
                                                 mt.interaction.remove();
                                             }
@@ -3048,8 +3050,9 @@ mol.modules.map.tiles = function(mol) {
                 );
 
 				    /**
-				     * Handler for when the reorder-layers event is fired. This renders
-				     * the layers according to the list of layers provided
+				     * Handler for when the reorder-layers event is fired. This 
+				     * renders the layers according to the list of layers 
+				     * provided
 				     */
 				    this.bus.addHandler(
 					     'reorder-layers',
@@ -3061,10 +3064,11 @@ mol.modules.map.tiles = function(mol) {
 							       layers,
 							       function(lid) { // "lid" is short for layerId.
 								        mapTypes.forEach(
-									         function(mt, index) { // "mt" is short for maptype.
-										          if ((mt != undefined) && (mt.name === lid)) {
-											           mapTypes.removeAt(index);
-											           mapTypes.insertAt(0, mt);
+									         function(mt, index) { 
+										          if ((mt != undefined) && 
+										              (mt.name === lid)) {
+											          mapTypes.removeAt(index);
+											          mapTypes.insertAt(0, mt);
 										          }
 									         }
 								        );
@@ -3093,7 +3097,8 @@ mol.modules.map.tiles = function(mol) {
                 );
             },
             /**
-             * Returns an array of layer objects that are not already on the map.
+             * Returns an array of layer objects that are not already on the 
+             * map.
              *
              * @param layers an array of layer object {id, name, type, source}.
              * @params overlays an array of wax connectors.
@@ -3123,7 +3128,8 @@ mol.modules.map.tiles = function(mol) {
             },
 
             /**
-             * Closure around the layer that returns the ImageMapType for the tile.
+             * Closure around the layer that returns the ImageMapType for the 
+             * tile.
              */
             getTile: function(layer) {
                 var name = layer.name,
@@ -3133,21 +3139,43 @@ mol.modules.map.tiles = function(mol) {
 
 
                 switch (type) {
-                case 'points':
-                    maptype = new mol.map.tiles.CartoDbTile(layer, 'points_style', this.map);
-                    break;
-                case 'polygon':
-                case 'range':
-                case 'ecoregion':
-                case 'protectedarea':
-                case 'geochecklist':
-                case 'taxogeochecklist':
-                case 'taxochecklist':
-                    maptype = new mol.map.tiles.CartoDbTile(layer, 'polygon_style', this.map);
-                    break;
+                    case 'points':
+                            maptype = new mol.map.tiles.CartoDbTile(
+                                layer, 
+                                'points_style', 
+                                this.map
+                            );
+                            break;
+                        case 'polygon':
+                        case 'range':
+                        case 'ecoregion':
+                        case 'protectedarea':
+                        case 'geochecklist':
+                        case 'taxogeochecklist':
+                        case 'taxochecklist':
+                            maptype = new mol.map.tiles.CartoDbTile(
+                                layer, 
+                                'polygon_style', 
+                                this.map
+                            );
+                            break;
                 }
-                maptype.layer.params.layer.onbeforeload = function (){self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : layer.id}))};
-                maptype.layer.params.layer.onafterload = function (){self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator",{source : layer.id}))};
+                maptype.layer.params.layer.onbeforeload = function (){
+                    self.bus.fireEvent(
+                        new mol.bus.Event(
+                            "show-loading-indicator",
+                            {source : layer.id}
+                        )
+                    )
+                };
+                maptype.layer.params.layer.onafterload = function (){
+                    self.bus.fireEvent(
+                        new mol.bus.Event(
+                            "hide-loading-indicator",
+                            {source : layer.id}
+                        )
+                    )
+                };
             },
 
             /**
@@ -3187,7 +3215,13 @@ mol.modules.map.tiles = function(mol) {
 		              failure = function(action, response) {
                         console.log('Error: {0}'.format(response));
                     };
-                this.proxy.execute(action, new mol.services.Callback(success, failure));
+                this.proxy.execute(
+                    action, 
+                    new mol.services.Callback(
+                        success, 
+                        failure
+                    )
+                );
 		      }
         }
 	 );
@@ -3195,14 +3229,23 @@ mol.modules.map.tiles = function(mol) {
     mol.map.tiles.CartoDbTile = Class.extend(
         {
             init: function(layer, table, map) {
-                var sql =  "SELECT * FROM get_mol_tile('{0}','{1}','{2}','{3}')".format(layer.source, layer.type, (layer.type != 'points' ) ? layer.name : layer.name.toLowerCase(), layer.data_table),
+                var sql =  "" +
+                    "SELECT * FROM " +
+                    " get_mol_tile('{0}','{1}','{2}','{3}')".format(
+                        layer.source, 
+                        layer.type, 
+                        layer.name, 
+                        layer.data_table
+                    ),
                     hostname = 'mol.cartodb.com',//window.location.hostname,
                     style_table_name = layer.style_table;
-                    info_query = sql, // "SELECT * FROM get_mol_metadata({0})",
-                    meta_query = "SELECT * FROM get_feature_metadata(TEXT('{0}'))",
+                    info_query = sql; 
+                    meta_query = "" +
+                        "SELECT * FROM get_feature_metadata(TEXT('{0}'))",
                     tile_style =  null,
                     infowindow = true,
-                	hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
+                	hostname = (hostname === 'localhost') ? 
+                	   '{0}:8080'.format(hostname) : hostname;
 
                 this.layer = new google.maps.CartoDBLayer(
                     {
