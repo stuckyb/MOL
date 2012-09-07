@@ -635,11 +635,12 @@ mol.modules.map.query = function(mol) {
                             imgtitle,
                             req,
                             reqs,
-                            i;
+                            i,
+                            e;
     
                         if(textStatus == "success")
                         {
-                            for(var e in data.query.pages)
+                            for(e in data.query.pages)
                             {                           
                                 if(e != -1)
                                 {
