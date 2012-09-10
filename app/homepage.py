@@ -50,6 +50,10 @@ class TechPage(BaseHandler):
     def get(self):
         self.push_html('tech.html')
 
+class PressPage(BaseHandler):
+    def get(self):
+        self.push_html('press.html')
+
 class DemoPage(BaseHandler):
     def get(self):
          self.redirect("/")
@@ -66,7 +70,9 @@ application = webapp.WSGIApplication(
           ('/about/demo', DemoPage),
           ('/about/demo/', DemoPage),
           ('/about/people', PeoplePage),
-          ('/about/people/', PeoplePage)
+          ('/about/people/', PeoplePage),
+          ('/about/press', PressPage),
+          ('/about/press/', PressPage)
 #          ('/about/partners', PartnersPage),
 #          ('/about/partners/', PartnersPage)
           ],
