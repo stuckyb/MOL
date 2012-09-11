@@ -791,7 +791,8 @@ mol.modules.map.query = function(mol) {
          */
         createImageGallery: function (rows, sptotal) {
             var hasImg = 0,
-                english;
+                english
+                self = this;
                                         
             _.each(
                rows,
@@ -893,13 +894,182 @@ mol.modules.map.query = function(mol) {
         },
         
         /*
+         * Callback for Wikipedia Json-P request
+         */
+        wikiCallback: function(data, row,q,qs,eolimg,eolpage) {
+            
+            var wikidata,
+                wikiimg,
+                prop,
+                a,
+                imgtitle,
+                req,
+                reqs,
+                i,
+                e,
+                self = this;
+
+           
+            for(e in data.query.pages) {
+                if(e != -1) {
+                    prop = data.query.pages[e];
+                    wikidata = prop.extract
+                        .replace('...','')
+                        .replace('<b>','<strong>')
+                        .replace('<i>','<em>')
+                        .replace('</b>','</strong>')
+                        .replace('</i>','</em>')
+                        .replace('<br />',"")
+                        .replace(/<p>/g,'<div>')
+                        .replace(/<\/p>/g,'</div>')
+                        .replace(/<h2>/g,'<strong>')
+                        .replace(/<\/h2>/g,'</strong>')
+                        .replace(/<h3>/g,'<strong>')
+                        .replace(/<\/h3>/g,'</strong>')
+                        .replace(/\n/g,"")
+                        .replace('</div>\n<div>'," ")
+                        .replace('</div><div>'," ")
+                        .replace('</div><strong>'," <strong> ")
+                        .replace('</strong><div>'," </strong> ");
+                    
+                    $(row).next().find('td').html(wikidata);
+                    $(row).next().find('td div br').remove();
+
+                    a = prop.images;
+                    
+                    for(i=0;i < a.length;i++) {
+                        imgtitle = a[i].title;
+                        
+                        req = new RegExp(q, "i");
+                        reqs = new RegExp(qs, "i");
+                        
+                        if(imgtitle.search(req) != -1 || 
+                           imgtitle.search(reqs) != -1) {
+                            wikiimg = imgtitle;
+                            break;
+                        }
+                    } 
+                }
+                
+                if(eolimg != "null") {
+                    $('<a href="http://eol.org/pages/' + 
+                        eolpage + 
+                        '" target="_blank"><img src="' + 
+                        eolimg + 
+                        '" style="float:left; margin:0 4px 0 0;"/>' +
+                        '</a>').prependTo($(row).next().find('td'));
+                    $(row).next().find('td div:last').append('' + 
+                        '... (Text Source:' + 
+                        '<a href="http://en.wikipedia.com/wiki/' + 
+                        qs.replace(/ /g, '_') + 
+                        '" target="_blank">Wikipedia</a>;' + 
+                        ' Image Source:<a href="http://eol.org/pages/' + 
+                        eolpage + 
+                        '" target="_blank">EOL</a>)' + 
+                        '<p><button class="mapButton" value="' + 
+                        qs + '">Map</button></p>');
+                } else if(wikiimg != null) {
+                    //get a wikipedia image if we have to
+                    $.getJSON(
+                        'http://en.wikipedia.org/w/api.php?' + 
+                        'action=query' + 
+                        '&prop=imageinfo' + 
+                        '&format=json' + 
+                        '&iiprop=url' + 
+                        '&iilimit=10' + 
+                        '&iiurlwidth=91' + 
+                        '&iiurlheight=68' + 
+                        '&titles={0}'.format(wikiimg) +
+                        '&callback=?'
+                    ).success(
+                        function(data) {
+                            self.wikiImgCallback(data, qs, wikiimg)
+                        }
+                    );
+                }
+                
+                //check for link to eol, if true, add button
+                if(eolpage != "null") {
+                    $(row).next().find('td p:last').append('' + 
+                    '<button class="eolButton" ' +
+                    'value="http://eol.org/pages/' + 
+                    eolpage + '">Encyclopedia of Life</button>');
+                    
+                    $('button.eolButton[value="http://eol.org/pages/' +
+                        eolpage + '"]').click(function(event) {
+                        var win = window.open(event.target.value);
+                        win.focus();
+                    });
+                }
+                
+                $(row).find('td.arrowBox').html("<div class='arrow up'></div>");
+            }
+            
+
+            $("button.mapButton").click(
+                function(event) {
+                    self.bus.fireEvent(
+                        new mol.bus.Event(
+                            'search', 
+                            {term : event.target.value.trim()}
+                        )
+                    );
+                }
+            );
+        },
+        
+        /*
+         *  Callback for Wikipedia image json-p request. 
+         */
+        wikiImgCallback: function(data, qs, wikiimg) {
+            
+            var imgurl,
+                x,
+                z;
+
+            for(x in data.query.pages) {
+                z = data.query.pages[x]; 
+                imgurl = z.imageinfo[0].thumburl;
+                
+                $('<a href="http://en.wikipedia.com/wiki/' +
+                    qs.replace(/ /g, '_') + 
+                    '" target="_blank"><img src="' + 
+                    imgurl + 
+                    '" style="float:left; margin:0 4px 0 0;"/>')
+                   .prependTo($(row).next().find('td'));
+                $(row).next().find('td div:last')
+                    .append('' + 
+                    '... (Text Source:' + 
+                    '<a href="http://en.wikipedia.com/wiki/' + 
+                    qs.replace(/ /g, '_') + 
+                    '" target="_blank">Wikipedia</a>;' + 
+                    ' Image Source:' + 
+                    '<a href="http://en.wikipedia.com/wiki/' + 
+                    wikiimg + 
+                    '" target="_blank">Wikipedia</a>)' + 
+                    '<p><button class="mapButton" value="' + 
+                    qs + 
+                    '">Map</button></p>');
+            } 
+        },
+        
+        /*
+         *  Put html in saying information unavailable...
+         */
+        wikiError: function(row) {
+            $(row).find('td.arrowBox').html("<div class='arrow up'></div>");
+            $(row).next().find('td').html('<p>Description unavailable.</p>');
+        },
+        
+        /*
          * Function to call Wikipedia and EOL image
          */
         callWiki: function(row) {
             var q,
                 qs,
                 eolimg,
-                eolpage;
+                eolpage,
+                self = this;
             
             $(row).find('td.arrowBox').html('' + 
                 '<img src="/static/loading-small.gif" width="' + 
@@ -911,7 +1081,7 @@ mol.modules.map.query = function(mol) {
             eolimg = $(row).find('td.sci').attr('value');
             eolpage = $(row).find('td.english').attr('eol-page');
             
-            $.post(
+            $.getJSON(
                 "http://en.wikipedia.org/w/api.php?" + 
                 "action=query" + 
                 "&format=json" + 
@@ -923,178 +1093,16 @@ mol.modules.map.query = function(mol) {
                 "exintro=" + 
                 "&iwurl=" + 
                 "&titles=" + qs +
-                "&exchars=275",
-                function(data, textStatus, jqXHR) {
-                    
-                    var wikidata,
-                        wikimg,
-                        prop,
-                        a,
-                        imgtitle,
-                        req,
-                        reqs,
-                        i,
-                        e;
-
-                    if(textStatus == "success") {
-                        for(e in data.query.pages) {                           
-                            if(e != -1) {
-                                prop = data.query.pages[e];
-                                wikidata = prop.extract.replace('...',
-                                    '');
-                                wikidata = wikidata.replace('<b>',
-                                    '<strong>');
-                                wikidata = wikidata.replace('<i>',
-                                    '<em>');
-                                wikidata = wikidata.replace('</b>',
-                                    '</strong>');
-                                wikidata = wikidata.replace('</i>',
-                                    '</em>');
-                                wikidata = wikidata.replace('<br />',
-                                    "");
-                                wikidata = wikidata.replace(/<p>/g,
-                                    '<div>');
-                                wikidata = wikidata.replace(/<\/p>/g,
-                                    '</div>');
-                                wikidata = wikidata.replace(/<h2>/g,
-                                    '<strong>');
-                                wikidata = wikidata.replace(/<\/h2>/g,
-                                    '</strong>');
-                                wikidata = wikidata.replace(/<h3>/g,
-                                    '<strong>');
-                                wikidata = wikidata.replace(/<\/h3>/g,
-                                    '</strong>');
-                                wikidata = wikidata.replace(/\n/g,
-                                    "");
-                                wikidata = wikidata.replace('</div>\n<div>',
-                                    " ");
-                                wikidata = wikidata.replace('</div><div>',
-                                    " ");
-                                wikidata = wikidata.replace('</div><strong>',
-                                    " <strong> ");
-                                wikidata = wikidata.replace('</strong><div>',
-                                    " </strong> ");                              
-                                
-                                $(row).next().find('td').html(wikidata);
-                                $(row).next().find('td div br').remove();
-    
-                                a = prop.images;
-                                
-                                for(i=0;i < a.length;i++) {
-                                    imgtitle = a[i].title;
-                                    
-                                    req = new RegExp(q, "i");
-                                    reqs = new RegExp(qs, "i");
-                                    
-                                    if(imgtitle.search(req) != -1 || 
-                                       imgtitle.search(reqs) != -1)
-                                    {
-                                        wikiimg = imgtitle;
-                                        break;
-                                    }
-                                } 
-                            }
-                        }
-                        
-                        if(eolimg != "null") {
-                            $('<a href="http://eol.org/pages/' + 
-                                eolpage + 
-                                '" target="_blank"><img src="' + 
-                                eolimg + 
-                                '" style="float:left; margin:0 4px 0 0;"/>' +
-                                '</a>').prependTo($(row).next().find('td'));
-                            $(row).next().find('td div:last').append('' + 
-                                '... (Text Source:' + 
-                                '<a href="http://en.wikipedia.com/wiki/' + 
-                                qs.replace(/ /g, '_') + 
-                                '" target="_blank">Wikipedia</a>;' + 
-                                ' Image Source:<a href="http://eol.org/pages/' + 
-                                eolpage + 
-                                '" target="_blank">EOL</a>)' + 
-                                '<p><button class="mapButton" value="' + 
-                                qs + '">Map</button></p>');
-                        }
-                        else if(wikiimg != null)
-                        {
-                            $.post(
-                            'http://en.wikipedia.org/w/api.php?' + 
-                            'action=query' + 
-                            '&prop=imageinfo' + 
-                            '&format=json' + 
-                            '&iiprop=url' + 
-                            '&iilimit=10' + 
-                            '&iiurlwidth=91' + 
-                            '&iiurlheight=68' + 
-                            '&titles=' + wikiimg,
-                            function(data, textStatus, jqXHR) {
-                                
-                                var imgurl,
-                                    z;
-                            
-                                if(textStatus == "success") {        
-                                    for(var x in data.query.pages) {
-                                        z = data.query.pages[x];                          
-                                        imgurl = z.imageinfo[0].thumburl;
-                                        
-                                        $('<a href=' + 
-                                        '"http://en.wikipedia.com/wiki/' +
-                                        qs.replace(/ /g, '_') + 
-                                        '" target="_blank"><img src="' + 
-                                        imgurl + 
-                                        '" style="float:left; margin:0 4px 0 0;"/>')
-                                           .prependTo($(row)
-                                               .next()
-                                                   .find('td'));
-                                        $(row).next().find('td div:last')
-                                            .append('' + 
-                                            '... (Text Source:' + 
-                                            '<a href="http://en.wikipedia.com/wiki/' + 
-                                            qs.replace(/ /g, '_') + 
-                                            '" target="_blank">Wikipedia</a>;' + 
-                                            ' Image Source:' + 
-                                            '<a href="http://en.wikipedia.com/wiki/' + 
-                                            wikiimg + 
-                                            '" target="_blank">Wikipedia</a>)' + 
-                                            '<p><button class="mapButton" value="' + 
-                                            qs + 
-                                            '">Map</button></p>');
-                                    }
-                                }  
-                            }, 'jsonp');
-                        }
-                        
-                        //check for link to eol, if true, add button
-                        if(eolpage != "null") {
-                            $(row).next().find('td p:last').append('' + 
-                            '<button class="eolButton" ' +
-                            'value="http://eol.org/pages/' + 
-                            eolpage + '">Encyclopedia of Life</button>');
-                            
-                            $('button.eolButton[value="http://eol.org/pages/' +
-                                eolpage + '"]').click(function(event) {
-                                var win = window.open(event.target.value);
-                                win.focus();
-                            });
-                        }
-                        
-                        $(row).find('td.arrowBox')
-                            .html("<div class='arrow up'></div>");                       
-                    }
-                    else {
-                        //put html in saying information unavailable...
-                        $(row).find('td.arrowBox')
-                            .html("<div class='arrow up'></div>");
-                        $(row).next().find('td')
-                            .html('<p>Description unavailable.</p>');
-                    }
-                    
-                    $("button.mapButton").click(function(event) {
-                        self.bus.fireEvent(new mol.bus.Event('search', {
-                            term : event.target.value
-                        }));
-                    });
-                    
-                }, 'jsonp'
+                "&exchars=275" +
+                '&callback=?'
+            ).success (
+                function(data) {
+                    self.wikiCallback(data, row,q,qs,eolimg,eolpage)
+                }
+            ).error(
+                function(data) {
+                    self.wikiError(row);
+                }
             );
         }
     });
@@ -1102,48 +1110,52 @@ mol.modules.map.query = function(mol) {
     mol.map.QueryDisplay = mol.mvp.View.extend({
         init : function(names) {
             var className = 'mol-Map-QueryDisplay',
-            html = '' +
-                '<div title="' + 
-                    'Use this control to select species group and radius. ' + 
-                    'Then right click (Mac Users: \'control-click\') ' + 
-                    'on focal location on map." class="' + 
-            className + ' widgetTheme">' +
-                '   <div class="controls">' +
-                '     Search Radius ' + 
-                '     <select class="radius">' +
-                '       <option selected value="50">50 km</option>' +
-                '       <option value="100">100 km</option>' +
-                '       <option value="300">300 km</option>' +
-                '     </select>' +
-                '     Group ' + 
-                '     <select class="class" value="">' +
-                '       <option selected value=" AND  p.polygonres = 100 ">' + 
-                            'Birds</option>' +
-                '       <option value=" AND p.provider = \'fishes\' ">' + 
-                            'NA Freshwater Fishes</option>' +
-                '       <option value=" AND p.class=\'reptilia\' ">' + 
-                            'Reptiles</option>' +
-                '       <option value=" AND p.class=\'amphibia\' ">' + 
-                            'Amphibians</option>' +
-                '       <option value=" AND p.class=\'mammalia\' ">' + 
-                            'Mammals</option>' +
-                '     </select>' +
-                '     <span class="types">' +
-                '          <button class="range selected" ' + 
-                               'value=" AND p.type=\'range\'">' + 
-                               '<img ' + 
-                               'title="Click to use Expert range maps for query." ' + 
-                               'src="/static/maps/search/range.png">' + 
-                '          </button>' +
-                '          <button class="ecoregion" ' + 
-                                'value=" AND p.type=\'ecoregion\' ">' + 
-                                '<img ' + 
-                                'title="Click to use Regional checklists for query." ' + 
-                                'src="/static/maps/search/ecoregion.png">' + 
-                '          </button>' +
-                '      </span>'+
-                '   </div>' +
-                '</div>';
+                html = '' +
+                    '<div title=' + 
+                    '   "Use this control to select species group and radius.' +
+                    '   Then right click (Mac Users: \'control-click\')' + 
+                    '   on focal location on map." class="' + className + 
+                    '   widgetTheme">' +
+                    '   <div class="controls">' +
+                    '       Search Radius ' + 
+                    '       <select class="radius">' +
+                    '           <option selected value="50">50 km</option>' +
+                    '           <option value="100">100 km</option>' +
+                    '           <option value="300">300 km</option>' +
+                    '       </select>' +
+                    '       Group ' + 
+                    '       <select class="class" value="">' +
+                    '           <option selected' +
+                    '               value=" AND p.polygonres=100 ">' + 
+                    '               Birds</option>' +
+                    '           <option value=" AND p.provider=\'fishes\' ">' +
+                    '               NA Freshwater Fishes</option>' +
+                    '           <option value=" AND p.class=\'reptilia\' ">' + 
+                    '               Reptiles</option>' +
+                    '           <option value=" AND p.class=\'amphibia\' ">' + 
+                    '               Amphibians</option>' +
+                    '           <option value=" AND p.class=\'mammalia\' ">' + 
+                    '               Mammals</option>' +
+                    '       </select>' +
+                    '       <span class="types">' +
+                    '           <button class="range selected" ' + 
+                    '               value=" AND p.type=\'range\'">' + 
+                    '               <img ' +
+                    '                   title="Click to use Expert range maps' +
+                    '                       for query."' + 
+                    '                   src="/static/maps/search/range.png">' +
+                    '           </button>' +
+                    '           <button class="ecoregion" ' + 
+                    '               value=" AND p.type=\'ecoregion\' ">' + 
+                    '               <img ' + 
+                    '                   title="Click to use Regional' +
+                    '                       checklists for query." ' + 
+                    '                   src="/static/maps/search/' +
+                                            'ecoregion.png">' +
+                    '           </button>' +
+                    '       </span>'+
+                    '   </div>' +
+                    '</div>';
 
             this._super(html);
             this.resultslist=$(this).find('.resultslist');
