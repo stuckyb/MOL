@@ -11,37 +11,9 @@ mol.modules.map.query = function(mol) {
 
                 // TODO: Docs for what this query does.
                 this.sql = '' +
-                    'SELECT DISTINCT '+
-                    '    p.scientificname as scientificname, '+
-                    '    t.common_names_eng as english, '+
-                    '    initcap(lower(t._order)) as order, ' +
-                    '    initcap(lower(t.Family)) as family, ' +
-                    '    t.red_list_status as redlist, ' +
-                    '    initcap(lower(t.class)) as className, ' +
-                    '    dt.title as type_title, ' +
-                    '    pv.title as provider_title, ' +
-                    '    dt.type as type, ' +
-                    '    pv.provider as provider, ' +
-                    '    t.year_assessed as year_assessed, ' +
-                    '    s.sequenceid as sequenceid, ' +
-                    '    page_id as eol_page_id ' +
-                    'FROM {3} p ' +
-                    'LEFT JOIN eol e ' +
-                    '    ON p.scientificname = e.scientificname ' +
-                    'LEFT JOIN synonym_metadata n ' +
-                    '    ON p.scientificname = n.scientificname ' +
-                    'LEFT JOIN taxonomy t ' +
-                    '    ON (p.scientificname = t.scientificname OR n.mol_scientificname = t.scientificname) ' +
-                    'LEFT JOIN sequence_metadata s ' +
-                    '    ON t.family = s.family ' +
-                    'LEFT JOIN types dt ON ' +
-                    '    p.type = dt.type ' +
-                    'LEFT JOIN providers pv ON ' +
-                    '    p.provider = pv.provider ' +
-                    'WHERE ' +
-                    '    ST_DWithin(p.the_geom_webmercator,ST_Transform(ST_PointFromText(\'POINT({0})\',4326),3857),{1}) ' + //radius test
-                    '    {2} ' + //other constraints
-                    'ORDER BY s.sequenceid, p.scientificname asc';
+                    'SELECT * FROM ' +
+                    '   get_species_list(\'POINT({0})\',{1},\'{2}\',\'json\');';
+                    
 
                 // TODO: Docs for what this query does.
                 this.csv_sql = '' +
@@ -100,8 +72,8 @@ mol.modules.map.query = function(mol) {
              */
             getList: function(lat, lng, listradius, constraints, className) {
                 var self = this,
-                    sql = this.sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons'),
-                    csv_sql = escape(this.csv_sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints, 'polygons')),
+                    sql = this.sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints),
+                    csv_sql = escape(this.csv_sql.format((Math.round(lng*100)/100+' '+Math.round(lat*100)/100), listradius.radius, constraints)),
                     params = {
                         sql:sql,
                         key: '{0}'.format((lat+'-'+lng+'-'+listradius.radius+constraints))
@@ -159,7 +131,7 @@ mol.modules.map.query = function(mol) {
                     'species-list-query-click',
                     function (event) {
                         var listradius,
-                            constraints = $(self.display.classInput).val() + $(".selected", $(self.display.types)).val(),
+                            constraints = $(self.display.classInput).val();
                             className =  $("option:selected", $(self.display.classInput)).text();
 
                         if (self.enabled) {
@@ -439,22 +411,10 @@ mol.modules.map.query = function(mol) {
                 this.display.classInput.change(
                     function(event) {
                         if ($(this).val().toLowerCase().indexOf('fish') > 0) {
-                            $(self.display.types).find('.ecoregion').toggle(false);
-                            $(self.display.types).find('.ecoregion').removeClass('selected');
                             if ($(self.display.types).find('.range').hasClass('selected')) {
                                 alert('Available for North America only.');
                             };
-                        } else if ($(this).val().toLowerCase().indexOf('reptil') > 0) {
-                            $(self.display.types).find('.ecoregion').toggle(true);
-                            $(self.display.types).find('.ecoregion').removeClass('selected');
-                            if ($(self.display.types).find('.range').hasClass('selected')) {
-                                alert('Available for North America only.');
-                            };
-                        } else {
-                            $(self.display.types).find('.ecoregion').toggle(false);
-                            $(self.display.types).find('.range').toggle(true);
-                            $(self.display.types).find('.range').addClass('selected');
-                        }
+                        } 
                     }
                 );
             }
@@ -474,17 +434,21 @@ mol.modules.map.query = function(mol) {
                     '       <option value="300">300 km</option>' +
                     '     </select>' +
                     '     Group <select class="class" value="">' +
-                    '       <option selected value=" AND  p.polygonres = 100 ">Birds</option>' +
-                    '       <option value=" AND p.provider = \'fishes\' ">NA Freshwater Fishes</option>' +
-                    '       <option value=" AND p.class=\'reptilia\' ">Reptiles</option>' +
-                    '       <option value=" AND p.class=\'amphibia\' ">Amphibians</option>' +
-                    '       <option value=" AND p.class=\'mammalia\' ">Mammals</option>' +
+                    '       <option selected value="jetz_maps">Birds</option>' +
+                    '       <option value="na_fish">NA Freshwater Fishes</option>' +
+                    '       <option value="iucn_reptiles">Reptiles</option>' +
+                    '       <option value="iucn_amphibians">Amphibians</option>' +
+                    '       <option value="iucn_mammals">Mammals</option>' +
+                    '       <option value="iucn_species2011_crustaceans">Crustaceans</option>' +
+                    '       <option value="iucn_species2011_seagrasses">Seagrasses</option>' + 
+                    '       <option value="iucn_species2011_mangroves">Mangroves</option>' +                    
+                    '       <option value="na_trees">NA Trees</option>' +
                     '     </select>' +
-                    '      <span class="types">' +
-                    '           <button class="range selected" value=" AND p.type=\'range\'"><img title="Click to use Expert range maps for query." src="/static/maps/search/range.png"></button>' +
-                    '           <button class="ecoregion" value=" AND p.type=\'ecoregion\' "><img title="Click to use Regional checklists for query." src="/static/maps/search/ecoregion.png"></button>' +
+                   /* '      <span class="types">' +
+                    '           <button class="range selected" value=""><img title="Click to use Expert range maps for query." src="/static/maps/search/range.png"></button>' +
+                    '           <button class="ecoregion" value=""><img title="Click to use Regional checklists for query." src="/static/maps/search/ecoregion.png"></button>' +
                     '       </span>'+
-                    '   </div>' +
+                    '   </div>' +*/
                     '</div>';
 
                 this._super(html);
