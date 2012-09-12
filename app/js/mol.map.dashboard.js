@@ -8,7 +8,8 @@ mol.modules.map.dashboard = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.sql = '' +
-                    'select DISTINCT * from get_dashboard_metadata() order by provider, taxa;';
+                    'select DISTINCT * ' + 
+                    'from get_dashboard_metadata() order by provider, taxa;';
             },
             /**
              * Starts the MenuEngine. Note that the container parameter is
@@ -54,14 +55,26 @@ mol.modules.map.dashboard = function(mol) {
                 _.each(
                     this.display.datasets,
                     function(dataset) {
-                        var provider = $(dataset).find('.provider').attr('class').replace('provider','').trim(),
-                            type = $(dataset).find('.type').attr('class').replace('type','').trim(),
-                            _class = $(dataset).find('.class').attr('class').replace('class','').trim(),
-                            data_table = $(dataset).find('.table').attr('class').replace('table','').trim();
+                        var provider = $(dataset).find('.provider')
+                               .attr('class').replace('provider','').trim(),
+                            type = $(dataset).find('.type')
+                                .attr('class').replace('type','').trim(),
+                            _class = $(dataset).find('.class')
+                                .attr('class').replace('class','').trim(),
+                            data_table = $(dataset).find('.table')
+                                .attr('class').replace('table','').trim();
 
                         $(dataset).find('.provider').click (
                             function(event) {
-                                self.bus.fireEvent(new mol.bus.Event('metadata-toggle',{ params :{provider: provider, type: type, _class: _class, text: data_table}}));
+                                self.bus.fireEvent(
+                                    new mol.bus.Event(
+                                        'metadata-toggle',
+                                        {params:
+                                            {provider: provider, 
+                                             type: type, 
+                                             _class: _class, 
+                                             text: data_table}}));
+                                        
                             }
                         );
 
@@ -70,11 +83,17 @@ mol.modules.map.dashboard = function(mol) {
                 _.each(
                     this.display.datasets.find('.type'),
                     function(td) {
-                         var type = $(td).attr('class').replace('type','').trim();
+                         var type = $(td).attr('class')
+                                .replace('type','').trim();
                          $(td).click (
                                     function(event) {
-                                        var _class = $(this).attr('class').replace('class','').trim();
-                                        self.bus.fireEvent(new mol.bus.Event('metadata-toggle',{ params :{type: type}}));
+                                        var _class = $(this)
+                                                .attr('class')
+                                                    .replace('class','').trim();
+                                        self.bus.fireEvent(
+                                            new mol.bus.Event(
+                                                'metadata-toggle',
+                                                {params:{type: type}}));
                                     }
                          );
                     }
@@ -94,7 +113,8 @@ mol.modules.map.dashboard = function(mol) {
                         sql: this.sql
                     },
                     function(response) {
-                        self.display = new mol.map.dashboard.DashboardDisplay(response.rows);
+                        self.display = new mol.map.dashboard.DashboardDisplay(
+                                                                response.rows);
                         self.display.dialog(
                             {
                                 autoOpen: false,
@@ -118,7 +138,9 @@ mol.modules.map.dashboard = function(mol) {
                     '<div id="dialog">' +
                     '  <div class="dashboard">' +
                     '  <div class="title">Dashboard</div>' +
-                    '  <div class="subtitle">Statistics for data served by the Map of Life</div>' +
+                    '  <div class="subtitle">' + 
+                            'Statistics for data served by the Map of Life' + 
+                    '  </div>' +
                     '  <table class="dashtable">' +
                     '   <thead>' +
                     '    <tr>' +
@@ -140,7 +162,9 @@ mol.modules.map.dashboard = function(mol) {
                 _.each(
                     rows,
                     function(row) {
-                         $(self).find('.dashbody').append(new mol.map.dashboard.DashboardRowDisplay(row));
+                         $(self).find('.dashbody')
+                            .append(
+                                new mol.map.dashboard.DashboardRowDisplay(row));
                     }
                 )
                 this.dashtable = $(this).find('.dashtable');
@@ -168,7 +192,16 @@ mol.modules.map.dashboard = function(mol) {
                     '      <td>{5}</td>' +
                     '      <td>{6}</td>' +
                     '    </tr>';
-                this._super(html.format(row.type_id, row.type, row.provider_id, row.provider, row.taxa, row.species_count,row.feature_count, row.data_table));
+                this._super(
+                    html.format(
+                        row.type_id, 
+                        row.type, 
+                        row.provider_id, 
+                        row.provider, 
+                        row.taxa, 
+                        row.species_count,
+                        row.feature_count, 
+                        row.data_table));
             }
          }
     );
