@@ -429,7 +429,7 @@ mol.modules.map.layers = function(mol) {
                     '    <input class="keycatcher" type="text" />' +
                     '    <button title="Remove layer." class="close">x</button>' +
                     '    <button title="Zoom to layer extent." class="zoom">z</button>' +
-                    '    <button title="Layer styler." class="styler">s</button>' +
+                  /*'    <button title="Layer styler." class="styler">s</button>' + */
                     '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span title="Toggle layer visibility." class="customCheck"></span></label>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
