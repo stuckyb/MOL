@@ -654,41 +654,15 @@ padding: 3px;
     text-align: center;
 }
 
-
-.mol-Dashboard .dashboard table tr td {
-    border-top: 1px solid #CCC;
-    border: 1px solid #CCC;
-    text-align: left;
-    margin: 0;
-    padding: 6px 13px;
-    font-style: normal;
-    font-size: 12px;
-}
-
 .mol-Dashboard #dialog .dashboard .title {
     font-weight:bold;
     font-size: 18px;
 }
 
-.mol-Dashboard #dialog .dashboard .subtitle {
-    font-size: 14px;
-    font-style: italic;
-    padding-bottom: 10px;
-}
-
-.mol-Dashboard #dialog .class {
-    cursor: pointer;
-    cursor: hand;
-}
-
-.mol-Dashboard #dialog .type {
-    cursor: pointer;
-    cursor: hand;
-}
-
-.mol-Dashboard .ui-dialog-titlebar, .ui-widget-header, .dashboard{
+.mol-Dashboard .ui-dialog-titlebar, .ui-widget-header, .dashboard {
     background: none;
-    background-image: -ms-linear-gradient(rgba(29,43,82,0.65) 89%, rgba(29,43,82,0.75) 57%);
+    background-image: -ms-linear-gradient(rgba(29,43,82,0.65) 89%, 
+        rgba(29,43,82,0.75) 57%);
     background-image: -webkit-gradient(
         linear,
         left bottom,
@@ -707,7 +681,8 @@ padding: 3px;
         rgba(29,43,82,0.75) 57%
     );
 
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#A51D2B52', endColorstr='#BF1D2B52');
+    filter: progid:DXImageTransform.Microsoft.gradient(
+        startColorstr='#A51D2B52', endColorstr='#BF1D2B52');
     -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
     box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
