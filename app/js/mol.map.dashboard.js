@@ -120,7 +120,9 @@ mol.modules.map.dashboard = function(mol) {
                                 autoOpen: false,
                                 width: 850,
                                 height:400,
-                                dialogClass: "mol-Dashboard"
+                                dialogClass: "mol-Dashboard",
+                                title: 'Dashboard - ' + 
+                                'Statistics for Data Served by the Map of Life'
                             }
                         );
                         self.addEventHandlers();
@@ -172,11 +174,6 @@ mol.modules.map.dashboard = function(mol) {
                     { headers: { 0: { sorter: false}}, widthFixed: true}
                 );
                 this.datasets = $(this).find('.dataset');
-
-
-
-
-
             }
         }
     );
