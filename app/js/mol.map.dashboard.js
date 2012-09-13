@@ -49,6 +49,7 @@ mol.modules.map.dashboard = function(mol) {
                         } else {
                             self.display.dialog(event.state);
                         }
+                        
                     }
                 );
 
@@ -119,12 +120,13 @@ mol.modules.map.dashboard = function(mol) {
                             {
                                 autoOpen: false,
                                 width: 850,
-                                height:550,
+                                height:360,
                                 dialogClass: "mol-Dashboard",
                                 title: 'Dashboard - ' + 
                                 'Statistics for Data Served by the Map of Life'
                             }
                         );
+                        
                         self.addEventHandlers();
                     }
                 );
@@ -138,37 +140,68 @@ mol.modules.map.dashboard = function(mol) {
             init: function(rows) {
                 var html = '' +
                     '<div id="dialog">' +
-                    '  <div class="dashboard">' +
-                    '    <div class="title">Datasets</div>' +
+                    '  <div id="dashTypeFilter">' +
+                    '    <div id="dashTitle" class="title">' + 
+                            'Datasets' + 
+                    '    </div><br/>' +
+                    '    <div>' + 
+                    '      <span class="filterHeader">Filter by Type</span>' + 
+                    '    </div>' +
+                    '    <div class="chkAndLabel">' + 
+                    '      <input type="checkbox" checked="checked" ' + 
+                             'name="expertRan" id="expertChk"/>' + 
+                    '      <label for="expertChk">Expert Range Maps</label>' + 
+                    '    </div>' +
+                    '    <div class="chkAndLabel">' + 
+                    '      <input type="checkbox" checked="checked" ' + 
+                             'name="pointObs"/>' + 
+                    '      <label for="pointObs">Point Observations</label>' + 
+                    '    </div>' +
+                    '    <div class="chkAndLabel">' + 
+                    '      <input type="checkbox" checked="checked" ' + 
+                             'name="localInv"/>' + 
+                    '      <label for="localInv">Local Inventories</label>' + 
+                    '    </div>' +
+                    '    <div class="chkAndLabel">' + 
+                    '      <input type="checkbox" checked="checked" ' + 
+                             'name="regionalChe"/>' + 
+                    '      <label for="regionalChe">' + 
+                             'Regional Checklists</label> ' +
+                    '    </div>' +
                     '  </div>' +
-                    '  <div>' +
-                    '  <table class="dashtable">' +
-                    '   <thead>' +
-                    '    <tr>' +
-                    '      <th><b>Dataset</b></th>' +
-                    '      <th><b>Type</b></th>' +
-                    '      <th><b>Source</b></th>' +
-                    '      <th><b>Class</b></th>' +
-                    '      <th><b>Species names</b></th>' +
-                    '      <th><b>Records</b></th>' +
-                    '    </tr>' +
-                    '   </thead>' +
-                    '   <tbody class="tablebody">' +
-                    '   </tbody>' +
-                    '  </table>' +
-                    '  </div>' +
+                    '    <div class="mol-Dashboard-TableWindow">' +
+                    '      <table class="dashtable">' +
+                    '       <thead>' +
+                    '        <tr>' +
+                    '          <th><b>Dataset</b></th>' +
+                    '          <th><b>Type</b></th>' +
+                    '          <th><b>Source</b></th>' +
+                    '          <th><b>Class</b></th>' +
+                    '          <th><b>Species names</b></th>' +
+                    '          <th><b>Records</b></th>' +
+                    '        </tr>' +
+                    '       </thead>' +
+                    '       <tbody class="tablebody"></tbody>' +
+                    '      </table>' +
+                    '    </div>' +
                     '</div>  ',
-                    self = this;
+                    self = this,
+                    numsets = 0;
 
                 this._super(html);
                 _.each(
                     rows,
                     function(row) {
+                        numsets++;
                          $(self).find('.tablebody')
                             .append(
                                 new mol.map.dashboard.DashboardRowDisplay(row));
                     }
                 )
+                
+                $(this).find('#dashTitle')
+                    .html(numsets + ' Datasets Shown');
+                
                 this.dashtable = $(this).find('.dashtable');
                 this.dashtable.tablesorter({ 
                                 sortList: [[1,1]], 
@@ -188,6 +221,60 @@ mol.modules.map.dashboard = function(mol) {
                         )
                         
                         $(this).addClass('selectedDashRow');
+                    }
+                );
+                
+                $(this).find("input:checkbox").change(
+                    function() {
+                        var numHidden = 0;
+                        
+                        self.toggleRows(
+                                $(self).find('.tablebody tr'), 
+                                $(this).attr('name'),
+                                $(this).is(':checked'));
+                                
+                        _.each(
+                            $(self).find('.tablebody tr'),
+                            function(row) {
+                                if($(row).css('display') == "none") {
+                                    numHidden++;
+                                }
+                            }
+                        )
+                        
+                        $(self).find('#dashTitle')
+                            .html(numsets-numHidden + ' Datasets Shown');
+                    });
+            },
+            
+            toggleRows: function(rows, type, checked) {
+                var rowType
+                
+                switch(type) {
+                    case 'expertRan':
+                        rowType = 'Expert range map';
+                        break;
+                    case 'pointObs':
+                        rowType = 'Point observation';
+                        break;
+                    case 'localInv':
+                        rowType = 'Local inventory';
+                        break;
+                    case 'regionalChe':
+                        rowType = 'Regional checklist';
+                        break;
+                }
+                
+                _.each(
+                    rows,
+                    function(row) {
+                        if($(row).find('td.type').html() == rowType) {
+                            if(checked) {
+                                $(row).show();
+                            } else {
+                                $(row).hide();
+                            }
+                        }
                     }
                 );
             }
