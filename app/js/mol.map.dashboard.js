@@ -166,7 +166,7 @@ mol.modules.map.dashboard = function(mol) {
                     '      <input type="checkbox" checked="checked" ' + 
                              'name="regionalChe"/>' + 
                     '      <label for="regionalChe">' + 
-                             'Regional Checklists</label> ' +
+                            'Regional Checklists</label> ' +
                     '    </div>' +
                     '  </div>' +
                     '    <div class="mol-Dashboard-TableWindow">' +
@@ -204,8 +204,7 @@ mol.modules.map.dashboard = function(mol) {
                 
                 this.dashtable = $(this).find('.dashtable');
                 this.dashtable.tablesorter({ 
-                                sortList: [[1,1]], 
-                                headers: { 0: { sorter: false}}, 
+                                sortList: [[1,1]],
                                 widthFixed: true
                                 });
                 this.datasets = $(this).find('.dataset');
