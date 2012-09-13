@@ -111,6 +111,14 @@ table.dashtable tr.selectedDashRow {
     background-color: #FFEF93;
 }
 
+table.dashtable td.type {
+    width: 105px;
+}
+
+table.dashtable td.provider {
+    width: 150px;
+}
+
 /*
  * image gallery
  */
