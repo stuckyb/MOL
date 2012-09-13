@@ -86,15 +86,15 @@ mol.modules.map.dashboard = function(mol) {
                          var type = $(td).attr('class')
                                 .replace('type','').trim();
                          $(td).click (
-                                    function(event) {
-                                        var _class = $(this)
-                                                .attr('class')
-                                                    .replace('class','').trim();
-                                        self.bus.fireEvent(
-                                            new mol.bus.Event(
-                                                'metadata-toggle',
-                                                {params:{type: type}}));
-                                    }
+                                function(event) {
+                                    var _class = $(this)
+                                            .attr('class')
+                                                .replace('class','').trim();
+                                    self.bus.fireEvent(
+                                        new mol.bus.Event(
+                                            'metadata-toggle',
+                                            {params:{type: type}}));
+                                }
                          );
                     }
                 )
@@ -119,7 +119,7 @@ mol.modules.map.dashboard = function(mol) {
                             {
                                 autoOpen: false,
                                 width: 850,
-                                height:400,
+                                height:550,
                                 dialogClass: "mol-Dashboard",
                                 title: 'Dashboard - ' + 
                                 'Statistics for Data Served by the Map of Life'
@@ -139,10 +139,9 @@ mol.modules.map.dashboard = function(mol) {
                 var html = '' +
                     '<div id="dialog">' +
                     '  <div class="dashboard">' +
-                    '  <div class="title">Dashboard</div>' +
-                    '  <div class="subtitle">' + 
-                            'Statistics for data served by the Map of Life' + 
+                    '    <div class="title">Datasets</div>' +
                     '  </div>' +
+                    '  <div>' +
                     '  <table class="dashtable">' +
                     '   <thead>' +
                     '    <tr>' +
@@ -154,9 +153,10 @@ mol.modules.map.dashboard = function(mol) {
                     '      <th><b>Records</b></th>' +
                     '    </tr>' +
                     '   </thead>' +
-                    '   <tbody class="dashbody">' +
+                    '   <tbody class="tablebody">' +
                     '   </tbody>' +
                     '  </table>' +
+                    '  </div>' +
                     '</div>  ',
                     self = this;
 
@@ -164,16 +164,32 @@ mol.modules.map.dashboard = function(mol) {
                 _.each(
                     rows,
                     function(row) {
-                         $(self).find('.dashbody')
+                         $(self).find('.tablebody')
                             .append(
                                 new mol.map.dashboard.DashboardRowDisplay(row));
                     }
                 )
                 this.dashtable = $(this).find('.dashtable');
-                this.dashtable.tablesorter(
-                    { headers: { 0: { sorter: false}}, widthFixed: true}
-                );
+                this.dashtable.tablesorter({ 
+                                sortList: [[1,1]], 
+                                headers: { 0: { sorter: false}}, 
+                                widthFixed: true
+                                });
                 this.datasets = $(this).find('.dataset');
+                
+                this.dashtable.find("tr.master")
+                    .click(function(){ 
+                        $(this).parent().find('tr').each(
+                            function(index, elem) {
+                                if($(elem).hasClass('selectedDashRow')) {
+                                    $(elem).removeClass('selectedDashRow');
+                                }
+                            }
+                        )
+                        
+                        $(this).addClass('selectedDashRow');
+                    }
+                );
             }
         }
     );
@@ -181,7 +197,7 @@ mol.modules.map.dashboard = function(mol) {
         {
             init: function(row) {
                 var html = '' +
-                    '    <tr class="dataset">' +
+                    '    <tr class="master dataset">' +
                     '      <td class="table {7}">{7}</td>' +
                     '      <td class="type {0}">{1}</td>' +
                     '      <td class="provider {2}">{3}</td>' +
