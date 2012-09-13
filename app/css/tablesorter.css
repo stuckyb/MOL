@@ -102,7 +102,7 @@ table.dashtable td.provider, table.dashtable td.type {
     cursor: pointer;
 }
 
-table.dashtable td.provider:hover {
+table.dashtable td.provider:hover,  table.dashtable td.type:hover {
     color: blue;
     text-decoration: underline;
 }
