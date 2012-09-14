@@ -99,6 +99,7 @@ table.grid .collapsible {
 }
 
 table.dashtable td.provider, table.dashtable td.type {
+    text-decoration: underline;
     cursor: pointer;
 }
 
@@ -111,13 +112,20 @@ table.dashtable tr.selectedDashRow {
     background-color: #FFEF93;
 }
 
+
 table.dashtable td.type {
     width: 105px;
 }
 
 table.dashtable td.provider {
-    width: 150px;
+    width: 115px;
 }
+
+table.dashtable td.spnames {
+    width: 85px;
+}
+
+
 
 /*
  * image gallery
