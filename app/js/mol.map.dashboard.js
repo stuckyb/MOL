@@ -7,25 +7,20 @@ mol.modules.map.dashboard = function(mol) {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
-                this.sql = '' +
-                    'select DISTINCT * ' + 
-                    'from get_dashboard_metadata() order by provider, classes;';
+                this.url = "http://mol.cartodb.com/api/v2/sql?callback=?&q={0}"
+                this.summary_sql = '' +
+                    'SELECT DISTINCT * ' + 
+                    'FROM get_dashboard_summary()';
+                this.dashboard_sql = '' +
+                    'SELECT DISTINCT * ' + 
+                    'FROM get_dashboard_metadata() ' +
+                    'ORDER BY provider, classes;';
+                this.summary = null;
             },
-            /**
-             * Starts the MenuEngine. Note that the container parameter is
-             * ignored.
-             */
             start: function() {
-
                 this.initDialog();
-                //this.addEventHandlers();
             },
 
-            /**
-             * Adds a handler for the 'search-display-toggle' event which
-             * controls display visibility. Also adds UI event handlers for the
-             * display.
-             */
             addEventHandlers: function() {
                 var self = this;
 
@@ -107,15 +102,13 @@ mol.modules.map.dashboard = function(mol) {
              */
             initDialog: function() {
                 var self = this;
-                $.post(
-                    'cache/get',
-                    {
-                        key: 'dashboard-0914201207',
-                        sql: this.sql
-                    },
+                
+                $.getJSON(
+                    this.url.format(this.dashboard_sql),
                     function(response) {
                         self.display = new mol.map.dashboard.DashboardDisplay(
-                                                                response.rows);
+                            response.rows, self.summary
+                        );
                         self.display.dialog(
                             {
                                 autoOpen: false,
@@ -131,16 +124,40 @@ mol.modules.map.dashboard = function(mol) {
                         self.addEventHandlers();
                     }
                 );
-
+                $.getJSON(
+                    this.url.format(this.summary_sql),
+                    function(response) {
+                        self.summary = response.rows[0];
+                        if(self.display) {
+                            self.display.fillSummary(self.summary);
+                        }
+                    }
+                );
             }
         }
     );
 
     mol.map.dashboard.DashboardDisplay = mol.mvp.View.extend(
         {
-            init: function(rows) {
+            init: function(rows, summary) {
                 var html = '' +
                     '<div id="dialog">' +
+                    '  <div class="summary">' +
+                    '    <span class="label">Data sources</span>' +
+                    '    <span class="providers"></span>' +
+                    '    <span class="label">Datasets</span>' +
+                    '    <span class="datasets"></span>' +
+                    '    <span class="label">Species names</span>' +
+                    '    <span class="names"></span>' +
+                    '    <span class="label">Valid taxons</span>' +
+                    '    <span class="taxon_matches"></span>' +
+                    '    <span class="label">Recognized synonyms</span>' +
+                    '    <span class="syn_matches"></span>' +
+                    '    <span class="label">Total possible taxons</span>' +
+                    '    <span class="taxon_total"></span>' +
+                    '    <span class="label">Total records</span>' +
+                    '    <span class="record_total"></span>' +
+                    '  </div>' +
                     '  <div id="dashTypeFilter">' +
                     '    <div id="dashTitle" class="title">' + 
                             'Datasets' + 
@@ -292,6 +309,19 @@ mol.modules.map.dashboard = function(mol) {
                         $(self).find('#dashTitle')
                             .html(numsets-numHidden + ' Datasets Shown');
                     });
+                    if(summary!=null) {
+                        self.fillSummary(summary);
+                    }
+            },
+            
+            fillSummary: function(summary) {
+                var self = this;
+                _.each(
+                    _.keys(summary),
+                    function(stat){
+                        $(self).find('.{0}'.format(stat)).text(summary[stat]);
+                    }
+                )
             },
             
             toggleType: function(rows, type, checked) {
