@@ -9,7 +9,7 @@ mol.modules.map.dashboard = function(mol) {
                 this.bus = bus;
                 this.sql = '' +
                     'select DISTINCT * ' + 
-                    'from get_dashboard_metadata() order by provider, taxa;';
+                    'from get_dashboard_metadata() order by provider, classes;';
             },
             /**
              * Starts the MenuEngine. Note that the container parameter is
@@ -110,7 +110,7 @@ mol.modules.map.dashboard = function(mol) {
                 $.post(
                     'cache/get',
                     {
-                        key: 'dashboard-0907201248',
+                        key: 'dashboard-0914201207',
                         sql: this.sql
                     },
                     function(response) {
@@ -120,7 +120,8 @@ mol.modules.map.dashboard = function(mol) {
                             {
                                 autoOpen: false,
                                 width: 850,
-                                height:360,
+                                height: 360,
+                                minHeight: 360,
                                 dialogClass: "mol-Dashboard",
                                 title: 'Dashboard - ' + 
                                 'Statistics for Data Served by the Map of Life'
@@ -144,27 +145,64 @@ mol.modules.map.dashboard = function(mol) {
                     '    <div id="dashTitle" class="title">' + 
                             'Datasets' + 
                     '    </div><br/>' +
+                    // taxa filter
+                    '    <div>' + 
+                    '      <span class="filterHeader">Filter by Taxa</span>' + 
+                    '    </div>' +
+                    '    <div class="chkAndLabel">' + 
+                    '      <input type="checkbox" checked="checked" ' + 
+                             'name="amphibia" class="taxaChk"/>' + 
+                    '      <label for="amphibia">Amphibians</label>' + 
+                    '    </div>' +
+                    '    <div class="chkAndLabel">' + 
+                    '      <input type="checkbox" checked="checked" ' + 
+                             'name="aves" class="taxaChk"/>' + 
+                    '      <label for="aves">Birds</label>' + 
+                    '    </div>' +
+                    '    <div class="chkAndLabel">' + 
+                    '      <input type="checkbox" checked="checked" ' + 
+                             'name="fish" class="taxaChk"/>' + 
+                    '      <label for="fish">Fish</label>' + 
+                    '    </div>' +
+                    '    <div class="chkAndLabel">' + 
+                    '      <input type="checkbox" checked="checked" ' + 
+                             'name="insecta" class="taxaChk"/>' + 
+                    '      <label for="insecta">Insects</label> ' +
+                    '    </div>' +
+                    '    <div class="chkAndLabel">' + 
+                    '      <input type="checkbox" checked="checked" ' + 
+                             'name="mammalia" class="taxaChk"/>' + 
+                    '      <label for="mammalia">Mammals</label> ' +
+                    '    </div>' +
+                    '    <div class="chkAndLabel">' + 
+                    '      <input type="checkbox" checked="checked" ' + 
+                             'name="reptilia" class="taxaChk"/>' + 
+                    '      <label for="reptilia">Reptiles</label> ' +
+                    '    </div>' +
+                    '    <br/>' +
+                    '    <br/>' +
+                    // type filter
                     '    <div>' + 
                     '      <span class="filterHeader">Filter by Type</span>' + 
                     '    </div>' +
                     '    <div class="chkAndLabel">' + 
                     '      <input type="checkbox" checked="checked" ' + 
-                             'name="expertRan" id="expertChk"/>' + 
-                    '      <label for="expertChk">Expert Range Maps</label>' + 
+                             'name="expertRan" class="typeChk"/>' + 
+                    '      <label for="expertRan">Expert Range Maps</label>' + 
                     '    </div>' +
                     '    <div class="chkAndLabel">' + 
                     '      <input type="checkbox" checked="checked" ' + 
-                             'name="pointObs"/>' + 
+                             'name="pointObs" class="typeChk"/>' + 
                     '      <label for="pointObs">Point Observations</label>' + 
                     '    </div>' +
                     '    <div class="chkAndLabel">' + 
                     '      <input type="checkbox" checked="checked" ' + 
-                             'name="localInv"/>' + 
+                             'name="localInv" class="typeChk"/>' + 
                     '      <label for="localInv">Local Inventories</label>' + 
                     '    </div>' +
                     '    <div class="chkAndLabel">' + 
                     '      <input type="checkbox" checked="checked" ' + 
-                             'name="regionalChe"/>' + 
+                             'name="regionalChe" class="typeChk"/>' + 
                     '      <label for="regionalChe">' + 
                             'Regional Checklists</label> ' +
                     '    </div>' +
@@ -205,7 +243,7 @@ mol.modules.map.dashboard = function(mol) {
                 this.dashtable = $(this).find('.dashtable');
                 this.dashtable.tablesorter({ 
                                 sortList: [[1,1]],
-                                widthFixed: true
+                                widthFixed: false
                                 });
                 this.datasets = $(this).find('.dataset');
                 
@@ -227,10 +265,20 @@ mol.modules.map.dashboard = function(mol) {
                     function() {
                         var numHidden = 0;
                         
-                        self.toggleRows(
+                        if($(this).hasClass('taxaChk')) {
+                            self.toggleTaxa(
+                                $(self).find('.tablebody tr'), 
+                                this,
+                                $(this).is(':checked'));
+                        }   
+                        else
+                        {
+                            self.toggleType(
                                 $(self).find('.tablebody tr'), 
                                 $(this).attr('name'),
                                 $(this).is(':checked'));
+                        }
+                                
                                 
                         _.each(
                             $(self).find('.tablebody tr'),
@@ -246,8 +294,8 @@ mol.modules.map.dashboard = function(mol) {
                     });
             },
             
-            toggleRows: function(rows, type, checked) {
-                var rowType
+            toggleType: function(rows, type, checked) {
+                var rowType;
                 
                 switch(type) {
                     case 'expertRan':
@@ -276,6 +324,66 @@ mol.modules.map.dashboard = function(mol) {
                         }
                     }
                 );
+            },
+            
+            toggleTaxa: function(rows, chkbox, checked) {
+                var rowClasses,
+                    chkboxes,
+                    type = $(chkbox).attr('name'),
+                    i,
+                    j;
+                
+                _.each(
+                    rows,
+                    function(row) {
+                        rowClasses = $(row).find('td.class').html().split(',');
+                        
+                        if(rowClasses.length == 1)
+                        {
+                            if(rowClasses[0] == type) {
+                                if(checked) {
+                                    $(row).show();
+                                } else {
+                                    $(row).hide();
+                                }
+                            }
+                        }
+                        else
+                        {
+                            chkboxes = $(chkbox).parent().parent()
+                                            .find('div input.taxaChk');
+                            
+                            classLoop:
+                            for(i=0;i < rowClasses.length;i++)
+                            {
+                                //loop through checkboxes
+                                for(j=0;j < chkboxes.length;j++) {
+                                    if($(chkboxes[j]).attr('name') == 
+                                           rowClasses[i] && 
+                                           $(chkboxes[j]).is(':checked')) {
+                                       $(row).show();
+                                       break classLoop; 
+                                    }
+                                    
+                                    if(j == chkboxes.length-1 && 
+                                           i == rowClasses.length-1 && 
+                                           $(chkboxes[j]).attr('name') != 
+                                               rowClasses[i]) {
+                                        if(rowClasses[i] == type) {
+                                            if(checked) {
+                                                $(row).show();
+                                            } else {
+                                                $(row).hide();
+                                            }
+                                        }       
+                                    }
+                                }  
+                            }
+                            
+                            
+                        }
+                    }
+                );
             }
         }
     );
@@ -288,7 +396,7 @@ mol.modules.map.dashboard = function(mol) {
                     '      <td class="type {0}">{1}</td>' +
                     '      <td class="provider {2}">{3}</td>' +
                     '      <td class="class {4}">{4}</td>' +
-                    '      <td>{5}</td>' +
+                    '      <td class="spnames">{5}</td>' +
                     '      <td>{6}</td>' +
                     '    </tr>';
                 this._super(
@@ -297,7 +405,7 @@ mol.modules.map.dashboard = function(mol) {
                         row.type, 
                         row.provider_id, 
                         row.provider, 
-                        row.taxa, 
+                        row.classes.split(',').join(', '), 
                         row.species_count,
                         row.feature_count, 
                         row.data_table));
