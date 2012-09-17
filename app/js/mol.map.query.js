@@ -852,7 +852,7 @@ mol.modules.map.query = function(mol) {
                                 self.bus.fireEvent(
                                     new mol.bus.Event(
                                         'search', 
-                                        {term : event.target.value}
+                                        {term : $.trim(event.target.value)}
                                     )
                                 );
                             }
@@ -860,7 +860,7 @@ mol.modules.map.query = function(mol) {
                         
                         $('button.eolButton').click(
                             function(event) {
-                                var win = window.open(event.target.value);
+                                var win = window.open($.trim(event.target.value));
                                 win.focus();
                             }
                         );
@@ -885,7 +885,7 @@ mol.modules.map.query = function(mol) {
                     visible: function(event, api) {                  
                         $("button.mapButton").click(function(event) {
                             self.bus.fireEvent(new mol.bus.Event('search', {
-                                term : event.target.value
+                                term : $.trim(event.target.value)
                             }));
                         });
                     }
@@ -997,7 +997,7 @@ mol.modules.map.query = function(mol) {
                     
                     $('button.eolButton[value="http://eol.org/pages/' +
                         eolpage + '"]').click(function(event) {
-                        var win = window.open(event.target.value);
+                        var win = window.open($.trim(event.target.value));
                         win.focus();
                     });
                 }
@@ -1011,7 +1011,7 @@ mol.modules.map.query = function(mol) {
                     self.bus.fireEvent(
                         new mol.bus.Event(
                             'search', 
-                            {term : event.target.value.trim()}
+                            {term : $.trim(event.target.value)}
                         )
                     );
                 }
