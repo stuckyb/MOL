@@ -57,7 +57,7 @@ mol.modules.map.dashboard = function(mol) {
                                 .attr('class').replace('type','').trim(),
                             _class = $(dataset).find('.class')
                                 .attr('class').replace('class','').trim(),
-                            data_table = $(dataset).find('.table')
+                            dataset_title = $(dataset).find('.table')
                                 .attr('class').replace('table','').trim();
 
                         $(dataset).find('.provider').click (
@@ -69,7 +69,7 @@ mol.modules.map.dashboard = function(mol) {
                                             {provider: provider, 
                                              type: type, 
                                              _class: _class, 
-                                             text: data_table}}));
+                                             text: dataset_title}}));
                                         
                             }
                         );
@@ -439,7 +439,7 @@ mol.modules.map.dashboard = function(mol) {
                         row.classes.split(',').join(', '), 
                         row.species_count,
                         row.feature_count, 
-                        row.data_table));
+                        row.dataset_title));
             }
          }
     );
