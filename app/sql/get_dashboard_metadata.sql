@@ -30,22 +30,13 @@ $$
                   '   TEXT(''' || REPLACE(data.dataset_title, '''','''''') || ''') as dataset_title, ' ||
                   '   count(DISTINCT '|| data.scientificname || ') as species_count, ' ||
                   '   count(*) as feature_count FROM ' || data.table_name; 
-	          RETURN QUERY EXECUTE sql;
-         ELSIF data.type = 'ecoregion' or data.type = 'taxogeochecklist' THEN 		
-		--ecoregion counts	
-		sql = ' SELECT ' || 
-		  '   TEXT(''' || REPLACE(data.provider_title, '''','''''')|| ''') as provider, ' ||
-                  '   TEXT(''' || REPLACE(data.type_title, '''','''''') || ''') as type, ' || 
-		  '   TEXT(''' || data.provider || ''') as provider_id, ' ||
-	          '   TEXT(''' || data.type || ''') as type_id, ' ||
-		  '   TEXT(''' || REPLACE(data.classes, '''','''''') || ''') as classes, ' ||
-                  '   TEXT(''' || REPLACE(data.dataset_title, '''','''''') || ''') as dataset_title, ' ||
-                  '   count(DISTINCT ' || data.species_id || ') as species_count, ' ||
-                  '   count(*) as feature_count ' ||
-                  ' FROM ' || data.table_name || ' d';
-	          RETURN QUERY EXECUTE sql;
-	 ELSIF data.type = 'protectedarea' or data.type = 'taxogeochecklist' THEN 		
-		--ecoregion counts	
+	          IF sql is not null then
+			RETURN QUERY EXECUTE sql;
+		  ELSE
+			RETURN QUERY SELECT TEXT(data.provider),TEXT(data.type_title),TEXT(data.classes),TEXT(CONCAT(data.dataset_title, ' IS NULL')),CAST(0 as BIGINT), CAST(0 as BIGINT);
+		  END IF;
+         ELSIF data.type = 'geochecklist' THEN 		
+			
 		sql = ' SELECT ' || 
 		  '   TEXT(''' || REPLACE(data.provider_title, '''','''''') || ''') as provider, ' ||
                   '   TEXT(''' || REPLACE(data.type_title, '''','''''') || ''') as type, ' || 
@@ -56,7 +47,29 @@ $$
                   '   count(DISTINCT ' || data.scientificname || ') as species_count, ' ||
                   '   count(*) as feature_count ' ||
                   ' FROM ' || data.table_name || ' d';
-		RETURN QUERY EXECUTE sql;
+	          IF sql is not null then
+			RETURN QUERY EXECUTE sql;
+		  ELSE
+			RETURN QUERY SELECT TEXT(data.provider),TEXT(data.type_title),TEXT(data.classes),TEXT(CONCAT(data.dataset_title, ' IS NULL')),CAST(0 as BIGINT), CAST(0 as BIGINT);
+		END IF;
+	 ELSIF  data.type = 'taxogeochecklist' THEN 		
+			
+		sql = ' SELECT ' || 
+		  '   TEXT(''' || REPLACE(data.provider_title, '''','''''') || ''') as provider, ' ||
+                  '   TEXT(''' || REPLACE(data.type_title, '''','''''') || ''') as type, ' || 
+		  '   TEXT(''' || data.provider || ''') as provider_id, ' ||
+	          '   TEXT(''' || data.type || ''') as type_id, ' ||
+		  '   TEXT(''' || REPLACE(data.classes, '''','''''') || ''') as classes, ' ||
+                  '   TEXT(''' || REPLACE(data.dataset_title, '''','''''') || ''') as dataset_title, ' ||
+                  '   count(DISTINCT d.' || data.species_id || ') as species_count, ' ||
+                  '   count(*) as feature_count ' ||
+                  ' FROM ' || data.table_name || ' d, ' || data.taxo_table || ' t ' ||
+		  ' WHERE d.' || data.species_id || ' = t.' || data.species_link_id;
+			          IF sql is not null then
+			RETURN QUERY EXECUTE sql;
+		  ELSE
+			RETURN QUERY SELECT TEXT(data.provider),TEXT(data.type_title),TEXT(data.classes),TEXT(CONCAT(data.dataset_title, ' IS NULL')),CAST(0 as BIGINT), CAST(0 as BIGINT);
+			END IF;
 	  ELSE
                 -- We got nuttin'
 	  END IF;
