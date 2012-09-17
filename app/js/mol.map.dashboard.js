@@ -112,7 +112,7 @@ mol.modules.map.dashboard = function(mol) {
                         self.display.dialog(
                             {
                                 autoOpen: false,
-                                width: 850,
+                                width: 946,
                                 height: 360,
                                 minHeight: 360,
                                 dialogClass: "mol-Dashboard",
@@ -143,19 +143,19 @@ mol.modules.map.dashboard = function(mol) {
                 var html = '' +
                     '<div id="dialog">' +
                     '  <div class="summary">' +
-                    '    <span class="label">Data sources</span>' +
+                    '    <span class="label">Data sources:</span>' +
                     '    <span class="providers"></span>' +
-                    '    <span class="label">Datasets</span>' +
+                    '    <span class="label">Datasets:</span>' +
                     '    <span class="datasets"></span>' +
-                    '    <span class="label">Species names</span>' +
+                    '    <span class="label">Species names:</span>' +
                     '    <span class="names"></span>' +
-                    '    <span class="label">Valid taxons</span>' +
+                    '    <span class="label">Valid taxons:</span>' +
                     '    <span class="taxon_matches"></span>' +
-                    '    <span class="label">Recognized synonyms</span>' +
+                    '    <span class="label">Recognized synonyms:</span>' +
                     '    <span class="syn_matches"></span>' +
-                    '    <span class="label">Total possible taxons</span>' +
+                    '    <span class="label">Total possible taxons:</span>' +
                     '    <span class="taxon_total"></span>' +
-                    '    <span class="label">Total records</span>' +
+                    '    <span class="label">Total records:</span>' +
                     '    <span class="record_total"></span>' +
                     '  </div>' +
                     '  <div id="dashTypeFilter">' +
@@ -425,9 +425,9 @@ mol.modules.map.dashboard = function(mol) {
                     '      <td class="table {7}">{7}</td>' +
                     '      <td class="type {0}">{1}</td>' +
                     '      <td class="provider {2}">{3}</td>' +
-                    '      <td class="class {4}">{4}</td>' +
-                    '      <td class="spnames">{5}</td>' +
-                    '      <td>{6}</td>' +
+                    '      <td class="class {4}">{5}</td>' +
+                    '      <td class="spnames">{6}</td>' +
+                    '      <td>{7}</td>' +
                     '    </tr>';
                 this._super(
                     html.format(
@@ -435,6 +435,7 @@ mol.modules.map.dashboard = function(mol) {
                         row.type, 
                         row.provider_id, 
                         row.provider, 
+                        row.classes.split(',').join(' '), 
                         row.classes.split(',').join(', '), 
                         row.species_count,
                         row.feature_count, 

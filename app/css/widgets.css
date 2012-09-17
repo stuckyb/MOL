@@ -666,6 +666,16 @@ padding: 3px;
     font-size: 18px;
     padding-left: 4px;
 }
+.mol-Dashboard #dialog .summary {
+    padding-top: 5px;
+    padding-bottom: 10px;
+    white-space: nowrap;
+}
+
+.mol-Dashboard #dialog .summary .label {
+    font-weight:bold;
+    font-size: 12px;
+}
 
 .mol-Dashboard span.filterHeader {
     font-weight:bold;
