@@ -17,6 +17,36 @@
                 var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
             })();
         </script>
+        <style>
+            div#content .person {
+                width: 340px;
+                padding: 1em 2em 2em 1em;
+                min-height: 1px;
+            }
+
+            div#content .person.top {
+                min-height: 1px;
+                padding: 1em 2em 2em 1em;
+            }
+
+            .quoteby {
+                margin-left: 2em;
+            }
+
+            div#content .person img {
+                float: right;
+                border: 1px solid rgb(20, 20, 140);
+                padding: 3px;
+                margin-left: 10px;
+                min-width: 1px;
+            }
+
+            .favicon {
+                height: 16px;
+                width: 16px;
+            }
+
+        </style>
     </head>
     <body>
         <div id="header">
@@ -32,18 +62,42 @@
             <div id="container">
                 <div id="content">
                     <div class="wrapper">
-                        <div class="person top" style="min-height: 1px;">
+                        <div class="person top">
                             (screenshot of Map of Life with the word "Press" written over it) 
                         </div>
-                        <div class="person top" style="padding: 1em 2em 2em 1em; min-height: 1em;">
+                        <div class="person top">
                             <!-- <div class="name"><a href="http://www.yale.edu/jetz/">Walter Jetz</a></div> -->
                             <p><q>[Map of Life] has a novel capability — a web-mapping tool that integrates disparate data types, from single-occurrence records in museum collections to expert-derived ranges found in field guides.</q></p>
-                            <div style="margin-left: 2em;">-- Virginia Gewin, <a href="http://www.nature.com/news/map-of-life-goes-live-1.10621"><em>Map of Life goes live</em></a>, Nature News May 10, 2012</div>
+                            <div class="quoteby">-- Virginia Gewin, <a href="http://www.nature.com/news/map-of-life-goes-live-1.10621"><em>Map of Life goes live</em></a>, Nature News May 10, 2012</div>
                         </div>
-                        <div class="person top" style="padding: 1em 2em 2em 1em; min-height: 1em;">
+                        <div class="person top">
                             <p><q>The applications for such a compilation are vast. Aside from being an educational tool, it helps expose holes in distribution data sets so that future biodiversity research can focus on more specific targets. It’s also a resource for making better decisions on land management and conservation and a potential means of studying disease transmission in wildlife populations.
                             </q><p>
-                            <div style="margin-left: 2em">-- Joanna M. Foster, <a href="http://green.blogs.nytimes.com/2012/05/16/filling-in-the-blanks-on-a-map-of-life/"><em>Filling In the Blanks on a Map of Life</em></a>, New York Times Green Blog May 16, 2012</div>
+                            <div class="quoteby">-- Joanna M. Foster, <a href="http://green.blogs.nytimes.com/2012/05/16/filling-in-the-blanks-on-a-map-of-life/"><em>Filling In the Blanks on a Map of Life</em></a>, New York Times Green Blog May 16, 2012</div>
+                        </div>
+                        <div class="person left">
+                            <h3>In English<h3></h3>
+                            <ul>
+                                <li><img class="favicon" src="http://www.google.com/s2/favicons?domain=popsci.com" />
+                                    <a href="http://www.popsci.com/science/article/2012-05/new-map-life-see-where-everything-lives-earth-google-maps">"Map of Life" Shows the Location of All Organisms, Large and Small</a> by Rebecca Boyle for Popsci.
+                                </li>
+                                <li><img class="favicon" src="http://www.google.com/s2/favicons?domain=gizmag.com" />
+                                    <a href="http://www.gizmag.com/map-of-life/22588/">Map of Life shows distribution of any species throughout the world</a> by Ben Coxworth for Gizmag.
+                                </li>
+                                <li><img class="favicon" src="http://www.google.com/s2/favicons?domain=guardian.co.uk" />
+                                    <a href="http://www.guardian.co.uk/news/datablog/interactive/2012/may/23/animal-species-habitats-interactive-map">Where is the world's wildlife? Interactive map plots global species distributions</a> by John Burn-Murdoch for the Guardian.
+                                </li>
+                                <li><img class="favicon" src="http://www.google.com/s2/favicons?domain=the-scientist.com" />
+                                    <a href="http://the-scientist.com/2012/05/11/online-map-of-life/">Online Map of Life</a> by Sabrina Richards for The Scientist.
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="person right">
+                            <h3>In other languages</h3>
+                            <strong>Italian</strong>
+                            <ul>
+                                <li>Test</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
