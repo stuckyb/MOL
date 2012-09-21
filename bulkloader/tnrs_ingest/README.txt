@@ -2,22 +2,21 @@ A plan for validating taxon names.
 
 TNRS = Taxonomic Name Resolution Service.
 
-1. bulkloader/tnrs_ingest: This folder will contain code to update TNRS databases on in a single
-table in CartoDB. The plan is to set up the simplest table that we can use to figure out the
-validity of names. Since TNRSes tend to be pretty small, we should really be doing this in its
-own SQLite database, but CartoDB is easier because (1) it's already a big part of Map of Life,
-and (2) we might be able to use PostgreSQL's built-in full-text search to fuzzy-match taxon 
-names.
+This folder will contain code to update TNRS databases. The plan is 
+to set up the simplest table that we can use to figure out the validity of names.
 
-Changes in layer_metadata:
-    scientificname ->   verbatim_scname
-    tnrs_id (string) -> The tnrs_id of the tnrs_names table.
-    (? do we need the accepted_tnrs_id cached here? If so, a script to check this would be 
-    helpful!)
+1. sql/ -- contains the SQL code describing the table. It's just easier for us if we
+set up all the constraints in PostgreSQL, so that the server can maintain data coherence.
 
-Do we need this?
-    tnrs_notes (string)
-    
+1.1. Changes in layer_metadata:
+    scientificname renamed to verbatim_scname
+    tnrs_id (string ref): refers to the tnrs_id of the tnrs_names table
+
+Do we need these?
+    accepted_tnrs_id (string ref): refers to the tnrs_id of the accepted name, so we can look
+        that up directly instead of going via scientificname.
+    accepted_scname (string): It might be faster to do this here instead of doing another JOIN.
+    name_notes (string): For storing information about why this name was matched to this TNRS id. 
 
 A proposed schema for the tnrs_names table:
 
@@ -30,7 +29,29 @@ A proposed schema for the tnrs_names table:
                     e.g. "ITIS:180195"
                     If NULL, then interpreted_tnrs_id is the accepted_tnrs_id.
     sensu           (string default "") In what sense is this taxon name being used?
-                    e.g. "Authority: (Bachman, 1839)"
+                    For authorities: "Authority: (Bachman, 1839)" (note that brackets can be retained in ICZN names)
+                    For splits/lumps: ???
+                        TODO: What format will we use for references? Name, year is probably too
+                        general, but we don't want to put the entire reference in here, and we
+                        definitely don't want to force people to use only DOIs or some such format.
+
+                        Remember that our input for splits/lumps will probably be something like:
+                            2005: "Recuero et al. 2005. Phylogeography of Pseudacris regilla (Anura: Hylidae) 
+                            in western North America, with a proposal for a new taxonomic rearrangement
+                            http://www.sciencedirect.com/science/article/pii/S105579030500357X"
+                                "Pseudacris regilla" sensu "(Baird and Girard, 1852)" split into
+                                    "Pseudacris regilla" sensu "(Baird and Girard, 1852)"
+                                    "Pseudacris pacifica" sensu "(Jameson et al., 1966)" # stat nov
+                                    "Pseudacris hypochondriaca" sensu "(Hallowell, 1854)" # stat nov
+                                .
+
+
+                        which, depending on our needs, can either be processed as:
+                            MOL:1   "Pseudacris regilla"    sensu "(Baird and Girard, 1852)"
+                            MOL:2   "Pseudacris regilla"    sensu "Recuero et al, 2005"
+                            MOL:3   "Pseudacris pacifica"   sensu "(Jameson et al. 1966)"
+
+
     tnrs_version    (string) The version string of the TNRS being used.
                     e.g. "ITIS download as of Jun 27, 2012"
     url             (string) A resolvable URL which corresponds to the TNRS id.
