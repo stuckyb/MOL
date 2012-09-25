@@ -63,16 +63,14 @@ class MainPage(BaseHandler):
         self.push_html('home.html')
 
 application = webapp.WSGIApplication(
-         [('/about', MainPage),
-          ('/about/', MainPage),
-          ('/about/tech', TechPage),
-          ('/about/tech/', TechPage),
-          ('/about/demo', DemoPage),
-          ('/about/demo/', DemoPage),
+         [('/about', PeoplePage),
+          ('/about/', PeoplePage),
           ('/about/people', PeoplePage),
           ('/about/people/', PeoplePage),
           ('/about/press', PressPage),
-          ('/about/press/', PressPage)
+          ('/about/press/', PressPage),
+          ('/about/news', PressPage),
+          ('/about/news/', PressPage)
 #          ('/about/partners', PartnersPage),
 #          ('/about/partners/', PartnersPage)
           ],
