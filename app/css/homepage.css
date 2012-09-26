@@ -466,12 +466,12 @@ div#content .wrapper #right{
     border-radius: 10px;
     overflow-y: hidden;
 }
-div#content .wrapper #code{ 
+div#content .wrapper #press{ 
     height: 285px;
     color: #fff;
     overflow: hidden;
 }
-div#content .wrapper #code a{ 
+div#content .wrapper #press a{ 
     color: #b8fd85;
 }
 div#footer {float: left; position: relative; width: 800px; left: 50%; margin-left: -690px; margin-bottom: 0px; height: 40px;}

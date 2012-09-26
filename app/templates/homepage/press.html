@@ -1,11 +1,33 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>Map of Life</title>
-        <link href="/css/homepage.css" media="screen" rel="stylesheet" type="text/css" />
+        <META http-equiv="Content-Type" CONTENT="text/html; charset=UTF-8" /> 
+        <META NAME="Description" CONTENT="A knowledge-base and platform for species distribution map development.">
+        <META NAME="keywords" CONTENT="map, biodiversity, species, distribution, knowledge" />
+        <meta name="google-site-verification" content="pZrZcT4jdB76onBTxpbhRGSkIonOimgCj8Wk2jflnZ8" />
+        <title>Map of Life</title> 
+        <link href="/css/homepage.css" media="screen" rel="stylesheet" type="text/css" /> 
         <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Coda">
         <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
+        <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAhejF1IRVaCyeCqxIQjT19BT2yXp_ZAY8_ufC3CFXhHIE1NvwkxQQVdp0qK6LIdtUMkyJyGau2FAr6Q"></script> 
+        <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAhejF1IRVaCyeCqxIQjT19BQnqYmZFNw176Z9eGZLF4M7kSq-MhQPJ1PZw_xe7fLxFc65vo_OiMHM5A"></script> 
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript"></script> 
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"></script>
+        <script src="/js/gfeed.js" type="text/javascript"></script> 
+        <script type="text/javascript">
+            $(document).ready(function() { 
+                $('#blog').gFeed({ 
+                    url: 'http://mappinglife.wordpress.com/feed?cat=-2764',
+                    tabs: false,
+                    max: 4
+                }); 
+                $('#press').gFeed({ 
+                    url: 'http://mappinglife.wordpress.com/category/Press/feed/',
+                    tabs: false,
+                    max: 4
+                }); 
+            });
+        </script>
         <script type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-26993916-1']);
@@ -18,100 +40,65 @@
             })();
         </script>
         <style>
-            div#content .person {
-                width: 340px;
-                padding: 1em 2em 2em 1em;
-                min-height: 1px;
+            .all_entries a {
+                color: #B8FD85;
             }
-
-            div#content .person.top {
-                min-height: 1px;
-                padding: 1em 2em 2em 1em;
-            }
-
-            .quoteby {
-                margin-left: 2em;
-            }
-
-            div#content .person img {
-                float: right;
-                border: 1px solid rgb(20, 20, 140);
-                padding: 3px;
-                margin-left: 10px;
-                min-width: 1px;
-            }
-
-            .favicon {
-                height: 16px;
-                width: 16px;
-            }
-
         </style>
     </head>
     <body>
         <div id="header">
             <div id="title">Map of Life</div>
             <div id="subtitle">integrating species distribution knowledge</div>
-            <div id="menu">
-                <div class="item"><a href="/about/" >Home</a></div>
-                <div class="item" id="techLink"><a href="/about/tech">Tech</a></div>
-                <div class="item"><a href="/about/demo">Demo</a></div>
-                <div class="item"><a href="/people">People</a></div>
-            </div>
         </div>
             <div id="container">
                 <div id="content">
                     <div class="wrapper">
-                        <div class="person top">
-                            (screenshot of Map of Life with the word "Press" written over it) 
+                        <div id="left">
+                            <div class="details">
+                                <div class="pretitle">HIGHLIGHT</div>
+                                <div class="title">MAP OF LIFE BLOG</div>
+                                <div class="description">
+                                    The MOL team is rapidly developing many features and 
+                                    new technologies. As we roll out new features, you can 
+                                    follow our blog to learn what we are up to and provide 
+                                    valuable feedback and insights into the work we are doing.
+                                </div>
+                            </div>
+                            <!--
+                            <div class="description recent_updates" style="color: white; border-top: 1px solid white;">
+                                <strong>Recent updates</strong><br>
+                                Nov 2011: We are looking for a <a href="http://www.yale.edu/jetz/GeospatialProgrammer.htm">programmer in geospatial analysis and biodiversity informatics</a> to work on the <em>Map of Life</em> with us. If that sounds like you, apply today!
+                            </div>
+                            -->
+                            <div id="blog"></div>
+                            <div class="all_entries" align="right"><a href="http://mappinglife.wordpress.com/">All blog posts</a></div>
                         </div>
-                        <div class="person top">
-                            <!-- <div class="name"><a href="http://www.yale.edu/jetz/">Walter Jetz</a></div> -->
-                            <p><q>[Map of Life] has a novel capability — a web-mapping tool that integrates disparate data types, from single-occurrence records in museum collections to expert-derived ranges found in field guides.</q></p>
-                            <div class="quoteby">-- Virginia Gewin, <a href="http://www.nature.com/news/map-of-life-goes-live-1.10621"><em>Map of Life goes live</em></a>, Nature News May 10, 2012</div>
-                        </div>
-                        <div class="person top">
-                            <p><q>The applications for such a compilation are vast. Aside from being an educational tool, it helps expose holes in distribution data sets so that future biodiversity research can focus on more specific targets. It’s also a resource for making better decisions on land management and conservation and a potential means of studying disease transmission in wildlife populations.
-                            </q><p>
-                            <div class="quoteby">-- Joanna M. Foster, <a href="http://green.blogs.nytimes.com/2012/05/16/filling-in-the-blanks-on-a-map-of-life/"><em>Filling In the Blanks on a Map of Life</em></a>, New York Times Green Blog May 16, 2012</div>
-                        </div>
-                        <div class="person left">
-                            <h3>In English<h3></h3>
-                            <ul>
-                                <li><img class="favicon" src="http://www.google.com/s2/favicons?domain=popsci.com" />
-                                    <a href="http://www.popsci.com/science/article/2012-05/new-map-life-see-where-everything-lives-earth-google-maps">"Map of Life" Shows the Location of All Organisms, Large and Small</a> by Rebecca Boyle for Popsci.
-                                </li>
-                                <li><img class="favicon" src="http://www.google.com/s2/favicons?domain=gizmag.com" />
-                                    <a href="http://www.gizmag.com/map-of-life/22588/">Map of Life shows distribution of any species throughout the world</a> by Ben Coxworth for Gizmag.
-                                </li>
-                                <li><img class="favicon" src="http://www.google.com/s2/favicons?domain=guardian.co.uk" />
-                                    <a href="http://www.guardian.co.uk/news/datablog/interactive/2012/may/23/animal-species-habitats-interactive-map">Where is the world's wildlife? Interactive map plots global species distributions</a> by John Burn-Murdoch for the Guardian.
-                                </li>
-                                <li><img class="favicon" src="http://www.google.com/s2/favicons?domain=the-scientist.com" />
-                                    <a href="http://the-scientist.com/2012/05/11/online-map-of-life/">Online Map of Life</a> by Sabrina Richards for The Scientist.
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="person right">
-                            <h3>In other languages</h3>
-                            <strong>Italian</strong>
-                            <ul>
-                                <li>Test</li>
-                            </ul>
+                        <div id="right">
+                            <div class="details">
+                                <div class="pretitle">HIGHLIGHT</div>
+                                <div class="title">PRESS</div>
+                                <div class="description">
+                                    Map of Life has been covered by newspapers, magazines
+                                    and blogs from around the world. Here are a few selected
+                                    quotes from their articles.
+                                </div>
+                            </div>
+                            <div id="press"></div>
+                            <div class="all_entries" align="right"><a href="http://mappinglife.wordpress.com/category/press">All press articles</a></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-<div id="footer">
-    <div id="footer_links">
+<div id="footer"> 
+   <div id="footer_links"> 
         <a href="/about/">Home</a>
         <a href="http://mappinglife.wordpress.com/">Blog</a>
         <a href="http://www.yale.edu/jetz/">Jetz Lab</a>
         <a href="http://sites.google.com/site/robgur/">Guralnick Lab</a>
         <a href="http://github.com/MapOfLife/MOL">GitHub</a>
-    </div>
-</div>
+    </div> 
+</div> 
 <div id="footer_imgs">
         <a href="http://www.nsf.gov/"><img title="National Science Foundation" src="/static/home/nsf.png"></a>
         <a href="http://www.nasa.gov/"><img title="National Aeronautics and Space Administration" src="/static/home/nasa.png"></a>
@@ -126,4 +113,4 @@
 </div>
 
     </body>
-</html>
+</html>      
