@@ -160,18 +160,18 @@ mol.modules.map.dashboard = function(mol) {
                     '    <span class="label">Total records:</span>' +
                     '    <span class="record_total"></span>' +
                     '  </div>' +
-                    '  <div id="dashTypeFilter">' +
+                    '  <div id="dashTypeFilter" class="typeFilters">' +
                     '    <div id="dashTitle" class="title">' + 
                             'Datasets' + 
                     '    </div><br/>' +
                     // taxa filter
-                    '    <div class="taxaFilters">' + 
+                    '    <div class="taxa">' + 
                     '      <span class="filterHeader">Filter by Taxa</span>' + 
                     '    </div>' +
                     '    <br/>' +
                     '    <br/>' +
                     // type filter
-                    '    <div class="typeFilters">' + 
+                    '    <div class="type">' + 
                     '      <span class="filterHeader">Filter by Type</span>' + 
                     '    </div>' +
                     '  </div>' +
@@ -197,11 +197,13 @@ mol.modules.map.dashboard = function(mol) {
                 this._super(html);
                 _.each(
                     rows,
-                    this.fillRow
+                    function(row) {
+                        self.fillRow(row);
+                    }
                 )
                 
                 $(this).find('#dashTitle')
-                    .html(numsets + ' Datasets Shown');
+                    .html(this.numsets + ' Datasets Shown');
                 
                 this.dashtable = $(this).find('.dashtable');
                 this.dashtable.tablesorter({ 
@@ -253,7 +255,7 @@ mol.modules.map.dashboard = function(mol) {
                         )
                         
                         $(self).find('#dashTitle')
-                            .html(numsets-numHidden + ' Datasets Shown');
+                            .html(this.numsets-numHidden + ' Datasets Shown');
                     });
                     if(summary!=null) {
                         self.fillSummary(summary);
@@ -261,18 +263,16 @@ mol.modules.map.dashboard = function(mol) {
             },
             
             fillRow:  function(row) {
+                var self = this;
                 this.numsets++;
-                _.each(
-                    row.type.split(','),
-                    this.fillFilter('type')
-                );
-                _.each(
-                    row.provider.split(','),
-                    this.fillFilter('provider')
-                );
+                self.fillFilter('type',row.type_id, row.type);
+                self.fillFilter('provider',row.provider_id, row.provider);
+                
                 _.each(
                     row.classes.split(','),
-                    this.fillFilter('taxa')
+                    function(taxa) {
+                        self.fillFilter('taxa', taxa, taxa);
+                    }
                 );
                 
                 $(this).find('.tablebody').append(
@@ -287,35 +287,23 @@ mol.modules.map.dashboard = function(mol) {
                     }
                 )
             },
-            fillFilter: function(type, value) {
-                if(!$(self).find('.filter .{0} .{1}'.format(type, value))) {
-                    $(self).find('.typeFilters').append(
-                        new mol.map.dashboard.DashboardFilterDisplay(type,value)
+            fillFilter: function(type, name, value) {
+                if($(self).find('.filter .{0} .{1}'.format(type, name)).length==0) {
+                    $(self).find('.{0}Filters {0}'.format(type, type)).append(
+                        new mol.map.dashboard.DashboardFilterDisplay(type, name, value)
                     )
                 }
             },
             toggleType: function(rows, type, checked) {
-                var rowType;
-                
-                switch(type) {
-                    case 'expertRan':
-                        rowType = 'Expert range map';
-                        break;
-                    case 'pointObs':
-                        rowType = 'Point observation';
-                        break;
-                    case 'localInv':
-                        rowType = 'Local inventory';
-                        break;
-                    case 'regionalChe':
-                        rowType = 'Regional checklist';
-                        break;
-                }
-                
+              
                 _.each(
                     rows,
                     function(row) {
-                        if($(row).find('td.type').html() == rowType) {
+                        if($.trim(
+                            _.without(
+                                $(row).find('td.type').attr('class'),
+                                'type')
+                            ) == type) {
                             if(checked) {
                                 $(row).show();
                             } else {
@@ -392,7 +380,7 @@ mol.modules.map.dashboard = function(mol) {
             init: function(row) {
                 var html = '' +
                     '    <tr class="master dataset">' +
-                    '      <td class="table {7}">{7}</td>' +
+                    '      <td class="table {8}">{8}</td>' +
                     '      <td class="type {0}">{1}</td>' +
                     '      <td class="provider {2}">{3}</td>' +
                     '      <td class="class {4}">{5}</td>' +
@@ -417,42 +405,18 @@ mol.modules.map.dashboard = function(mol) {
     );
     mol.map.dashboard.DashboardFilterDisplay = mol.mvp.View.extend(
         {
-            init: function(filterName,  filterType, filterTitle) {
-                var html = ''
+            init: function(type, name, value) {
+
+                var html = '' +
                     '<div class="chkAndLabel filter {0} {1}">' + 
                     '   <input type="checkbox" checked="checked" ' + 
                             'name="{0}" class="{1}Chk"/>' + 
                     '   <label for="{0}">{2}</label>' + 
                     '</div>';
-                this.super(
-                    html.format(
-                        filterName,  filterType, filterTitle
-                    )
-                );
+
+                this._super(html.format(type, name, value));
             }
         }
     );
-    /*
-                    '<div class="chkAndLabel">' + 
-                    '      <input type="checkbox" checked="checked" ' + 
-                             'name="expertRan" class="typeChk"/>' + 
-                    '      <label for="expertRan">Expert Range Maps</label>' + 
-                    '    </div>' +
-                    '    <div class="chkAndLabel">' + 
-                    '      <input type="checkbox" checked="checked" ' + 
-                             'name="pointObs" class="typeChk"/>' + 
-                    '      <label for="pointObs">Point Observations</label>' + 
-                    '    </div>' +
-                    '    <div class="chkAndLabel">' + 
-                    '      <input type="checkbox" checked="checked" ' + 
-                             'name="localInv" class="typeChk"/>' + 
-                    '      <label for="localInv">Local Inventories</label>' + 
-                    '    </div>' +
-                    '    <div class="chkAndLabel">' + 
-                    '      <input type="checkbox" checked="checked" ' + 
-                             'name="regionalChe" class="typeChk"/>' + 
-                    '      <label for="regionalChe">' + 
-                            'Regional Checklists</label> ' +
-                    '    </div>' +
-     */
+ 
 };
