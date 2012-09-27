@@ -3247,6 +3247,8 @@ mol.modules.map.dashboard = function(mol) {
                     'FROM get_dashboard_metadata() ' +
                     'ORDER BY provider, classes;';
                 this.summary = null;
+                this.types = {};
+                this.sources = {};
             },
             start: function() {
                 this.initDialog();
@@ -3394,65 +3396,14 @@ mol.modules.map.dashboard = function(mol) {
                             'Datasets' + 
                     '    </div><br/>' +
                     // taxa filter
-                    '    <div>' + 
+                    '    <div class="taxaFilters">' + 
                     '      <span class="filterHeader">Filter by Taxa</span>' + 
-                    '    </div>' +
-                    '    <div class="chkAndLabel">' + 
-                    '      <input type="checkbox" checked="checked" ' + 
-                             'name="amphibia" class="taxaChk"/>' + 
-                    '      <label for="amphibia">Amphibians</label>' + 
-                    '    </div>' +
-                    '    <div class="chkAndLabel">' + 
-                    '      <input type="checkbox" checked="checked" ' + 
-                             'name="aves" class="taxaChk"/>' + 
-                    '      <label for="aves">Birds</label>' + 
-                    '    </div>' +
-                    '    <div class="chkAndLabel">' + 
-                    '      <input type="checkbox" checked="checked" ' + 
-                             'name="fish" class="taxaChk"/>' + 
-                    '      <label for="fish">Fish</label>' + 
-                    '    </div>' +
-                    '    <div class="chkAndLabel">' + 
-                    '      <input type="checkbox" checked="checked" ' + 
-                             'name="insecta" class="taxaChk"/>' + 
-                    '      <label for="insecta">Insects</label> ' +
-                    '    </div>' +
-                    '    <div class="chkAndLabel">' + 
-                    '      <input type="checkbox" checked="checked" ' + 
-                             'name="mammalia" class="taxaChk"/>' + 
-                    '      <label for="mammalia">Mammals</label> ' +
-                    '    </div>' +
-                    '    <div class="chkAndLabel">' + 
-                    '      <input type="checkbox" checked="checked" ' + 
-                             'name="reptilia" class="taxaChk"/>' + 
-                    '      <label for="reptilia">Reptiles</label> ' +
                     '    </div>' +
                     '    <br/>' +
                     '    <br/>' +
                     // type filter
-                    '    <div>' + 
+                    '    <div class="typeFilters">' + 
                     '      <span class="filterHeader">Filter by Type</span>' + 
-                    '    </div>' +
-                    '    <div class="chkAndLabel">' + 
-                    '      <input type="checkbox" checked="checked" ' + 
-                             'name="expertRan" class="typeChk"/>' + 
-                    '      <label for="expertRan">Expert Range Maps</label>' + 
-                    '    </div>' +
-                    '    <div class="chkAndLabel">' + 
-                    '      <input type="checkbox" checked="checked" ' + 
-                             'name="pointObs" class="typeChk"/>' + 
-                    '      <label for="pointObs">Point Observations</label>' + 
-                    '    </div>' +
-                    '    <div class="chkAndLabel">' + 
-                    '      <input type="checkbox" checked="checked" ' + 
-                             'name="localInv" class="typeChk"/>' + 
-                    '      <label for="localInv">Local Inventories</label>' + 
-                    '    </div>' +
-                    '    <div class="chkAndLabel">' + 
-                    '      <input type="checkbox" checked="checked" ' + 
-                             'name="regionalChe" class="typeChk"/>' + 
-                    '      <label for="regionalChe">' + 
-                            'Regional Checklists</label> ' +
                     '    </div>' +
                     '  </div>' +
                     '    <div class="mol-Dashboard-TableWindow">' +
@@ -3471,22 +3422,19 @@ mol.modules.map.dashboard = function(mol) {
                     '      </table>' +
                     '    </div>' +
                     '</div>  ',
-                    self = this,
-                    numsets = 0;
+                    self = this;
+                    this.numsets = 0;
 
                 this._super(html);
                 _.each(
                     rows,
                     function(row) {
-                        numsets++;
-                         $(self).find('.tablebody')
-                            .append(
-                                new mol.map.dashboard.DashboardRowDisplay(row));
+                        self.fillRow(row);
                     }
                 )
                 
                 $(this).find('#dashTitle')
-                    .html(numsets + ' Datasets Shown');
+                    .html(this.numsets + ' Datasets Shown');
                 
                 this.dashtable = $(this).find('.dashtable');
                 this.dashtable.tablesorter({ 
@@ -3538,13 +3486,38 @@ mol.modules.map.dashboard = function(mol) {
                         )
                         
                         $(self).find('#dashTitle')
-                            .html(numsets-numHidden + ' Datasets Shown');
+                            .html(this.numsets-numHidden + ' Datasets Shown');
                     });
                     if(summary!=null) {
                         self.fillSummary(summary);
                     }
             },
             
+            fillRow:  function(row) {
+                var self = this;
+                this.numsets++;
+                _.each(
+                    row.type.split(','),
+                    function(type) {
+                        self.fillFilter('type',type);
+                    }
+                );
+                _.each(
+                    row.provider.split(','),
+                    function(provider) {
+                        self.fillFilter('provider', provider);
+                    }
+                );
+                _.each(
+                    row.classes.split(','),
+                    function(taxa) {
+                        self.fillFilter('taxa', taxa);
+                    }
+                );
+                
+                $(this).find('.tablebody').append(
+                    new mol.map.dashboard.DashboardRowDisplay(row));
+            },            
             fillSummary: function(summary) {
                 var self = this;
                 _.each(
@@ -3554,7 +3527,13 @@ mol.modules.map.dashboard = function(mol) {
                     }
                 )
             },
-            
+            fillFilter: function(type, value) {
+                if(!$(self).find('.filter .{0} .{1}'.format(type, value))) {
+                    $(self).find('.typeFilters').append(
+                        new mol.map.dashboard.DashboardFilterDisplay(type,value)
+                    )
+                }
+            },
             toggleType: function(rows, type, checked) {
                 var rowType;
                 
@@ -3653,7 +3632,7 @@ mol.modules.map.dashboard = function(mol) {
             init: function(row) {
                 var html = '' +
                     '    <tr class="master dataset">' +
-                    '      <td class="table {7}">{7}</td>' +
+                    '      <td class="table {8}">{8}</td>' +
                     '      <td class="type {0}">{1}</td>' +
                     '      <td class="provider {2}">{3}</td>' +
                     '      <td class="class {4}">{5}</td>' +
@@ -3670,10 +3649,30 @@ mol.modules.map.dashboard = function(mol) {
                         row.classes.split(',').join(', '), 
                         row.species_count,
                         row.feature_count, 
-                        row.dataset_title));
+                        row.dataset_title
+                    )
+                );
             }
          }
     );
+    mol.map.dashboard.DashboardFilterDisplay = mol.mvp.View.extend(
+        {
+            init: function(filterName,  filterType, filterTitle) {
+                var html = ''
+                    '<div class="chkAndLabel filter {0} {1}">' + 
+                    '   <input type="checkbox" checked="checked" ' + 
+                            'name="{0}" class="{1}Chk"/>' + 
+                    '   <label for="{0}">{2}</label>' + 
+                    '</div>';
+                this.super(
+                    html.format(
+                        filterName,  filterType, filterTitle
+                    )
+                );
+            }
+        }
+    );
+ 
 };mol.modules.map.query = function(mol) {
 
     mol.map.query = {};
