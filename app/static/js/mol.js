@@ -3312,7 +3312,7 @@ mol.modules.map.dashboard = function(mol) {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
-                this.url = "http://mol.cartodb.com/api/v2/sql?callback=?&q={0}"
+                this.url = "http://mol.cartodb.com/api/v2/sql?callback=?&q={0}";
                 this.summary_sql = '' +
                     'SELECT DISTINCT * ' + 
                     'FROM get_dashboard_summary()';
@@ -3323,6 +3323,7 @@ mol.modules.map.dashboard = function(mol) {
                 this.summary = null;
                 this.types = {};
                 this.sources = {};
+               
             },
             start: function() {
                 this.initDialog();
@@ -3420,7 +3421,7 @@ mol.modules.map.dashboard = function(mol) {
                             {
                                 autoOpen: false,
                                 width: 946,
-                                height: 360,
+                                height: 588,
                                 minHeight: 360,
                                 dialogClass: "mol-Dashboard",
                                 title: 'Dashboard - ' + 
@@ -3456,27 +3457,27 @@ mol.modules.map.dashboard = function(mol) {
                     '    <span class="datasets"></span>' +
                     '    <span class="label">Species names:</span>' +
                     '    <span class="names"></span>' +
-                    '    <span class="label">Valid taxons:</span>' +
-                    '    <span class="taxon_matches"></span>' +
+                   //'    <span class="label">Valid taxons:</span>' +
+                   //'    <span class="taxon_matches"></span>' +
                     '    <span class="label">Recognized synonyms:</span>' +
                     '    <span class="syn_matches"></span>' +
-                    '    <span class="label">Total possible taxons:</span>' +
-                    '    <span class="taxon_total"></span>' +
+                   // '    <span class="label">Total possible taxons:</span>' +
+                   // '    <span class="taxon_total"></span>' +
                     '    <span class="label">Total records:</span>' +
                     '    <span class="record_total"></span>' +
                     '  </div>' +
-                    '  <div id="dashTypeFilter">' +
+                    '  <div id="dashTypeFilter" class="typeFilters">' +
                     '    <div id="dashTitle" class="title">' + 
                             'Datasets' + 
                     '    </div><br/>' +
                     // taxa filter
-                    '    <div class="taxaFilters">' + 
-                    '      <span class="filterHeader">Filter by Taxa</span>' + 
+                    '    <div class="class">' + 
+                    '      <span class="filterHeader">Filter by Class</span>' + 
                     '    </div>' +
                     '    <br/>' +
                     '    <br/>' +
                     // type filter
-                    '    <div class="typeFilters">' + 
+                    '    <div class="type">' + 
                     '      <span class="filterHeader">Filter by Type</span>' + 
                     '    </div>' +
                     '  </div>' +
@@ -3532,60 +3533,62 @@ mol.modules.map.dashboard = function(mol) {
                 );
                 
                 $(this).find("input:checkbox").change(
-                    function() {
-                        var numHidden = 0;
-                        
-                        if($(this).hasClass('taxaChk')) {
-                            self.toggleTaxa(
-                                $(self).find('.tablebody tr'), 
-                                this,
-                                $(this).is(':checked'));
-                        }   
-                        else
-                        {
-                            self.toggleType(
-                                $(self).find('.tablebody tr'), 
-                                $(this).attr('name'),
-                                $(this).is(':checked'));
-                        }
-                                
-                                
+                    function(event) {
+                        //turn everything on
+                        $(self).find('.master.dataset').toggle(true);
+                        //loop through filters and filter out stuff
                         _.each(
-                            $(self).find('.tablebody tr'),
-                            function(row) {
-                                if($(row).css('display') == "none") {
-                                    numHidden++;
+                            $(self).find('.typeFilters input'),
+                            function(input) {
+                                var type = $(input).data('type'),
+                                    name = $(input).data('name'),
+                                    checked = $(input).is(':checked');
+                                    
+                                //turn em off
+                                if(!checked) {
+                                    //but only if the other filter names are also off
+                                    _.each(
+                                        $(self).find('td.{0}.{1}'.format(type, name)),
+                                        function(cell) {
+                                            //get the other names
+                                            var names = _.without(
+                                                    $(cell).attr('class')
+                                                        .split(/\s+/),
+                                                    [type, name]),
+                                                off = true,
+                                                n;
+                                            for (n=0;n<names.length;n++) {
+                                                if($(self).find(
+                                                    'input .{0}'.format(names[n])
+                                                 ).is(':checked')) {
+                                                     off = false
+                                                }
+                                            }
+                                            if(off) {
+                                               $(cell.parentElement).toggle(false)
+                                            }
+                                        }
+                                    );
                                 }
                             }
                         )
-                        
-                        $(self).find('#dashTitle')
-                            .html(this.numsets-numHidden + ' Datasets Shown');
-                    });
-                    if(summary!=null) {
-                        self.fillSummary(summary);
                     }
+                 );
+                if(summary!=null) {
+                    self.fillSummary(summary);
+                }
             },
             
             fillRow:  function(row) {
                 var self = this;
                 this.numsets++;
-                _.each(
-                    row.type.split(','),
-                    function(type) {
-                        self.fillFilter('type',type);
-                    }
-                );
-                _.each(
-                    row.provider.split(','),
-                    function(provider) {
-                        self.fillFilter('provider', provider);
-                    }
-                );
+                this.fillFilter('type',row.type_id, row.type);
+                this.fillFilter('provider',row.provider_id, row.provider);
+                
                 _.each(
                     row.classes.split(','),
                     function(taxa) {
-                        self.fillFilter('taxa', taxa);
+                        self.fillFilter('class', taxa, taxa);
                     }
                 );
                 
@@ -3601,103 +3604,12 @@ mol.modules.map.dashboard = function(mol) {
                     }
                 )
             },
-            fillFilter: function(type, value) {
-                if(!$(self).find('.filter .{0} .{1}'.format(type, value))) {
-                    $(self).find('.typeFilters').append(
-                        new mol.map.dashboard.DashboardFilterDisplay(type,value)
+            fillFilter: function(type, name, value) {
+                if($(this).find('.{0} .{1}'.format(type, name)).length==0) {
+                    $(this).find('.typeFilters .{0}'.format(type)).append(
+                        new mol.map.dashboard.DashboardFilterDisplay(type, name, value)
                     )
                 }
-            },
-            toggleType: function(rows, type, checked) {
-                var rowType;
-                
-                switch(type) {
-                    case 'expertRan':
-                        rowType = 'Expert range map';
-                        break;
-                    case 'pointObs':
-                        rowType = 'Point observation';
-                        break;
-                    case 'localInv':
-                        rowType = 'Local inventory';
-                        break;
-                    case 'regionalChe':
-                        rowType = 'Regional checklist';
-                        break;
-                }
-                
-                _.each(
-                    rows,
-                    function(row) {
-                        if($(row).find('td.type').html() == rowType) {
-                            if(checked) {
-                                $(row).show();
-                            } else {
-                                $(row).hide();
-                            }
-                        }
-                    }
-                );
-            },
-            
-            toggleTaxa: function(rows, chkbox, checked) {
-                var rowClasses,
-                    chkboxes,
-                    type = $(chkbox).attr('name'),
-                    i,
-                    j;
-                
-                _.each(
-                    rows,
-                    function(row) {
-                        rowClasses = $(row).find('td.class').html().split(',');
-                        
-                        if(rowClasses.length == 1)
-                        {
-                            if(rowClasses[0] == type) {
-                                if(checked) {
-                                    $(row).show();
-                                } else {
-                                    $(row).hide();
-                                }
-                            }
-                        }
-                        else
-                        {
-                            chkboxes = $(chkbox).parent().parent()
-                                            .find('div input.taxaChk');
-                            
-                            classLoop:
-                            for(i=0;i < rowClasses.length;i++)
-                            {
-                                //loop through checkboxes
-                                for(j=0;j < chkboxes.length;j++) {
-                                    if($(chkboxes[j]).attr('name') == 
-                                           rowClasses[i] && 
-                                           $(chkboxes[j]).is(':checked')) {
-                                       $(row).show();
-                                       break classLoop; 
-                                    }
-                                    
-                                    if(j == chkboxes.length-1 && 
-                                           i == rowClasses.length-1 && 
-                                           $(chkboxes[j]).attr('name') != 
-                                               rowClasses[i]) {
-                                        if(rowClasses[i] == type) {
-                                            if(checked) {
-                                                $(row).show();
-                                            } else {
-                                                $(row).hide();
-                                            }
-                                        }       
-                                    }
-                                }  
-                            }
-                            
-                            
-                        }
-                    }
-                );
             }
         }
     );
@@ -3723,7 +3635,7 @@ mol.modules.map.dashboard = function(mol) {
                         row.classes.split(',').join(', '), 
                         row.species_count,
                         row.feature_count, 
-                        row.dataset_title
+                        row.dataset
                     )
                 );
             }
@@ -3731,18 +3643,19 @@ mol.modules.map.dashboard = function(mol) {
     );
     mol.map.dashboard.DashboardFilterDisplay = mol.mvp.View.extend(
         {
-            init: function(filterName,  filterType, filterTitle) {
-                var html = ''
-                    '<div class="chkAndLabel filter {0} {1}">' + 
+            init: function(type, name, value) {
+
+                var html = '' +
+                    '<div class="chkAndLabel filter {1}">' + 
                     '   <input type="checkbox" checked="checked" ' + 
-                            'name="{0}" class="{1}Chk"/>' + 
-                    '   <label for="{0}">{2}</label>' + 
+                            'name="{1}" class="filters {0} {1}"/>' + 
+                    '   <label for="{1}">{2}</label>' + 
                     '</div>';
-                this.super(
-                    html.format(
-                        filterName,  filterType, filterTitle
-                    )
-                );
+
+                this._super(html.format(type, name, value));
+                $(this).find('input').data('type', type);
+                $(this).find('input').data('name', name);
+
             }
         }
     );

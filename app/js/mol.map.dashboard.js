@@ -18,6 +18,7 @@ mol.modules.map.dashboard = function(mol) {
                 this.summary = null;
                 this.types = {};
                 this.sources = {};
+               
             },
             start: function() {
                 this.initDialog();
@@ -160,21 +161,21 @@ mol.modules.map.dashboard = function(mol) {
                     '    <span class="label">Total records:</span>' +
                     '    <span class="record_total"></span>' +
                     '  </div>' +
-                    '  <div id="dashTypeFilter" class="typeFilters">' +
-                    '    <div id="dashTitle" class="title">' + 
-                            'Datasets' + 
-                    '    </div><br/>' +
+                    //'  <div id="dashTypeFilter" class="typeFilters">' +
+                    //'    <div id="dashTitle" class="title">' + 
+                    //        'Datasets' + 
+                    //'    </div><br/>' +
                     // taxa filter
-                    '    <div class="taxa">' + 
-                    '      <span class="filterHeader">Filter by Taxa</span>' + 
-                    '    </div>' +
-                    '    <br/>' +
-                    '    <br/>' +
+                    //'    <div class="class">' + 
+                    //'      <span class="filterHeader">Filter by Class</span>' + 
+                    //'    </div>' +
+                    //'    <br/>' +
+                    //'    <br/>' +
                     // type filter
-                    '    <div class="type">' + 
-                    '      <span class="filterHeader">Filter by Type</span>' + 
-                    '    </div>' +
-                    '  </div>' +
+                    //'    <div class="type">' + 
+                    //'      <span class="filterHeader">Filter by Type</span>' + 
+                    //'    </div>' +
+                    //'  </div>' +
                     '    <div class="mol-Dashboard-TableWindow">' +
                     '      <table class="dashtable">' +
                     '       <thead>' +
@@ -227,53 +228,26 @@ mol.modules.map.dashboard = function(mol) {
                 );
                 
                 $(this).find("input:checkbox").change(
-                    function() {
-                        var numHidden = 0;
-                        
-                        if($(this).hasClass('taxaChk')) {
-                            self.toggleTaxa(
-                                $(self).find('.tablebody tr'), 
-                                this,
-                                $(this).is(':checked'));
-                        }   
-                        else
-                        {
-                            self.toggleType(
-                                $(self).find('.tablebody tr'), 
-                                $(this).attr('name'),
-                                $(this).is(':checked'));
-                        }
-                                
-                                
-                        _.each(
-                            $(self).find('.tablebody tr'),
-                            function(row) {
-                                if($(row).css('display') == "none") {
-                                    numHidden++;
-                                }
-                            }
-                        )
-                        
-                        $(self).find('#dashTitle')
-                            .html(this.numsets-numHidden + ' Datasets Shown');
-                    });
-                    if(summary!=null) {
-                        self.fillSummary(summary);
+                    function(event) {
                     }
+                 );
+                if(summary!=null) {
+                    self.fillSummary(summary);
+                }
             },
             
             fillRow:  function(row) {
                 var self = this;
                 this.numsets++;
-                this.fillFilter('type',row.type_id, row.type);
-                this.fillFilter('provider',row.provider_id, row.provider);
+                //this.fillFilter('type',row.type_id, row.type);
+                //this.fillFilter('provider',row.provider_id, row.provider);
                 
-                _.each(
-                    row.classes.split(','),
-                    function(taxa) {
-                        self.fillFilter('taxa', taxa, taxa);
-                    }
-                );
+                //_.each(
+                //    row.classes.split(','),
+                //    function(taxa) {
+                //        self.fillFilter('class', taxa, taxa);
+                //    }
+                //);
                 
                 $(this).find('.tablebody').append(
                     new mol.map.dashboard.DashboardRowDisplay(row));
@@ -293,85 +267,6 @@ mol.modules.map.dashboard = function(mol) {
                         new mol.map.dashboard.DashboardFilterDisplay(type, name, value)
                     )
                 }
-            },
-            toggleType: function(rows, type, checked) {
-              
-                _.each(
-                    rows,
-                    function(row) {
-                        if($.trim(
-                            _.without(
-                                $(row).find('td.type').attr('class'),
-                                'type')
-                            ) == type) {
-                            if(checked) {
-                                $(row).show();
-                            } else {
-                                $(row).hide();
-                            }
-                        }
-                    }
-                );
-            },
-            
-            toggleTaxa: function(rows, chkbox, checked) {
-                var rowClasses,
-                    chkboxes,
-                    type = $(chkbox).attr('name'),
-                    i,
-                    j;
-                
-                _.each(
-                    rows,
-                    function(row) {
-                        rowClasses = $(row).find('td.class').html().split(',');
-                        
-                        if(rowClasses.length == 1)
-                        {
-                            if(rowClasses[0] == type) {
-                                if(checked) {
-                                    $(row).show();
-                                } else {
-                                    $(row).hide();
-                                }
-                            }
-                        }
-                        else
-                        {
-                            chkboxes = $(chkbox).parent().parent()
-                                            .find('div input.taxaChk');
-                            
-                            classLoop:
-                            for(i=0;i < rowClasses.length;i++)
-                            {
-                                //loop through checkboxes
-                                for(j=0;j < chkboxes.length;j++) {
-                                    if($(chkboxes[j]).attr('name') == 
-                                           rowClasses[i] && 
-                                           $(chkboxes[j]).is(':checked')) {
-                                       $(row).show();
-                                       break classLoop; 
-                                    }
-                                    
-                                    if(j == chkboxes.length-1 && 
-                                           i == rowClasses.length-1 && 
-                                           $(chkboxes[j]).attr('name') != 
-                                               rowClasses[i]) {
-                                        if(rowClasses[i] == type) {
-                                            if(checked) {
-                                                $(row).show();
-                                            } else {
-                                                $(row).hide();
-                                            }
-                                        }       
-                                    }
-                                }  
-                            }
-                            
-                            
-                        }
-                    }
-                );
             }
         }
     );
@@ -397,7 +292,7 @@ mol.modules.map.dashboard = function(mol) {
                         row.classes.split(',').join(', '), 
                         row.species_count,
                         row.feature_count, 
-                        row.dataset_title
+                        row.dataset
                     )
                 );
             }
@@ -408,13 +303,16 @@ mol.modules.map.dashboard = function(mol) {
             init: function(type, name, value) {
 
                 var html = '' +
-                    '<div class="chkAndLabel filter {0}">' + 
+                    '<div class="chkAndLabel filter {1}">' + 
                     '   <input type="checkbox" checked="checked" ' + 
-                            'name="{0}" class="{0}Chk"/>' + 
-                    '   <label for="{0}">{1}</label>' + 
+                            'name="{1}" class="filters {0} {1}"/>' + 
+                    '   <label for="{1}">{2}</label>' + 
                     '</div>';
 
-                this._super(html.format(name, value));
+                this._super(html.format(type, name, value));
+                $(this).find('input').data('type', type);
+                $(this).find('input').data('name', name);
+
             }
         }
     );
