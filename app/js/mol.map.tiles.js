@@ -13,28 +13,27 @@ mol.modules.map.tiles = function(mol) {
      *
      * @see http://developers.cartodb.com/gallery/maps/densitygrid.html
      */
-    mol.map.tiles.TileEngine = mol.mvp.Engine.extend(
-        {
-            init: function(proxy, bus, map) {
-                this.proxy = proxy;
-                this.bus = bus;
-                this.map = map;
-                this.gmap_events = [];
-                this.addEventHandlers();
-            },
+    mol.map.tiles.TileEngine = mol.mvp.Engine.extend({
+        init: function(proxy, bus, map) {
+            this.proxy = proxy;
+            this.bus = bus;
+            this.map = map;
+            this.gmap_events = [];
+            this.addEventHandlers();
+        },
 
-            addEventHandlers: function() {
-                var self = this;
+        addEventHandlers: function() {
+            var self = this;
 
-                /**
-                 * Handler for when the layer-toggle event is fired. This renders
-                 * the layer on the map if visible, and removes it if not visible.
-                 *  The event.layer is a layer object {id, name, type, source}. event.showing
-                 * is true if visible, false otherwise.
-                 */
-                this.bus.addHandler(
-                    'layer-toggle',
-                    function(event) {
+            /**
+             * Handler for when the layer-toggle event is fired. This renders
+             * the layer on the map if visible, and removes it if not visible.
+             * The event.layer is a layer object {id, name, type, source}. event.showing
+             * is true if visible, false otherwise.
+             */
+             this.bus.addHandler(
+                'layer-toggle',
+                function(event) {
                         var showing = event.showing,
                             layer = event.layer,
                             params = null,
@@ -42,11 +41,11 @@ mol.modules.map.tiles = function(mol) {
 
                         if (showing) {
                             self.map.overlayMapTypes.forEach(
-                                function(maptype, index) {
-                                    if ((maptype != undefined) && (maptype.name == layer.id)) {
+                                function(mt, index) {
+                                    if (mt != undefined && mt.name == layer.id) {
                                         params = {
                                             layer: layer,
-                                            opacity: maptype.opacity_visible
+                                            opacity: mt.opacity_visible
                                         };
                                         e = new mol.bus.Event('layer-opacity', params);
                                         self.bus.fireEvent(e);
@@ -61,18 +60,21 @@ mol.modules.map.tiles = function(mol) {
                             //self.renderTiles([layer]);
                         } else { // Remove layer from map.
                             self.map.overlayMapTypes.forEach(
-                                function(maptype, index) {
-                                    if ((maptype != undefined) && (maptype.name == layer.id)) {
-                                        maptype.opacity_visible = maptype.opacity;
+                                function(mt, index) {
+                                    if (mt != undefined && mt.name == layer.id) {
+                                        mt.opacity_visible = mt.opacity;
                                         params = {
                                             layer: layer,
                                             opacity: 0
                                         };
-                                        e = new mol.bus.Event('layer-opacity', params);
+                                        e = new mol.bus.Event(
+                                            'layer-opacity', 
+                                            params
+                                        );
                                         self.bus.fireEvent(e);
-                                        if(maptype.interaction != undefined) {
-                                            maptype.interaction.remove();
-                                            maptype.interaction.clickAction="";
+                                        if(mt.interaction != undefined) {
+                                            mt.interaction.remove();
+                                            mt.interaction.clickAction="";
                                         }
                                         //self.map.overlayMapTypes.removeAt(index);
                                     }
@@ -120,46 +122,6 @@ mol.modules.map.tiles = function(mol) {
                 );
 
                 /**
-                 * Handler for applying cartocss style to a layer.
-                 */
-                this.bus.addHandler(
-                    'apply-layer-style',
-                    function(event) {
-                        var layer = event.layer,
-                            style = event.style;
-
-                        if(layer.type == 'points') {
-                            return;
-                        }
-
-                        self.map.overlayMapTypes.forEach(
-                            function(maptype, index) {
-                                //find the overlaymaptype to style
-                                if (maptype.name === layer.id) {
-                                    //remove it from the map
-                                    self.map.overlayMapTypes.removeAt(index);
-                                    //add the style
-                                    layer.tile_style = style;
-                                    //make the layer
-                                    self.getTile(layer);
-                                    //fix the layer order
-                                    self.map.overlayMapTypes.forEach(
-                                        function(newmaptype, newindex) {
-                                            var mt;
-                                            if(newmaptype.name === layer.id) {
-                                                mt = self.map.overlayMapTypes.removeAt(newindex);
-                                                self.map.overlayMapTypes.insertAt(index, mt);
-                                                return
-                                            }
-                                        }
-                                    );
-                                }
-                            }
-                        );
-                    }
-                );
-
-                /**
                  * Handler for when the add-layers event is fired. This renders
                  * the layers on the map by firing a add-map-layer event. The
                  * event.layers is an array of layer objects {name:, type:}.
@@ -187,8 +149,8 @@ mol.modules.map.tiles = function(mol) {
                             function(layer) { // "lid" is short for layer id.
                                 var lid = layer.id;
                                 mapTypes.forEach(
-                                    function(mt, index) { // "mt" is short for map type.
-                                        if ((mt != undefined) && (mt.name === lid)) {
+                                    function(mt, index) { 
+                                        if (mt != undefined && mt.name === lid) {
                                             if(mt.interaction != undefined) {
                                                 mt.interaction.remove();
                                             }
@@ -202,8 +164,9 @@ mol.modules.map.tiles = function(mol) {
                 );
 
 				    /**
-				     * Handler for when the reorder-layers event is fired. This renders
-				     * the layers according to the list of layers provided
+				     * Handler for when the reorder-layers event is fired. This 
+				     * renders the layers according to the list of layers 
+				     * provided
 				     */
 				    this.bus.addHandler(
 					     'reorder-layers',
@@ -215,10 +178,11 @@ mol.modules.map.tiles = function(mol) {
 							       layers,
 							       function(lid) { // "lid" is short for layerId.
 								        mapTypes.forEach(
-									         function(mt, index) { // "mt" is short for maptype.
-										          if ((mt != undefined) && (mt.name === lid)) {
-											           mapTypes.removeAt(index);
-											           mapTypes.insertAt(0, mt);
+									         function(mt, index) { 
+										          if ((mt != undefined) && 
+										              (mt.name === lid)) {
+											          mapTypes.removeAt(index);
+											          mapTypes.insertAt(0, mt);
 										          }
 									         }
 								        );
@@ -247,7 +211,8 @@ mol.modules.map.tiles = function(mol) {
                 );
             },
             /**
-             * Returns an array of layer objects that are not already on the map.
+             * Returns an array of layer objects that are not already on the 
+             * map.
              *
              * @param layers an array of layer object {id, name, type, source}.
              * @params overlays an array of wax connectors.
@@ -277,7 +242,8 @@ mol.modules.map.tiles = function(mol) {
             },
 
             /**
-             * Closure around the layer that returns the ImageMapType for the tile.
+             * Closure around the layer that returns the ImageMapType for the 
+             * tile.
              */
             getTile: function(layer) {
                 var name = layer.name,
@@ -287,19 +253,43 @@ mol.modules.map.tiles = function(mol) {
 
 
                 switch (type) {
-                case 'points':
-                    maptype = new mol.map.tiles.CartoDbTile(layer, 'gbif_import', this.map);
-                    break;
-                case 'polygon':
-                case 'range':
-                case 'ecoregion':
-                case 'protectedarea':
-                    maptype = new mol.map.tiles.CartoDbTile(layer, 'polygons', this.map);
-                    break;
+                    case 'points':
+                            maptype = new mol.map.tiles.CartoDbTile(
+                                layer, 
+                                'points_style', 
+                                this.map
+                            );
+                            break;
+                        case 'polygon':
+                        case 'range':
+                        case 'ecoregion':
+                        case 'protectedarea':
+                        case 'geochecklist':
+                        case 'taxogeochecklist':
+                        case 'taxochecklist':
+                            maptype = new mol.map.tiles.CartoDbTile(
+                                layer, 
+                                'polygon_style', 
+                                this.map
+                            );
+                            break;
                 }
-                maptype.layer.params.layer.onbeforeload = function (){self.bus.fireEvent(new mol.bus.Event("show-loading-indicator",{source : layer.id}))};
-                maptype.layer.params.layer.onafterload = function (){self.bus.fireEvent(new mol.bus.Event("hide-loading-indicator",{source : layer.id}))};
-                return maptype.layer;
+                maptype.layer.params.layer.onbeforeload = function (){
+                    self.bus.fireEvent(
+                        new mol.bus.Event(
+                            "show-loading-indicator",
+                            {source : layer.id}
+                        )
+                    )
+                };
+                maptype.layer.params.layer.onafterload = function (){
+                    self.bus.fireEvent(
+                        new mol.bus.Event(
+                            "hide-loading-indicator",
+                            {source : layer.id}
+                        )
+                    )
+                };
             },
 
             /**
@@ -339,7 +329,13 @@ mol.modules.map.tiles = function(mol) {
 		              failure = function(action, response) {
                         console.log('Error: {0}'.format(response));
                     };
-                this.proxy.execute(action, new mol.services.Callback(success, failure));
+                this.proxy.execute(
+                    action, 
+                    new mol.services.Callback(
+                        success, 
+                        failure
+                    )
+                );
 		      }
         }
 	 );
@@ -347,33 +343,26 @@ mol.modules.map.tiles = function(mol) {
     mol.map.tiles.CartoDbTile = Class.extend(
         {
             init: function(layer, table, map) {
-                var sql =  "SELECT * FROM {0} where scientificname = '{1}' and type = '{2}' and provider = '{3}'",
-                    opacity = layer.opacity && table !== 'points' ? layer.opacity : null,
-                    hostname = 'dtredc0xh764j.cloudfront.net',//window.location.hostname,
-                    style_table_name = table,
-                    info_query = sql,
-                    infowindow = true;
+                var sql =  "" +
+                    "SELECT * FROM " +
+                    " get_mol_tile('{0}','{1}','{2}','{3}')".format(
+                        layer.source, 
+                        layer.type, 
+                        layer.name, 
+                        layer.data_table
+                    ),
+                    hostname = 'mol.cartodb.com',//window.location.hostname,
+                    style_table_name = layer.style_table;
+                    info_query = sql; 
+                    meta_query = "" +
+                        "SELECT * FROM get_feature_metadata(TEXT('{0}'))",
+                    tile_style =  null,
+                    infowindow = true,
+                    hostname = (hostname === 'localhost') ? 
+                       '{0}:8080'.format(hostname) : hostname;
 
-                if (layer.type === 'points') {
-                    sql = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator, identifier " +
-                        "FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
-                    table = 'gbif_import';
-                    style_table_name = 'names_old';
-                    info_query = "SELECT cartodb_id, st_transform(the_geom, 3785) AS the_geom_webmercator FROM {0} WHERE lower(scientificname)='{1}'".format("gbif_import", layer.name.toLowerCase());
-                    infowindow = true;
-                } else {
-                    info_query = sql = sql.format(table, layer.name, layer.type, layer.source);
-
-                    //info_query = ''; //sql
-                    infowindow = true;;
-                }
-
-                hostname = (hostname === 'localhost') ? '{0}:8080'.format(hostname) : hostname;
-
-                this.layer = new google.maps.CartoDBLayer(
-                    {
+                this.layer = new google.maps.CartoDBLayer({
                         tile_name: layer.id,
-                        tile_style: layer.tile_style,
                         hostname: hostname,
                         map_canvas: 'map_container',
                         map: map,
@@ -383,11 +372,12 @@ mol.modules.map.tiles = function(mol) {
                         style_table_name: style_table_name,
                         query: sql,
                         info_query: info_query,
+                        meta_query: meta_query,
+                        tile_style: tile_style,
                         map_style: false,
                         infowindow: infowindow,
-                        opacity: layer.opacity
-                    }
-                );
+                        opacity: 0.5
+                });
             }
         }
     );

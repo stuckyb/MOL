@@ -18,7 +18,13 @@ mol.modules.map.layers = function(mol) {
                 this.display.toggle(false);
             },
 
-
+            /**
+             * Handler a layer-opacity event. This handler only does something
+             * when the event.opacity is undefined. This is to support layer
+             * toggling with opacity only (instead of removing overlays from
+             * the map). In this case, the opacity from the layer widget is
+             * bubbled to a new layer-opacity event that gets fired on the bus.
+             */
             addEventHandlers: function() {
                 var self = this;
                 this.display.removeAll.click (
@@ -72,20 +78,28 @@ mol.modules.map.layers = function(mol) {
                         _.each(
                             event.layers,
                             function(layer) {
-                                var extent = $.parseJSON(layer.extent);
-                                var layer_bounds = new google.maps.LatLngBounds(
+                                var extent, layer_bounds;
+
+                                try {
+                                    extent = $.parseJSON(layer.extent),
+                                    layer_bounds = new google.maps.LatLngBounds(
                                         new google.maps.LatLng(extent.sw.lat,extent.sw.lng),
                                         new google.maps.LatLng(extent.ne.lat,extent.ne.lng)
                                      );
+
                                 if(!bounds) {
                                     bounds = layer_bounds;
                                 } else {
                                     bounds.union(layer_bounds)
                                 }
+                                } catch(e) {}
+
                             }
                         )
-                        self.addLayers(event.layers);
-                        self.map.fitBounds(bounds)
+                        if(event.layers.length>0) {
+                            self.addLayers(event.layers);
+                            self.map.fitBounds(bounds);
+                        }
 
                     }
                 );
@@ -143,10 +157,15 @@ mol.modules.map.layers = function(mol) {
                            var group = _.groupBy(_.groupBy(layers, "name")[name], "type");
 
                            _.each(
-                               ['points', 'protectedarea', 'range', 'ecoregion'],
+                               ['points', 'protectedarea', 'range', 'ecoregion', 'taxogeochecklist','geochecklist'],
                                function(type) {
                                    if (group[type]) {
-                                       sorted.push(group[type][0]);
+                                       _.each(
+                                           group[type],
+                                           function(layer) {
+                                               sorted.push(layer);
+                                           }
+                                       );
                                    }
                                }
                            );
@@ -171,8 +190,6 @@ mol.modules.map.layers = function(mol) {
                         layer: layer,
                         opacity: parseFloat(l.opacity.slider("value"))
                     },
-
-                    layer.opacity = params.opacity; //store the opacity on the layer object
 
                     e = new mol.bus.Event('layer-opacity', params);
 
@@ -201,7 +218,6 @@ mol.modules.map.layers = function(mol) {
                         self.bus.fireEvent(new mol.bus.Event('show-layer-display-toggle'));
 
                         // Set initial opacity based on layer type.
-                        //TODO, pull this from the types metadata table instead (issue #125)
                         switch (layer.type) {
                         case 'points':
                             opacity = 1.0;
@@ -215,8 +231,20 @@ mol.modules.map.layers = function(mol) {
                         case 'range':
                             opacity = .5;
                             break;
+                        case 'taxogeochecklist':
+                            opacity = .5;
+                            break;
+                        case 'geochecklist':
+                            opacity = .5;
+                            break;
                         }
-                        layer.opacity = opacity;
+
+                        switch (layer.style_table) {
+                        case 'points_style':
+                            opacity = 1.0;
+                            break;
+                        }
+
                         //disable interactivity to start
                         self.map.overlayMapTypes.forEach(
                                     function(mt) {
@@ -230,7 +258,7 @@ mol.modules.map.layers = function(mol) {
 
                         // Opacity slider change handler.
                         l.opacity.bind("slide",self.opacityHandler(layer, l));
-                        l.opacity.slider("value",layer.opacity);
+                        l.opacity.slider("value",opacity);
 
                         // Close handler for x button fires a 'remove-layers' event.
                         l.close.click(
@@ -267,20 +295,6 @@ mol.modules.map.layers = function(mol) {
                                 }
                                 self.map.fitBounds(bounds);
 
-                                event.stopPropagation();
-                                event.cancelBubble = true;
-                            }
-                        );
-                        // Click handler for style toggle button fires 'apply-layer-style'
-                        //TODO replace with a style picker widget (issue #124)
-                        l.styler.click(
-                            function(event) {
-                                var params = {
-                                        layer: layer,
-                                        style: (layer.style) ? '' : '#polygons {polygon-fill:gray}' //turns the layer gray, or goes back to default style.
-                                };
-                                self.bus.fireEvent(new mol.bus.Event('apply-layer-style', params));
-                                layer.style = params.style; // keep the style around for later
                                 event.stopPropagation();
                                 event.cancelBubble = true;
                             }
@@ -429,7 +443,7 @@ mol.modules.map.layers = function(mol) {
                     '    <input class="keycatcher" type="text" />' +
                     '    <button title="Remove layer." class="close">x</button>' +
                     '    <button title="Zoom to layer extent." class="zoom">z</button>' +
-                  /*'    <button title="Layer styler." class="styler">s</button>' + */
+                    //'    <button title="Layer metadata info." class="info">i</button>' +
                     '    <label class="buttonContainer"><input class="toggle" type="checkbox"><span title="Toggle layer visibility." class="customCheck"></span></label>' +
                     '    <div class="opacityContainer"><div class="opacity"/></div>' +
                     '  </div>' +
@@ -440,7 +454,6 @@ mol.modules.map.layers = function(mol) {
                 this.attr('id', layer.id);
                 this.opacity = $(this).find('.opacity').slider({value: 0.5, min: 0, max:1, step: 0.02, animate:"slow"});
                 this.toggle = $(this).find('.toggle').button();
-                this.styler = $(this).find('.styler');
                 this.zoom = $(this).find('.zoom');
                 this.info = $(this).find('.info');
                 this.close = $(this).find('.close');
@@ -488,7 +501,7 @@ mol.modules.map.layers = function(mol) {
             },
 
             getLayer: function(layer) {
-                return $(this).find('#{0}'.format(escape(layer.id)));
+                return $(this).find('#{0}'.format(layer.id));
             },
 
                getLayerById: function(id) {
