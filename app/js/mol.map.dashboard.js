@@ -7,7 +7,7 @@ mol.modules.map.dashboard = function(mol) {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
-                this.url = "http://mol.cartodb.com/api/v2/sql?callback=?&q={0}"
+                this.url = "http://mol.cartodb.com/api/v2/sql?callback=?&q={0}";
                 this.summary_sql = '' +
                     'SELECT DISTINCT * ' + 
                     'FROM get_dashboard_summary()';
@@ -115,7 +115,7 @@ mol.modules.map.dashboard = function(mol) {
                             {
                                 autoOpen: false,
                                 width: 946,
-                                height: 360,
+                                height: 588,
                                 minHeight: 360,
                                 dialogClass: "mol-Dashboard",
                                 title: 'Dashboard - ' + 
@@ -288,8 +288,8 @@ mol.modules.map.dashboard = function(mol) {
                 )
             },
             fillFilter: function(type, name, value) {
-                if($(this).find('.filter .{0} .{1}'.format(type, value)).length==0) {
-                    $(this).find('.{0}Filters .{0}'.format(type)).append(
+                if($(this).find('.{0} .{1}'.format(type, name)).length==0) {
+                    $(this).find('.typeFilters .{0}'.format(type)).append(
                         new mol.map.dashboard.DashboardFilterDisplay(type, name, value)
                     )
                 }
@@ -408,13 +408,13 @@ mol.modules.map.dashboard = function(mol) {
             init: function(type, name, value) {
 
                 var html = '' +
-                    '<div class="chkAndLabel filter {0} {1}">' + 
+                    '<div class="chkAndLabel filter {0}">' + 
                     '   <input type="checkbox" checked="checked" ' + 
-                            'name="{0}" class="{1}Chk"/>' + 
-                    '   <label for="{0}">{2}</label>' + 
+                            'name="{0}" class="{0}Chk"/>' + 
+                    '   <label for="{0}">{1}</label>' + 
                     '</div>';
 
-                this._super(html.format(type, name, value));
+                this._super(html.format(name, value));
             }
         }
     );

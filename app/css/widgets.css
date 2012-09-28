@@ -670,11 +670,12 @@ padding: 3px;
     padding-top: 5px;
     padding-bottom: 10px;
     white-space: nowrap;
+    font-size: 14px;
 }
 
 .mol-Dashboard #dialog .summary .label {
     font-weight:bold;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .mol-Dashboard span.filterHeader {
@@ -716,7 +717,7 @@ div.mol-Dashboard-TableWindow {
     font-size: 12px;
     font-style:normal;
     font-weight:normal;
-    height: 300px;
+    height: 498px;
     overflow-y:scroll;
     overflow-x:hidden;
 }
