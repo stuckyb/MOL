@@ -1,7 +1,7 @@
 -- Function to get all MOL layers (checklist and polygon), cache this result in layers_metadata
 DROP function get_dashboard_metadata();
 CREATE FUNCTION get_dashboard_metadata() 
-	RETURNS TABLE(provider text, type text, provider_id text, type_id text, taxa text, data_table text, species_count bigint, feature_count bigint) 
+	RETURNS TABLE(provider text, type text, provider_id text, type_id text, classes text, data_table text, species_count bigint, feature_count bigint) 
 AS
 $$
   DECLARE sql TEXT;
@@ -18,38 +18,46 @@ $$
 	          '   TEXT(''' || type.title || ''') as type, ' ||
 		  '   TEXT(''' || provider.provider || ''') as provider_id, ' ||
 	          '   TEXT(''' || type.product_type || ''') as type_id, ' ||
-		  '   TEXT(''' || data.class || ''') as classes, ' ||
+		  '   TEXT(''' || data.classes || ''') as classes, ' ||
                   '   TEXT(''' || data.table_name || ''') as data_table, ' ||
                   '   count(DISTINCT '|| data.scientificname || ') as species_count, ' ||
                   '   count(*) as feature_count FROM ' || data.table_name; 
-         ELSIF data.type = 'ecoregion' or data.type = 'taxogeochecklist' THEN 		
-		--ecoregion counts	
+		IF sql is not Null THEN 
+			RETURN QUERY EXECUTE sql;
+		END IF;
+         ELSIF  data.type = 'taxogeochecklist' THEN 		
+		
 		sql = ' SELECT ' || 
 		  '   TEXT(''' || provider.title || ''') as provider, ' ||
                   '   TEXT(''' || type.title || ''') as type, ' || 
 		  '   TEXT(''' || provider.provider || ''') as provider_id, ' ||
 	          '   TEXT(''' || type.product_type || ''') as type_id, ' ||
-		  '   TEXT(''' || data.class || ''') as classes, ' ||
+		  '   TEXT(''' || data.classes || ''') as classes, ' ||
                   '   TEXT(''' || data.table_name || ''') as data_table, ' ||
                   '   count(DISTINCT ' || data.species_id || ') as species_count, ' ||
                   '   count(*) as feature_count ' ||
                   ' FROM ' || data.table_name || ' d';
-	 ELSIF data.type = 'protectedarea' or data.type = 'geochecklist' THEN 		
-		--ecoregion counts	
+		IF sql is not Null THEN 
+			RETURN QUERY EXECUTE sql;
+		END IF;
+	 ELSIF data.type = 'geochecklist' THEN 		
+		
 		sql = ' SELECT ' || 
 		  '   TEXT(''' || provider.title || ''') as provider, ' ||
                   '   TEXT(''' || type.title || ''') as type, ' || 
 		  '   TEXT(''' || provider.provider || ''') as provider_id, ' ||
 	          '   TEXT(''' || type.product_type || ''') as type_id, ' ||
-		  '   TEXT(''' || data.class || ''') as classes, ' ||
+		  '   TEXT(''' || data.classes || ''') as classes, ' ||
                   '   TEXT(''' || data.table_name || ''') as data_table, ' ||
                   '   count(DISTINCT ' || data.scientificname || ') as species_count, ' ||
                   '   count(*) as feature_count ' ||
                   ' FROM ' || data.table_name || ' d';
+		IF sql is not Null THEN 
+			RETURN QUERY EXECUTE sql;
+		END IF;
 	  ELSE
                 -- We got nuttin'
 	  END IF;
-	  RETURN QUERY EXECUTE sql;
        END LOOP;
     END
 $$  language plpgsql;
