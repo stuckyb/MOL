@@ -18,7 +18,7 @@ $$
 	          '   TEXT(''' || type.title || ''') as type, ' ||
 		  '   TEXT(''' || provider.provider || ''') as provider_id, ' ||
 	          '   TEXT(''' || type.product_type || ''') as type_id, ' ||
-		  '   TEXT(''' || data.classes || ''') as classes, ' ||
+		  '   TEXT(''' || data.class || ''') as classes, ' ||
                   '   TEXT(''' || data.table_name || ''') as data_table, ' ||
                   '   count(DISTINCT '|| data.scientificname || ') as species_count, ' ||
                   '   count(*) as feature_count FROM ' || data.table_name; 
@@ -29,7 +29,7 @@ $$
                   '   TEXT(''' || type.title || ''') as type, ' || 
 		  '   TEXT(''' || provider.provider || ''') as provider_id, ' ||
 	          '   TEXT(''' || type.product_type || ''') as type_id, ' ||
-		  '   TEXT(''' || data.classes || ''') as classes, ' ||
+		  '   TEXT(''' || data.class || ''') as classes, ' ||
                   '   TEXT(''' || data.table_name || ''') as data_table, ' ||
                   '   count(DISTINCT ' || data.species_id || ') as species_count, ' ||
                   '   count(*) as feature_count ' ||
@@ -41,7 +41,7 @@ $$
                   '   TEXT(''' || type.title || ''') as type, ' || 
 		  '   TEXT(''' || provider.provider || ''') as provider_id, ' ||
 	          '   TEXT(''' || type.product_type || ''') as type_id, ' ||
-		  '   TEXT(''' || data.classes || ''') as classes, ' ||
+		  '   TEXT(''' || data.class || ''') as classes, ' ||
                   '   TEXT(''' || data.table_name || ''') as data_table, ' ||
                   '   count(DISTINCT ' || data.scientificname || ') as species_count, ' ||
                   '   count(*) as feature_count ' ||
