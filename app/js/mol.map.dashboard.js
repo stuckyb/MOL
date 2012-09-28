@@ -151,12 +151,12 @@ mol.modules.map.dashboard = function(mol) {
                     '    <span class="datasets"></span>' +
                     '    <span class="label">Species names:</span>' +
                     '    <span class="names"></span>' +
-                    '    <span class="label">Valid taxons:</span>' +
-                    '    <span class="taxon_matches"></span>' +
+                   //'    <span class="label">Valid taxons:</span>' +
+                   //'    <span class="taxon_matches"></span>' +
                     '    <span class="label">Recognized synonyms:</span>' +
                     '    <span class="syn_matches"></span>' +
-                    '    <span class="label">Total possible taxons:</span>' +
-                    '    <span class="taxon_total"></span>' +
+                   // '    <span class="label">Total possible taxons:</span>' +
+                   // '    <span class="taxon_total"></span>' +
                     '    <span class="label">Total records:</span>' +
                     '    <span class="record_total"></span>' +
                     '  </div>' +
@@ -265,8 +265,8 @@ mol.modules.map.dashboard = function(mol) {
             fillRow:  function(row) {
                 var self = this;
                 this.numsets++;
-                self.fillFilter('type',row.type_id, row.type);
-                self.fillFilter('provider',row.provider_id, row.provider);
+                this.fillFilter('type',row.type_id, row.type);
+                this.fillFilter('provider',row.provider_id, row.provider);
                 
                 _.each(
                     row.classes.split(','),
@@ -288,8 +288,8 @@ mol.modules.map.dashboard = function(mol) {
                 )
             },
             fillFilter: function(type, name, value) {
-                if($(self).find('.filter .{0} .{1}'.format(type, name)).length==0) {
-                    $(self).find('.{0}Filters {0}'.format(type, type)).append(
+                if($(this).find('.filter .{0} .{1}'.format(type, value)).length==0) {
+                    $(this).find('.{0}Filters .{0}'.format(type)).append(
                         new mol.map.dashboard.DashboardFilterDisplay(type, name, value)
                     )
                 }
