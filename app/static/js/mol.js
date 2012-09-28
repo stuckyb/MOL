@@ -3700,9 +3700,11 @@ mol.modules.map.query = function(mol) {
                                     self.display.radiusInput.val())*1000,
                                     // 50 km
                                 center: event.gmaps_event.latLng,
-                                strokeWeight: 1,
+                                strokeWeight: 3,
+                                strokeColor: 'darkred',
                                 clickable:false,
-                                fillColor:'maroon'
+                                fillOpacity:0,
+
                             }
                         );
                         self.bus.fireEvent(new mol.bus.Event(
@@ -4092,7 +4094,7 @@ mol.modules.map.query = function(mol) {
             listWindow.dialog({
                 autoOpen: true,
                 width: 680,
-                height: 405,
+                height: 415,
                 dialogClass: 'mol-Map-ListDialog',
                 modal: false,
                 title: speciestotal + ' species of ' + className +
@@ -4225,8 +4227,7 @@ mol.modules.map.query = function(mol) {
                 }
             );
             $(".tablesorter", $(lw)).tablesorter({
-                sortList: [[5,0]],
-                 widgets: [ 'stickyHeaders' ]
+                sortList: [[5,0]]
             });
 
             _.each(
@@ -4274,7 +4275,7 @@ mol.modules.map.query = function(mol) {
                 options,
                 chart;
 
-            $("#iucnChartDiv").height(mHeight-130);
+            $("#iucnChartDiv").height(mHeight-140);
 
             iucnlist = self.getRedListCounts(rows);
             iucndata = google.visualization.arrayToDataTable(iucnlist);
@@ -4315,7 +4316,7 @@ mol.modules.map.query = function(mol) {
 
                     if(row.eol_thumb_url != null) {
                         $("#gallery").append('' +
-                            '<li><a href="http://eol.org/pages/' +
+                            '<li><a class="eol_img" href="http://eol.org/pages/' +
                             row.eol_page_id +
                             '" target="_blank"><img src="' +
                             row.eol_thumb_url +
@@ -4380,6 +4381,13 @@ mol.modules.map.query = function(mol) {
                     }
                 }
             });
+            $('.eol_img').mouseup(
+                function(event) {
+                    if(event.ctrlKey) {
+                      //
+                    }
+                }
+            )
 
             $('#gallery li div').qtip({
                 content: {

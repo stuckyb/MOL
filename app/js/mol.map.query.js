@@ -192,9 +192,11 @@ mol.modules.map.query = function(mol) {
                                     self.display.radiusInput.val())*1000,
                                     // 50 km
                                 center: event.gmaps_event.latLng,
-                                strokeWeight: 1,
+                                strokeWeight: 3,
+                                strokeColor: 'darkred',
                                 clickable:false,
-                                fillColor:'maroon'
+                                fillOpacity:0,
+
                             }
                         );
                         self.bus.fireEvent(new mol.bus.Event(
@@ -806,7 +808,7 @@ mol.modules.map.query = function(mol) {
 
                     if(row.eol_thumb_url != null) {
                         $("#gallery").append('' +
-                            '<li><a href="http://eol.org/pages/' +
+                            '<li><a class="eol_img" href="http://eol.org/pages/' +
                             row.eol_page_id +
                             '" target="_blank"><img src="' +
                             row.eol_thumb_url +
@@ -871,6 +873,13 @@ mol.modules.map.query = function(mol) {
                     }
                 }
             });
+            $('.eol_img').mouseup(
+                function(event) {
+                    if(event.ctrlKey) {
+                      //
+                    }
+                }
+            )
 
             $('#gallery li div').qtip({
                 content: {
