@@ -13,7 +13,7 @@ mol.modules.map.dashboard = function(mol) {
                     'FROM get_dashboard_summary()';
                 this.dashboard_sql = '' +
                     'SELECT DISTINCT * ' + 
-                    'FROM get_dashboard_metadata() ' +
+                    'FROM dash_cache ' +
                     'ORDER BY provider, classes;';
                 this.summary = null;
                 this.types = {};
