@@ -1,7 +1,8 @@
 -- Function to get all MOL layers (checklist and polygon), cache this result in layers_metadata
 DROP function get_mol_layers();
 CREATE FUNCTION get_mol_layers() 
-	RETURNS TABLE(scientificname text, type text, provider text, data_table text, extent box2d, feature_count bigint) 
+	--RETURNS TABLE(scientificname text, type text, product_type text, provider text, data_table text, extent box2d, feature_count bigint) 
+	RETURNS TABLE(sql text)
 AS
 $$
   DECLARE sql TEXT;
@@ -11,7 +12,8 @@ $$
          IF data.type = 'range' THEN
                 sql = 'SELECT ' || 
                   data.scientificname || ' as scientificname, ' ||
-                  ' TEXT(''' || data.type || ''') as type, ' ||
+                  ' TEXT(''' || data.type || ''') as data_type, ' ||
+                  ' TEXT(''' || data.product_type || ''') as type, ' ||
                   ' TEXT(''' || data.provider || ''') as provider, ' ||
                   ' TEXT(''' || data.table_name || ''') as data_table, ' ||
                   ' ST_Extent(the_geom) as extent, ' || 
@@ -21,7 +23,8 @@ $$
                 -- Glue them all together
 		sql = ' SELECT ' || 
                   '   ' || data.scientificname || ' as scientificname, ' ||
-                  '   TEXT(''' || data.type || ''') as type, ' || 
+                  ' TEXT(''' || data.type || ''') as data_type, ' ||
+                  ' TEXT(''' || data.product_type || ''') as type, ' ||
                   '   TEXT(''' || data.provider || ''') as provider, ' ||
                   '   TEXT(''' || data.table_name || ''') as data_table, ' ||
                   '   ST_Extent(g.the_geom) as extent, ' ||
@@ -35,7 +38,8 @@ $$
 	  ELSIF data.type = 'protectedarea' or data.type = 'geochecklist'  THEN 		
 		sql = ' SELECT ' || 
                   '   ' || data.scientificname || ' as scientificname, ' ||
-                  '   TEXT(''' || data.type || ''') as type, ' || 
+                  ' TEXT(''' || data.type || ''') as data_type, ' ||
+                  ' TEXT(''' || data.product_type || ''') as type, ' ||
                   '   TEXT(''' || data.provider || ''') as provider, ' ||
                   '   TEXT(''' || data.table_name || ''') as data_table, ' ||
                   '   ST_Extent(g.the_geom) as extent, ' ||
@@ -44,11 +48,26 @@ $$
                   ' JOIN ' || data.geom_table || ' g ON ' ||
                   '   d.' || data.geom_id || ' = g.' || data.geom_link_id  ||
 		  ' GROUP BY ' || data.scientificname; 
-	  ELSE
-                -- We got nuttin'
+	  ELSIF  data.type = 'taxogeooccchecklist'  THEN 
+	        sql = ' SELECT ' || 
+                  '   ' || data.scientificname || ' as scientificname, ' ||
+                  ' TEXT(''' || data.type || ''') as data_type, ' ||
+                  ' TEXT(''' || data.product_type || ''') as type, ' ||
+                  '   TEXT(''' || data.provider || ''') as provider, ' ||
+                  '   TEXT(''' || data.table_name || ''') as data_table, ' ||
+                  '   ST_Extent(g.the_geom) as extent, ' ||
+                  '   count(*) as feature_count ' ||
+                  ' FROM ' || data.table_name || ' d ' ||
+                  ' JOIN ' || data.taxo_table || ' t ON ' ||
+                  '   d.' || data.species_id || ' = t.' || data.species_link_id ||
+                  ' JOIN ' || data.geom_table || ' g ON ' ||
+                  '   d.' || data.geom_id || ' = g.' || data.geom_link_id  ||
+		  ' JOIN ' || data.occurrence_table || ' o ON ' ||
+	          '   d.' || data.geom_id || ' = o.' || data.occurrence_geom_id ||
+		  ' GROUP BY ' || data.scientificname; 
 	  END IF;
-          RETURN QUERY EXECUTE sql;
-	  --RETURN QUERY SELECT TEXT(sql);          
+          --RETURN QUERY EXECUTE sql;
+	  RETURN QUERY SELECT TEXT(sql);          
        END LOOP;
 
     END
