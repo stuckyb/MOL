@@ -519,6 +519,22 @@ mol.modules.map.results = function(mol) {
             init: function(name) {
                 var name_mappings = {
                     "gbif": "GBIF",
+                    "mcdb" : "Scientist/Literature",
+                    "na_trees":"Scientist/Literature",
+                    "lewis_pomeroy":"Scientist/Literature",
+                    "ellison":"Scientist/Literature",
+                    "harrison":"Scientist/Literature",
+                    "dowsett":"Scientist/Literature",
+                    "carswell":"Scientist/Literature",
+                    "dowsett-lemaire":"Scientist/Literature",
+                    "iucn":"Scientist/Literature",
+                    "fishes":"Scientist/Literature",
+                    "dean":"Scientist/Literature",
+                    "kreft":"Scientist/Literature",
+                    "silva":"Scientist/Literature",
+                    "mcdb":"Scientist/Literature",
+                    "dean_dowsett":"Scientist/Literature",
+                    "cantu":"Scientist/Literature",                 
                     "wdpa": "Scientist/Literature",
                     "wwf": "WWF",
                     "jetz": "Scientist/Literature",
@@ -526,8 +542,10 @@ mol.modules.map.results = function(mol) {
                     "fishes": "Scientist/Literature",
                     "points": "Points",
                     "range": "Expert range maps",
+                    "geochecklist": "Local inventories",
                     "protectedarea": "Local inventories",
-                    "ecoregion": "Regional checklists"
+                    "ecoregion": "Regional checklists",
+                    "taxogeochecklist": "Local inventories"
                 };
 
                 mapped_name = name_mappings[name];

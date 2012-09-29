@@ -672,7 +672,9 @@ padding: 3px;
     white-space: nowrap;
     font-size: 14px;
 }
-
+.mol-Dashboard #dialog .summary span {
+    padding-right:10px;
+}
 .mol-Dashboard #dialog .summary .label {
     font-weight:bold;
     font-size: 14px;
