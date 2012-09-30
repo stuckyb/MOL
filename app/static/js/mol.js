@@ -3297,16 +3297,16 @@ mol.modules.map.dashboard = function(mol) {
                 this.bus = bus;
                 this.url = "http://mol.cartodb.com/api/v2/sql?callback=?&q={0}";
                 this.summary_sql = '' +
-                    'SELECT DISTINCT * ' + 
+                    'SELECT DISTINCT * ' +
                     'FROM get_dashboard_summary()';
                 this.dashboard_sql = '' +
-                    'SELECT DISTINCT * ' + 
+                    'SELECT DISTINCT * ' +
                     'FROM dash_cache ' +
                     'ORDER BY provider, classes;';
                 this.summary = null;
                 this.types = {};
                 this.sources = {};
-               
+
             },
             start: function() {
                 this.initDialog();
@@ -3335,7 +3335,7 @@ mol.modules.map.dashboard = function(mol) {
                         } else {
                             self.display.dialog(event.state);
                         }
-                        
+
                     }
                 );
 
@@ -3357,11 +3357,11 @@ mol.modules.map.dashboard = function(mol) {
                                     new mol.bus.Event(
                                         'metadata-toggle',
                                         {params:
-                                            {provider: provider, 
-                                             type: type, 
-                                             _class: _class, 
+                                            {provider: provider,
+                                             type: type,
+                                             _class: _class,
                                              text: dataset_title}}));
-                                        
+
                             }
                         );
 
@@ -3393,7 +3393,7 @@ mol.modules.map.dashboard = function(mol) {
              */
             initDialog: function() {
                 var self = this;
-                
+
                 $.getJSON(
                     this.url.format(this.dashboard_sql),
                     function(response) {
@@ -3404,14 +3404,14 @@ mol.modules.map.dashboard = function(mol) {
                             {
                                 autoOpen: false,
                                 width: 946,
-                                height: 588,
+                                height: 620,
                                 minHeight: 360,
                                 dialogClass: "mol-Dashboard",
-                                title: 'Dashboard - ' + 
+                                title: 'Dashboard - ' +
                                 'Statistics for Data Served by the Map of Life'
                             }
                         );
-                        
+
                         self.addEventHandlers();
                     }
                 );
@@ -3438,30 +3438,32 @@ mol.modules.map.dashboard = function(mol) {
                     '    <span class="providers"></span>' +
                     '    <span class="label">Datasets:</span>' +
                     '    <span class="datasets"></span>' +
-                    '    <span class="label">Species names:</span>' +
+                    '    <span class="label">Species names in source data:</span>' +
                     '    <span class="names"></span>' +
-                   //'    <span class="label">Valid taxons:</span>' +
-                   //'    <span class="taxon_matches"></span>' +
-                    '    <span class="label">Recognized synonyms:</span>' +
+                    '    <span class="label">Names in MOL taxonomy:</span>' +
+                    '    <span class="taxon_total"></span>' +
+                    '    <span class="label">Names matching MOL taxonomy:</span>' +
+                    '    <span class="all_matches"></span><br>' +
+                    '    <span class="label">Names matching MOL taxonomy directly:</span>' +
+                    '    <span class="direct_matches"></span>' +
+                    '    <span class="label">Names matching MOL taxonomy through a known synonym:</span>' +
                     '    <span class="syn_matches"></span>' +
-                   // '    <span class="label">Total possible taxons:</span>' +
-                   // '    <span class="taxon_total"></span>' +
                     '    <span class="label">Total records:</span>' +
-                    '    <span class="record_total"></span>' +
+                    '    <span class="records_total"></span>' +
                     '  </div>' +
                     //'  <div id="dashTypeFilter" class="typeFilters">' +
-                    //'    <div id="dashTitle" class="title">' + 
-                    //        'Datasets' + 
+                    //'    <div id="dashTitle" class="title">' +
+                    //        'Datasets' +
                     //'    </div><br/>' +
                     // taxa filter
-                    //'    <div class="class">' + 
-                    //'      <span class="filterHeader">Filter by Class</span>' + 
+                    //'    <div class="class">' +
+                    //'      <span class="filterHeader">Filter by Class</span>' +
                     //'    </div>' +
                     //'    <br/>' +
                     //'    <br/>' +
                     // type filter
-                    //'    <div class="type">' + 
-                    //'      <span class="filterHeader">Filter by Type</span>' + 
+                    //'    <div class="type">' +
+                    //'      <span class="filterHeader">Filter by Type</span>' +
                     //'    </div>' +
                     //'  </div>' +
                     '    <div class="mol-Dashboard-TableWindow">' +
@@ -3471,7 +3473,7 @@ mol.modules.map.dashboard = function(mol) {
                     '          <th><b>Dataset</b></th>' +
                     '          <th><b>Type</b></th>' +
                     '          <th><b>Source</b></th>' +
-                    '          <th><b>Class</b></th>' +
+                    '          <th><b>Taxon</b></th>' +
                     '          <th><b>Species names</b></th>' +
                     '          <th><b>Records</b></th>' +
                     '        </tr>' +
@@ -3490,19 +3492,19 @@ mol.modules.map.dashboard = function(mol) {
                         self.fillRow(row);
                     }
                 )
-                
+
                 $(this).find('#dashTitle')
                     .html(this.numsets + ' Datasets Shown');
-                
+
                 this.dashtable = $(this).find('.dashtable');
-                this.dashtable.tablesorter({ 
+                this.dashtable.tablesorter({
                                 sortList: [[1,1]],
                                 widthFixed: false
                                 });
                 this.datasets = $(this).find('.dataset');
-                
+
                 this.dashtable.find("tr.master")
-                    .click(function(){ 
+                    .click(function(){
                         $(this).parent().find('tr').each(
                             function(index, elem) {
                                 if($(elem).hasClass('selectedDashRow')) {
@@ -3510,11 +3512,11 @@ mol.modules.map.dashboard = function(mol) {
                                 }
                             }
                         )
-                        
+
                         $(this).addClass('selectedDashRow');
                     }
                 );
-                
+
                 $(this).find("input:checkbox").change(
                     function(event) {
                     }
@@ -3523,23 +3525,23 @@ mol.modules.map.dashboard = function(mol) {
                     self.fillSummary(summary);
                 }
             },
-            
+
             fillRow:  function(row) {
                 var self = this;
                 this.numsets++;
                 //this.fillFilter('type',row.type_id, row.type);
                 //this.fillFilter('provider',row.provider_id, row.provider);
-                
+
                 //_.each(
                 //    row.classes.split(','),
                 //    function(taxa) {
                 //        self.fillFilter('class', taxa, taxa);
                 //    }
                 //);
-                
+
                 $(this).find('.tablebody').append(
                     new mol.map.dashboard.DashboardRowDisplay(row));
-            },            
+            },
             fillSummary: function(summary) {
                 var self = this;
                 _.each(
@@ -3572,14 +3574,14 @@ mol.modules.map.dashboard = function(mol) {
                     '    </tr>';
                 this._super(
                     html.format(
-                        row.type_id, 
-                        row.type, 
-                        row.provider_id, 
-                        row.provider, 
-                        row.classes.split(',').join(' '), 
-                        row.classes.split(',').join(', '), 
+                        row.type_id,
+                        row.type,
+                        row.provider_id,
+                        row.provider,
+                        row.classes.split(',').join(' '),
+                        row.classes.split(',').join(', '),
                         row.species_count,
-                        row.feature_count, 
+                        row.feature_count,
                         row.dataset
                     )
                 );
@@ -3591,10 +3593,10 @@ mol.modules.map.dashboard = function(mol) {
             init: function(type, name, value) {
 
                 var html = '' +
-                    '<div class="chkAndLabel filter {1}">' + 
-                    '   <input type="checkbox" checked="checked" ' + 
-                            'name="{1}" class="filters {0} {1}"/>' + 
-                    '   <label for="{1}">{2}</label>' + 
+                    '<div class="chkAndLabel filter {1}">' +
+                    '   <input type="checkbox" checked="checked" ' +
+                            'name="{1}" class="filters {0} {1}"/>' +
+                    '   <label for="{1}">{2}</label>' +
                     '</div>';
 
                 this._super(html.format(type, name, value));
@@ -3604,7 +3606,7 @@ mol.modules.map.dashboard = function(mol) {
             }
         }
     );
- 
+
 };mol.modules.map.query = function(mol) {
 
     mol.map.query = {};
@@ -5125,6 +5127,7 @@ mol.modules.map.metadata = function(mol) {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
+                this.cache_key = Math.random();
                 this.sql = {
                     layer: '' +
                         'SELECT ' +
@@ -5148,10 +5151,11 @@ mol.modules.map.metadata = function(mol) {
                         '   dm.seasonality_more as "Seasonality further info", ' +
                         '   dm.date_range as "Date", ' +
                         '   dm.date_more as "Date further info", ' +
-                        '   CASE WHEN sm.sc <> \'\' THEN CONCAT(sm.sc,\', [\', sm.scientificname, \']. In: \', dm.Recommended_citation) ELSE dm.Recommended_citation END as "Recommended Citation", ' +
+                        '   dm.Recommended_citation as "Recommended Citation" ' +
+                        //'   CASE WHEN sm.sc <> \'\' THEN CONCAT(sm.sc,\', [\', sm.scientificname, \']. In: \', dm.Recommended_citation) ELSE dm.Recommended_citation END as "Recommended Citation", ' +
                         '   dm.Contact as "Contact" ' +
                         'FROM dashboard_metadata dm ' +
-                        'LEFT JOIN (SELECT scientificname, array_to_string(array_sort(array_agg(bibliographiccitation)), \',\') as sc, provider FROM polygons group by scientificname, provider having provider=\'iucn\' AND scientificname = \'{3}\') sm ' +
+                       // 'LEFT JOIN (SELECT scientificname, array_to_string(array_sort(array_agg(bibliographiccitation)), \',\') as sc, provider FROM polygons group by scientificname, provider having provider=\'iucn\' AND scientificname = \'{3}\') sm ' +
                         'ON dm.provider = sm.provider ' +
                         'WHERE ' +
                         '   dm.provider = \'{0}\' ' +
@@ -5177,7 +5181,7 @@ mol.modules.map.metadata = function(mol) {
             getLayerMetadata: function (layer) {
                   var self = this,
                     sql = this.sql['layer'].format(layer.name, layer.type, layer.source),
-                    params = {sql:sql, key: 'lm529-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
+                    params = {sql:sql, key: 'lm-{0}-{1}-{2}-{3}'.format(layer.name, layer.type, layer.source, this.cache_key)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {layer:layer, response:response};
@@ -5209,7 +5213,7 @@ mol.modules.map.metadata = function(mol) {
                                  var self = this,
                     type = params.type,
                     sql = this.sql['types'].format(type),
-                    params = {sql:sql,key: 'tm514-{0}'.format(type)},
+                    params = {sql:sql,key: 'tm-{0}-{1}'.format(type, this.cache_key)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {type:type, response:response};
@@ -5241,7 +5245,7 @@ mol.modules.map.metadata = function(mol) {
                     _class = params._class,
                     name = params.name,
                     sql = this.sql['dashboard'].format(provider, type, _class, name),
-                    params = {sql:sql, key: 'dm0521-{0}-{1}-{2}-{3}'.format(provider, type, _class, name)},
+                    params = {sql:sql, key: 'dm0930-{0}-{1}-{2}-{3}'.format(provider, type, _class, name)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {provider:provider, type:type, _class:_class, response:response};
@@ -5919,25 +5923,29 @@ mol.modules.map.boot = function(mol) {
             this.proxy = proxy;
             this.bus = bus;
             this.IE8 = false;
-            this.sql = '' + //TODO replace with postgres function (issue #126)
-                'SELECT DISTINCT l.scientificname as name,'+
-                '       l.type as type,'+
-                '       t.title as type_title,'+
-                '       l.provider as source, '+
-                '       p.title as source_title,'+
-                '       n.class as _class, ' +
-                '       l.feature_count as feature_count,'+
-                '       n.common_names_eng as names,' +
-                '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent ' +
-                'FROM layer_metadata l ' +
-                'LEFT JOIN types t ON ' +
-                '       l.type = t.type ' +
-                'LEFT JOIN providers p ON ' +
-                '       l.provider = p.provider ' +
-                'LEFT JOIN taxonomy n ON ' +
-                '       l.scientificname = n.scientificname ' +
-                'WHERE ' +
-                "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}'";
+             this.sql = '' +
+                    'SELECT DISTINCT l.scientificname as name,'+
+                    '       l.type as type,'+
+                    '       t.title as type_title,'+
+                    '       CONCAT(l.provider,\'\') as source, '+
+                    '       CONCAT(p.title,\'\') as source_title,'+
+                    '       CONCAT(n.class,\'\') as _class, ' +
+                    '       l.feature_count as feature_count,'+
+                    '       CONCAT(n.common_names_eng,\'\') as names,' +
+                    '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent, ' +
+                    '       l.data_table as data_table, ' +
+                    '       d.style_table as style_table ' +
+                    'FROM layer_metadata_beta l ' +
+                    'LEFT JOIN data_registry d ON ' +
+                    '       l.data_table = d.table_name ' +
+                    'LEFT JOIN types t ON ' +
+                    '       l.type = t.type ' +
+                    'LEFT JOIN providers p ON ' +
+                    '       l.provider = p.provider ' +
+                    'LEFT JOIN taxonomy n ON ' +
+                    '       l.scientificname = n.scientificname ' +
+                    'WHERE ' +
+                    "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}'";
         },
         start: function() {
             this.loadTerm();
@@ -5957,7 +5965,7 @@ mol.modules.map.boot = function(mol) {
             } else {
                 // Otherwise, try and get a result using term
                 $.post(
-                'cache/get',
+                'mol.cartodb.com/api/v2/sql?callback=?',
                 {
                     key: 'boot-results-08102012210-{0}'.format(self.term), //number on the key is there to invalidate cache. Using date+time invalidated.
                     sql: this.sql.format(self.term)
@@ -5972,7 +5980,7 @@ mol.modules.map.boot = function(mol) {
                         self.loadLayers(self.getLayersWithIds(results.layers));
                     }
                 },
-                'json'
+                'jsonp'
                 );
             }
         },

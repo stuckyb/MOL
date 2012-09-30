@@ -9,16 +9,16 @@ mol.modules.map.dashboard = function(mol) {
                 this.bus = bus;
                 this.url = "http://mol.cartodb.com/api/v2/sql?callback=?&q={0}";
                 this.summary_sql = '' +
-                    'SELECT DISTINCT * ' + 
+                    'SELECT DISTINCT * ' +
                     'FROM get_dashboard_summary()';
                 this.dashboard_sql = '' +
-                    'SELECT DISTINCT * ' + 
+                    'SELECT DISTINCT * ' +
                     'FROM dash_cache ' +
                     'ORDER BY provider, classes;';
                 this.summary = null;
                 this.types = {};
                 this.sources = {};
-               
+
             },
             start: function() {
                 this.initDialog();
@@ -47,7 +47,7 @@ mol.modules.map.dashboard = function(mol) {
                         } else {
                             self.display.dialog(event.state);
                         }
-                        
+
                     }
                 );
 
@@ -69,11 +69,11 @@ mol.modules.map.dashboard = function(mol) {
                                     new mol.bus.Event(
                                         'metadata-toggle',
                                         {params:
-                                            {provider: provider, 
-                                             type: type, 
-                                             _class: _class, 
+                                            {provider: provider,
+                                             type: type,
+                                             _class: _class,
                                              text: dataset_title}}));
-                                        
+
                             }
                         );
 
@@ -105,7 +105,7 @@ mol.modules.map.dashboard = function(mol) {
              */
             initDialog: function() {
                 var self = this;
-                
+
                 $.getJSON(
                     this.url.format(this.dashboard_sql),
                     function(response) {
@@ -116,14 +116,14 @@ mol.modules.map.dashboard = function(mol) {
                             {
                                 autoOpen: false,
                                 width: 946,
-                                height: 588,
+                                height: 620,
                                 minHeight: 360,
                                 dialogClass: "mol-Dashboard",
-                                title: 'Dashboard - ' + 
+                                title: 'Dashboard - ' +
                                 'Statistics for Data Served by the Map of Life'
                             }
                         );
-                        
+
                         self.addEventHandlers();
                     }
                 );
@@ -150,30 +150,32 @@ mol.modules.map.dashboard = function(mol) {
                     '    <span class="providers"></span>' +
                     '    <span class="label">Datasets:</span>' +
                     '    <span class="datasets"></span>' +
-                    '    <span class="label">Species names:</span>' +
+                    '    <span class="label">Species names in source data:</span>' +
                     '    <span class="names"></span>' +
-                   //'    <span class="label">Valid taxons:</span>' +
-                   //'    <span class="taxon_matches"></span>' +
-                    '    <span class="label">Recognized synonyms:</span>' +
+                    '    <span class="label">Names in MOL taxonomy:</span>' +
+                    '    <span class="taxon_total"></span>' +
+                    '    <span class="label">Names matching MOL taxonomy:</span>' +
+                    '    <span class="all_matches"></span><br>' +
+                    '    <span class="label">Names matching MOL taxonomy directly:</span>' +
+                    '    <span class="direct_matches"></span>' +
+                    '    <span class="label">Names matching MOL taxonomy through a known synonym:</span>' +
                     '    <span class="syn_matches"></span>' +
-                   // '    <span class="label">Total possible taxons:</span>' +
-                   // '    <span class="taxon_total"></span>' +
                     '    <span class="label">Total records:</span>' +
-                    '    <span class="record_total"></span>' +
+                    '    <span class="records_total"></span>' +
                     '  </div>' +
                     //'  <div id="dashTypeFilter" class="typeFilters">' +
-                    //'    <div id="dashTitle" class="title">' + 
-                    //        'Datasets' + 
+                    //'    <div id="dashTitle" class="title">' +
+                    //        'Datasets' +
                     //'    </div><br/>' +
                     // taxa filter
-                    //'    <div class="class">' + 
-                    //'      <span class="filterHeader">Filter by Class</span>' + 
+                    //'    <div class="class">' +
+                    //'      <span class="filterHeader">Filter by Class</span>' +
                     //'    </div>' +
                     //'    <br/>' +
                     //'    <br/>' +
                     // type filter
-                    //'    <div class="type">' + 
-                    //'      <span class="filterHeader">Filter by Type</span>' + 
+                    //'    <div class="type">' +
+                    //'      <span class="filterHeader">Filter by Type</span>' +
                     //'    </div>' +
                     //'  </div>' +
                     '    <div class="mol-Dashboard-TableWindow">' +
@@ -183,7 +185,7 @@ mol.modules.map.dashboard = function(mol) {
                     '          <th><b>Dataset</b></th>' +
                     '          <th><b>Type</b></th>' +
                     '          <th><b>Source</b></th>' +
-                    '          <th><b>Class</b></th>' +
+                    '          <th><b>Taxon</b></th>' +
                     '          <th><b>Species names</b></th>' +
                     '          <th><b>Records</b></th>' +
                     '        </tr>' +
@@ -202,19 +204,19 @@ mol.modules.map.dashboard = function(mol) {
                         self.fillRow(row);
                     }
                 )
-                
+
                 $(this).find('#dashTitle')
                     .html(this.numsets + ' Datasets Shown');
-                
+
                 this.dashtable = $(this).find('.dashtable');
-                this.dashtable.tablesorter({ 
+                this.dashtable.tablesorter({
                                 sortList: [[1,1]],
                                 widthFixed: false
                                 });
                 this.datasets = $(this).find('.dataset');
-                
+
                 this.dashtable.find("tr.master")
-                    .click(function(){ 
+                    .click(function(){
                         $(this).parent().find('tr').each(
                             function(index, elem) {
                                 if($(elem).hasClass('selectedDashRow')) {
@@ -222,11 +224,11 @@ mol.modules.map.dashboard = function(mol) {
                                 }
                             }
                         )
-                        
+
                         $(this).addClass('selectedDashRow');
                     }
                 );
-                
+
                 $(this).find("input:checkbox").change(
                     function(event) {
                     }
@@ -235,23 +237,23 @@ mol.modules.map.dashboard = function(mol) {
                     self.fillSummary(summary);
                 }
             },
-            
+
             fillRow:  function(row) {
                 var self = this;
                 this.numsets++;
                 //this.fillFilter('type',row.type_id, row.type);
                 //this.fillFilter('provider',row.provider_id, row.provider);
-                
+
                 //_.each(
                 //    row.classes.split(','),
                 //    function(taxa) {
                 //        self.fillFilter('class', taxa, taxa);
                 //    }
                 //);
-                
+
                 $(this).find('.tablebody').append(
                     new mol.map.dashboard.DashboardRowDisplay(row));
-            },            
+            },
             fillSummary: function(summary) {
                 var self = this;
                 _.each(
@@ -284,14 +286,14 @@ mol.modules.map.dashboard = function(mol) {
                     '    </tr>';
                 this._super(
                     html.format(
-                        row.type_id, 
-                        row.type, 
-                        row.provider_id, 
-                        row.provider, 
-                        row.classes.split(',').join(' '), 
-                        row.classes.split(',').join(', '), 
+                        row.type_id,
+                        row.type,
+                        row.provider_id,
+                        row.provider,
+                        row.classes.split(',').join(' '),
+                        row.classes.split(',').join(', '),
                         row.species_count,
-                        row.feature_count, 
+                        row.feature_count,
                         row.dataset
                     )
                 );
@@ -303,10 +305,10 @@ mol.modules.map.dashboard = function(mol) {
             init: function(type, name, value) {
 
                 var html = '' +
-                    '<div class="chkAndLabel filter {1}">' + 
-                    '   <input type="checkbox" checked="checked" ' + 
-                            'name="{1}" class="filters {0} {1}"/>' + 
-                    '   <label for="{1}">{2}</label>' + 
+                    '<div class="chkAndLabel filter {1}">' +
+                    '   <input type="checkbox" checked="checked" ' +
+                            'name="{1}" class="filters {0} {1}"/>' +
+                    '   <label for="{1}">{2}</label>' +
                     '</div>';
 
                 this._super(html.format(type, name, value));
@@ -316,5 +318,5 @@ mol.modules.map.dashboard = function(mol) {
             }
         }
     );
- 
+
 };

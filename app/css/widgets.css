@@ -670,14 +670,14 @@ padding: 3px;
     padding-top: 5px;
     padding-bottom: 10px;
     white-space: nowrap;
-    font-size: 14px;
+    font-size: 12px;
 }
 .mol-Dashboard #dialog .summary span {
-    padding-right:10px;
+    padding-right:5px;
 }
 .mol-Dashboard #dialog .summary .label {
     font-weight:bold;
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .mol-Dashboard span.filterHeader {
@@ -712,7 +712,7 @@ padding: 3px;
 
 
 .mol-Dashboard #dialog div#dashTypeFilter #dashTitle {
-    font-weight: bold;    
+    font-weight: bold;
 }
 
 div.mol-Dashboard-TableWindow {
@@ -726,7 +726,7 @@ div.mol-Dashboard-TableWindow {
 
 .mol-Dashboard .ui-dialog-titlebar, .ui-widget-header, .dashboard {
     background: none;
-    background-image: -ms-linear-gradient(rgba(29,43,82,0.65) 89%, 
+    background-image: -ms-linear-gradient(rgba(29,43,82,0.65) 89%,
         rgba(29,43,82,0.75) 57%);
     background-image: -webkit-gradient(
         linear,

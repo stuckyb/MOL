@@ -7,6 +7,7 @@ mol.modules.map.metadata = function(mol) {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
+                this.cache_key = Math.random();
                 this.sql = {
                     layer: '' +
                         'SELECT ' +
@@ -30,11 +31,12 @@ mol.modules.map.metadata = function(mol) {
                         '   dm.seasonality_more as "Seasonality further info", ' +
                         '   dm.date_range as "Date", ' +
                         '   dm.date_more as "Date further info", ' +
-                        '   CASE WHEN sm.sc <> \'\' THEN CONCAT(sm.sc,\', [\', sm.scientificname, \']. In: \', dm.Recommended_citation) ELSE dm.Recommended_citation END as "Recommended Citation", ' +
+                        '   dm.Recommended_citation as "Recommended Citation" ' +
+                        //'   CASE WHEN sm.sc <> \'\' THEN CONCAT(sm.sc,\', [\', sm.scientificname, \']. In: \', dm.Recommended_citation) ELSE dm.Recommended_citation END as "Recommended Citation", ' +
                         '   dm.Contact as "Contact" ' +
                         'FROM dashboard_metadata dm ' +
-                        'LEFT JOIN (SELECT scientificname, array_to_string(array_sort(array_agg(bibliographiccitation)), \',\') as sc, provider FROM polygons group by scientificname, provider having provider=\'iucn\' AND scientificname = \'{3}\') sm ' +
-                        'ON dm.provider = sm.provider ' +
+                        //'LEFT JOIN (SELECT scientificname, array_to_string(array_sort(array_agg(bibliographiccitation)), \',\') as sc, provider FROM polygons group by scientificname, provider having provider=\'iucn\' AND scientificname = \'{3}\') sm ' +
+                        //'ON dm.provider = sm.provider ' +
                         'WHERE ' +
                         '   dm.provider = \'{0}\' ' +
                         '   AND dm.type =  \'{1}\' ' +
@@ -59,7 +61,7 @@ mol.modules.map.metadata = function(mol) {
             getLayerMetadata: function (layer) {
                   var self = this,
                     sql = this.sql['layer'].format(layer.name, layer.type, layer.source),
-                    params = {sql:sql, key: 'lm529-{0}-{1}-{2}'.format(layer.name, layer.type, layer.source)},
+                    params = {sql:sql, key: 'lm-{0}-{1}-{2}-{3}'.format(layer.name, layer.type, layer.source, this.cache_key)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {layer:layer, response:response};
@@ -91,7 +93,7 @@ mol.modules.map.metadata = function(mol) {
                                  var self = this,
                     type = params.type,
                     sql = this.sql['types'].format(type),
-                    params = {sql:sql,key: 'tm514-{0}'.format(type)},
+                    params = {sql:sql,key: 'tm-{0}-{1}'.format(type, this.cache_key)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {type:type, response:response};
@@ -123,7 +125,7 @@ mol.modules.map.metadata = function(mol) {
                     _class = params._class,
                     name = params.name,
                     sql = this.sql['dashboard'].format(provider, type, _class, name),
-                    params = {sql:sql, key: 'dm0521-{0}-{1}-{2}-{3}'.format(provider, type, _class, name)},
+                    params = {sql:sql, key: 'dm0930-{0}-{1}-{2}-{3}'.format(provider, type, _class, name)},
                     action = new mol.services.Action('cartodb-sql-query', params),
                     success = function(action, response) {
                         var results = {provider:provider, type:type, _class:_class, response:response};
