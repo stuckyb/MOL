@@ -444,11 +444,13 @@ var CartoDB = CartoDB || {};
                     content = $.parseJSON(
                         result.rows[0]['get_feature_metadata']
                     );
+                    positionateInfowindow(content,latlng);
+
                 }
             }
     );
 
-    function positionateInfowindow(variables,center) {
+    function positionateInfowindow (variables,center) {
       if (that.div_) {
         var div = that.div_;
         // Get latlng position
