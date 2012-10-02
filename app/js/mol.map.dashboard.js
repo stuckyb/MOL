@@ -258,10 +258,12 @@ mol.modules.map.dashboard = function(mol) {
                     }
                 );
 
+                /* was filter code
                 $(this).find("input:checkbox").change(
-                    function(event) {
-                    }
-                 );
+                    function(event) {}
+                );
+                */
+                 
                 if(summary!=null) {
                     self.fillSummary(summary);
                 }
@@ -270,6 +272,7 @@ mol.modules.map.dashboard = function(mol) {
             fillRow:  function(row) {
                 var self = this;
                 this.numsets++;
+                
                 //this.fillFilter('type',row.type_id, row.type);
                 //this.fillFilter('provider',row.provider_id, row.provider);
 
@@ -306,6 +309,7 @@ mol.modules.map.dashboard = function(mol) {
             }
         }
     );
+    
     mol.map.dashboard.DashboardRowDisplay = mol.mvp.View.extend(
         {
             init: function(row) {
@@ -318,6 +322,7 @@ mol.modules.map.dashboard = function(mol) {
                     '      <td class="spnames">{6}</td>' +
                     '      <td>{7}</td>' +
                     '    </tr>';
+                    
                 this._super(
                     html.format(
                         row.type_id,
@@ -334,6 +339,7 @@ mol.modules.map.dashboard = function(mol) {
             }
          }
     );
+    
     mol.map.dashboard.DashboardFilterDisplay = mol.mvp.View.extend(
         {
             init: function(type, name, value) {
