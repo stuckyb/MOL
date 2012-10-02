@@ -118,6 +118,7 @@ mol.modules.map.dashboard = function(mol) {
                                 width: 946,
                                 height: 620,
                                 minHeight: 360,
+                                stack: true,
                                 dialogClass: "mol-Dashboard",
                                 title: 'Dashboard - ' +
                                 'Statistics for Data Served by the Map of Life'
@@ -127,6 +128,7 @@ mol.modules.map.dashboard = function(mol) {
                         self.addEventHandlers();
                     }
                 );
+                
                 $.getJSON(
                     this.url.format(this.summary_sql),
                     function(response) {
@@ -146,38 +148,65 @@ mol.modules.map.dashboard = function(mol) {
                 var html = '' +
                     '<div id="dialog">' +
                     '  <div class="summary">' +
-                    '    <span class="label">Data sources:</span>' +
-                    '    <span class="providers"></span>' +
-                    '    <span class="label">Datasets:</span>' +
-                    '    <span class="datasets"></span>' +
-                    '    <span class="label">Species names in source data:</span>' +
-                    '    <span class="names"></span>' +
-                    '    <span class="label">Names in MOL taxonomy:</span>' +
-                    '    <span class="taxon_total"></span>' +
-                    '    <span class="label">Names matching MOL taxonomy:</span>' +
-                    '    <span class="all_matches"></span><br>' +
-                    '    <span class="label">Names matching MOL taxonomy directly:</span>' +
-                    '    <span class="direct_matches"></span>' +
-                    '    <span class="label">Names matching MOL taxonomy through a known synonym:</span>' +
-                    '    <span class="syn_matches"></span>' +
-                    '    <span class="label">Total records:</span>' +
-                    '    <span class="records_total"></span>' +
+                    '    <span class="label">' + 
+                            'Data sources:' + 
+                    '    </span>' +
+                    '    <span class="providers">' + 
+                    '    </span>' +
+                    '    <span class="label">' + 
+                            'Datasets:' + 
+                    '    </span>' +
+                    '    <span class="datasets">' + 
+                    '    </span>' +
+                    '    <span class="label">' + 
+                            'Species names in source data:' + 
+                    '    </span>' +
+                    '    <span class="names">' + 
+                    '    </span>' +
+                    '    <span class="label">' + 
+                            'Names in MOL taxonomy:' + 
+                    '    </span>' +
+                    '    <span class="taxon_total">' + 
+                    '    </span>' +
+                    '    <span class="label">' + 
+                            'Names matching MOL taxonomy:' + 
+                    '    </span>' +
+                    '    <span class="all_matches">' + 
+                    '    </span>' + 
+                    '    <br>' +
+                    '    <span class="label">' + 
+                            'Names matching MOL taxonomy directly:' + 
+                    '    </span>' +
+                    '    <span class="direct_matches">' + 
+                    '    </span>' +
+                    '    <span class="label">' + 
+                        'Names matching MOL taxonomy through a known synonym:' + 
+                    '    </span>' +
+                    '    <span class="syn_matches">' + 
+                    '    </span>' +
+                    '    <span class="label">' + 
+                            'Total records:' + 
+                    '    </span>' +
+                    '    <span class="records_total">' + 
+                    '    </span>' +
                     '  </div>' +
-                    //'  <div id="dashTypeFilter" class="typeFilters">' +
-                    //'    <div id="dashTitle" class="title">' +
-                    //        'Datasets' +
-                    //'    </div><br/>' +
-                    // taxa filter
-                    //'    <div class="class">' +
-                    //'      <span class="filterHeader">Filter by Class</span>' +
-                    //'    </div>' +
-                    //'    <br/>' +
-                    //'    <br/>' +
-                    // type filter
-                    //'    <div class="type">' +
-                    //'      <span class="filterHeader">Filter by Type</span>' +
-                    //'    </div>' +
-                    //'  </div>' +
+                    /*
+                    '  <div id="dashTypeFilter" class="typeFilters">' +
+                    '    <div id="dashTitle" class="title">' +
+                            'Datasets' +
+                    '    </div><br/>' +
+                    //taxa filter
+                    '    <div class="class">' +
+                    '      <span class="filterHeader">Filter by Class</span>' +
+                    '    </div>' +
+                    '    <br/>' +
+                    '    <br/>' +
+                    //type filter
+                    '    <div class="type">' +
+                    '      <span class="filterHeader">Filter by Type</span>' +
+                    '    </div>' +
+                    '  </div>' +
+                    */
                     '    <div class="mol-Dashboard-TableWindow">' +
                     '      <table class="dashtable">' +
                     '       <thead>' +
@@ -254,6 +283,7 @@ mol.modules.map.dashboard = function(mol) {
                 $(this).find('.tablebody').append(
                     new mol.map.dashboard.DashboardRowDisplay(row));
             },
+            
             fillSummary: function(summary) {
                 var self = this;
                 _.each(
@@ -263,11 +293,15 @@ mol.modules.map.dashboard = function(mol) {
                     }
                 )
             },
+            
             fillFilter: function(type, name, value) {
                 if($(this).find('.{0} .{1}'.format(type, name)).length==0) {
                     $(this).find('.typeFilters .{0}'.format(type)).append(
-                        new mol.map.dashboard.DashboardFilterDisplay(type, name, value)
-                    )
+                        new mol.map.dashboard.DashboardFilterDisplay(
+                            type, 
+                            name, 
+                            value)
+                    );
                 }
             }
         }
