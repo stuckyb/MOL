@@ -112,10 +112,11 @@ mol.modules.map.metadata = function(mol) {
                     this.proxy.execute(action, new mol.services.Callback(success, failure));
                 } else {
                     if(this.displays['type-metadata-{0}'.format(type)].dialog("isOpen")) {
-                        //this.displays['type-metadata-{0}'.format(type)].dialog("close");
+                        this.displays['type-metadata-{0}'.format(type)].dialog("moveToTop");
                     } else {
                         this.displays['type-metadata-{0}'.format(type)].dialog("open");
                     }
+                    
                 }
             },
             getDashboardMetadata: function (params) {
@@ -147,7 +148,7 @@ mol.modules.map.metadata = function(mol) {
                     this.proxy.execute(action, new mol.services.Callback(success, failure));
                 } else {
                     if(this.displays['dash-metadata-{0}-{1}-{2}-{3}'.format(provider, type, _class, name)].dialog("isOpen")) {
-                        //this.displays['dash-metadata-{0}-{1}-{2}'.format(provider, type, _class)].dialog("close");
+                        this.displays['dash-metadata-{0}-{1}-{2}-{3}'.format(provider, type, _class, name)].dialog("moveToTop");
                     } else {
                         this.displays['dash-metadata-{0}-{1}-{2}-{3}'.format(provider, type, _class, name)].dialog("open");
                     }
@@ -224,7 +225,7 @@ mol.modules.map.metadata = function(mol) {
                 this.dialog(
                     {
                         autoOpen: true,
-
+                        stack: true,
                         dialogClass: "mol-LayerMetadata"
                     }
                 );
