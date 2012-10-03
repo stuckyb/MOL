@@ -5155,8 +5155,8 @@ mol.modules.map.metadata = function(mol) {
                         //'   CASE WHEN sm.sc <> \'\' THEN CONCAT(sm.sc,\', [\', sm.scientificname, \']. In: \', dm.Recommended_citation) ELSE dm.Recommended_citation END as "Recommended Citation", ' +
                         '   dm.Contact as "Contact" ' +
                         'FROM dashboard_metadata dm ' +
-                       // 'LEFT JOIN (SELECT scientificname, array_to_string(array_sort(array_agg(bibliographiccitation)), \',\') as sc, provider FROM polygons group by scientificname, provider having provider=\'iucn\' AND scientificname = \'{3}\') sm ' +
-                        'ON dm.provider = sm.provider ' +
+                        //'LEFT JOIN (SELECT scientificname, array_to_string(array_sort(array_agg(bibliographiccitation)), \',\') as sc, provider FROM polygons group by scientificname, provider having provider=\'iucn\' AND scientificname = \'{3}\') sm ' +
+                        //'ON dm.provider = sm.provider ' +
                         'WHERE ' +
                         '   dm.provider = \'{0}\' ' +
                         '   AND dm.type =  \'{1}\' ' +

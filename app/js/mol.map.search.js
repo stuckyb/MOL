@@ -15,10 +15,13 @@ mol.modules.map.search = function(mol) {
                 this.bornOnDate = Math.random();
                 this.sql = '' +
                     'SELECT DISTINCT l.scientificname as name,'+
-                    '       l.type as type,'+
+                    //'       l.type as type,'+
+                    '       t.type as type,'+
                     '       t.title as type_title,'+
                     '       CONCAT(l.provider,\'\') as source, '+
                     '       CONCAT(p.title,\'\') as source_title,'+
+                    '       s.source_type as source_type, ' +
+                    '       s.title as source_type_title, ' +   
                     '       CONCAT(n.class,\'\') as _class, ' +
                     '       l.feature_count as feature_count,'+
                     '       CONCAT(n.common_names_eng,\'\') as names,' +
@@ -32,6 +35,8 @@ mol.modules.map.search = function(mol) {
                     '       l.type = t.type ' +
                     'LEFT JOIN providers p ON ' +
                     '       l.provider = p.provider ' +
+                    'LEFT JOIN source_types s ON ' +
+                    '       p.source_type = s.source_type ' +
                     'LEFT JOIN taxonomy n ON ' +
                     '       l.scientificname = n.scientificname ' +
                     'WHERE ' +
