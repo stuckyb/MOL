@@ -260,21 +260,34 @@ mol.modules.map.dashboard = function(mol) {
                 this.dashtable = $(this).find('.dashtable');
                 this.dashtable.tablesorter({
                                 sortList: [[1,1]],
-                                widthFixed: false
+                                widthFixed: true,
+                                theme: "blue",
+                                widgets: ["zebra","filter"],
+                                widgetOptions: {
+                                    zebra: ["even", "odd"]
+                                }
                                 });
                 this.datasets = $(this).find('.dataset');
 
                 this.dashtable.find("tr.master")
-                    .click(function(){
+                    .click(function() {
                         $(this).parent().find('tr').each(
                             function(index, elem) {
-                                if($(elem).hasClass('selectedDashRow')) {
-                                    $(elem).removeClass('selectedDashRow');
-                                }
+                                $(elem).find('td').each(
+                                    function(index, el) {
+                                        if($(el).hasClass('selectedDashRow')) {
+                                            $(el).removeClass('selectedDashRow');
+                                        }
+                                    }
+                                )
                             }
                         )
 
-                        $(this).addClass('selectedDashRow');
+                        $(this).find('td').each(
+                            function(index, elem) {
+                                $(elem).addClass('selectedDashRow');
+                            }
+                        )
                     }
                 );
                 
