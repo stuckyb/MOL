@@ -202,7 +202,9 @@ mol.modules.map.dashboard = function(mol) {
                     '      <span class="records_total">' + 
                     '      </span>' +
                     '    </div>' +
-                    /*
+                    
+                    
+                    /* list filtering on hold for now
                     '  <div id="dashTypeFilter" class="typeFilters">' +
                     '    <div id="dashTitle" class="title">' +
                             'Datasets' +
@@ -219,6 +221,9 @@ mol.modules.map.dashboard = function(mol) {
                     '    </div>' +
                     '  </div>' +
                     */
+                   
+                   
+                   
                     '    <div class="mol-Dashboard-TableWindow">' +
                     '      <table class="dashtable">' +
                     '       <thead>' +
@@ -248,7 +253,7 @@ mol.modules.map.dashboard = function(mol) {
                     }
                 )
 
-                //filtering
+                //list filtering on hold for now
                 //$(this).find('#dashTitle')
                     //.html(this.numsets + ' Datasets Shown');
 
@@ -273,7 +278,7 @@ mol.modules.map.dashboard = function(mol) {
                     }
                 );
                 
-                /* was filter code
+                /* list filtering on hold for now
                 $(this).find("input:checkbox").change(
                     function(event) {}
                 );
@@ -286,17 +291,22 @@ mol.modules.map.dashboard = function(mol) {
 
             fillRow:  function(row) {
                 var self = this;
-                //this.numsets++;
                 
-                //this.fillFilter('type',row.type_id, row.type);
-                //this.fillFilter('provider',row.provider_id, row.provider);
+                /* list filtering on hold for now
+                
+                this.numsets++;
+                
+                this.fillFilter('type',row.type_id, row.type);
+                this.fillFilter('provider',row.provider_id, row.provider);
 
-                //_.each(
-                //    row.classes.split(','),
-                //    function(taxa) {
-                //        self.fillFilter('class', taxa, taxa);
-                //    }
-                //);
+                _.each(
+                    row.classes.split(','),
+                    function(taxa) {
+                        self.fillFilter('class', taxa, taxa);
+                    }
+                );
+                
+                */
 
                 $(this).find('.tablebody').append(
                     new mol.map.dashboard.DashboardRowDisplay(row));
