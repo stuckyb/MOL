@@ -474,6 +474,11 @@ div#content .wrapper #blog a{
 }
 
 /* The "all entries" link at the bottom. */
+div#content .wrapper .all_entries {
+    padding: 5px;
+    padding-top: 10px;
+}
+
 div#content .wrapper .all_entries a { 
     color: #b8fd85;
 }
