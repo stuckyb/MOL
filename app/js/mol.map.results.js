@@ -124,7 +124,7 @@ mol.modules.map.results = function(mol) {
                         var response= event.response;
                         self.bus.fireEvent(new mol.bus.Event('close-autocomplete'));
                         self.results = response.rows;
-                        self.profile = new mol.map.results.SearchProfile(self.results);
+
                         if (self.getLayersWithIds(self.results).length > 0) {
                             self.showFilters(self.results);
                             self.showLayers(self.results);
@@ -218,21 +218,29 @@ mol.modules.map.results = function(mol) {
 
             showFilters: function(results) {
                 var display = this.display,
+                //TODO: configure filters in the DB
                 filters = { 
-                    'Names': [],
-                    'Sources': [],
-                    'Types': []
+                    'name': { title: 'Names', hasIcon: false, title_field : 'name', values: {}},
+                    'source_type':{ title: 'Source Type', hasIcon: true, title_field : 'source_type_title', values: {}},
+                    'type': { title: 'Type',hasIcon: true, title_field : 'source_type_title',  values: {}}
                 },
                 self = this;
                 
+                //parse result to fill in the filter values
                 _.each(
-                    results,
-                    function(row) {                      
-                        filters['Names'][row.name.replace(/ /g, '_')] =  row.name;
-                        filters['Sources'][row.source_type] = 
-                            row.source_type_title;
-                        filters['Types'][row.type] = row.type_title;
-                    }  
+                    _.keys(filters),
+                    //each filter runs on a layer property
+                    function(filter) {
+                        _.each(
+                            results,
+                            //for each property, set a filter with a title
+                            function(row) {                      
+                                filters[filter]
+                                    .values[row[filter].replace(/ /g, '_')] 
+                                    =  row[filters[filter].title_field];
+                            }
+                        );
+                    }     
                 );
 
                 display.clearFilters();
@@ -240,15 +248,15 @@ mol.modules.map.results = function(mol) {
                 // Set options in display.
                 _.each(
                     _.keys(filters),
-                    function(type) {
+                    function(filter) {
                         _.each(
-                            display.setOptions(type,filters[type], false),
+                            display.setOptions(filters[filter].title, filter, filters[filter].values, filters[filter].hasIcon),
                             function (option) {
                                 if(option.click) {
                                     option.click(
                                         self.optionClickCallback(
                                             option, 
-                                            type
+                                            filter
                                         )
                                     );
                                 }
@@ -285,15 +293,7 @@ mol.modules.map.results = function(mol) {
              *
              */
             updateDisplay: function() {
-                var name = this.display.getOptions('Names', true)[0].attr('id'),
-                source = this.display.getOptions('Sources', true)[0].attr('id'),
-                type = this.display.getOptions('Types', true)[0].attr('id'),
-                layers = this.profile.getNewLayers(
-                    name !== 'All' ? name : null,
-                    source !== 'All' ? source : null,
-                    type !== 'All'? type : null);
-
-                this.showLayers(layers);
+               alert();
             }
         }
     );
@@ -410,13 +410,13 @@ mol.modules.map.results = function(mol) {
              * Sets the options for a filter and returns the options as an array
              * of JQuery objects.
              */
-            setOptions: function(filterName, optionNames, hasIcon) {
+            setOptions: function(filterName, filterType, optionNames, hasIcon) {
                 var self = this,
                 filter = new mol.map.results.FilterDisplay(filterName),
                 options = _.map(
                     _.keys(optionNames),
                     function(name) {
-                        var option = new mol.map.results.OptionDisplay(name, optionNames[name], hasIcon);
+                        var option = new mol.map.results.OptionDisplay(name, filterType, optionNames[name], hasIcon);
                         filter.options.append(option);
                         return option;
                     }
@@ -511,7 +511,7 @@ mol.modules.map.results = function(mol) {
                 this._super(html.format(name));
                 this.name = $(this).find('.filterName');
                 this.options = $(this).find('.options');
-                this.allOption = new mol.map.results.OptionDisplay('All','All', false);
+                this.allOption = new mol.map.results.OptionDisplay('','', 'All', false);
                 this.allOption.addClass('selected');
                 this.options.append(this.allOption);
             }
@@ -520,9 +520,9 @@ mol.modules.map.results = function(mol) {
 
 
     mol.map.results.OptionDisplay = mol.mvp.View.extend({
-        init: function(name, value, hasIcon) {
+        init: function(name, type, value, hasIcon) {
             var base_html = '' +
-                '<div id="{0}" class="option"></div>',
+                '<div class="option"></div>',
                 button_html = '' +
                 '<button>' +
                 '   <img type="source_type" src="/static/maps/search/{0}.png">'+
@@ -531,7 +531,8 @@ mol.modules.map.results = function(mol) {
                 '   <span class="option_text">{0}</span>';
                 
             if(name != undefined && value != undefined) {    
-                this._super(base_html.format(name, value));
+                this._super(base_html);
+                this.data[type]=value; 
                 if(hasIcon) {
                     this.append($(button_html.format(name)));
                 }
@@ -540,223 +541,4 @@ mol.modules.map.results = function(mol) {
             
         }
     });
-
-
-    /**
-     * This class supports dynamic search result filtering. You give it a name,
-     * source, type, and search profile, and you get back all matching results
-     * that satisfy those constraints. This is the thing that allows you to
-     * click on a name, source, or type and only see those results.
-     *
-     * TODO: This could use a refactor. Lot's of duplicate code. <<< +1 -- j
-     */
-    mol.map.results.SearchProfile = Class.extend(
-        {
-            init: function(response) {
-                this.response = response;
-            },
-
-            /**
-             * Gets layer namesthat satisfy a name, source, and type combined
-             * constraint.
-             *
-             * @param name the layer name
-             * @param source the layer source
-             * @param type the layer type
-             * @param profile the profile to test
-             *
-             */
-            getNewLayers: function(name, source, type, englishname, profile) {
-                var layers = this.getLayers(name, source, type, englishname, profile);
-
-                return _.map(
-                    layers,
-                    function(layer) {
-                        return this.getLayer(parseInt(layer));
-                    },
-                    this
-                );
-            },
-
-            getLayers: function(name, source, type, englishname, profile) {
-                var response = this.response,
-                
-                if (!name && !type && !source && !englishname){
-                    var keys = new Array();
-                    for (i in response.layers) {
-                        keys.push(i);
-                    };
-                    return keys;
-                }
-
-                switch (currentProfile) {
-
-                case 'nameProfile':
-                    if (!name) {
-                        return this.getLayers(name, source, type, englishname, 'sourceProfile');
-                    }
-
-                    if (nameProfile) {
-                        if (!source && !type) {
-                            return nameProfile.layers;
-                        }
-                        if (source && type) {
-                            if (this.exists(source, nameProfile.sources) &&
-                                this.exists(type, nameProfile.types)) {
-                                return _.intersect(
-                                    nameProfile.layers,
-                                    this.getLayers(name, source, type, englishname, 'sourceProfile'));
-                            }
-                        }
-                        if (source && !type) {
-                            if (this.exists(source, nameProfile.sources)) {
-                                return _.intersect(
-                                    nameProfile.layers,
-                                    this.getLayers(name, source, type, englishname, 'sourceProfile'));
-                            }
-                        }
-                        if (!source && type) {
-                            if (this.exists(type, nameProfile.types)) {
-                                return _.intersect(
-                                    nameProfile.layers,
-                                    this.getLayers(name, source, type, englishname, 'typeProfile'));
-                            }
-                        }
-                    }
-                    return [];
-
-                case 'sourceProfile':
-                    if (!source) {
-                        return this.getLayers(name, source, type, englishname,'typeProfile');
-                    }
-
-                    if (sourceProfile) {
-                        if (!name && !type) {
-                            return sourceProfile.layers;
-                        }
-                        if (name && type) {
-                            if (this.exists(name, sourceProfile.names) &&
-                                this.exists(type, sourceProfile.types)) {
-                                return _.intersect(
-                                    sourceProfile.layers,
-                                    this.getLayers(name, source, type, englishname,'typeProfile'));
-                            }
-                        }
-                        if (name && !type) {
-                            if (this.exists(name, sourceProfile.names)) {
-                                return sourceProfile.layers;
-                            }
-                        }
-                        if (!name && type) {
-                            if (this.exists(type, sourceProfile.types)) {
-                                return _.intersect(
-                                    sourceProfile.layers,
-                                    this.getLayers(name, source, type, englishname, 'typeProfile'));
-                            }
-                        }
-                    }
-                    return [];
-                /*TODO englishname profile */
-
-                case 'typeProfile':
-                    if (!type) {
-                        return [];
-                    }
-
-                    if (typeProfile) {
-                        if (!name && !source) {
-                            return typeProfile.layers;
-                        }
-                        if (name && source) {
-                            if ( this.exists(name, typeProfile.names) &&
-                                 this.exists(source, typeProfile.sources)) {
-                                return typeProfile.layers;
-                            }
-                        }
-                        if (name && !source) {
-                            if (this.exists(name, typeProfile.names)) {
-                                return typeProfile.layers;
-                            }
-                        }
-                        if (!name && source) {
-                            if (this.exists(source, typeProfile.sources)) {
-                                return typeProfile.layers;
-                            }
-                        }
-                    }
-                    return [];
-
-                }
-                return [];
-            },
-
-            getLayer: function(layer) {
-                return this.response.layers[layer];
-            },
-
-            getKeys: function(id) {
-                var res;
-                switch(id.toLowerCase()){
-                case "types":
-                    res = this.response.types;
-                    break;
-                case "sources":
-                    res = this.response.sources;
-                    break;
-                case "names":
-                    res = this.response.names;
-                    break;
-                case "englishnames":
-                    res = this.response.englishnames;
-                    break;
-                }
-                return _.keys(res);
-            },
-
-            getTypeKeys: function() {
-                var x = this.typeKeys,
-                types = this.response.types;
-                return x ? x : (this.typeKeys = _.keys(types));
-            },
-
-            getType: function(type) {
-                return this.response.types[type];
-            },
-
-            getSourceKeys: function() {
-                var x = this.sourceKeys,
-                sources = this.response.sources;
-                return x ? x : (this.sourceKeys = _.keys(sources));
-            },
-
-            getSource: function(source) {
-                return this.response.sources[source];
-            },
-
-            getNameKeys: function() {
-                var x = this.nameKeys,
-                names = this.response.names;
-                return x ? x : (this.nameKeys = _.keys(names));
-            },
-
-            getName: function(name) {
-                return this.response.names[name];
-            },
-            getEnglishNameKeys: function() {
-                var x = this.englishnameKeys,
-                englishnames = this.response.englishnames;
-                return x ? x : (this.englishnameKeys = _.keys(englishnames));
-            },
-
-            getEnglishName: function(englishname) {
-                return this.response.englishnames[englishname];
-            },
-            /**
-             * Returns true if the name exists in the array, false otherwise.
-             */
-            exists: function(name, array) {
-                return _.indexOf(array, name) != -1;
-            }
-        }
-    );
-};
+}
