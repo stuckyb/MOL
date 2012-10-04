@@ -781,6 +781,7 @@ div.mol-Dashboard-TableWindow {
     border-radius: 3px;
     pointer-events: auto;
 }
+
 .mol-LayerControl-Results .filters .filter .options{
     max-height: 125px;
     overflow-y: auto;
@@ -801,6 +802,17 @@ div.mol-Dashboard-TableWindow {
     cursor: pointer;
 }
 
+.mol-LayerControl-Results .filters .filter .all {
+    text-align: right; 
+    margin-right: 10px;
+}
+
+.mol-LayerControl-Results .filters .filter .option img{
+    width: 12px;
+    height: 12px; 
+    margin: 0.5px;
+    
+}
 .mol-LayerControl-Results .filters .filter .option.selected {
     cursor: pointer;
 }

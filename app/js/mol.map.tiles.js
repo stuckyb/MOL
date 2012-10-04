@@ -249,31 +249,13 @@ mol.modules.map.tiles = function(mol) {
                 var name = layer.name,
                     type = layer.type,
                     self = this,
-                    maptype = null;
-
-
-                switch (type) {
-                    case 'points':
-                            maptype = new mol.map.tiles.CartoDbTile(
+                    maptype = new mol.map.tiles.CartoDbTile(
                                 layer, 
-                                'points_style', 
+                                layer.style_table, 
                                 this.map
                             );
-                            break;
-                        case 'polygon':
-                        case 'range':
-                        case 'ecoregion':
-                        case 'protectedarea':
-                        case 'geochecklist':
-                        case 'taxogeochecklist':
-                        case 'taxochecklist':
-                            maptype = new mol.map.tiles.CartoDbTile(
-                                layer, 
-                                'polygon_style', 
-                                this.map
-                            );
-                            break;
-                }
+                           
+                
                 maptype.layer.params.layer.onbeforeload = function (){
                     self.bus.fireEvent(
                         new mol.bus.Event(
@@ -349,7 +331,7 @@ mol.modules.map.tiles = function(mol) {
                         layer.source, 
                         layer.type, 
                         layer.name, 
-                        layer.data_table
+                        layer.dataset_id
                     ),
                     hostname = 'mol.cartodb.com',//window.location.hostname,
                     style_table_name = layer.style_table;

@@ -26,11 +26,11 @@ mol.modules.map.search = function(mol) {
                     '       l.feature_count as feature_count,'+
                     '       CONCAT(n.common_names_eng,\'\') as names,' +
                     '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent, ' +
-                    '       l.data_table as data_table, ' +
+                    '       l.dataset_id as dataset_id, ' +
                     '       d.style_table as style_table ' +
-                    'FROM layer_metadata_beta l ' +
+                    'FROM layer_metadata_beta_12_10 l ' +
                     'LEFT JOIN data_registry d ON ' +
-                    '       l.data_table = d.table_name ' +
+                    '       l.dataset_id = d.dataset_id ' +
                     'LEFT JOIN types t ON ' +
                     '       l.type = t.type ' +
                     'LEFT JOIN providers p ON ' +
