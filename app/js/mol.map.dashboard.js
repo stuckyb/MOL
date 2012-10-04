@@ -125,7 +125,12 @@ mol.modules.map.dashboard = function(mol) {
                                 'Statistics for Data Served by the Map of Life',
                                 open: function(event, ui) {
                                      $(".mol-Dashboard-TableWindow")
-                                        .height($(".mol-Dashboard").height()-95);
+                                        .height(
+                                            $(".mol-Dashboard").height()-95);
+                                     
+                                     //need this to force zebra on the table   
+                                     self.display.dashtable
+                                        .trigger("update", true);
                                 }
                             }
                         );
@@ -262,10 +267,7 @@ mol.modules.map.dashboard = function(mol) {
                                 sortList: [[1,1]],
                                 widthFixed: true,
                                 theme: "blue",
-                                widgets: ["zebra","filter"],
-                                widgetOptions: {
-                                    zebra: ["even", "odd"]
-                                }
+                                widgets: ["filter","zebra"]
                                 });
                 this.datasets = $(this).find('.dataset');
 
@@ -358,7 +360,7 @@ mol.modules.map.dashboard = function(mol) {
                     '      <td class="provider {2}">{3}</td>' +
                     '      <td class="class {4}">{5}</td>' +
                     '      <td class="spnames">{6}</td>' +
-                    '      <td>{7}</td>' +
+                    '      <td class="records">{7}</td>' +
                     '      <td class="pctmatch">{9}</td>' +
                     '    </tr>';    
                     
@@ -370,12 +372,25 @@ mol.modules.map.dashboard = function(mol) {
                         row.provider,
                         row.classes.split(',').join(' '),
                         row.classes.split(',').join(', '),
-                        row.species_count,
-                        row.feature_count,
+                        this.format(row.species_count),
+                        this.format(row.feature_count),
                         row.dataset,
                         row.pct_in_tax
                     )
                 );
+            },
+            
+            format: function(number, comma, period) {
+                comma = comma || ',';
+                period = period || '.';
+                var split = number.toString().split('.');
+                var numeric = split[0];
+                var decimal = split.length > 1 ? period + split[1] : '';
+                var reg = /(\d+)(\d{3})/;
+                while (reg.test(numeric)) {
+                  numeric = numeric.replace(reg, '$1' + comma + '$2');
+                }
+                return numeric + decimal;
             }
          }
     );

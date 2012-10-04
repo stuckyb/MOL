@@ -1,21 +1,102 @@
 /*
  * species list table
  */
+   
+table.listtable {
+    margin: 0;
+    padding: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
 
-table.tablesorter div.arrow {
+table.listable * {
+    font: 11px Arial, Helvetica, sans-serif;
+    vertical-align: top;
+    text-align: left;
+}
+
+table.listtable div.arrow {
     background: transparent url(../static/arrows.png) no-repeat scroll 0px -16px;
     width: 16px;
     height: 16px;
     display: block;
     cursor: pointer;
 }
-table.tablesorter div.up {
+table.listtable div.up {
     background-position: 0px 0px;
 }
-     
-/* 
- * define table skin 
+
+table.listtable thead, table.listtable .collapsible {
+    background-color: #e6edc1;
+}
+
+table.listtable th {
+    color: #565770;
+    padding: 4px 16px 4px 6px;
+    cursor: pointer;
+    font-weight: bold;
+} 
+
+table.listtable td {
+    color: #565770;
+    padding: 4px 6px;
+}
+
+table.listtable th.tablesorter-headerSortUp {
+    background: #e6edc1 url(../static/tablesorter_bkgrd.png) no-repeat 100% -80px;
+}
+
+table.listtable th.tablesorter-headerSortUp span {
+    background: #e6edc1 url(../static/tablesorter_bkgrd.png) no-repeat 0 -80px;
+}
+
+table.listtable th.tablesorter-headerSortDown {
+    background: #e6edc1 url(../static/tablesorter_bkgrd.png) no-repeat 100% 2px;
+}
+
+table.listtable th.tablesorter-headerSortDown span {
+    background: #e6edc1 url(../static/tablesorter_bkgrd.png) no-repeat 0 2px;
+}
+
+table.listtable th span {
+    padding: 4px 0 4px 6px;
+    font-weight: bold;
+}
+
+table.listtable tr.master, table.dashtable tr.master{
+    background-color: #dadada;
+}
+
+table.listtable td p {
+    margin: 4px 0 4px 0;
+}
+
+table.listtable td p:nth-child(2) {
+    margin: 0 0 4px 0;
+    
+}
+
+table.listtable td p:last-child {
+    margin: 4px 0 0 0;
+}
+
+table.listtable td div strong {
+    font-weight: bold;
+}
+
+table.listtable td div em {
+    font-style: italic;
+}
+
+table.grid .collapsible {
+    padding: 0 0 3px 0;
+}
+
+/*
+ * Dashboard Table
  */
+
 
 table.tablesorter.dashtable {
     margin:0;
@@ -26,88 +107,6 @@ table.tablesorter.dashtable {
 table.dashtable tr.master td.selectedDashRow {
     background-color: #CBD5E8 !important;
 }
-
-/*
-table.tablesorter {
-    margin: 0;
-    padding: 0;
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
-}
-
-table.tablesorter * {
-    font: 11px Arial, Helvetica, sans-serif;
-    vertical-align: top;
-    text-align: left;
-}
-
-table.tablesorter thead, table.tablersorter .collapsible {
-    background-color: #e6edc1;
-}
-
-table.tablesorter th {
-    color: #565770;
-    padding: 4px 16px 4px 6px;
-    cursor: pointer;
-    font-weight: bold;
-} 
-
-table.tablesorter td {
-    color: #565770;
-    padding: 4px 6px;
-}
-
-table.tablesorter th.headerSortUp {
-    background: #e6edc1 url(../static/tablesorter_bkgrd.png) no-repeat 100% -80px;
-}
-
-table.tablesorter th.headerSortUp span {
-    background: #e6edc1 url(../static/tablesorter_bkgrd.png) no-repeat 0 -80px;
-}
-
-table.tablesorter th.headerSortDown {
-    background: #e6edc1 url(../static/tablesorter_bkgrd.png) no-repeat 100% 2px;
-}
-
-table.tablesorter th.headerSortDown span {
-    background: #e6edc1 url(../static/tablesorter_bkgrd.png) no-repeat 0 2px;
-}
-
-table.tablesorter th span {
-    padding: 4px 0 4px 6px;
-    font-weight: bold;
-}
-
-table.tablesorter tr.master, table.dashtable tr.master{
-    background-color: #dadada;
-}
-
-table.tablesorter td p {
-    margin: 4px 0 4px 0;
-}
-
-table.tablesorter td p:nth-child(2) {
-    margin: 0 0 4px 0;
-    
-}
-
-table.tablesorter td p:last-child {
-    margin: 4px 0 0 0;
-}
-
-table.tablesorter td div strong {
-    font-weight: bold;
-}
-
-table.tablesorter td div em {
-    font-style: italic;
-}
-
-table.grid .collapsible {
-    padding: 0 0 3px 0;
-}
-*/
 
 table.dashtable td {
     height: 24px;
@@ -123,23 +122,36 @@ table.dashtable td.provider:hover,  table.dashtable td.type:hover {
     text-decoration: underline;
 }
 
+table.dashtable td.table {
+    width:21%;
+}
+
 table.dashtable td.type {
-    width: 105px;
+    width:15%;
 }
 
 table.dashtable td.provider {
-    width: 115px;
+    width:15%;
+}
+
+table.dashtable td.class {
+    width:15%;
 }
 
 table.dashtable td.spnames {
-    width: 85px;
+    width:13%;
+    text-align:right;
+}
+
+table.dashtable td.records {
+    width:13%;
+    text-align:right;
 }
 
 table.dashtable td.pctmatch {
-    width: 52px;
+    width:8%;
+    text-align:right;
 }
-
-
 
 /*
  * image gallery
