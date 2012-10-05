@@ -250,13 +250,13 @@ mol.modules.map.results = function(mol) {
             //TODO: configure filters in the DB
             filters = { 
                 'name': {
-                    title: 'Names', 
+                    title: 'Name', 
                     hasIcon: false, 
                     title_field : 'name', 
                     values: {}
                 },
                 'source_type':{ 
-                    title: 'Source Type', 
+                    title: 'Source', 
                     hasIcon: true, 
                     title_field : 'source_type_title', 
                     values: {}
@@ -278,10 +278,12 @@ mol.modules.map.results = function(mol) {
                     _.each(
                         results,
                         //for each property, set a filter with a title
-                        function(row) {                      
-                            filters[filter]
-                                .values[row[filter].replace(/ /g, '_')] 
-                                =  row[filters[filter].title_field];
+                        function(row) {    
+                            if(row[filter]) {                 
+                                filters[filter]
+                                    .values[row[filter].replace(/ /g, '_')] 
+                                    =  row[filters[filter].title_field];
+                            }
                         }
                     );
                 }     
@@ -332,18 +334,9 @@ mol.modules.map.results = function(mol) {
                 self.updateResults();
             };
         },
-
-        /**
-         * When a filter is clicked, the search display results are
-         * dynamically updated to match name, source, and type. This
-         * is the function that makes that happen. It calculates the
-         * new layers (results) that are viewable and calls the
-         * handleResults() function.
-         *
-         */
-        updateResults: function() {
-            var filterGroups = [], filteredResults; 
-            
+        
+        getSelectedFilters: function() {
+            var filters = [];
             _.each(
                 $(this.display.filters).find('.filter'),
                 function(group) {
@@ -351,11 +344,11 @@ mol.modules.map.results = function(mol) {
                     _.each(
                         $(group).find('.selected'),
                         function(filter) {
-                            var filters = [];
+                            //var filters = [];
                             _.each(
                                 _.keys($(filter).data()),
                                 function(key) {
-                                    filters.push(
+                                    filterGroup.push(
                                         '.{0}-{1}'.format(
                                             key, 
                                             $(filter).data(key)
@@ -363,35 +356,33 @@ mol.modules.map.results = function(mol) {
                                     );
                                 }
                             );
-                            if(filters.length>0) {
-                                filterGroup.push(filters);
-                            }
+                            //if(filters.length>0) {
+                             //   filterGroup.push(filters);
+                            //}
                         }
                     );
                     if(filterGroup.length>0) {
-                        filterGroups.push(filterGroup.join(', '));
+                        filters.push(filterGroup.join(', '));
                     }
                 }
             );
+            return filters;
+        },
 
-            //build a list of results
-            if(filterGroups.length > 0) {
-                filteredResults =  $(this.display).find('.resultContainer');
-                //filteredResults.hide();
-                _.each(
-                    filterGroups,
-                    function (filterGroup) {
-                        filteredResults=filteredResults.filter(filterGroup);
-                    }
-                )
-                $(this.display).find('.resultContainer').hide();
-                filteredResults.show();               
-                } else {
-                    $(this.display).find('.resultContainer').show();
+        updateResults: function() {
+            var filters = this.getSelectedFilters(),
+                results = $(this.display).find('.resultContainer'); 
+            
+            if(filters.length > 0) {
+                //hide it all
+                results.hide()
+                //show what matches
+                results.filter(filters.join(' ')).show();
+             } else {
+                results.show();
             }
             
         },
-            
         updateFilters: function(option, filterName) {
             if(option.hasClass('selected')&&$.trim(option.text())!='All') {
                 option.removeClass('selected');
@@ -604,16 +595,17 @@ mol.modules.map.results = function(mol) {
                     '           <input type="checkbox" class="checkbox" />' +
                     '           <span class="customCheck"></span>' +
                     '       </label> ' +
-                '       </ul>' +
+                    '       </ul>' +
                     '   <div class="break"></div>' +
                     '</div>';
 
+                
                 this._super(
                     html.format(
                         layer.id,
                         layer.name.replace(/ /g, '_'),
                         layer.name, 
-                        layer.source, 
+                        layer.source_type, 
                         layer.type, 
                         layer.names, 
                         layer.feature_count, 
