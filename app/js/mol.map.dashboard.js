@@ -380,16 +380,20 @@ mol.modules.map.dashboard = function(mol) {
                 );
             },
             
-            format: function(number, comma, period) {
-                comma = comma || ',';
-                period = period || '.';
+            format: function(number, comma, period) {                
+                var reg = /(\d+)(\d{3})/;
                 var split = number.toString().split('.');
                 var numeric = split[0];
-                var decimal = split.length > 1 ? period + split[1] : '';
-                var reg = /(\d+)(\d{3})/;
+                var decimal;
+                
+                comma = comma || ',';
+                period = period || '.';
+                decimal = split.length > 1 ? period + split[1] : '';
+                
                 while (reg.test(numeric)) {
                   numeric = numeric.replace(reg, '$1' + comma + '$2');
                 }
+                
                 return numeric + decimal;
             }
          }
