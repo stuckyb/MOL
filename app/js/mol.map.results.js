@@ -223,7 +223,8 @@ mol.modules.map.results = function(mol) {
             this.display.toggle(true);
         },
         /*
-         * Displays a message when no results are returned from the search query.
+         * Displays a message when no results are returned 
+         * from the search query.
          */
         showNoResults: function() {
             this.display.clearFilters();
@@ -344,7 +345,6 @@ mol.modules.map.results = function(mol) {
                     _.each(
                         $(group).find('.selected'),
                         function(filter) {
-                            //var filters = [];
                             _.each(
                                 _.keys($(filter).data()),
                                 function(key) {
@@ -356,9 +356,6 @@ mol.modules.map.results = function(mol) {
                                     );
                                 }
                             );
-                            //if(filters.length>0) {
-                             //   filterGroup.push(filters);
-                            //}
                         }
                     );
                     if(filterGroup.length>0) {
@@ -386,12 +383,25 @@ mol.modules.map.results = function(mol) {
         updateFilters: function(option, filterName) {
             if(option.hasClass('selected')&&$.trim(option.text())!='All') {
                 option.removeClass('selected');
+                if(this.display
+                       .find('.filter .options .{0}'.format(filterName))
+                       .not('.all')
+                       .filter('.selected')
+                       .length == 0
+                  ) {
+                        this.display
+                            .find('.filter .options .{0}'.format(filterName))
+                            .filter('.all')
+                            .addClass('selected');
+                }
             } else {
                 if($.trim(option.text())=='All') {
-                    $(this.display.filters).find('.{0}'.format(filterName))
+                    $(this.display.filters)
+                        .find('.{0}'.format(filterName))
                         .removeClass('selected'); 
                 } else {
-                    $(this.display.filters).find('.{0} .all'.format(filterName))
+                    $(this.display.filters)
+                        .find('.{0} .all'.format(filterName))
                         .removeClass('selected');
                 }
                 option.addClass('selected');
@@ -566,8 +576,9 @@ mol.modules.map.results = function(mol) {
         {
             init: function(layer) {
                 var self=this, html = '' +
-                     //add name source and type as classes for filtering
-                    '<div class="resultContainer name-{1} source_type-{3} type-{4}">' +
+                     //add filtertype-value as a class for filtering
+                    '<div class="' +
+                    '   resultContainer name-{1} source_type-{3} type-{4}">' +
                     '   <ul id="{0}" class="result">' +
                     '       <div class="resultSource">' +
                     '          <button>' +
@@ -641,7 +652,7 @@ mol.modules.map.results = function(mol) {
                 this.options = $(this).find('.options');
                 this.allOption = new mol.map.results.OptionDisplay(
                     'all',
-                    'all',
+                     type,
                     'All', 
                     false
                 );
@@ -667,6 +678,8 @@ mol.modules.map.results = function(mol) {
                 this._super(base_html.format(type));
                 if(name != 'all') {
                     this.data(type, name); 
+                } else {
+                    this.addClass('all')
                 }
                 if(hasIcon) {
                     this.append($(button_html.format(name)));
