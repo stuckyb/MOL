@@ -72,21 +72,33 @@ mol.modules.map.layers = function(mol) {
                         _.each(
                             event.layers,
                             function(layer) {
-                                var extent = $.parseJSON(layer.extent);
-                                var layer_bounds = new google.maps.LatLngBounds(
-                                        new google.maps.LatLng(extent.sw.lat,extent.sw.lng),
-                                        new google.maps.LatLng(extent.ne.lat,extent.ne.lng)
-                                     );
-                                if(!bounds) {
-                                    bounds = layer_bounds;
-                                } else {
-                                    bounds.union(layer_bounds)
-                                }
+                                var extent,
+                                    layer_bounds;
+                                try {
+                                    extent = $.parseJSON(layer.extent);
+                                    layer_bounds = new google.maps.LatLngBounds(
+                                        new google.maps.LatLng(
+                                            extent.sw.lat,extent.sw.lng
+                                        ),
+                                        new google.maps.LatLng(
+                                            extent.ne.lat,extent.ne.lng
+                                        )
+                                    );
+                                    if(!bounds) {
+                                        bounds = layer_bounds;
+                                    } else {
+                                        bounds.union(layer_bounds)
+                                    }
+                                } 
+                                catch(e) {
+                                    //bad json
+                                }  
                             }
                         )
                         self.addLayers(event.layers);
-                        self.map.fitBounds(bounds)
-
+                        if(bounds != null) {
+                            self.map.fitBounds(bounds)
+                        }
                     }
                 );
                 this.bus.addHandler(
@@ -128,32 +140,19 @@ mol.modules.map.layers = function(mol) {
              * @layers array of layer objects {name, type}
              */
             sortLayers: function(layers) {
-                var sorted = [],
-                    names_map = {};
-
-                _.sortBy( // Layer names sorted alphabetically.
-                    _.each(layers,
-                          function(layer) {
-                              names_map[layer.name] = layer.name; // Gather unique names.
-                          })
-                );
-
-                _.each(_.keys(names_map),
-                       function(name) {
-                           var group = _.groupBy(_.groupBy(layers, "name")[name], "type");
-
-                           _.each(
-                               ['points', 'protectedarea', 'range', 'ecoregion'],
-                               function(type) {
-                                   if (group[type]) {
-                                       sorted.push(group[type][0]);
-                                   }
-                               }
-                           );
-                       });
-
-                return sorted;
-
+                return _.flatten(
+                    _.groupBy(
+                        _.sortBy(
+                            layers,
+                            function(layer) {
+                                return layer.type_sort_order;
+                            }
+                        ),
+                        function(group) {
+                            return(group.name);
+                        }
+                     )
+                 );
             },
 
             /**
@@ -375,7 +374,9 @@ mol.modules.map.layers = function(mol) {
                     this
                 );
                 if(first) {
-                    this.display.list.find('.layer')[0].click();
+                    if(this.display.list.find('.layer').length>0) {
+                        this.display.list.find('.layer')[0].click();
+                    }
                 }
             },
 

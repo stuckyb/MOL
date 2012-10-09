@@ -3,25 +3,35 @@ mol.modules.map.boot = function(mol) {
     mol.map.boot = {};
 
     mol.map.boot.BootEngine = mol.mvp.Engine.extend({
-        init: function(proxy, bus) {
+        init: function(proxy, bus, map) {
             this.proxy = proxy;
             this.bus = bus;
+            this.map = map;
             this.IE8 = false;
-            this.sql = '' + //TODO replace with postgres function (issue #126)
+            this.sql = '' +
                 'SELECT DISTINCT l.scientificname as name,'+
-                '       l.type as type,'+
+                '       t.type as type,'+
+                '       t.sort_order as type_sort_order, ' +
                 '       t.title as type_title,'+
-                '       l.provider as source, '+
-                '       p.title as source_title,'+
-                '       n.class as _class, ' +
+                '       CONCAT(l.provider,\'\') as source, '+
+                '       CONCAT(p.title,\'\') as source_title,'+
+                '       s.source_type as source_type, ' +
+                '       s.title as source_type_title, ' +   
+                '       CONCAT(n.class,\'\') as _class, ' +
                 '       l.feature_count as feature_count,'+
-                '       n.common_names_eng as names,' +
-                '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent ' +
+                '       CONCAT(n.common_names_eng,\'\') as names,' +
+                '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent, ' +
+                '       l.dataset_id as dataset_id, ' +
+                '       d.style_table as style_table ' +
                 'FROM layer_metadata l ' +
+                'LEFT JOIN data_registry d ON ' +
+                '       l.dataset_id = d.dataset_id ' +
                 'LEFT JOIN types t ON ' +
                 '       l.type = t.type ' +
                 'LEFT JOIN providers p ON ' +
                 '       l.provider = p.provider ' +
+                'LEFT JOIN source_types s ON ' +
+                '       p.source_type = s.source_type ' +
                 'LEFT JOIN taxonomy n ON ' +
                 '       l.scientificname = n.scientificname ' +
                 'WHERE ' +
@@ -51,13 +61,13 @@ mol.modules.map.boot = function(mol) {
                     sql: this.sql.format(self.term)
                 },
                 function(response) {
-                    var results = mol.services.cartodb.convert(response);
-                    if (Object.keys(results.layers).length == 0) {
+                    var results = response.rows;
+                    if (results.length == 0) {
                         self.bus.fireEvent(new mol.bus.Event('toggle-splash'));
-                        this.map.setCenter(new google.maps.LatLng(0,-50));
+                        self.map.setCenter(new google.maps.LatLng(0,-50));
                     } else {
                         //parse the results
-                        self.loadLayers(self.getLayersWithIds(results.layers));
+                        self.loadLayers(self.getLayersWithIds(results));
                     }
                 },
                 'json'
