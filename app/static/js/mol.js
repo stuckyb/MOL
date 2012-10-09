@@ -3651,6 +3651,7 @@ mol.modules.map.dashboard = function(mol) {
                 'LEFT JOIN providers pv ON ' +
                 '    p.provider = pv.provider ' +
                 'WHERE ' +
+                '   e.good = true AND ' +
                 '    ST_DWithin(p.the_geom_webmercator,ST_Transform' +
                 //radius test
                 '    (ST_PointFromText(\'POINT({0})\',4326),3857),{1}) ' +
