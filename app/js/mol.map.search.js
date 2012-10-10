@@ -17,7 +17,7 @@ mol.modules.map.search = function(mol) {
                     '<span class="sci">{0}</span>' +
                     '<span class="eng">{1}</span>' +
                 '</div>';
-            this.ac_sql = "" +_
+            this.ac_sql = "" +
                 "SELECT n,v from ac_beta where n~*'\\m{0}' OR v~*'\\m{0}'";
             this.sql = '' +
                 'SELECT DISTINCT l.scientificname as name,'+
