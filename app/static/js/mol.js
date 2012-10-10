@@ -1517,6 +1517,26 @@ mol.modules.map.results = function(mol) {
             this.proxy = proxy;
             this.bus = bus;
             this.map = map;
+            this.filters = { 
+                'name': {
+                    title: 'Name', 
+                    hasIcon: false, 
+                    title_field : 'name', 
+                    values: {}
+                },
+                'source_type':{ 
+                    title: 'Source', 
+                    hasIcon: true, 
+                    title_field : 'source_type_title', 
+                    values: {}
+                },
+                'type': {
+                    title: 'Type',
+                    hasIcon: true,
+                    title_field : 'type_title',
+                    values: {}
+                }
+            }
         },
 
         /**
@@ -1745,27 +1765,8 @@ mol.modules.map.results = function(mol) {
 
         showFilters: function(results) {
             var display = this.display,
-            filters = { 
-                'name': {
-                    title: 'Name', 
-                    hasIcon: false, 
-                    title_field : 'name', 
-                    values: {}
-                },
-                'source_type':{ 
-                    title: 'Source', 
-                    hasIcon: true, 
-                    title_field : 'source_type_title', 
-                    values: {}
-                },
-                'type': {
-                    title: 'Type',
-                    hasIcon: true,
-                    title_field : 'type_title',
-                    values: {}
-                }
-            },
-            self = this;
+                filters = this.filters,
+                self = this;
             
             //parse result to fill in the filter values
             _.each(
@@ -5455,7 +5456,6 @@ mol.modules.map.boot = function(mol) {
                     "l.scientificname~*'\\m{0}' " +
                     "OR n.common_names_eng~*'\\m{0}' " +
                 'ORDER BY name, type_sort_order';
-                
         },
         start: function() {
             this.loadTerm();
