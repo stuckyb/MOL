@@ -138,7 +138,7 @@ mol.modules.map.tiles = function(mol) {
                  * functions removes all layers from the Google Map. The
                  * event.layers is an array of layer objects {id}.
                  */
-				    this.bus.addHandler(
+                    this.bus.addHandler(
                     'remove-layers',
                     function(event) {
                         var layers = event.layers,
@@ -163,6 +163,7 @@ mol.modules.map.tiles = function(mol) {
                     }
                 );
 
+<<<<<<< HEAD
 				    /**
 				     * Handler for when the reorder-layers event is fired. This 
 				     * renders the layers according to the list of layers 
@@ -190,6 +191,35 @@ mol.modules.map.tiles = function(mol) {
 						      );
 					     }
 				    );
+=======
+                    /**
+                     * Handler for when the reorder-layers event is fired. This 
+                     * renders the layers according to the list of layers 
+                     * provided
+                     */
+                    this.bus.addHandler(
+                         'reorder-layers',
+                         function(event) {
+                              var layers = event.layers,
+                            mapTypes = self.map.overlayMapTypes;
+
+                              _.each(
+                                   layers,
+                                   function(lid) { // "lid" is short for layerId.
+                                        mapTypes.forEach(
+                                             function(mt, index) { 
+                                                  if ((mt != undefined) && 
+                                                      (mt.name === lid)) {
+                                                      mapTypes.removeAt(index);
+                                                      mapTypes.insertAt(0, mt);
+                                                  }
+                                             }
+                                        );
+                                   }
+                              );
+                         }
+                    );
+>>>>>>> 6284614c67586ab6cf7a088b95c01f95d004dba1
             },
 
             /**
@@ -249,6 +279,7 @@ mol.modules.map.tiles = function(mol) {
                 var name = layer.name,
                     type = layer.type,
                     self = this,
+<<<<<<< HEAD
                     maptype = null;
 
 
@@ -274,6 +305,15 @@ mol.modules.map.tiles = function(mol) {
                             );
                             break;
                 }
+=======
+                    maptype = new mol.map.tiles.CartoDbTile(
+                                layer, 
+                                layer.style_table, 
+                                this.map
+                            );
+                           
+                
+>>>>>>> 6284614c67586ab6cf7a088b95c01f95d004dba1
                 maptype.layer.params.layer.onbeforeload = function (){
                     self.bus.fireEvent(
                         new mol.bus.Event(
@@ -296,7 +336,7 @@ mol.modules.map.tiles = function(mol) {
              * Zooms and pans the map to the full extent of the layer. The layer is an
              * object {id, name, source, type}.
              */
-	         zoomToExtent: function(layer) {
+             zoomToExtent: function(layer) {
                 var self = this,
                     points_sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE lower(scientificname)='{1}'",
                     polygons_sql = "SELECT ST_Extent(the_geom) FROM {0} WHERE scientificname='{1}'",
@@ -323,10 +363,10 @@ mol.modules.map.tiles = function(mol) {
                         sw = new google.maps.LatLng(coor1[1],coor1[0]);
                         ne = new google.maps.LatLng(coor2[1],coor2[0]);
                         bounds = new google.maps.LatLngBounds(sw, ne);
-		                  self.map.fitBounds(bounds);
-		                  self.map.panToBounds(bounds);
-		              },
-		              failure = function(action, response) {
+                          self.map.fitBounds(bounds);
+                          self.map.panToBounds(bounds);
+                      },
+                      failure = function(action, response) {
                         console.log('Error: {0}'.format(response));
                     };
                 this.proxy.execute(
@@ -336,9 +376,13 @@ mol.modules.map.tiles = function(mol) {
                         failure
                     )
                 );
+<<<<<<< HEAD
 		      }
+=======
+              }
+>>>>>>> 6284614c67586ab6cf7a088b95c01f95d004dba1
         }
-	 );
+     );
 
     mol.map.tiles.CartoDbTile = Class.extend(
         {
@@ -349,7 +393,11 @@ mol.modules.map.tiles = function(mol) {
                         layer.source, 
                         layer.type, 
                         layer.name, 
+<<<<<<< HEAD
                         layer.data_table
+=======
+                        layer.dataset_id
+>>>>>>> 6284614c67586ab6cf7a088b95c01f95d004dba1
                     ),
                     hostname = 'mol.cartodb.com',//window.location.hostname,
                     style_table_name = layer.style_table;

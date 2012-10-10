@@ -38,12 +38,14 @@ mol.modules.services.cartodb = function(mol) {
         }
     );
 
-    mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi('mol', 'cartodb.com');
+    mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi(
+        'mol', 'cartodb.com');
 
     mol.services.cartodb.query = function(key, sql, callback) {
         mol.services.cartodb.sqlApi.query(key, sql, callback);
     };
 
+<<<<<<< HEAD
     /**
      * Converts a CartoDB SQL response to a search profile response.
      *
@@ -331,3 +333,6 @@ mol.modules.services.cartodb = function(mol) {
         return mol.services.cartodb.converter.convert(response);
     };
 };
+=======
+};
+>>>>>>> 6284614c67586ab6cf7a088b95c01f95d004dba1

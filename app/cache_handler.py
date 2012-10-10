@@ -27,8 +27,13 @@ class GetHandler(webapp2.RequestHandler):
         if not cache_buster:
             value = cache.get(key)
         if not value and sql:
+<<<<<<< HEAD
             url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
             #url = 'http://dtredc0xh764j.cloudfront.net/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
+=======
+            #url = 'http://dtredc0xh764j.cloudfront.net/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
+            url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
+>>>>>>> 6284614c67586ab6cf7a088b95c01f95d004dba1
             value = urlfetch.fetch(url, deadline=60).content
             if not json.loads(value).has_key('error') and not cache_buster:
                 cache.add(key.lower(), value)

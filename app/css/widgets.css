@@ -402,22 +402,22 @@ button:hover{
 
 .mol-LayerControl-Layers .layer .toggle {
     opacity: 0.0;
-	position:absolute;
-	left:0;
-	z-index:100;
+    position:absolute;
+    left:0;
+    z-index:100;
     float: left;
-	width:24px;
-	height:24px;
+    width:24px;
+    height:24px;
     cursor: pointer;
 
 }
 
 .mol-LayerControl-Layers .layer .customCheck:after{
-	content:url('/static/maps/layers/inactive.png');
+    content:url('/static/maps/layers/inactive.png');
     margin: 2px;
     padding: 0px 1px 0px 1px;
     height: 24px;
-	position:absolute;
+    position:absolute;
     left: 0;
     background-color: rgba(25, 25, 25, 0.75);
     -moz-box-shadow: 2px 2px 5px #000;
@@ -444,7 +444,7 @@ button:hover{
     cursor: pointer;
 }
 .mol-LayerControl-Layers .layer .toggle:checked + .customCheck:after {
-	content:url('/static/maps/layers/active.png');
+    content:url('/static/maps/layers/active.png');
 }
 .mol-LayerControl-Layers .layer .info{
     float: right;
@@ -654,38 +654,77 @@ padding: 3px;
     text-align: center;
 }
 
-
-.mol-Dashboard .dashboard table tr td {
-    border-top: 1px solid #CCC;
-    border: 1px solid #CCC;
-    text-align: left;
-    margin: 0;
-    padding: 6px 13px;
-    font-style: normal;
+.mol-Dashboard #dialog {
+    font-weight:normal;
+    font-style:normal;
     font-size: 12px;
+    min-height: 360px;
 }
 
 .mol-Dashboard #dialog .dashboard .title {
     font-weight:bold;
     font-size: 18px;
+    padding-left: 4px;
 }
-
-.mol-Dashboard #dialog .dashboard .subtitle {
-    font-size: 14px;
-    font-style: italic;
+.mol-Dashboard #dialog .summary {
+    padding-top: 5px;
     padding-bottom: 10px;
+    white-space: nowrap;
+    font-size: 12px;
+}
+.mol-Dashboard #dialog .summary span {
+    padding-right:5px;
+}
+.mol-Dashboard #dialog .summary .label {
+    font-weight:bold;
+    font-size: 12px;
 }
 
-.mol-Dashboard #dialog .class {
-    cursor: pointer;
-    cursor: hand;
+.mol-Dashboard span.filterHeader {
+    font-weight:bold;
+    text-decoration:underline;
+    font-size: 12px;
 }
 
-.mol-Dashboard #dialog .type {
-    cursor: pointer;
-    cursor: hand;
+.mol-Dashboard #dialog div#dashTypeFilter {
+    padding-bottom: 4px;
+    padding-right: 6px;
+    float: left;
 }
 
+.mol-Dashboard #dialog div#dashTypeFilter input {
+    margin-left: 0;
+}
+
+.mol-Dashboard #dialog div#dashTypeFilter div.chkAndLabel {
+    clear: both;
+    float: none;
+}
+
+.mol-Dashboard #dialog div#dashTypeFilter div.chkAndLabel input{
+    float: left;
+}
+
+.mol-Dashboard #dialog div#dashTypeFilter div.chkAndLabel label{
+    float: left;
+    margin-top: 3px;
+}
+
+
+.mol-Dashboard #dialog div#dashTypeFilter #dashTitle {
+    font-weight: bold;
+}
+
+div.mol-Dashboard-TableWindow {
+    font-size: 12px;
+    font-style:normal;
+    font-weight:normal;
+    height: 498px;
+    overflow-y:scroll;
+    overflow-x:hidden;
+}
+
+<<<<<<< HEAD
 .mol-Dashboard #dialog .provider {
     cursor: pointer;
     cursor: hand;
@@ -693,8 +732,12 @@ padding: 3px;
 
 
 .mol-Dashboard .ui-dialog-titlebar, .ui-widget-header, .dashboard{
+=======
+.mol-Dashboard .ui-dialog-titlebar, .ui-widget-header, .dashboard {
+>>>>>>> 6284614c67586ab6cf7a088b95c01f95d004dba1
     background: none;
-    background-image: -ms-linear-gradient(rgba(29,43,82,0.65) 89%, rgba(29,43,82,0.75) 57%);
+    background-image: -ms-linear-gradient(rgba(29,43,82,0.65) 89%,
+        rgba(29,43,82,0.75) 57%);
     background-image: -webkit-gradient(
         linear,
         left bottom,
@@ -713,7 +756,8 @@ padding: 3px;
         rgba(29,43,82,0.75) 57%
     );
 
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#A51D2B52', endColorstr='#BF1D2B52');
+    filter: progid:DXImageTransform.Microsoft.gradient(
+        startColorstr='#A51D2B52', endColorstr='#BF1D2B52');
     -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
     -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
     box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
@@ -747,6 +791,7 @@ padding: 3px;
     border-radius: 3px;
     pointer-events: auto;
 }
+
 .mol-LayerControl-Results .filters .filter .options{
     max-height: 125px;
     overflow-y: auto;
@@ -767,6 +812,17 @@ padding: 3px;
     cursor: pointer;
 }
 
+.mol-LayerControl-Results .filters .filter .all {
+    text-align: right; 
+    margin-right: 10px;
+}
+
+.mol-LayerControl-Results .filters .filter .option img{
+    width: 12px;
+    height: 12px; 
+    margin: 0.5px;
+    
+}
 .mol-LayerControl-Results .filters .filter .option.selected {
     cursor: pointer;
 }
@@ -877,8 +933,8 @@ padding: 3px;
     display:inline-block;
 }
 .mol-LayerControl-Results .result .buttonContainer {
-	width:24px;
-	height:24px;
+    width:24px;
+    height:24px;
     position: relative;
     float: right;
     margin-right: 10px;
@@ -886,12 +942,12 @@ padding: 3px;
 
 .mol-LayerControl-Results .result .checkbox {
     opacity: 0.0;
-	position:absolute;
-	left:0;
-	z-index:100;
+    position:absolute;
+    left:0;
+    z-index:100;
     float: left;
-	width:24px;
-	height:24px;
+    width:24px;
+    height:24px;
     cursor: pointer;
 
 }
@@ -903,12 +959,12 @@ padding: 3px;
     margin-bottom: 2px;
 }
 .mol-LayerControl-Results .result .customCheck:after{
-	content:url('/static/maps/search/unchecked.png');
-	position:absolute;
+    content:url('/static/maps/search/unchecked.png');
+    position:absolute;
     left: 0;
 }
 .mol-LayerControl-Results .result .checkbox:checked + .customCheck:after {
-	content:url('/static/maps/search/checked.png');
+    content:url('/static/maps/search/checked.png');
 }
 .mol-LayerControl-Results .searchResults .pageNavigation{
     width: 80%;
@@ -929,31 +985,31 @@ padding: 3px;
  * add, results
  */
 .mol-LayerControl-Add {
-	height: 185px;
-	vertical-align: top;
+    height: 185px;
+    vertical-align: top;
     padding: 3px 5px 2px 5px;
     pointer-events: auto;
 }
 
 .mol-LayerControl-Add .title {
-	padding: 0 0 20px 10px;
-	line-height: 29px;
+    padding: 0 0 20px 10px;
+    line-height: 29px;
 }
 
 .mol-LayerControl-Add input {
-	float:right;
-	width:220px;
-	height: 17px;
-	margin-right: 10px;
+    float:right;
+    width:220px;
+    height: 17px;
+    margin-right: 10px;
 }
 
 .mol-LayerControl-Add .key {
-	display:block;
-	clear:both;
-	float:left;
-	font-weight:normal;
-	font-size: 15px;
-	padding: 0 0 11px 10px;
+    display:block;
+    clear:both;
+    float:left;
+    font-weight:normal;
+    font-size: 15px;
+    padding: 0 0 11px 10px;
 }
 .mol-LayerControl-Add .cancel{
     width: 25px;
@@ -1019,30 +1075,44 @@ padding: 3px;
      font-size: 12px;
      font-style:normal;
      font-weight:normal;
-     width:650px;
-     overflow-y:scroll;
+     overflow-y:auto;
      overflow-x:hidden;
-     margin:2px;
-     margin-top:6px;
+     margin:5px;
+     padding:3px;
 }
 
-.mol-Map-ListQueryInfoWindow td{
+.mol-Map-ListQueryInfoWindow .iucn_stats{
+    float:right;
+}
+
+.mol-Map-ListQueryInfoWindow td.wiki:hover, .mol-Map-ListQueryInfoWindow td.iucn:hover{
         cursor: pointer;
+        color: blue;
+        text-decoration: underline;
  }
-.mol-Map-ListQueryInfoWindow button{
-        font-size: 0.8em;
+
+.mol-Map-ListQueryInfoWindow tr.iucnvu td{
+        background: #cc9900;
+ }
+
+ .mol-Map-ListQueryInfoWindow tr.iucnen td{
+        background: #cc6633;
+ }
+
+ .mol-Map-ListQueryInfoWindow tr.iucncr td{
+        background: #cc3333;
  }
 
 .mol-Map-ListQueryInfoWindow .english{
-        max-width: 135px;
+        max-width: 150px;
         overflow: hidden;
         text-overflow:ellipsis;
  }
- .mol-Map-ListQueryInfoWindow .wiki{
-        max-width: 135px;
-        overflow: hidden;
-        text-overflow:ellipsis;
- }
+
+.mol-Map-ListDialogContent.ui-tabs div.ui-tabs-panel {
+    padding: 0;
+}
+
  .mol-Map-ListQueryEmptyInfoWindow {
      margin:5px;
      font-size: 14px;
@@ -1201,4 +1271,3 @@ div.cartodb_infowindow div.top p {
     max-height: 40px;
     white-space: normal;
 }
-

@@ -11,6 +11,7 @@ mol.modules.core = function(mol) {
     mol.core.getLayerId = function(layer) {
         var name = $.trim(layer.name.toLowerCase()).replace(/ /g, "_"),
             type = $.trim(layer.type.toLowerCase()).replace(/ /g, "_"),
+<<<<<<< HEAD
             source = $.trim(layer.source.toLowerCase()).replace(/,/g, "").replace(/ /g, "_");
         return 'layer--{0}--{1}--{2}'.format(name, type, source);
     };
@@ -35,3 +36,11 @@ mol.modules.core = function(mol) {
         };
     };
 };
+=======
+            source = $.trim(layer.source.toLowerCase()).replace(/,/g, "").replace(/ /g, "_"),
+            data_table = $.trim(layer.data_table).replace(/,/g, "").replace(/ /g, "_");
+
+        return 'layer--{0}--{1}--{2}--{3}'.format(name, type, source, data_table);
+    };
+}
+>>>>>>> 6284614c67586ab6cf7a088b95c01f95d004dba1

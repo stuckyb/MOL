@@ -31,16 +31,16 @@ $$
          IF data.type = 'range' or data.type = 'points' THEN
                 sql := 'SELECT ' ||
 		  ' CONCAT('''|| data.table_name ||'-'', cartodb_id) as cartodb_id, ' ||
-                  ' TEXT('''||data.type||''') as type, TEXT('''||data.provider||''') as provider, ' ||
+                  ' TEXT('''||data.product_type||''') as type, TEXT('''||data.provider||''') as provider, ' ||
                   ' CAST(' || data.seasonality || ' as int) as seasonality, ' || 
                   data.geometry_field || 
                   ' FROM ' || data.table_name || 
                   ' WHERE ' ||  
                   data.scientificname || ' = ''' || $3 || '''';               
-         ELSIF data.type = 'ecoregion' or data.type = 'taxogeochecklist' or data.type = 'taxogeooccchecklist' THEN 		
+         ELSIF data.type = 'taxogeochecklist' or data.type = 'taxogeooccchecklist' THEN 		
                 sql := 'SELECT ' ||
 		  ' DISTINCT CONCAT('''|| data.table_name || '-'', d.cartodb_id) as cartodb_id, ' ||
-                  ' TEXT('''||data.type||''') as type, TEXT('''||data.provider||''') as provider, ' ||
+                  ' TEXT('''||data.product_type||''') as type, TEXT('''||data.provider||''') as provider, ' ||
                   ' CAST(' || data.seasonality || ' as int) as seasonality, ' || 
                   ' g.' || data.geometry_field || 
                   ' FROM ' || data.table_name || ' d ' ||
@@ -49,10 +49,10 @@ $$
                   ' JOIN ' || data.taxo_table || ' t ON ' ||
                   '   d.' || data.species_id || ' = t.' || data.species_link_id ||
 		  ' WHERE ' || data.scientificname || ' = ''' || $3 || ''''; 
-	  ELSIF data.type = 'protectedarea' or data.type = 'geochecklist' THEN 
+	  ELSIF data.type = 'geochecklist' THEN 
 		sql := 'SELECT ' ||
 		  ' DISTINCT CONCAT('''|| data.table_name ||'-'', d.cartodb_id) as cartodb_id, ' ||
-                  ' TEXT('''||data.type||''') as type, TEXT('''||data.provider||''') as provider, ' ||
+                  ' TEXT('''||data.product_type||''') as type, TEXT('''||data.provider||''') as provider, ' ||
                   ' CAST(' || data.seasonality || ' as int) as seasonality, ' || 
                   ' g.' || data.geometry_field || 
                   ' FROM ' || data.table_name || ' d ' ||
