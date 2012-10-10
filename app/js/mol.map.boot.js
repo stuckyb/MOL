@@ -46,7 +46,6 @@ mol.modules.map.boot = function(mol) {
                     "l.scientificname~*'\\m{0}' " +
                     "OR n.common_names_eng~*'\\m{0}' " +
                 'ORDER BY name, type_sort_order';
-                
         },
         start: function() {
             this.loadTerm();
