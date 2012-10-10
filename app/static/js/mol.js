@@ -3751,6 +3751,7 @@ mol.modules.map.query = function(mol) {
 
                         listRowsDone = self.processListRows(
                                             listradius,
+                                            className,
                                             latHem,
                                             lngHem,
                                             event.response.rows,
@@ -3863,9 +3864,10 @@ mol.modules.map.query = function(mol) {
         /*
          * Processes response content for List dialog
          */
-        processListRows: function(listrad, latH, lngH, rows, sqlurl) {
+        processListRows: function(listrad, clnm, latH, lngH, rows, sqlurl) {
             var self = this,
                 listradius = listrad,
+                className = clnm,
                 latHem = latH,
                 lngHem = lngH,
                 tablerows = [],
@@ -4052,7 +4054,7 @@ mol.modules.map.query = function(mol) {
 
                 dlContent = $('' +
                     '<div class="mol-Map-ListQueryEmptyInfoWindow">' +
-                    '    <b>No list to download</b>' +
+                    '    <b>No list to download.</b>' +
                     '</div>');
 
                 iucnContent = $('' +
@@ -4133,7 +4135,9 @@ mol.modules.map.query = function(mol) {
                 self.createSpeciesListTable(listWindow);
 
                 //chart creation
-                self.createIucnChart(rows, mmlHeight);
+                if(speciestotal > 0 ) {
+                    self.createIucnChart(rows, mmlHeight);
+                }
 
                 //image gallery creation
                 self.createImageGallery(rows, speciestotal);
@@ -4664,14 +4668,14 @@ mol.modules.map.query = function(mol) {
                     '               value=" AND p.type=\'range\'">' +
                     '               <img ' +
                     '                   title="Click to use Expert range maps' +
-                    '                       for query."' +
+                                            ' for query."' +
                     '                   src="/static/maps/search/range.png">' +
                     '           </button>' +
                     '           <button class="ecoregion" ' +
                     '               value=" AND p.type=\'ecoregion\' ">' +
                     '               <img ' +
                     '                   title="Click to use Regional' +
-                    '                       checklists for query." ' +
+                                            ' checklists for query." ' +
                     '                   src="/static/maps/search/' +
                                             'ecoregion.png">' +
                     '           </button>' +
