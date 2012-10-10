@@ -444,6 +444,7 @@ var CartoDB = CartoDB || {};
                     content = $.parseJSON(
                         result.rows[0]['get_feature_metadata']
                     );
+                    positionateInfowindow(content, latlng);
                 }
             }
     );
