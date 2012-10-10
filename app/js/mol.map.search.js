@@ -40,7 +40,8 @@ mol.modules.map.search = function(mol) {
                     'LEFT JOIN taxonomy n ON ' +
                     '       l.scientificname = n.scientificname ' +
                     'WHERE ' +
-                    "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}'";
+                    "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}' " +
+                    'ORDER BY name, type_sort_order';
             },
 
             /**

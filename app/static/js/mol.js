@@ -925,10 +925,9 @@ mol.modules.map.layers = function(mol) {
 
             /**
              * Sorts layers so that they're grouped by name. Within each named
-             * group, they are sorted by type: points, protectedarea, range,
-             * ecoregion.
+             * group, they are sorted by type_sort_order set in the types table.
              *
-             * @layers array of layer objects {name, type}
+             * @layers array of layer objects {name, type, ...}
              */
             sortLayers: function(layers) {
                 return _.flatten(
@@ -2201,7 +2200,8 @@ mol.modules.map.results = function(mol) {
                     'LEFT JOIN taxonomy n ON ' +
                     '       l.scientificname = n.scientificname ' +
                     'WHERE ' +
-                    "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}'";
+                    "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}' " +
+                    'ORDER BY name, type_sort_order';
             },
 
             /**
@@ -5370,7 +5370,9 @@ mol.modules.map.boot = function(mol) {
                 'LEFT JOIN taxonomy n ON ' +
                 '       l.scientificname = n.scientificname ' +
                 'WHERE ' +
-                "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}'";
+                "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}' " +
+                'ORDER BY name, type_sort_order';
+                
         },
         start: function() {
             this.loadTerm();
