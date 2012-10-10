@@ -882,7 +882,14 @@ mol.modules.map.layers = function(mol) {
                                     }
                                 } 
                                 catch(e) {
-                                    //bad json
+                                    console.log(
+                                        '[Invalid extent for {0} \'{1}\'] {2}'
+                                        .format(
+                                            layer.dataset_id,
+                                            layer.name,
+                                            layer.extent
+                                        )
+                                    );
                                 }  
                             }
                         )
@@ -987,25 +994,10 @@ mol.modules.map.layers = function(mol) {
                             self = this,
                             opacity = null;
 
-                        self.bus.fireEvent(new mol.bus.Event('show-layer-display-toggle'));
+                        self.bus.fireEvent(
+                            new mol.bus.Event('show-layer-display-toggle')
+                        );
 
-                        // Set initial opacity based on layer type.
-                        //TODO, pull this from the types metadata table instead (issue #125)
-                        switch (layer.type) {
-                        case 'points':
-                            opacity = 1.0;
-                            break;
-                        case 'ecoregion':
-                            opacity = .25;
-                            break;
-                        case 'protectedarea':
-                            opacity = 1.0;
-                            break;
-                        case 'range':
-                            opacity = .5;
-                            break;
-                        }
-                        layer.opacity = opacity;
                         //disable interactivity to start
                         self.map.overlayMapTypes.forEach(
                                     function(mt) {
@@ -1164,7 +1156,7 @@ mol.modules.map.layers = function(mol) {
                     this
                 );
                 if(first) {
-                    if(this.display.list.find('.layer').length>0) {
+                    if(this.display.list.find('.layer').length > 0) {
                         this.display.list.find('.layer')[0].click();
                     }
                 }
@@ -1589,7 +1581,7 @@ mol.modules.map.results = function(mol) {
                         alert(
                             'The map is currently limited to 100 layers ' +
                             'at a time. Please remove some layers before ' +
-                            ' adding more.'
+                            'adding more.'
                         );
                     } else {
                         self.bus.fireEvent(
@@ -2159,7 +2151,8 @@ mol.modules.map.results = function(mol) {
             
         }
     });
-}mol.modules.map.search = function(mol) {
+}
+mol.modules.map.search = function(mol) {
 
     mol.map.search = {};
 
@@ -2184,7 +2177,8 @@ mol.modules.map.results = function(mol) {
                 'SELECT DISTINCT l.scientificname as name,'+
                     't.type as type,'+
                     't.sort_order as type_sort_order, ' +
-                    't.title as type_title,'+
+                    't.title as type_title, '+
+                    't.opacity as opacity, ' +
                     'CONCAT(l.provider,\'\') as source, '+
                     'CONCAT(p.title,\'\') as source_title,'+
                     's.source_type as source_type, ' +
@@ -5426,7 +5420,8 @@ mol.modules.map.boot = function(mol) {
                 'SELECT DISTINCT l.scientificname as name,'+
                     't.type as type,'+
                     't.sort_order as type_sort_order, ' +
-                    't.title as type_title,'+
+                    't.title as type_title,' +
+                    't.opacity as opacity, ' +
                     'CONCAT(l.provider,\'\') as source, '+
                     'CONCAT(p.title,\'\') as source_title,'+
                     's.source_type as source_type, ' +
