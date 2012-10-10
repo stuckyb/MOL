@@ -51,17 +51,27 @@ mol.modules.map.menu = function(mol) {
                 );
                 this.bottomdisplay.speciesListItem.click(
                     function(event) {
-                        self.bus.fireEvent(new mol.bus.Event('species-list-tool-toggle'));
+                        self.bus.fireEvent(
+                            new mol.bus.Event('species-list-tool-toggle'));
                     }
                 );
                 this.display.layersToggle.click(
                     function(event) {
-                        if(self.display.layersToggle[0].src.indexOf('collapse.png')>0)  {
-                            self.bus.fireEvent(new mol.bus.Event('layer-display-toggle',{visible : false}));
-                            self.display.layersToggle[0].src = '/static/maps/layers/expand.png';
+                        if(self.display.layersToggle[0].src
+                                .indexOf('collapse.png') > 0)  {
+                            self.bus.fireEvent(
+                                new mol.bus.Event(
+                                    'layer-display-toggle',
+                                    {visible : false}));
+                            self.display.layersToggle[0].src = 
+                                '/static/maps/layers/expand.png';
                         } else {
-                            self.bus.fireEvent(new mol.bus.Event('layer-display-toggle',{visible : true}));
-                            self.display.layersToggle[0].src = '/static/maps/layers/collapse.png';
+                            self.bus.fireEvent(
+                                new mol.bus.Event(
+                                    'layer-display-toggle',
+                                    {visible : true}));
+                            self.display.layersToggle[0].src = 
+                                '/static/maps/layers/collapse.png';
                         }
                     }
                 );
@@ -110,7 +120,8 @@ mol.modules.map.menu = function(mol) {
                         position: google.maps.ControlPosition.RIGHT_BOTTOM  
                     },
                     event = new mol.bus.Event('add-map-control', params),
-                    bottomevent = new mol.bus.Event('add-map-control', bottomparams);
+                    bottomevent = new mol.bus.Event(
+                                    'add-map-control', bottomparams);
 
                 this.bus.fireEvent(event);
                 this.bus.fireEvent(bottomevent);
@@ -123,11 +134,25 @@ mol.modules.map.menu = function(mol) {
             init: function() {
                 var html = '' +
                     '<div class="mol-LayerControl-Menu ">' +
-                    '    <div class="label">' +
-                    '       <img class="layersToggle" height="21px" width="24px" src="/static/maps/layers/collapse.png">' +
+                    '  <div class="label">' +
+                    '    <img ' + 
+                            'class="layersToggle" ' + 
+                            'height="21px" ' + 
+                            'width="24px" ' + 
+                            'src="/static/maps/layers/collapse.png">' +
                     '    </div>' +
-                    '    <div title="Toggle taxonomy dashboard." id="dashboard" class="widgetTheme search button">Dashboard</div>' +
-                    '    <div title="Toggle layer search tools." id="search" class="widgetTheme search button">Search</div>' +
+                    '    <div ' + 
+                            'title="Toggle taxonomy dashboard." ' + 
+                            'id="dashboard" ' + 
+                            'class="widgetTheme search button">' +
+                            'Dashboard' + 
+                    '    </div>' +
+                    '    <div ' + 
+                            'title="Toggle layer search tools." ' + 
+                            'id="search" ' + 
+                            'class="widgetTheme search button">' + 
+                            'Search' + 
+                    '  </div>' +
                     '</div>';
 
                 this._super(html);
@@ -143,8 +168,19 @@ mol.modules.map.menu = function(mol) {
             init: function() {
                 var html = '' +
                     '<div class="mol-LayerControl-Menu ">' +
-                    '    <div title="Toggle map legend." id="legend" class="widgetTheme legend button">Legend</div>' +
-                    '    <div title="Toggle species list radius tool (right-click to use)" id="list" class="widgetTheme legend button">Species&nbsp;Lists</div>' +
+                    '  <div ' + 
+                            'title="Toggle map legend." ' + 
+                            'id="legend" ' + 
+                            'class="widgetTheme legend button">' + 
+                            'Legend' + 
+                    '  </div>' +
+                    '  <div ' + 
+                            'title="Toggle species list radius tool ' + 
+                                '(right-click to use)" ' + 
+                            'id="list" ' + 
+                            'class="widgetTheme legend button">' + 
+                            'Species&nbsp;Lists' + 
+                    '  </div>' +
                     '</div>';
 
                 this._super(html);
@@ -154,6 +190,4 @@ mol.modules.map.menu = function(mol) {
         }
     );
 };
-
-
 
