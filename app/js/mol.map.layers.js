@@ -91,7 +91,14 @@ mol.modules.map.layers = function(mol) {
                                     }
                                 } 
                                 catch(e) {
-                                    //bad json
+                                    console.log(
+                                        '[Invalid extent for {0} \'{1}\'] {2}'
+                                        .format(
+                                            layer.dataset_id,
+                                            layer.name,
+                                            layer.extent
+                                        )
+                                    );
                                 }  
                             }
                         )
@@ -196,25 +203,10 @@ mol.modules.map.layers = function(mol) {
                             self = this,
                             opacity = null;
 
-                        self.bus.fireEvent(new mol.bus.Event('show-layer-display-toggle'));
+                        self.bus.fireEvent(
+                            new mol.bus.Event('show-layer-display-toggle')
+                        );
 
-                        // Set initial opacity based on layer type.
-                        //TODO, pull this from the types metadata table instead (issue #125)
-                        switch (layer.type) {
-                        case 'points':
-                            opacity = 1.0;
-                            break;
-                        case 'ecoregion':
-                            opacity = .25;
-                            break;
-                        case 'protectedarea':
-                            opacity = 1.0;
-                            break;
-                        case 'range':
-                            opacity = .5;
-                            break;
-                        }
-                        layer.opacity = opacity;
                         //disable interactivity to start
                         self.map.overlayMapTypes.forEach(
                                     function(mt) {
@@ -373,7 +365,7 @@ mol.modules.map.layers = function(mol) {
                     this
                 );
                 if(first) {
-                    if(this.display.list.find('.layer').length>0) {
+                    if(this.display.list.find('.layer').length > 0) {
                         this.display.list.find('.layer')[0].click();
                     }
                 }

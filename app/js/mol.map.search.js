@@ -23,7 +23,8 @@ mol.modules.map.search = function(mol) {
                 'SELECT DISTINCT l.scientificname as name,'+
                     't.type as type,'+
                     't.sort_order as type_sort_order, ' +
-                    't.title as type_title,'+
+                    't.title as type_title, '+
+                    't.opacity as opacity, ' +
                     'CONCAT(l.provider,\'\') as source, '+
                     'CONCAT(p.title,\'\') as source_title,'+
                     's.source_type as source_type, ' +

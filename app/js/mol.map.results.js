@@ -85,7 +85,7 @@ mol.modules.map.results = function(mol) {
                         alert(
                             'The map is currently limited to 100 layers ' +
                             'at a time. Please remove some layers before ' +
-                            ' adding more.'
+                            'adding more.'
                         );
                     } else {
                         self.bus.fireEvent(
