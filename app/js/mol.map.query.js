@@ -85,6 +85,16 @@ mol.modules.map.query = function(mol) {
         start : function() {
             this.addQueryDisplay();
             this.addEventHandlers();
+            
+            //disable all map clicks
+            this.toggleMapLayerClicks(true);
+            
+        },
+        
+        toggleMapLayerClicks : function(boo) {            
+            //true to disable
+            this.bus.fireEvent(
+                new mol.bus.Event('layer-click-toggle', {disable: boo}));          
         },
 
         /*
@@ -182,8 +192,10 @@ mol.modules.map.query = function(mol) {
                     
                     if($(self.display.queryButton).hasClass('selected')) {
                         $(self.display.queryButton).html("ON");
+                        self.toggleMapLayerClicks(true);
                     } else {
                         $(self.display.queryButton).html("OFF");
+                        self.toggleMapLayerClicks(false);
                     } 
                     
                     //TODO
@@ -213,10 +225,14 @@ mol.modules.map.query = function(mol) {
                             }
                         });
                         
-                        $.cookie('mol_species_list_query_tip', 'tip_seen');
+                        $.cookie(
+                            'mol_species_list_query_tip', 
+                            'tip_seen',
+                            {expires: 30});
                     }
                 }
             );
+            
             /*
              *  Map click handler that starts a list tool request.
              */
@@ -268,6 +284,8 @@ mol.modules.map.query = function(mol) {
                     }
                 }
             );
+
+
 
             /*
              *  Assembles HTML for an species list given results from
@@ -337,6 +355,7 @@ mol.modules.map.query = function(mol) {
                         );
                         $(self.display.queryButton).addClass('selected');
                         $(self.display.queryButton).html("ON");
+                        self.toggleMapLayerClicks(true);
                     } else {
                         console.log("hiding species list");
                         $(self.display).hide();
@@ -351,6 +370,7 @@ mol.modules.map.query = function(mol) {
                         );
                         $(self.display.queryButton).removeClass('selected');
                         $(self.display.queryButton).html("OFF");
+                        self.toggleMapLayerClicks(false);
                     }
                 }
             );
@@ -1245,11 +1265,6 @@ mol.modules.map.query = function(mol) {
             this.classInput=$(this).find('.class');
             this.types=$(this).find('.types');
             this.queryButton=$(this).find('#speciesListButton');
-            
-            //TODO
-            //add a mouseover hint to the button
-            
-            
             
             $(this.types).find('.ecoregion').toggle(false);
             $(this.types).find('.range').toggle(false);
