@@ -518,7 +518,7 @@ mol.modules.map.results = function(mol) {
                     filterType, 
                     filterName
                 ),
-                options = [];
+                options = [filter.find('.all')];
            
             _.each(
                 _.keys(optionNames),
