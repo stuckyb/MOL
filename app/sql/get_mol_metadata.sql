@@ -1,70 +1,95 @@
---get_mol_metdata(texttext, text, text)
--- Function to get tile data (the_geom_webmercator and cartodb_id) for a single MOL layer.
+-- get_mol_metadata(text)
+-- Function to feature metadata json a singlerecord.
 -- Params:
---	table_name-cartodb_id: data table name + cartodb_id	
+--    dataset_id-cartodb_id: The dataset and cartodb_id	of a record within it.
 -- Returns:
---- 	
+---   JSON object with name:value pairs to populate the metadata popup.
+
 DROP function get_mol_metadata(text);
 CREATE FUNCTION get_mol_metadata(text)
 	RETURNS text
 AS
 $$
-  DECLARE sql TEXT;
-  DECLARE table_name TEXT;
-  DECLARE cartodb_id INT;
-  DECLARE data RECORD; -- a data table record
-  DECLARE taxo RECORD; -- a taxonomy table record
-  DECLARE geom RECORD; -- a geometry table record
-  DECLARE result RECORD; -- the metadata record
-  DECALRE metadata_json; -- sql to output metadata as json 
-  BEGIN
-      table_name = split_part($1,'-', 1);
-      cartodb_id = CAST(split_part($1,'-', 2) as Int);
-      metadata_json = '''{''' 
-      sql = 'SELECT * from data_registry WHERE table_name = ''' || table_name || '''';
-      FOR data in EXECUTE sql LOOP
-         -- basic range map or point data
-         IF data.type = 'range' or data.type = 'points' THEN
-                sql = ('SELECT ' || data.metadata_fields ||' FROM ' || data.table_name || '  WHERE cartodb_id = ' ||  cartodb_id );
-	 -- Checklist with a seperate geometry table and taxonomy table
-         ELSIF data.type = 'checklist' and data.taxo_table <> Null and data.geom_table <> Null THEN 		
-		-- Get the sciname and species_id field names from the checklist taxonomy table
-	        sql = 'SELECT d.scientificname, d.species_id INTO taxo FROM data_registry d WHERE d.table_name = ''' || data.taxo_table  || ''' LIMIT 1';
-	        EXECUTE sql;
-		-- Get the geom_id field from the checklist geometry table
-		sql = 'SELECT d.geom_id INTO geom FROM data_registry d WHERE table_name = ''' || data.geom_table || ''' LIMIT 1';
-	        EXECUTE sql;
-                -- Glue them all together
-		sql = 'SELECT ' || data.metadata_fields || 
-                  ' FROM ' || data.table_name || ' d ' ||
-                  ' JOIN ' || data.taxo_table || ' t ON ' ||
-                  '   d.' || data.species_id || ' = t.' || taxo.species_id ||
-                  ' JOIN ' || data.geom_table || ' g ON ' ||
-                  '   d.' || data.geom_id || ' = g.' || geom.geom_id  ||
-		  ' WHERE d.cartodb_id = ' || cartodb_id; 
-
-	  -- Checklist with a seperate geometry table but no taxonomy table
-	  ELSIF data.type = 'checklist' and data.taxo_table = Null and data.scientificname <> Null THEN 
-		-- Get the geom_id field from the checklist geometry table
-		sql = 'SELECT d.geom_id INTO geom FROM data_registry d WHERE table_name = ''' || data.geom_table || ''' LIMIT 1';
-	        EXECUTE sql;
-                -- Glue them all together
-		sql = 'SELECT ' || 
-                  '   d.' || taxo.scientificname || ', ' ||
-                  '   TEXT(''' || data.type || ''') as type, ' || 
-                  '   TEXT(''' || data.provider || ''') as provider, ' ||
-                  '   TEXT(''' || data.table_name || ''') as data_table, ' ||
-                  '   ST_Extent(g.the_geom) as extent, ' ||
-                  '   count(*) as feature_count ' ||
-                  '  FROM ' || data.table_name || ' d ' ||
-                  ' JOIN ' || data.geom_table || ' g ON ' ||
-                  '   d.' || data.geom_id || ' = g.' || geom.geom_id  ||
-		  ' where d.cartodb_id = ' || cartodb_id; 
-           ELSE
-                -- We got nuttin'
-	  END IF;
-          EXECUTE sql INTO result;
-	  RETURN result;
-       END LOOP;
+    DECLARE sql TEXT;
+    DECLARE table_name TEXT;
+    DECLARE cartodb_id INT;
+    DECLARE metadata RECORD; -- a feature_metadata table record
+    DECLARE data RECORD; -- a feature_metadata table record
+    DECLARE taxo RECORD; -- a taxonomy table record
+    DECLARE geom RECORD; -- a geometry table record
+    DECLARE result RECORD; -- the metadata record
+    -- contents of a SQL CONCAT() that creates the json for wax info windows
+    DECLARE json_string text; 
+    DECLARE metadata_records text[]; 
+    DECLARE index int;
+    BEGIN
+        table_name = split_part($1,'-', 1);
+        cartodb_id = CAST(split_part($1,'-', 2) as Int);
+        sql = 'SELECT * from feature_metadata WHERE data_table = ''' || 
+            table_name || ''' ORDER BY "order" asc';
+        json_string = '';
+        FOR metadata in EXECUTE sql LOOP
+            IF json_string <> '' THEN
+                json_string = json_string || ','','',';
+            END IF;    
+            json_string = CONCAT(
+                json_string, '''"',
+                metadata.title, 
+                '":"'',',
+                (CASE WHEN 
+                    metadata.field is not null and metadata.field <> '' 
+                THEN metadata.field || ',' 
+                ELSE ''''',' 
+                END),
+                '''"'''
+            );  
+        END LOOP;
+        sql = 'SELECT * from data_registry WHERE table_name = ''' || 
+            table_name || ''' LIMIT 1';
+        EXECUTE sql INTO data;
+        sql = '';
+        IF data.type = 'range' or data.type = 'points' THEN              
+            -- regular data table
+            sql = 'SELECT CONCAT(''{'',' || json_string || 
+                ',''}'') as feature_metadata FROM ' || data.table_name || 
+                ' WHERE cartodb_id = ' || cartodb_id;   
+        ELSIF data.type = 'taxogeooccchecklist' THEN        
+            -- GBIF!
+            sql = 'SELECT CONCAT(''{'',' || json_string || 
+                ',''}'') as feature_metadata ' ||
+                'FROM ' || data.table_name || ' d ' ||
+                'JOIN ' || data.taxo_table || ' t ON ' ||
+                '   d.' || data.species_id || ' = t.' || 
+                    data.species_link_id || ' ' ||
+                'JOIN ' || data.geom_table || ' g ON ' ||
+                '   d.' || data.geom_id || ' = g.' || data.geom_link_id  ||
+                'JOIN ' || data.occurrence_table || ' o ON ' ||
+                '   d.' || data.geom_id || ' = o.' || data.occurrence_geom_id ||
+                ' WHERE d.cartodb_id = ' || cartodb_id;   
+        ELSIF data.type = 'ecoregion' or data.type = 'taxogeochecklist' THEN 
+            -- Checklist with a seperate geometry table and taxonomy table
+            sql = 'SELECT CONCAT(''{'',' || json_string || 
+                ',''}'') as feature_metadata ' ||
+                ' FROM ' || data.table_name || ' d ' ||
+                ' JOIN ' || data.taxo_table || ' t ON ' ||
+                '   d.' || data.species_id || ' = t.' || data.species_link_id ||
+                ' JOIN ' || data.geom_table || ' g ON ' ||
+                '   d.' || data.geom_id || ' = g.' || data.geom_link_id  ||
+                ' WHERE d.cartodb_id = ' || cartodb_id; 
+        ELSIF data.type = 'protectedarea' or data.type = 'geochecklist' THEN 
+            -- Checklist with a seperate geometry table but no taxonomy table
+            sql = 'SELECT CONCAT(''{'',' || json_string || 
+                ',''}'') as feature_metadata ' ||
+                'FROM ' || data.table_name || ' d ' ||
+                'JOIN ' || data.geom_table || ' g ON ' || 
+                '   d.' || data.geom_id || ' = g.' || 
+                    data.geom_link_id  || ' ' ||
+                'where d.cartodb_id = ' || cartodb_id; 
+        ELSE
+            --nada
+        END IF; 
+       
+        EXECUTE sql INTO result;
+        RETURN TEXT(result.feature_metadata);
     END
 $$  language plpgsql;
