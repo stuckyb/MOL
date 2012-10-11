@@ -327,6 +327,8 @@ mol.modules.map.query = function(mol) {
                             .toggle(false);
                         $(self.display.types).find('.ecoregion')
                             .removeClass('selected');
+                        $(self.display.types).find('.range')
+                            .toggle(false);
                         if ($(self.display.types).find('.range')
                             .hasClass('selected')) {
                                 alert('Available for North America only.');
@@ -337,6 +339,8 @@ mol.modules.map.query = function(mol) {
                             .toggle(true);
                         $(self.display.types).find('.ecoregion')
                             .removeClass('selected');
+                        $(self.display.types).find('.range')
+                            .toggle(true);
                         if ($(self.display.types).find('.range')
                             .hasClass('selected')) {
                                 alert('Available for North America only.');
@@ -345,7 +349,7 @@ mol.modules.map.query = function(mol) {
                         $(self.display.types).find('.ecoregion')
                             .toggle(false);
                         $(self.display.types).find('.range')
-                            .toggle(true);
+                            .toggle(false);
                         $(self.display.types).find('.range')
                             .addClass('selected');
                     }
@@ -1133,8 +1137,13 @@ mol.modules.map.query = function(mol) {
                     '   "Use this control to select species group and radius.' +
                     '   Then right click (Mac Users: \'control-click\')' +
                     '   on focal location on map." class="' + className +
-                    '   widgetTheme">' +
+                    '   widgetTheme">' +                    
                     '   <div class="controls">' +
+                    '     <span>' + 
+                    '       <button class="selected">' +
+                    '         <img src="/static/maps/search/ecoregion.png">' +
+                    '       </button>' + 
+                    '     </span>' +
                     '       Search Radius ' +
                     '       <select class="radius">' +
                     '           <option selected value="50">50 km</option>' +
@@ -1181,6 +1190,7 @@ mol.modules.map.query = function(mol) {
             this.classInput=$(this).find('.class');
             this.types=$(this).find('.types');
             $(this.types).find('.ecoregion').toggle(false);
+            $(this.types).find('.range').toggle(false);
         }
     });
 
