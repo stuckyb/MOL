@@ -16,8 +16,10 @@ mol.modules.map.menu = function(mol) {
             start: function() {
                 this.display = new mol.map.menu.MenuDisplay();
                 this.bottomdisplay = new mol.map.menu.BottomMenuDisplay();
+                
                 this.display.toggle(true);
                 this.bottomdisplay.toggle(true);
+                
                 this.addEventHandlers();
                 this.fireEvents();
             },
@@ -43,18 +45,6 @@ mol.modules.map.menu = function(mol) {
                             new mol.bus.Event('search-display-toggle'));
                     }
                 );
-                this.bottomdisplay.legendItem.click(
-                    function(event) {
-                        self.bus.fireEvent(
-                            new mol.bus.Event('legend-display-toggle'));
-                    }
-                );
-                this.bottomdisplay.speciesListItem.click(
-                    function(event) {
-                        self.bus.fireEvent(
-                            new mol.bus.Event('species-list-tool-toggle'));
-                    }
-                );
                 this.display.layersToggle.click(
                     function(event) {
                         if(self.display.layersToggle[0].src
@@ -73,6 +63,38 @@ mol.modules.map.menu = function(mol) {
                             self.display.layersToggle[0].src = 
                                 '/static/maps/layers/collapse.png';
                         }
+                    }
+                );
+
+                this.bus.addHandler(
+                    'add-legend-toggle-button',
+                    function(event) {
+                        $(self.bottomdisplay).prepend(event.button);
+                        self.bottomdisplay.legendItem = 
+                            $(self.bottomdisplay).find('#legend');
+                            
+                        self.bottomdisplay.legendItem.click(
+                            function(event) {
+                                self.bus.fireEvent(
+                                    new mol.bus.Event('legend-display-toggle'));
+                            }
+                        );
+                    }
+                );
+                
+                this.bus.addHandler(
+                    'add-query-toggle-button',
+                    function(event) {
+                        $(self.bottomdisplay).prepend(event.button);
+                        self.bottomdisplay.queryItem = 
+                            $(self.bottomdisplay).find('#list');
+                            
+                        self.bottomdisplay.queryItem.click(
+                            function(event) {
+                                self.bus.fireEvent(
+                                    new mol.bus.Event('species-list-tool-toggle'));
+                            }
+                        );
                     }
                 );
 
@@ -125,6 +147,7 @@ mol.modules.map.menu = function(mol) {
 
                 this.bus.fireEvent(event);
                 this.bus.fireEvent(bottomevent);
+                              
             }
         }
     );
@@ -133,7 +156,7 @@ mol.modules.map.menu = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<div class="mol-LayerControl-Menu ">' +
+                    '<div id="topRightMenu" class="mol-LayerControl-Menu ">' +
                     '  <div class="label">' +
                     '    <img ' + 
                             'class="layersToggle" ' + 
@@ -167,25 +190,12 @@ mol.modules.map.menu = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<div class="mol-LayerControl-Menu ">' +
-                    '  <div ' + 
-                            'title="Toggle map legend." ' + 
-                            'id="legend" ' + 
-                            'class="widgetTheme legend button">' + 
-                            'Legend' + 
-                    '  </div>' +
-                    '  <div ' + 
-                            'title="Toggle species list radius tool ' + 
-                                '(right-click to use)" ' + 
-                            'id="list" ' + 
-                            'class="widgetTheme legend button">' + 
-                            'Species&nbsp;Lists' + 
-                    '  </div>' +
+                    '<div ' + 
+                        'id="bottomRightMenu" ' + 
+                        'class="mol-LayerControl-Menu">' +
                     '</div>';
 
                 this._super(html);
-                this.legendItem = $(this).find('#legend');
-                this.speciesListItem = $(this).find('#list');
             }
         }
     );
