@@ -264,11 +264,15 @@ mol.modules.map.results = function(mol) {
                 filters = this.filters,
                 self = this;
             
+            
+            
             //parse result to fill in the filter values
             _.each(
                 _.keys(filters),
                 //each filter runs on a layer property
                 function(filter) {
+                    //first clear out any old filter content
+                    filters[filter].values ={};
                     _.each(
                         results,
                         //for each property, set a filter with a title
@@ -282,7 +286,7 @@ mol.modules.map.results = function(mol) {
                     );
                 }     
             );
-
+            
             display.clearFilters();
 
             // Set options in each filter.
