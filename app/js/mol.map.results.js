@@ -573,7 +573,7 @@ mol.modules.map.results = function(mol) {
                     '           <div class="resultAuthor"></div>' +
                     '       </div>' +
                     '       <label class="buttonContainer">' +
-                    '           <input type="checkbox" class="checkbox" />' +
+                    '           <input type="checkbox" checked="checked" class="checkbox" />' +
                     '           <span class="customCheck"></span>' +
                     '       </label> ' +
                     '       </ul>' +
