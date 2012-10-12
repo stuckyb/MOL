@@ -1045,6 +1045,7 @@ div.mol-Dashboard-TableWindow {
 }
 
 .mol-Map-QueryDisplay button.toggleBtn {
+    width:35px;
     height: 22px;
     color: #fff;
     padding: 3px;
