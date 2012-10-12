@@ -12,7 +12,7 @@ mol.modules.map.dashboard = function(mol) {
                     'SELECT DISTINCT * ' +
                     'FROM get_dashboard_summary()';
                 this.dashboard_sql = '' +
-                    'SELECT DISTINCT * ' +
+                    'SELECT DISTINCT *, 100 as pct_in_tax ' +
                     'FROM dash_cache ' +
                     'ORDER BY provider, classes;';
                 this.summary = null;
@@ -37,8 +37,6 @@ mol.modules.map.dashboard = function(mol) {
                     function(event) {
                         var params = null,
                             e = null;
-
-
                         if (event.state === undefined) {
                             if(self.display.dialog('isOpen')) {
                                 self.display.dialog('close');
@@ -48,21 +46,16 @@ mol.modules.map.dashboard = function(mol) {
                         } else {
                             self.display.dialog(event.state);
                         }
-
                     }
                 );
 
                 _.each(
                     this.display.datasets,
                     function(dataset) {
-                        var provider = $(dataset).find('.provider')
-                               .attr('class').replace('provider','').trim(),
-                            type = $(dataset).find('.type')
-                                .attr('class').replace('type','').trim(),
-                            _class = $(dataset).find('.class')
-                                .attr('class').replace('class','').trim(),
-                            dataset_title = $(dataset).find('.table')
-                                .attr('class').replace('table','').trim();
+                        var provider = $(dataset).data('provider'),
+                            type = $(dataset).data('type'),
+                            dataset_id = $(dataset).data('dataset_id'),
+                            dataset_title = $(dataset).data('dataset_title');
 
                         $(dataset).find('.provider').click (
                             function(event) {
@@ -70,26 +63,14 @@ mol.modules.map.dashboard = function(mol) {
                                     new mol.bus.Event(
                                         'metadata-toggle',
                                         {params:
-                                            {provider: provider,
-                                             type: type,
-                                             _class: _class,
-                                             text: dataset_title}}));
-
+                                            {dataset_id: dataset_id,
+                                             text: dataset_title}}
+                                     )
+                                 );
                             }
                         );
-
-                    }
-                );
-                _.each(
-                    this.display.datasets.find('.type'),
-                    function(td) {
-                         var type = $(td).attr('class')
-                                .replace('type','').trim();
-                         $(td).click (
+                        $(dataset).find('.type').click (
                                 function(event) {
-                                    var _class = $(this)
-                                            .attr('class')
-                                                .replace('class','').trim();
                                     self.bus.fireEvent(
                                         new mol.bus.Event(
                                             'metadata-toggle',
@@ -97,7 +78,7 @@ mol.modules.map.dashboard = function(mol) {
                                 }
                          );
                     }
-                )
+                );
             },
 
             /**
@@ -139,7 +120,6 @@ mol.modules.map.dashboard = function(mol) {
                             $(".mol-Dashboard-TableWindow")
                                 .height($(".mol-Dashboard").height()-95);
                         });
-
                         self.addEventHandlers();
                     }
                 );
@@ -207,28 +187,6 @@ mol.modules.map.dashboard = function(mol) {
                     '      <span class="records_total">' + 
                     '      </span>' +
                     '    </div>' +
-                    
-                    
-                    /* list filtering on hold for now
-                    '  <div id="dashTypeFilter" class="typeFilters">' +
-                    '    <div id="dashTitle" class="title">' +
-                            'Datasets' +
-                    '    </div><br/>' +
-                    //taxa filter
-                    '    <div class="class">' +
-                    '      <span class="filterHeader">Filter by Class</span>' +
-                    '    </div>' +
-                    '    <br/>' +
-                    '    <br/>' +
-                    //type filter
-                    '    <div class="type">' +
-                    '      <span class="filterHeader">Filter by Type</span>' +
-                    '    </div>' +
-                    '  </div>' +
-                    */
-                   
-                   
-                   
                     '    <div class="mol-Dashboard-TableWindow">' +
                     '      <table class="dashtable">' +
                     '       <thead>' +
@@ -258,19 +216,15 @@ mol.modules.map.dashboard = function(mol) {
                     }
                 )
 
-                //list filtering on hold for now
-                //$(this).find('#dashTitle')
-                    //.html(this.numsets + ' Datasets Shown');
-
                 this.dashtable = $(this).find('.dashtable');
                 this.dashtable.tablesorter({
-                                sortList: [[1,1]],
-                                widthFixed: true,
-                                theme: "blue",
-                                widgets: ["filter","zebra"]
-                                });
+                    sortList: [[1,1]],
+                    widthFixed: true,
+                    theme: "blue",
+                    widgets: ["filter","zebra"]
+                });
                 this.datasets = $(this).find('.dataset');
-
+               
                 this.dashtable.find("tr.master")
                     .click(function() {
                         $(this).parent().find('tr').each(
@@ -292,13 +246,7 @@ mol.modules.map.dashboard = function(mol) {
                         )
                     }
                 );
-                
-                /* list filtering on hold for now
-                $(this).find("input:checkbox").change(
-                    function(event) {}
-                );
-                */
-                 
+
                 if(summary!=null) {
                     self.fillSummary(summary);
                 }
@@ -306,22 +254,6 @@ mol.modules.map.dashboard = function(mol) {
 
             fillRow:  function(row) {
                 var self = this;
-                
-                /* list filtering on hold for now
-                
-                this.numsets++;
-                
-                this.fillFilter('type',row.type_id, row.type);
-                this.fillFilter('provider',row.provider_id, row.provider);
-
-                _.each(
-                    row.classes.split(','),
-                    function(taxa) {
-                        self.fillFilter('class', taxa, taxa);
-                    }
-                );
-                
-                */
 
                 $(this).find('.tablebody').append(
                     new mol.map.dashboard.DashboardRowDisplay(row));
@@ -335,17 +267,6 @@ mol.modules.map.dashboard = function(mol) {
                         $(self).find('.{0}'.format(stat)).text(summary[stat]);
                     }
                 )
-            },
-            
-            fillFilter: function(type, name, value) {
-                if($(this).find('.{0} .{1}'.format(type, name)).length==0) {
-                    $(this).find('.typeFilters .{0}'.format(type)).append(
-                        new mol.map.dashboard.DashboardFilterDisplay(
-                            type, 
-                            name, 
-                            value)
-                    );
-                }
             }
         }
     );
@@ -354,29 +275,37 @@ mol.modules.map.dashboard = function(mol) {
         {
             init: function(row) {
                 var html = '' +
-                    '    <tr class="master dataset">' +
-                    '      <td class="table {8}">{8}</td>' +
-                    '      <td class="type {0}">{1}</td>' +
-                    '      <td class="provider {2}">{3}</td>' +
-                    '      <td class="class {4}">{5}</td>' +
-                    '      <td class="spnames">{6}</td>' +
-                    '      <td class="records">{7}</td>' +
-                    '      <td class="pctmatch">{9}</td>' +
-                    '    </tr>';    
+                    '<tr class="master dataset">' +
+                        '<td class="table {8}">{8}</td>' +
+                        '<td class="type {0}">{1}</td>' +
+                        '<td class="provider {2}">{3}</td>' +
+                        '<td class="class {4}">{5}</td>' +
+                        '<td class="spnames">{6}</td>' +
+                        '<td class="records">{7}</td>' +
+                        '<td class="pctmatch">{9}</td>' +
+                    '</tr>',
+                    self = this;
                     
-                this._super(
+                self._super(
                     html.format(
                         row.type_id,
                         row.type,
-                        row.provider_id,
+                        row.dataset_id,
                         row.provider,
                         row.classes.split(',').join(' '),
                         row.classes.split(',').join(', '),
                         this.format(row.species_count),
                         this.format(row.feature_count),
-                        row.dataset,
+                        row.dataset_title,
                         row.pct_in_tax
                     )
+                );
+                //store some data in each dataset/row   
+                 _.each(
+                     _.keys(row),
+                     function(key) {
+                        $(self).data(key, row[key]);
+                     }
                 );
             },
             
@@ -399,23 +328,6 @@ mol.modules.map.dashboard = function(mol) {
          }
     );
     
-    mol.map.dashboard.DashboardFilterDisplay = mol.mvp.View.extend(
-        {
-            init: function(type, name, value) {
 
-                var html = '' +
-                    '<div class="chkAndLabel filter {1}">' +
-                    '   <input type="checkbox" checked="checked" ' +
-                            'name="{1}" class="filters {0} {1}"/>' +
-                    '   <label for="{1}">{2}</label>' +
-                    '</div>';
-
-                this._super(html.format(type, name, value));
-                $(this).find('input').data('type', type);
-                $(this).find('input').data('name', name);
-
-            }
-        }
-    );
 
 };
