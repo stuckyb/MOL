@@ -244,6 +244,10 @@ mol.modules.map.query = function(mol) {
                             $(".selected", $(self.display.types)).val(),
                         className =  $("option:selected",
                             $(self.display.classInput)).text();
+                    
+                    if($(self.display).data('qtip')) {
+                        $(self.display).qtip('destroy');
+                    }
 
                     if (self.enabled 
                             && 
