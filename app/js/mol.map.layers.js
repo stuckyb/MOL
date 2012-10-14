@@ -8,6 +8,7 @@ mol.modules.map.layers = function(mol) {
                 this.proxy = proxy;
                 this.bus = bus;
                 this.map = map;
+                this.clickDisabled = false;
             },
 
             start: function() {
@@ -72,21 +73,40 @@ mol.modules.map.layers = function(mol) {
                         _.each(
                             event.layers,
                             function(layer) {
-                                var extent = $.parseJSON(layer.extent);
-                                var layer_bounds = new google.maps.LatLngBounds(
-                                        new google.maps.LatLng(extent.sw.lat,extent.sw.lng),
-                                        new google.maps.LatLng(extent.ne.lat,extent.ne.lng)
-                                     );
-                                if(!bounds) {
-                                    bounds = layer_bounds;
-                                } else {
-                                    bounds.union(layer_bounds)
-                                }
+                                var extent,
+                                    layer_bounds;
+                                try {
+                                    extent = $.parseJSON(layer.extent);
+                                    layer_bounds = new google.maps.LatLngBounds(
+                                        new google.maps.LatLng(
+                                            extent.sw.lat,extent.sw.lng
+                                        ),
+                                        new google.maps.LatLng(
+                                            extent.ne.lat,extent.ne.lng
+                                        )
+                                    );
+                                    if(!bounds) {
+                                        bounds = layer_bounds;
+                                    } else {
+                                        bounds.union(layer_bounds)
+                                    }
+                                } 
+                                catch(e) {
+                                    console.log(
+                                        '[Invalid extent for {0} \'{1}\'] {2}'
+                                        .format(
+                                            layer.dataset_id,
+                                            layer.name,
+                                            layer.extent
+                                        )
+                                    );
+                                }  
                             }
                         )
                         self.addLayers(event.layers);
-                        self.map.fitBounds(bounds)
-
+                        if(bounds != null) {
+                            self.map.fitBounds(bounds)
+                        }
                     }
                 );
                 this.bus.addHandler(
@@ -102,6 +122,43 @@ mol.modules.map.layers = function(mol) {
                             self.display.toggle(event.visible);
                         }
                     }
+                );
+                this.bus.addHandler(
+                    'layer-click-toggle',
+                    function(event) {
+                        self.clickDisabled = event.disable;
+                        
+                        //true to disable
+                        if(event.disable) {
+                            self.map.overlayMapTypes.forEach(
+                              function(mt) {
+                                  mt.interaction.remove();
+                                  mt.interaction.clickAction = "";
+                               }
+                            );
+                        } else {                            
+                            _.each(
+                                $(self.display.list).children(),
+                                function(layer) {
+                                    self.map.overlayMapTypes.forEach(
+                                        function(mt) {
+                                            if(mt.name == $(layer).attr('id') 
+                                                && $(layer).find('.layer')
+                                                    .hasClass('selected')) {
+                                                mt.interaction.add();
+                                                mt.interaction.clickAction 
+                                                    = "full";
+                                            } else {
+                                                mt.interaction.remove();
+                                                mt.interaction.clickAction = "";
+                                            }
+                                            
+                                        }
+                                    );
+                                }
+                            );                            
+                        }
+                    }  
                 );
             },
 
@@ -122,38 +179,24 @@ mol.modules.map.layers = function(mol) {
 
             /**
              * Sorts layers so that they're grouped by name. Within each named
-             * group, they are sorted by type: points, protectedarea, range,
-             * ecoregion.
+             * group, they are sorted by type_sort_order set in the types table.
              *
-             * @layers array of layer objects {name, type}
+             * @layers array of layer objects {name, type, ...}
              */
             sortLayers: function(layers) {
-                var sorted = [],
-                    names_map = {};
-
-                _.sortBy( // Layer names sorted alphabetically.
-                    _.each(layers,
-                          function(layer) {
-                              names_map[layer.name] = layer.name; // Gather unique names.
-                          })
-                );
-
-                _.each(_.keys(names_map),
-                       function(name) {
-                           var group = _.groupBy(_.groupBy(layers, "name")[name], "type");
-
-                           _.each(
-                               ['points', 'protectedarea', 'range', 'ecoregion'],
-                               function(type) {
-                                   if (group[type]) {
-                                       sorted.push(group[type][0]);
-                                   }
-                               }
-                           );
-                       });
-
-                return sorted;
-
+                return _.flatten(
+                    _.groupBy(
+                        _.sortBy(
+                            layers,
+                            function(layer) {
+                                return layer.type_sort_order;
+                            }
+                        ),
+                        function(group) {
+                            return(group.name);
+                        }
+                     )
+                 );
             },
 
             /**
@@ -189,7 +232,8 @@ mol.modules.map.layers = function(mol) {
                 var all = [],
                     layerIds = [],
                     sortedLayers = this.sortLayers(layers),
-                    first = (this.display.find('.layer').length==0) ? true : false;
+                    first = (this.display.find('.layer').length==0) ? true : false,
+                    wasSelected = this.display.find('.layer.selected');
 
                 _.each(
                     sortedLayers,
@@ -198,31 +242,17 @@ mol.modules.map.layers = function(mol) {
                             self = this,
                             opacity = null;
 
-                        self.bus.fireEvent(new mol.bus.Event('show-layer-display-toggle'));
-
-                        // Set initial opacity based on layer type.
-                        //TODO, pull this from the types metadata table instead (issue #125)
-                        switch (layer.type) {
-                        case 'points':
-                            opacity = 1.0;
-                            break;
-                        case 'ecoregion':
-                            opacity = .25;
-                            break;
-                        case 'protectedarea':
-                            opacity = 1.0;
-                            break;
-                        case 'range':
-                            opacity = .5;
-                            break;
-                        }
-                        layer.opacity = opacity;
+                        self.bus.fireEvent(
+                            new mol.bus.Event('show-layer-display-toggle')
+                        );
+                        
+                        //set this correctly
                         //disable interactivity to start
                         self.map.overlayMapTypes.forEach(
-                                    function(mt) {
-                                        mt.interaction.remove();
-                                        mt.interaction.clickAction = "";
-                                    }
+                            function(mt) {
+                                mt.interaction.remove();
+                                mt.interaction.clickAction = "";
+                            }
                         );
 
                         // Hack so that at the end we can fire opacity event with all layers.
@@ -298,8 +328,13 @@ mol.modules.map.layers = function(mol) {
                                 self.map.overlayMapTypes.forEach(
                                     function(mt) {
                                         if(mt.name == layer.id && $(l.layer).hasClass('selected')) {
-                                            mt.interaction.add();
-                                            mt.interaction.clickAction = "full"
+                                            if(!self.clickDisabled) {
+                                               mt.interaction.add();
+                                               mt.interaction.clickAction = "full" 
+                                            } else {
+                                               mt.interaction.remove();
+                                               mt.interaction.clickAction = "";
+                                            }
                                         } else {
                                             mt.interaction.remove();
                                             mt.interaction.clickAction = "";
@@ -374,8 +409,36 @@ mol.modules.map.layers = function(mol) {
                     },
                     this
                 );
+                
                 if(first) {
-                    this.display.list.find('.layer')[0].click();
+                    if(this.display.list.find('.layer').length > 0) {
+                        this.display.list.find('.layer')[0].click();
+                    }
+                } else {
+                    if(sortedLayers.length == 1) {
+                        //if only one new layer is being added
+                        //select it
+                        this.display.list.find('.layer')
+                            [this.display.list.find('.layer').length-1].click();
+                    } else if(sortedLayers.length > 1) {
+                        //if multiple layers are being added
+                        //layer clickability returned to the
+                        //previously selected layer
+                        if(wasSelected.length > 0) {
+                            this.map.overlayMapTypes.forEach(
+                                function(mt) {
+                                    if(mt.name == 
+                                        wasSelected.parent().attr("id")) {
+                                        mt.interaction.add();
+                                        mt.interaction.clickAction = "full";
+                                    } else {
+                                        mt.interaction.remove();
+                                        mt.interaction.clickAction = "";
+                                    }
+                                }
+                            );
+                        }
+                    }
                 }
             },
 
@@ -436,7 +499,7 @@ mol.modules.map.layers = function(mol) {
                     '  <div class="break"></div>' +
                     '</div>';
 
-                this._super(html.format(layer.source, layer.type, layer.name, layer.names, layer.feature_count, layer.source_title, layer.type_title));
+                this._super(html.format(layer.source_type, layer.type, layer.name, layer.names, layer.feature_count, layer.source_title, layer.type_title));
                 this.attr('id', layer.id);
                 this.opacity = $(this).find('.opacity').slider({value: 0.5, min: 0, max:1, step: 0.02, animate:"slow"});
                 this.toggle = $(this).find('.toggle').button();
