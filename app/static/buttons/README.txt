@@ -3,6 +3,9 @@ To create one of these buttons in GIMP:
 2. Use the "Arial Rounded MT Bold" font which ships with MacOS X.
     -> http://www.microsoft.com/typography/fonts/font.aspx?fmid=918
     -> At some point, we should really switch to using a free font here.
+        -> For the Dashboard button, I tried to use the open-source font
+           "Liberation Sans Bold", which is designed to be similar to
+           Arial.
 3. Font size should be 16px.
 4. Autocrop.
 5. Increase the canvas size to a height of 19px approximately.
