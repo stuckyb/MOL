@@ -53,9 +53,10 @@ mol.modules.map.dashboard = function(mol) {
                     this.display.datasets,
                     function(dataset) {
                         var provider = $(dataset).data('provider'),
-                            type = $(dataset).data('type'),
+                            type = $(dataset).data('type_id'),
                             dataset_id = $(dataset).data('dataset_id'),
-                            dataset_title = $(dataset).data('dataset_title');
+                            dataset_title = $(dataset).data('dataset_title'),
+                            type_title = $(dataset).data('type');
 
                         $(dataset).find('.provider').click (
                             function(event) {
@@ -64,7 +65,7 @@ mol.modules.map.dashboard = function(mol) {
                                         'metadata-toggle',
                                         {params:
                                             {dataset_id: dataset_id,
-                                             text: dataset_title}}
+                                             title: dataset_title}}
                                      )
                                  );
                             }
@@ -74,7 +75,7 @@ mol.modules.map.dashboard = function(mol) {
                                     self.bus.fireEvent(
                                         new mol.bus.Event(
                                             'metadata-toggle',
-                                            {params:{type: type}}));
+                                            {params:{type: type, title: type_title}}));
                                 }
                          );
                     }

@@ -29,10 +29,6 @@ mol.modules.map.metadata = function(mol) {
             }
        },
 
-        /**
-         * Starts the MenuEngine. Note that the container parameter is
-         * ignored.
-         */
         start: function() {
             
             this.addEventHandlers();
@@ -40,60 +36,47 @@ mol.modules.map.metadata = function(mol) {
         getTypeMetadata:function (params) {
             var self = this,
                 type = params.type,
-                sql = this.sql['types'].format(type),
-                params = {sql:sql,key: 'tm514-{0}'.format(type)},
-                action = new mol.services.Action('cartodb-sql-query', params),
-            success = function(action, response) {
-                var results = {type:type, response:response};
-                if(!results.response.error) {
-                    if(self.display) {
-                      self.display.dialog('close');
-                    }
-                    if(results.response.total_rows > 0) {
-                        self.display = new mol.map.metadata.MetadataDisplay(results);
-                    }
-                } else {}
-                },
-                failure = function(action, response) {
-                    self.bus.fireEvent(
-                        new mol.bus.Event(
-                            'hide-loading-indicator', 
-                            {source : 'type-metadata-{0}'.format(type)}
-                        )
-                    );
-                };
-            
-            this.proxy.execute(
-                    action, 
-                    new mol.services.Callback(success, failure)
-                )
+                title = params.title,
+                sql = this.sql['types'].format(type);
+              this.getMetadata(sql, title);  
         },
         getDashboardMetadata: function (params) {
             var self = this,
                 dataset_id = params.dataset_id,
-                sql = this.sql['dashboard'].format(dataset_id),
-                params = {sql:sql, key: 'dm-{0}'.format(dataset_id)},
-                action = new mol.services.Action('cartodb-sql-query', params);
-                if(this.display) {
-                    this.display.dialog('close');
-                }
-                    this.display.html('');
-                }
+                title = params.title,
+                sql = this.sql['dashboard'].format(dataset_id);
+            this.getMetadata(sql, title);
+        },
+        getMetadata: function (sql, title) {
+            this.bus.fireEvent(
+                new mol.bus.Event(
+                    'show-loading-indicator',
+                    {source: sql}
+                )
+            );
             $.getJSON(
                 this.url.format(sql),
                 function(response) {
                     if(self.display) {
-                   self.display.dialog('close');
-                }
-                if(!response.error) {
-                    if(response.total_rows > 0) {
-                        self.display = new mol.map.metadata.MetadataDisplay(response);
+                        self.display.dialog('close');
                     }
-                }
+                    if(!response.error) {
+                        if(response.total_rows > 0) {
+                            self.display = 
+                                new mol.map.metadata.MetadataDisplay(
+                                    response, title
+                                );
+                        }
+                    }
+                    self.bus.fireEvent(
+                        new mol.bus.Event(
+                            'hide-loading-indicator',
+                            {source: sql}
+                        )
+                    );
                 }
             );
         },
-
         addEventHandlers: function() {
             var self = this;
 
@@ -119,15 +102,15 @@ mol.modules.map.metadata = function(mol) {
 
 mol.map.metadata.MetadataDisplay = mol.mvp.View.extend(
     {
-        init: function(response) {
+        init: function(response, title) {
             var self = this,
                 html = '' +
-                    '<div id="dialog">',
+                    '<div id="dialog" title="{0}">'.format(title),
                 row_html = '' +
                     '<div class="metarow metakey-{0}">' +
                         '<div class="key">{1}</div>' +
                         '<div class="values"></div>' +
-                    '</div>';
+                    '</div>'; 
            _.each(
                 response.rows[0],
                 function(val, key, list) {
