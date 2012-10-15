@@ -12,9 +12,9 @@ mol.modules.map.dashboard = function(mol) {
                     'SELECT DISTINCT * ' +
                     'FROM get_dashboard_summary()';
                 this.dashboard_sql = '' +
-                    'SELECT DISTINCT *, 100 as pct_in_tax ' +
+                    'SELECT DISTINCT * ' +
                     'FROM dash_cache ' +
-                    'ORDER BY provider, classes;';
+                    'ORDER BY dataset_title asc';
                 this.summary = null;
                 this.types = {};
                 this.sources = {};
@@ -198,7 +198,7 @@ mol.modules.map.dashboard = function(mol) {
                     '          <th><b>Taxon</b></th>' +
                     '          <th><b>Species Names</b></th>' +
                     '          <th><b>Records</b></th>' +
-                    '          <th><b>% Match</b></th>' +
+                    //'          <th><b>% Match</b></th>' +
                     '        </tr>' +
                     '       </thead>' +
                     '       <tbody class="tablebody"></tbody>' +
@@ -219,7 +219,7 @@ mol.modules.map.dashboard = function(mol) {
 
                 this.dashtable = $(this).find('.dashtable');
                 this.dashtable.tablesorter({
-                    sortList: [[1,1]],
+                    sortList: [[0,0]],
                     widthFixed: true,
                     theme: "blue",
                     widgets: ["filter","zebra"]
@@ -283,7 +283,7 @@ mol.modules.map.dashboard = function(mol) {
                         '<td class="class {4}">{5}</td>' +
                         '<td class="spnames">{6}</td>' +
                         '<td class="records">{7}</td>' +
-                        '<td class="pctmatch">{9}</td>' +
+                        //'<td class="pctmatch">{9}</td>' +
                     '</tr>',
                     self = this;
                     
@@ -297,8 +297,8 @@ mol.modules.map.dashboard = function(mol) {
                         row.classes.split(',').join(', '),
                         this.format(row.species_count),
                         this.format(row.feature_count),
-                        row.dataset_title,
-                        row.pct_in_tax
+                        row.dataset_title
+                        //row.pct_in_tax
                     )
                 );
                 //store some data in each dataset/row   
