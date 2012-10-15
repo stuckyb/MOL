@@ -250,13 +250,30 @@ mol.modules.map.search = function(mol) {
              * Clicking the cancel button hides the search display and fires
              * a cancel-search event on the bus.
              */
-            this.display.cancelButton.click(
+            this.display.toggleButton.click(
                 function(event) {
                     var params = {
                         visible: false
                     };
-
-                    self.display.toggle(false);
+                    
+                    if(self.display.searchDisplay.is(':visible')) {
+                        self.display.searchDisplay.hide(
+                            "blind",
+                            {direction: "horizontal"},
+                            1000
+                        );
+                        $(this).text('▶');
+                        params.visible = false;
+                    } else {
+                        self.display.searchDisplay.show(
+                            "blind",
+                            {direction: "horizontal"},
+                            1000
+                        );
+                        $(this).text('◀');
+                        params.visible = true;
+                    }
+                   
                     self.bus.fireEvent(
                         new mol.bus.Event('results-display-toggle', params));
                 }
@@ -358,16 +375,19 @@ mol.modules.map.search = function(mol) {
         init: function() {
             var html = '' +
                 '<div class="mol-LayerControl-Search widgetTheme">' +
-                '    <div class="title ui-autocomplete-input">Search:</div>' +
-                '    <input class="value" type="text" ' +
-                        'placeholder="Search by species name">' +
-                '    <button class="execute">Go</button>' +
-                '    <button class="cancel">&nbsp;</button>' +
+                '    <div class="title">Search</div>' +
+                '    <div class="searchDisplay">' +
+                '       <input class="value ui-autocomplete-input" type="text" ' +
+                            'placeholder="Search by species name">' +
+                '       <button class="execute">Go</button>' +
+                '   </div>'+
+                '   <button class="toggle">◀</button>' +
                 '</div>';
 
             this._super(html);
             this.goButton = $(this).find('.execute');
-            this.cancelButton = $(this).find('.cancel');
+            this.toggleButton = $(this).find('.toggle');
+            this.searchDisplay = $(this).find('.searchDisplay');
             this.searchBox = $(this).find('.value');
         },
 

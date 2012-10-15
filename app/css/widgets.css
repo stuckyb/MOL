@@ -103,6 +103,10 @@ button:hover{
         left: -3px;
         top: -50px;
 }
+
+.mol-Bottombar  {
+        white-space: nowrap;
+}
 .mol-Sidebar .button {
     background-image: -ms-linear-gradient(rgba(29,43,82,0.65) 89%, rgba(29,43,82,0.75) 57%);
     background-image: -webkit-gradient(
@@ -529,6 +533,10 @@ padding: 3px;
 /* BEGIN SEARCH UI
  * search, results
  */
+.mol-LayerControl-Search {
+    white-space: nowrap;
+}
+
 
 .mol-LayerControl-Search, .mol-LayerControl-Add {
     display: table-cell;
@@ -543,7 +551,14 @@ padding: 3px;
     -moz-user-select: text;
 }
 .mol-LayerControl-Search .title{
-    display:inline-block;
+    float:left;
+    line-height: 25px;
+    font-size: 1.1em;
+    margin-right: 2px;
+    -moz-user-select: none;
+}
+.mol-LayerControl-Search .searchDisplay{
+    float:left;
     line-height: 25px;
     font-size: 1.1em;
     margin-right: 2px;
@@ -588,15 +603,15 @@ padding: 3px;
     width: 50px;
     height:20px;
 }
-.mol-LayerControl-Search .cancel{
-    display:inline;
+.mol-LayerControl-Search .toggle{
+    float:left;
     height: 20px;
-    width: 20px;
+    width: 23px;
     margin-left: 4px;
-    background-image:url('/static/maps/search/cancel.png');
+    /*background-image:url('/static/maps/search/cancel.png');
     background-size:14px 14px;
     background-repeat:no-repeat;
-    background-position:center;
+    background-position:center;*/
 }
 
 .mol-LayerControl-Search .cancel img{
@@ -785,7 +800,7 @@ div.mol-Dashboard-TableWindow {
 }
 
 .mol-LayerControl-Results .filters .filter .options{
-    max-height: 125px;
+    max-height: 150px;
     overflow-y: auto;
 }
 .mol-LayerControl-Results .filters .filter .filterName{

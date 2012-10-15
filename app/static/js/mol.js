@@ -405,6 +405,11 @@ mol.modules.services.cartodb = function(mol) {
                 this.ctlBottom = new ControlDisplay('LeftBottomControl');
                 controls[ControlPosition.BOTTOM_LEFT].clear();
                 controls[ControlPosition.BOTTOM_LEFT].push(this.ctlBottom.element);
+                
+                // Add bottom center map control.
+                this.ctlBottomCenter = new ControlDisplay('BottomCenterControl');
+                controls[ControlPosition.BOTTOM_CENTER].clear();
+                controls[ControlPosition.BOTTOM_CENTER].push(this.ctlBottomCenter.element);
 
                 // Add bottom right map control.
                 this.ctlRightBottom = new ControlDisplay('RightBottomControl');
@@ -438,8 +443,11 @@ mol.modules.services.cartodb = function(mol) {
                 case ControlPosition.BOTTOM_LEFT:
                     control = this.ctlBottom;
                     break;
-                 case ControlPosition.RIGHT_BOTTOM:
+                case ControlPosition.RIGHT_BOTTOM:
                     control = this.ctlRightBottom;
+                    break;
+                case ControlPosition.BOTTOM_CENTER:
+                    control = this.ctlBottomCenter;
                     break;
                 }
 
@@ -580,6 +588,9 @@ mol.modules.services.cartodb = function(mol) {
                     minLat: -85,
                     maxLat: 85,
                     mapTypeControl: false,
+                    panControl: false,
+                    zoomControl: false,
+                    streetViewControl: false,
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     styles: [
                       {
@@ -1480,12 +1491,6 @@ mol.modules.map.menu = function(mol) {
                     }
                 );
 
-                this.display.searchItem.click(
-                    function(event) {
-                        self.bus.fireEvent(
-                            new mol.bus.Event('search-display-toggle'));
-                    }
-                );
                 this.display.layersToggle.click(
                     function(event) {
                         if(self.display.layersToggle[0].src
@@ -1611,12 +1616,6 @@ mol.modules.map.menu = function(mol) {
                             'class="widgetTheme search button">' +
                             'Dashboard' + 
                     '    </div>' +
-                    '    <div ' + 
-                            'title="Toggle layer search tools." ' + 
-                            'id="search" ' + 
-                            'class="widgetTheme search button">' + 
-                            'Search' + 
-                    '  </div>' +
                     '</div>';
 
                 this._super(html);
@@ -1768,9 +1767,23 @@ mol.modules.map.results = function(mol) {
                         self.display.toggle(false);
                     } else {
                         if (event.visible === undefined) {
-                            self.display.toggle();
+                            self.display.toggle(
+                                "slide",
+                                {direction: "left"},
+                                1000
+                            );
+                        } else if (event.visible) {
+                            self.display.show(
+                                "slide",
+                                {direction: "left"},
+                                1000
+                            );
                         } else {
-                            self.display.toggle(event.visible);
+                            self.display.hide(
+                                "slide",
+                                {direction: "left"},
+                                1000
+                            );
                         }
                     }
                 }
@@ -2553,13 +2566,30 @@ mol.modules.map.search = function(mol) {
              * Clicking the cancel button hides the search display and fires
              * a cancel-search event on the bus.
              */
-            this.display.cancelButton.click(
+            this.display.toggleButton.click(
                 function(event) {
                     var params = {
                         visible: false
                     };
-
-                    self.display.toggle(false);
+                    
+                    if(self.display.searchDisplay.is(':visible')) {
+                        self.display.searchDisplay.hide(
+                            "blind",
+                            {direction: "horizontal"},
+                            1000
+                        );
+                        $(this).text('▶');
+                        params.visible = false;
+                    } else {
+                        self.display.searchDisplay.show(
+                            "blind",
+                            {direction: "horizontal"},
+                            1000
+                        );
+                        $(this).text('◀');
+                        params.visible = true;
+                    }
+                   
                     self.bus.fireEvent(
                         new mol.bus.Event('results-display-toggle', params));
                 }
@@ -2661,16 +2691,19 @@ mol.modules.map.search = function(mol) {
         init: function() {
             var html = '' +
                 '<div class="mol-LayerControl-Search widgetTheme">' +
-                '    <div class="title ui-autocomplete-input">Search:</div>' +
-                '    <input class="value" type="text" ' +
-                        'placeholder="Search by species name">' +
-                '    <button class="execute">Go</button>' +
-                '    <button class="cancel">&nbsp;</button>' +
+                '    <div class="title">Search</div>' +
+                '    <div class="searchDisplay">' +
+                '       <input class="value ui-autocomplete-input" type="text" ' +
+                            'placeholder="Search by species name">' +
+                '       <button class="execute">Go</button>' +
+                '   </div>'+
+                '   <button class="toggle">◀</button>' +
                 '</div>';
 
             this._super(html);
             this.goButton = $(this).find('.execute');
-            this.cancelButton = $(this).find('.cancel');
+            this.toggleButton = $(this).find('.toggle');
+            this.searchDisplay = $(this).find('.searchDisplay');
             this.searchBox = $(this).find('.value');
         },
 
@@ -3057,9 +3090,9 @@ mol.modules.map.tiles = function(mol) {
                     'SELECT DISTINCT * ' +
                     'FROM get_dashboard_summary()';
                 this.dashboard_sql = '' +
-                    'SELECT DISTINCT *, 100 as pct_in_tax ' +
+                    'SELECT DISTINCT * ' +
                     'FROM dash_cache ' +
-                    'ORDER BY provider, classes;';
+                    'ORDER BY dataset_title asc';
                 this.summary = null;
                 this.types = {};
                 this.sources = {};
@@ -3243,7 +3276,7 @@ mol.modules.map.tiles = function(mol) {
                     '          <th><b>Taxon</b></th>' +
                     '          <th><b>Species Names</b></th>' +
                     '          <th><b>Records</b></th>' +
-                    '          <th><b>% Match</b></th>' +
+                    //'          <th><b>% Match</b></th>' +
                     '        </tr>' +
                     '       </thead>' +
                     '       <tbody class="tablebody"></tbody>' +
@@ -3264,7 +3297,7 @@ mol.modules.map.tiles = function(mol) {
 
                 this.dashtable = $(this).find('.dashtable');
                 this.dashtable.tablesorter({
-                    sortList: [[1,1]],
+                    sortList: [[0,0]],
                     widthFixed: true,
                     theme: "blue",
                     widgets: ["filter","zebra"]
@@ -3328,7 +3361,7 @@ mol.modules.map.tiles = function(mol) {
                         '<td class="class {4}">{5}</td>' +
                         '<td class="spnames">{6}</td>' +
                         '<td class="records">{7}</td>' +
-                        '<td class="pctmatch">{9}</td>' +
+                        //'<td class="pctmatch">{9}</td>' +
                     '</tr>',
                     self = this;
                     
@@ -3342,8 +3375,8 @@ mol.modules.map.tiles = function(mol) {
                         row.classes.split(',').join(', '),
                         this.format(row.species_count),
                         this.format(row.feature_count),
-                        row.dataset_title,
-                        row.pct_in_tax
+                        row.dataset_title
+                        //row.pct_in_tax
                     )
                 );
                 //store some data in each dataset/row   
@@ -5217,11 +5250,9 @@ mol.map.metadata.MetadataDisplay = mol.mvp.View.extend(
                             }
                         ).get())+150
             );
-            //this.dialog.moveToTop();
-            //return(this);
+            this.dialog.moveToTop();
         }
-    }
-    );
+    });
 
 };
 
@@ -5583,7 +5614,7 @@ mol.modules.map.sidebar = function(mol) {
             fireEvents: function() {
                 var params = {
                         display: this.display,
-                        slot: mol.map.ControlDisplay.Slot.FIRST,
+                        slot: mol.map.ControlDisplay.Slot.LAST,
                         position: google.maps.ControlPosition.LEFT_CENTER
                     },
                     event = new mol.bus.Event('add-map-control', params);

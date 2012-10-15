@@ -124,9 +124,23 @@ mol.modules.map.results = function(mol) {
                         self.display.toggle(false);
                     } else {
                         if (event.visible === undefined) {
-                            self.display.toggle();
+                            self.display.toggle(
+                                "slide",
+                                {direction: "left"},
+                                1000
+                            );
+                        } else if (event.visible) {
+                            self.display.show(
+                                "slide",
+                                {direction: "left"},
+                                1000
+                            );
                         } else {
-                            self.display.toggle(event.visible);
+                            self.display.hide(
+                                "slide",
+                                {direction: "left"},
+                                1000
+                            );
                         }
                     }
                 }
