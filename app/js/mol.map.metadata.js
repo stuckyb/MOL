@@ -191,11 +191,9 @@ mol.map.metadata.MetadataDisplay = mol.mvp.View.extend(
                             }
                         ).get())+150
             );
-            //this.dialog.moveToTop();
-            //return(this);
+            this.dialog.moveToTop();
         }
-    }
-    );
+    });
 
 };
 
