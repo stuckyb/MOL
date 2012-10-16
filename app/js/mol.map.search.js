@@ -11,15 +11,16 @@ mol.modules.map.search = function(mol) {
             this.bus = bus;
             this.searching = {};
             this.names = [];
-            this.bornOnDate = Math.random();
+            this.url = '' +
+                'http://mol.cartodb.com/api/v2/sql?q={0}&callback=?';
             this.ac_label_html = ''+
                 '<div class="ac-item">' +
                     '<span class="sci">{0}</span>' +
                     '<span class="eng">{1}</span>' +
                 '</div>';
             this.ac_sql = "" +
-                "SELECT n,v from ac_beta where n~*'\\m{0}' OR v~*'\\m{0}'";
-            this.sql = '' +
+                "SELECT n,v from ac where nv @@ to_tsquery('{0}:*')";
+            this.search_sql = '' +
                 'SELECT DISTINCT l.scientificname as name,'+
                     't.type as type,'+
                     't.sort_order as type_sort_order, ' +
@@ -29,9 +30,8 @@ mol.modules.map.search = function(mol) {
                     'CONCAT(p.title,\'\') as source_title,'+
                     's.source_type as source_type, ' +
                     's.title as source_type_title, ' +   
-                    'CONCAT(n.class,\'\') as _class, ' +
                     'l.feature_count as feature_count, '+
-                    'CONCAT(n.common_names_eng,\'\') as names, ' +
+                    'CONCAT(n.v,\'\') as names, ' +
                     'CONCAT(\'{' +
                         '"sw":{' +
                             '"lng":\',ST_XMin(l.extent),\', '+
@@ -53,11 +53,10 @@ mol.modules.map.search = function(mol) {
                     'l.provider = p.provider ' +
                 'LEFT JOIN source_types s ON ' +
                     'p.source_type = s.source_type ' +
-                'LEFT JOIN taxonomy n ON ' +
-                    'l.scientificname = n.scientificname ' +
+                'LEFT JOIN ac n ON ' +
+                    'l.scientificname = n.n ' +
                 'WHERE ' +
-                    "l.scientificname~*'\\m{0}' " +
-                    "OR n.common_names_eng~*'\\m{0}' " +
+                     " n.nv @@ to_tsquery('{0}:*')";
                 'ORDER BY name, type_sort_order';
         },
 
@@ -103,13 +102,12 @@ mol.modules.map.search = function(mol) {
                 {
                     minLength: 3, 
                     source: function(request, response) {
-                        $.post(
-                            'cache/get',
-                            {
-                                key: 'ac-beta-{0}-{1}'
-                                    .format(request.term,self.bornOnDate),
-                                sql: self.ac_sql.format(request.term)
-                            },
+                        $.getJSON(
+                            self.url.format(self.ac_sql.format(
+                                    $.trim(request.term)
+                                    .replace(/ /g, ' ')
+                                    .replace(/ /g, escape(' & '))
+                                )),
                             function (json) {
                                 var names = [],scinames=[];
                                 _.each (
@@ -242,7 +240,7 @@ mol.modules.map.search = function(mol) {
              */
             this.display.goButton.click(
                 function(event) {
-                          self.search(self.display.searchBox.val());
+                    self.search(self.display.searchBox.val());
                 }
             );
 
@@ -254,26 +252,19 @@ mol.modules.map.search = function(mol) {
                 function(event) {
                     var params = {
                         visible: false
-                    };
+                    }, that = this;
                     
                     if(self.display.searchDisplay.is(':visible')) {
-                        self.display.searchDisplay.hide(
-                            "blind",
-                            {direction: "horizontal"},
-                            1000
-                        );
+                        self.display.searchDisplay.hide();
                         $(this).text('▶');
                         params.visible = false;
                     } else {
-                        self.display.searchDisplay.show(
-                            "blind",
-                            {direction: "horizontal"},
-                            1000
-                        );
+                        
+                        self.display.searchDisplay.show();
                         $(this).text('◀');
                         params.visible = true;
                     }
-                   
+                    
                     self.bus.fireEvent(
                         new mol.bus.Event('results-display-toggle', params));
                 }
@@ -328,12 +319,7 @@ mol.modules.map.search = function(mol) {
                         {source : "search-{0}".format(term)}
                     )
                 );
-                self.bus.fireEvent(
-                    new mol.bus.Event(
-                        'results-display-toggle',
-                        {visible : false}
-                    )
-                );
+                
                 $(self.display.searchBox).autocomplete('disable');
                 $(self.display.searchBox).autocomplete('enable');
                 if(term.length<3) {
@@ -342,29 +328,29 @@ mol.modules.map.search = function(mol) {
                     );
                 } else {
                     $(self.display.searchBox).val(term);
-                    $.post(
-                            'cache/get',
-                            {
-                                key:'search-{0}-{1}'
-                                    .format(term,this.bornOnDate),
-                                sql:this.sql.format(term)
-                            },
-                            function (response) {
-                                var results = {term:term, response:response};
-                                self.bus.fireEvent(
-                                    new mol.bus.Event(
-                                        'hide-loading-indicator', 
-                                        {source : "search-{0}".format(term)}
-                                    )
-                                );
-                                self.bus.fireEvent(
-                                    new mol.bus.Event(
-                                        'search-results', 
-                                        results
-                                    )
-                                );
-                            },
-                            'json'
+                    $.getJSON(
+                        this.url.format(
+                            this.search_sql.format(
+                                $.trim(term)
+                                .replace(/ /g, ' ')
+                                .replace(/ /g, escape(' & '))
+                            )
+                        ),
+                        function (response) {
+                            var results = {term:term, response:response};
+                            self.bus.fireEvent(
+                                new mol.bus.Event(
+                                    'hide-loading-indicator', 
+                                    {source : "search-{0}".format(term)}
+                                )
+                            );
+                            self.bus.fireEvent(
+                                new mol.bus.Event(
+                                    'search-results', 
+                                    results
+                                )
+                            );
+                        }
                     );
                }
 
