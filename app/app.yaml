@@ -12,13 +12,6 @@ builtins:
 
 handlers:
 
-- url: /admin/.*
-  script: admin_handler.application
-  login: admin
-
-- url: /tiles/.*
-  script: tile_handler.application
-
 - url: /js
   static_dir: js
 
@@ -39,24 +32,6 @@ handlers:
 - url: /(.*\.(gif|png|jpg))
   static_files: static/\1
   upload: static/(.*\.(gif|png|jpg))
-
-- url: /cache/.*
-  script: cache_handler.application
-
-- url: /cartodb/.*
-  script: cartodb_handler.application
-
-- url: /eol/.*
-  script: eol_handler.application
-
-- url: /gbif/.*
-  script: gbif_handler.application
-
-- url: /api/autocomplete
-  script: autocomplete_handler.application
-
-- url: /backend/.*
-  script: search_cache_backend.application
 
 - url: /about.*
   script: homepage.application
