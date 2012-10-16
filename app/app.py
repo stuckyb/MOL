@@ -22,8 +22,8 @@ class BaseHandler(webapp2.RequestHandler):
 
 class MapPage(BaseHandler):
     def get(self):
-        self.render_template('map-index-template.html',
-                             {'prod': PROD, 'r': random.random()})
+        self.render_template('home.html',
+                             {'title': 'MOL', 'prod': PROD, 'r': random.random()})
 
 class TestPage(BaseHandler):
     def get(self):

@@ -13,45 +13,104 @@ define([
   return Backbone.View.extend({
 
     el: '#map',
+    options: null,
     map: null,
 
     initialize: function (options) {
       this.template = _.template(template);
-      Views.DetailView.prototype.initialize.call(this, options);
-      // Load google maps and create an instance.
+      Backbone.View.prototype.initialize.call(this, options);
       loadMaps({
         key: 'AIzaSyDJdVhfQhecwp0ngAGzN9zwqak8FaEkSTA',
         geometry: false,
       }).done(_.bind(function () {
-        this.model.set({ map: {
-          zoom: 8,
+        this.options = {
+          zoom: 3,
           center: new google.maps.LatLng(37.3689, -122.0353),
-          mapTypeId: google.maps.MapTypeId.ROADMAP
-        }}, { silent: true });
+          maxZoom: 10,
+          minZoom: 2,
+          minLat: -85,
+          maxLat: 85,
+          mapTypeControl: false,
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+          styles: [
+            {
+              featureType: "administrative",
+              stylers: [
+                { visibility: "on" }
+              ]
+            },
+            {
+              featureType: "administrative.locality",
+              stylers: [
+                { visibility: "off" }
+              ]
+            },
+            {
+              featureType: "landscape",
+              stylers: [
+                { visibility: "off" }
+              ]
+            },
+            {
+              featureType: "road",
+              stylers: [
+                { visibility: "off" }
+              ]
+            },
+            {
+              featureType: "poi",
+              stylers: [
+                { visibility: "off" }
+              ]
+            },{
+              featureType: "water",
+              stylers: [
+                { visibility: "on" },
+                { saturation: -65 },
+                { lightness: -15 },
+                { gamma: 0.83 }
+              ]
+            },
+            {
+              featureType: "transit",
+              stylers: [
+                { visibility: "off" }
+              ]
+            },{
+              featureType: "administrative",
+              stylers: [
+                { visibility: "on" }
+              ]
+            },{
+              featureType: "administrative.country",
+              stylers: [
+                { visibility: "on" }
+              ]
+            },{
+              featureType: "administrative.province",
+             stylers: [
+                { visibility: "on" }
+              ]
+            }
+          ]
+        };
+        this.render();
       }, this));
     },
 
-    // (Overide)
     render: function () {
-      var self = this;
-      var model = this.parentView.model;
-
       if (!this.map) {
         this.$el.html(this.template());
         if (!window.google || !window.google.maps) return this;
-
-        // Draw the map
-        this.map = new google.maps.Map($('#canvas', this.el).get(0),
-                                      this.model.get('map'));
-      }
-      
+        this.map = new google.maps.Map($('#canvas', this.el).get(0), this.options);
+      }      
       return this;
     },
 
     resize: function() {
       if (window.google && window.google.maps)
         google.maps.event.trigger(this.map, 'resize');
-      Views.DetailView.prototype.resize.call(this);
+      Backbone.View.prototype.resize.call(this);
     },
 
   });

@@ -35,8 +35,9 @@ define([
 
     home: function () {
       console.log('Route:', 'home')
-      new Map().render();
-      Bus.init();
+      new Map();
+
+      // Bus.init();
     },
 
     // signup: function () {

@@ -19,7 +19,7 @@ require.config({
       exports: '_'
     },
     Backbone: {
-      deps: ['jQuery', 'Underscore', 'balanced'],
+      deps: ['jQuery', 'Underscore'],
       exports: 'Backbone'
     },
     uikit: {

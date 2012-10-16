@@ -4,42 +4,42 @@ runtime: python27
 threadsafe: true
 api_version: 1
 
-inbound_services:
-- warmup
-
 builtins:
 - remote_api: on
 
+inbound_services:
+- warmup
+- channel_presence
+
+libraries:
+- name: jinja2
+  version: "latest"
+
 handlers:
 
-- url: /js
-  static_dir: js
+- url: /rpc
+  script: mol.rpc.handler
+
+- url: /bus/.*
+  script: mol.bus.handler
+
+- url: /_ah/channel/.*
+  script: mol.bus.handler
 
 - url: /css
-  static_dir: css
+  static_dir: public/css
 
-- url: /static
-  static_dir: static
+- url: /fonts
+  static_dir: public/fonts
 
-- url: /sitemap.xml
-  static_files: static/config/sitemap.xml
-  upload: static/config/sitemap.xml
+- url: /img
+  static_dir: public/img
 
-- url: /robots.txt
-  static_files: static/config/robots.txt
-  upload: static/config/robots.txt
+- url: /js
+  static_dir: public/js
 
-- url: /(.*\.(gif|png|jpg))
-  static_files: static/\1
-  upload: static/(.*\.(gif|png|jpg))
-
-- url: /about.*
-  script: homepage.application
-
-- url: /
-  script: app.application
+- url: /templates
+  static_dir: public/templates
 
 - url: /.*
   script: app.application
-
-
