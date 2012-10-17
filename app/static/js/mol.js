@@ -285,53 +285,19 @@ mol.modules.mvp = function(mol) {
     );
 };
 mol.modules.services.cartodb = function(mol) {
-
     mol.services.cartodb = {};
-
     mol.services.cartodb.SqlApi = Class.extend(
         {
-            init: function(user, host) {
-                this.user = user;
-                this.host = host;
-                this.url = 'https://{0}.{1}/api/v2/sql';
-                this.cache = '/cache/get';
-            },
-
-            query: function(key, sql, callback) {
-                var data, xhr;
-
-                if(key) {
-                    data = {key:key, sql:sql};
-                    xhr = $.post(this.cache, data);
-                } else {
-                    data = {q:sql}
-                    xhr = $.post(this.url.format(this.user,this.host), data );
-                }
-
-
-                xhr.success(
-                    function(response) {
-                        callback.success(response);
-                    }
-                );
-
-                xhr.error(
-                    function(response) {
-                        callback.failure(response);
-                    }
-                );
+            init: function() {          
+                this.jsonp_url = '' +
+                    'http://d3dvrpov25vfw0.cloudfront.net/' +
+                    'api/v2/sql?callback=?&q={0}';
             }
         }
     );
-
-    mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi(
-        'mol', 'cartodb.com');
-
-    mol.services.cartodb.query = function(key, sql, callback) {
-        mol.services.cartodb.sqlApi.query(key, sql, callback);
-    };
-
-};mol.modules.map = function(mol) {
+    mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi();
+};
+mol.modules.map = function(mol) {
 
     mol.map = {};
 
@@ -976,7 +942,7 @@ mol.modules.map.layers = function(mol) {
             fireEvents: function() {
                 var params = {
                         display: this.display,
-                        slot: mol.map.ControlDisplay.Slot.TOP,
+                        slot: mol.map.ControlDisplay.Slot.MIDDLE,
                         position: google.maps.ControlPosition.TOP_RIGHT
                     },
                     event = new mol.bus.Event('add-map-control', params);
@@ -1538,22 +1504,6 @@ mol.modules.map.menu = function(mol) {
                         );
                     }
                 );
-                
-                this.bus.addHandler(
-                    'add-query-toggle-button',
-                    function(event) {
-                        $(self.bottomdisplay).prepend(event.button);
-                        self.bottomdisplay.queryItem = 
-                            $(self.bottomdisplay).find('#list');
-                            
-                        self.bottomdisplay.queryItem.click(
-                            function(event) {
-                                self.bus.fireEvent(
-                                    new mol.bus.Event('species-list-tool-toggle'));
-                            }
-                        );
-                    }
-                );
 
                 this.bus.addHandler(
                     'hide-layer-display-toggle',
@@ -1590,7 +1540,7 @@ mol.modules.map.menu = function(mol) {
             fireEvents: function() {
                 var params = {
                         display: this.display,
-                        slot: mol.map.ControlDisplay.Slot.FIRST,
+                        slot: mol.map.ControlDisplay.Slot.MIDDLE,
                         position: google.maps.ControlPosition.TOP_RIGHT
                     },
                     bottomparams = {
@@ -1816,12 +1766,6 @@ mol.modules.map.results = function(mol) {
                     } else {
                         self.showNoResults();
                     }
-                    //self.bus.fireEvent(
-                    //    new mol.bus.Event(
-                    //        'results-display-toggle', {visible: true}
-                    //    )
-                    //)
-                    
                 }
             );
         },
@@ -2345,8 +2289,6 @@ mol.modules.map.search = function(mol) {
             this.bus = bus;
             this.searching = {};
             this.names = [];
-            this.url = '' +
-                'http://mol.cartodb.com/api/v2/sql?q={0}&callback=?';
             this.ac_label_html = ''+
                 '<div class="ac-item">' +
                     '<span class="sci">{0}</span>' +
@@ -2437,10 +2379,11 @@ mol.modules.map.search = function(mol) {
                     minLength: 3, 
                     source: function(request, response) {
                         $.getJSON(
-                            self.url.format(self.ac_sql.format(
-                                    $.trim(request.term)
-                                    .replace(/ /g, ' ')
-                                )
+                            mol.services.cartodb.sqlApi.jsonp_url.format(
+                                    self.ac_sql.format(
+                                        $.trim(request.term)
+                                            .replace(/ /g, ' ')
+                                    )
                             ),
                             function (json) {
                                 var names = [],scinames=[];
@@ -2663,7 +2606,7 @@ mol.modules.map.search = function(mol) {
                 } else {
                     $(self.display.searchBox).val(term);
                     $.getJSON(
-                        this.url.format(
+                        mol.services.cartodb.sqlApi.jsonp_url.format(
                             this.search_sql.format(
                                 $.trim(term)
                                 .replace(/ /g, ' ')
@@ -3088,7 +3031,6 @@ mol.modules.map.tiles = function(mol) {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
-                this.url = "http://mol.cartodb.com/api/v2/sql?callback=?&q={0}";
                 this.summary_sql = '' +
                     'SELECT DISTINCT * ' +
                     'FROM get_dashboard_summary()';
@@ -3139,7 +3081,7 @@ mol.modules.map.tiles = function(mol) {
                             dataset_title = $(dataset).data('dataset_title'),
                             type_title = $(dataset).data('type');
 
-                        $(dataset).find('.provider').click (
+                        $(dataset).find('.table').click (
                             function(event) {
                                 self.bus.fireEvent(
                                     new mol.bus.Event(
@@ -3171,7 +3113,7 @@ mol.modules.map.tiles = function(mol) {
                 var self = this;
 
                 $.getJSON(
-                    this.url.format(this.dashboard_sql),
+                    mol.services.cartodb.sqlApi.jsonp_url.format(this.dashboard_sql),
                     function(response) {
                         self.display = new mol.map.dashboard.DashboardDisplay(
                             response.rows, self.summary
@@ -3207,7 +3149,7 @@ mol.modules.map.tiles = function(mol) {
                 );
                 
                 $.getJSON(
-                    this.url.format(this.summary_sql),
+                    mol.services.cartodb.sqlApi.jsonp_url.format(this.summary_sql),
                     function(response) {
                         self.summary = response.rows[0];
                         if(self.display) {
@@ -3262,7 +3204,7 @@ mol.modules.map.tiles = function(mol) {
                     '          <th><b>Taxon</b></th>' +
                     '          <th><b>Species Names</b></th>' +
                     '          <th><b>Records</b></th>' +
-                    //'          <th><b>% Match</b></th>' + //WIP
+                    '          <th><b>% Match</b></th>' + 
                     '        </tr>' +
                     '       </thead>' +
                     '       <tbody class="tablebody"></tbody>' +
@@ -3347,7 +3289,7 @@ mol.modules.map.tiles = function(mol) {
                         '<td class="class {4}">{5}</td>' +
                         '<td class="spnames">{6}</td>' +
                         '<td class="records">{7}</td>' +
-                        //'<td class="pctmatch">{9}</td>' + //WIP
+                        '<td class="pctmatch">{9}</td>' + 
                     '</tr>',
                     self = this;
                     
@@ -3361,8 +3303,8 @@ mol.modules.map.tiles = function(mol) {
                         row.classes.split(',').join(', '),
                         this.format(row.species_count),
                         this.format(row.feature_count),
-                        row.dataset_title
-                        //row.pct_in_tax
+                        row.dataset_title,
+                        row.pct_in_tax
                     )
                 );
                 //store some data in each dataset/row   
@@ -3480,13 +3422,11 @@ mol.modules.map.tiles = function(mol) {
         },
 
         start : function() {
-            this.addQueryMenuButton();
             this.addQueryDisplay();
             this.addEventHandlers();
             
             //disable all map clicks
             this.toggleMapLayerClicks(true);
-            
         },
         
         toggleMapLayerClicks : function(boo) {            
@@ -3495,31 +3435,14 @@ mol.modules.map.tiles = function(mol) {
                 new mol.bus.Event('layer-click-toggle', {disable: boo}));          
         },
         
-        addQueryMenuButton : function() {
-           var html = '' +
-                '  <div ' + 
-                    'title="Toggle species list radius tool ' + 
-                    '(right-click to use)" ' + 
-                    'id="list" ' + 
-                    'class="widgetTheme legend button">' + 
-                    'Species&nbsp;Lists' + 
-                '  </div>',
-                params = {
-                    button: html
-                },
-                event = new mol.bus.Event('add-query-toggle-button', params);
-                
-           this.bus.fireEvent(event); 
-        },
-        
         /*
          *  Add the species list tool controls to the map.
          */
         addQueryDisplay : function() {
             var params = {
                 display: null,
-                slot: mol.map.ControlDisplay.Slot.BOTTOM,
-                position: google.maps.ControlPosition.RIGHT_BOTTOM
+                slot: mol.map.ControlDisplay.Slot.TOP,
+                position: google.maps.ControlPosition.TOP_RIGHT
             };
             
             this.bus.fireEvent(new mol.bus.Event('register-list-click'));
@@ -3706,8 +3629,6 @@ mol.modules.map.tiles = function(mol) {
                 }
             );
 
-
-
             /*
              *  Assembles HTML for an species list given results from
              *  an AJAX call made in getList.
@@ -3759,14 +3680,18 @@ mol.modules.map.tiles = function(mol) {
 
             this.bus.addHandler(
                 'species-list-tool-toggle',
-                function(event) {
-                    self.enabled = !self.enabled;
+                function(event, params) {                    
+                    if(event.visible == true) {
+                        self.enabled = true;
+                    } else {
+                        self.enabled = false;
+                    }
+                    
                     if (self.listradius) {
                         self.listradius.setMap(null);
                     }
+                    
                     if (self.enabled == true) {
-                        console.log("showing species list");
-                        $(self.display).show();
                         _.each(
                             self.features,
                             function(feature) {
@@ -3778,8 +3703,6 @@ mol.modules.map.tiles = function(mol) {
                         $(self.display.queryButton).html("ON");
                         self.toggleMapLayerClicks(true);
                     } else {
-                        console.log("hiding species list");
-                        $(self.display).hide();
                         _.each(
                             self.features,
                             function(feature) {
@@ -3846,6 +3769,35 @@ mol.modules.map.tiles = function(mol) {
                         $(self.display.types).find('.range')
                             .addClass('selected');
                     }
+                }
+            );
+            
+            /**
+             * Clicking the cancel button hides the search display and fires
+             * a cancel-search event on the bus.
+             */
+            this.display.toggleButton.click(
+                function(event) {
+                    var params = {
+                        visible: false
+                        }, 
+                        that = this;
+                    
+                    console.log("toggleButton click");
+                    
+                    if(self.display.speciesDisplay.is(':visible')) {
+                        self.display.speciesDisplay.hide();
+                        $(this).text('◀');
+                        params.visible = false;
+                    } else {
+                        
+                        self.display.speciesDisplay.show();
+                        $(this).text('▶');
+                        params.visible = true;
+                    }
+                   
+                    self.bus.fireEvent(
+                        new mol.bus.Event('species-list-tool-toggle', params));
                 }
             );
         },
@@ -4290,6 +4242,7 @@ mol.modules.map.tiles = function(mol) {
                          '#cc3333',
                          '#FFFFFF',
                          '#000000'],
+                pieSliceText: 'none',
                 chartArea: {left:125, top:25, width:"100%", height:"85%"}
             };
 
@@ -4631,57 +4584,57 @@ mol.modules.map.tiles = function(mol) {
             var className = 'mol-Map-QueryDisplay',
                 html = '' +
                     '<div title=' +
-                    '   "Use this control to select species group and radius.' +
-                    '   Then right click (Mac Users: \'control-click\')' +
-                    '   on focal location on map." class="' + className +
-                    '   widgetTheme">' +                    
-                    '   <div class="controls">' +
-                    '     <span>' + 
-                    '       <button id="speciesListButton" ' + 
+                    '  "Use this control to select species group and radius.' +
+                    '  Then right click (Mac Users: \'control-click\')' +
+                    '  on focal location on map." class="' + className +
+                    '  widgetTheme">' +
+                    '  <button class="toggle">▶</button>' +
+                    '  <span class="title">Species List</span>' +
+                    '  <div class="speciesDisplay">' +
+                    '    <span>' + 
+                    '      <button id="speciesListButton" ' + 
                              'class="toggleBtn selected" ' +
-                    '         title="Click to activate species' + 
-                                    ' list querying.">' +
-                              'ON' +
-                    '       </button>' + 
-                    '     </span>' +
-                    '       Radius ' +
-                    '       <select class="radius">' +
-                    '           <option selected value="50">50 km</option>' +
-                    '           <option value="100">100 km</option>' +
-                    '           <option value="300">300 km</option>' +
-                    '       </select>' +
-                    '       Group ' +
-                    '       <select class="class" value="">' +
-                    '           <option selected' +
-                    '               value=" AND p.polygonres=100 ">' +
-                    '               Birds</option>' +
-                    '           <option value=" AND p.provider=\'fishes\' ">' +
-                    '               NA Freshwater Fishes</option>' +
-                    '           <option value=" AND p.class=\'reptilia\' ">' +
-                    '               Reptiles</option>' +
-                    '           <option value=" AND p.class=\'amphibia\' ">' +
-                    '               Amphibians</option>' +
-                    '           <option value=" AND p.class=\'mammalia\' ">' +
-                    '               Mammals</option>' +
-                    '       </select>' +
-                    '       <span class="types">' +
-                    '           <button class="range selected" ' +
-                    '               value=" AND p.type=\'range\'">' +
-                    '               <img ' +
-                    '                   title="Click to use Expert range maps' +
-                                            ' for query."' +
-                    '                   src="/static/maps/search/range.png">' +
-                    '           </button>' +
-                    '           <button class="ecoregion" ' +
-                    '               value=" AND p.type=\'ecoregion\' ">' +
-                    '               <img ' +
-                    '                   title="Click to use Regional' +
-                                            ' checklists for query." ' +
-                    '                   src="/static/maps/search/' +
-                                            'ecoregion.png">' +
-                    '           </button>' +
-                    '       </span>'+
-                    '   </div>' +
+                             'title="Click to activate species' + 
+                                 ' list querying.">' +
+                             'ON' +
+                    '      </button>' + 
+                    '    </span>' +
+                    '    <span>Radius </span>' +
+                    '    <select class="radius">' +
+                    '      <option selected value="50">50 km</option>' +
+                    '      <option value="100">100 km</option>' +
+                    '      <option value="300">300 km</option>' +
+                    '    </select>' +
+                    '    Group ' +
+                    '    <select class="class" value="">' +
+                    '      <option selected value=" AND p.polygonres=100 ">' +
+                    '        Birds</option>' +
+                    '      <option value=" AND p.provider=\'fishes\' ">' +
+                    '        NA Freshwater Fishes</option>' +
+                    '      <option value=" AND p.class=\'reptilia\' ">' +
+                    '        Reptiles</option>' +
+                    '      <option value=" AND p.class=\'amphibia\' ">' +
+                    '        Amphibians</option>' +
+                    '      <option value=" AND p.class=\'mammalia\' ">' +
+                    '        Mammals</option>' +
+                    '    </select>' +
+                    '    <span class="types">' +
+                    '      <button class="range selected" ' +
+                             'value=" AND p.type=\'range\'">' +
+                    '        <img title="Click to use Expert range maps' +
+                               ' for query."' +
+                    '          src="/static/maps/search/range.png">' +
+                    '      </button>' +
+                    '      <button class="ecoregion" ' +
+                    '        value=" AND p.type=\'ecoregion\' ">' +
+                    '        <img title="Click to use Regional' +
+                               ' checklists for query." ' +
+                               'src="/static/maps/search/ecoregion.png">' +
+                    '      </button>' +
+                    '    </span>' +
+                    '  </div>' +
+
+
                     '</div>';
 
             this._super(html);
@@ -4690,6 +4643,8 @@ mol.modules.map.tiles = function(mol) {
             this.classInput=$(this).find('.class');
             this.types=$(this).find('.types');
             this.queryButton=$(this).find('#speciesListButton');
+            this.toggleButton = $(this).find('.toggle');
+            this.speciesDisplay = $(this).find('.speciesDisplay');
             
             $(this.types).find('.ecoregion').toggle(false);
             $(this.types).find('.range').toggle(false);
@@ -5100,7 +5055,7 @@ mol.modules.map.metadata = function(mol) {
                 )
             );
             $.getJSON(
-                this.url.format(sql),
+                mol.services.cartodb.sqlApi.jsonp_url.format(sql),
                 function(response) {
                     if(self.display) {
                         self.display.dialog('close');
@@ -5236,7 +5191,8 @@ mol.map.metadata.MetadataDisplay = mol.mvp.View.extend(
                             }
                         ).get())+150
             );
-            this.dialog.moveToTop();
+            
+            this.dialog("moveToTop");
         }
     });
 

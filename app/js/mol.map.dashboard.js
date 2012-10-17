@@ -89,7 +89,7 @@ mol.modules.map.dashboard = function(mol) {
                 var self = this;
 
                 $.getJSON(
-                    mol.services.cartodb.sqlApi.url.format(this.dashboard_sql),
+                    mol.services.cartodb.sqlApi.jsonp_url.format(this.dashboard_sql),
                     function(response) {
                         self.display = new mol.map.dashboard.DashboardDisplay(
                             response.rows, self.summary
@@ -125,7 +125,7 @@ mol.modules.map.dashboard = function(mol) {
                 );
                 
                 $.getJSON(
-                    mol.services.cartodb.sqlApi.url.format(this.summary_sql),
+                    mol.services.cartodb.sqlApi.jsonp_url.format(this.summary_sql),
                     function(response) {
                         self.summary = response.rows[0];
                         if(self.display) {
@@ -180,7 +180,7 @@ mol.modules.map.dashboard = function(mol) {
                     '          <th><b>Taxon</b></th>' +
                     '          <th><b>Species Names</b></th>' +
                     '          <th><b>Records</b></th>' +
-                    //'          <th><b>% Match</b></th>' + //WIP
+                    '          <th><b>% Match</b></th>' + 
                     '        </tr>' +
                     '       </thead>' +
                     '       <tbody class="tablebody"></tbody>' +
@@ -265,7 +265,7 @@ mol.modules.map.dashboard = function(mol) {
                         '<td class="class {4}">{5}</td>' +
                         '<td class="spnames">{6}</td>' +
                         '<td class="records">{7}</td>' +
-                        //'<td class="pctmatch">{9}</td>' + //WIP
+                        '<td class="pctmatch">{9}</td>' + 
                     '</tr>',
                     self = this;
                     
@@ -279,8 +279,8 @@ mol.modules.map.dashboard = function(mol) {
                         row.classes.split(',').join(', '),
                         this.format(row.species_count),
                         this.format(row.feature_count),
-                        row.dataset_title
-                        //row.pct_in_tax
+                        row.dataset_title,
+                        row.pct_in_tax
                     )
                 );
                 //store some data in each dataset/row   
