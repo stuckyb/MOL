@@ -11,8 +11,6 @@ mol.modules.map.search = function(mol) {
             this.bus = bus;
             this.searching = {};
             this.names = [];
-            this.url = '' +
-                'http://mol.cartodb.com/api/v2/sql?q={0}&callback=?';
             this.ac_label_html = ''+
                 '<div class="ac-item">' +
                     '<span class="sci">{0}</span>' +
@@ -103,10 +101,11 @@ mol.modules.map.search = function(mol) {
                     minLength: 3, 
                     source: function(request, response) {
                         $.getJSON(
-                            self.url.format(self.ac_sql.format(
-                                    $.trim(request.term)
-                                    .replace(/ /g, ' ')
-                                )
+                            mol.services.cartodb.sqlApi.jsonp_url.format(
+                                    self.ac_sql.format(
+                                        $.trim(request.term)
+                                            .replace(/ /g, ' ')
+                                    )
                             ),
                             function (json) {
                                 var names = [],scinames=[];
@@ -329,7 +328,7 @@ mol.modules.map.search = function(mol) {
                 } else {
                     $(self.display.searchBox).val(term);
                     $.getJSON(
-                        this.url.format(
+                        mol.services.cartodb.sqlApi.jsonp_url.format(
                             this.search_sql.format(
                                 $.trim(term)
                                 .replace(/ /g, ' ')
