@@ -891,6 +891,7 @@ mol.modules.map.query = function(mol) {
                          '#cc3333',
                          '#FFFFFF',
                          '#000000'],
+                pieSliceText: 'none',
                 chartArea: {left:125, top:25, width:"100%", height:"85%"}
             };
 
