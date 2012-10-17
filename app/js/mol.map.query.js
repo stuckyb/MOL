@@ -625,7 +625,7 @@ mol.modules.map.query = function(mol) {
                 dlContent = $('' +
                     '<div class="mol-Map-ListQuery">' +
                     '   <div>' +
-                    '       <a href="http://mol.cartodb.com/api/v2/sql?q=' +
+                    '       <a href="http://dtredc0xh764j.cloudfront.net/api/v2/sql?q=' +
                                 sqlurl + '&format=csv"' +
                     '           class="mol-Map-ListQueryDownload">' +
                     '               download csv</a>' +
