@@ -2353,7 +2353,7 @@ mol.modules.map.search = function(mol) {
                     '<span class="eng">{1}</span>' +
                 '</div>';
             this.ac_sql = "" +
-                "SELECT n,v from ac where nv @@ to_tsquery('{0}:*')";
+                "SELECT n,v FROM ac WHERE n~*'\\m{0}' OR v~*'\\m{0}'";
             this.search_sql = '' +
                 'SELECT DISTINCT l.scientificname as name,'+
                     't.type as type,'+
@@ -2390,7 +2390,7 @@ mol.modules.map.search = function(mol) {
                 'LEFT JOIN ac n ON ' +
                     'l.scientificname = n.n ' +
                 'WHERE ' +
-                     " n.nv @@ to_tsquery('{0}:*')";
+                     "n.n~*'\\m{0}' OR n.v~*'\\m{0}' " +
                 'ORDER BY name, type_sort_order';
         },
 
@@ -2440,8 +2440,8 @@ mol.modules.map.search = function(mol) {
                             self.url.format(self.ac_sql.format(
                                     $.trim(request.term)
                                     .replace(/ /g, ' ')
-                                    .replace(/ /g, escape(' & '))
-                                )),
+                                )
+                            ),
                             function (json) {
                                 var names = [],scinames=[];
                                 _.each (
@@ -2667,7 +2667,6 @@ mol.modules.map.search = function(mol) {
                             this.search_sql.format(
                                 $.trim(term)
                                 .replace(/ /g, ' ')
-                                .replace(/ /g, escape(' & '))
                             )
                         ),
                         function (response) {
