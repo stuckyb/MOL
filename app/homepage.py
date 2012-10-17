@@ -17,6 +17,7 @@
 
 from google.appengine.api import memcache as m, mail
 from google.appengine.ext import webapp
+from google.appengine.api import urlfetch
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 import os
@@ -54,6 +55,13 @@ class DemoPage(BaseHandler):
     def get(self):
          self.redirect("/")
 
+class PressPage(BaseHandler):
+    def get(self):
+        result = urlfetch.fetch(url="http://mappinglife.wordpress.com/category/press/")
+        content_type = result.headers.get("Content-Type")
+        self.response.headers['Content-Type']=content_type
+        self.response.out.write(result.content)
+
 class MainPage(BaseHandler):
     def get(self):
         self.push_html('home.html')
@@ -66,7 +74,9 @@ application = webapp.WSGIApplication(
           ('/about/demo', DemoPage),
           ('/about/demo/', DemoPage),
           ('/about/people', PeoplePage),
-          ('/about/people/', PeoplePage)
+          ('/about/people/', PeoplePage),
+          ('/about/press', PressPage),
+          ('/about/press/', PressPage)
 #          ('/about/partners', PartnersPage),
 #          ('/about/partners/', PartnersPage)
           ],
