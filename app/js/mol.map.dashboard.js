@@ -7,7 +7,6 @@ mol.modules.map.dashboard = function(mol) {
             init: function(proxy, bus) {
                 this.proxy = proxy;
                 this.bus = bus;
-                this.url = "http://mol.cartodb.com/api/v2/sql?callback=?&q={0}";
                 this.summary_sql = '' +
                     'SELECT DISTINCT * ' +
                     'FROM get_dashboard_summary()';
@@ -90,7 +89,7 @@ mol.modules.map.dashboard = function(mol) {
                 var self = this;
 
                 $.getJSON(
-                    this.url.format(this.dashboard_sql),
+                    mol.services.cartodb.sqlApi.url.format(this.dashboard_sql),
                     function(response) {
                         self.display = new mol.map.dashboard.DashboardDisplay(
                             response.rows, self.summary
@@ -126,7 +125,7 @@ mol.modules.map.dashboard = function(mol) {
                 );
                 
                 $.getJSON(
-                    this.url.format(this.summary_sql),
+                    mol.services.cartodb.sqlApi.url.format(this.summary_sql),
                     function(response) {
                         self.summary = response.rows[0];
                         if(self.display) {

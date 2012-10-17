@@ -162,12 +162,6 @@ mol.modules.map.results = function(mol) {
                     } else {
                         self.showNoResults();
                     }
-                    //self.bus.fireEvent(
-                    //    new mol.bus.Event(
-                    //        'results-display-toggle', {visible: true}
-                    //    )
-                    //)
-                    
                 }
             );
         },
