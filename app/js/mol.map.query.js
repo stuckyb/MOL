@@ -121,8 +121,8 @@ mol.modules.map.query = function(mol) {
         addQueryDisplay : function() {
             var params = {
                 display: null,
-                slot: mol.map.ControlDisplay.Slot.BOTTOM,
-                position: google.maps.ControlPosition.RIGHT_BOTTOM
+                slot: mol.map.ControlDisplay.Slot.TOP,
+                position: google.maps.ControlPosition.TOP_RIGHT
             };
             
             this.bus.fireEvent(new mol.bus.Event('register-list-click'));
@@ -447,6 +447,37 @@ mol.modules.map.query = function(mol) {
                         $(self.display.types).find('.range')
                             .addClass('selected');
                     }
+                }
+            );
+            
+            /**
+             * Clicking the cancel button hides the search display and fires
+             * a cancel-search event on the bus.
+             */
+            this.display.toggleButton.click(
+                function(event) {
+                    var params = {
+                        visible: false
+                        }, 
+                        that = this;
+                    
+                    console.log("toggleButton click");
+                    
+                    if(self.display.speciesDisplay.is(':visible')) {
+                        self.display.speciesDisplay.hide();
+                        $(this).text('◀');
+                        params.visible = false;
+                    } else {
+                        
+                        self.display.speciesDisplay.show();
+                        $(this).text('▶');
+                        params.visible = true;
+                    }
+                    
+                    /*
+                    self.bus.fireEvent(
+                        new mol.bus.Event('results-display-toggle', params));
+                    */
                 }
             );
         },
@@ -1233,57 +1264,57 @@ mol.modules.map.query = function(mol) {
             var className = 'mol-Map-QueryDisplay',
                 html = '' +
                     '<div title=' +
-                    '   "Use this control to select species group and radius.' +
-                    '   Then right click (Mac Users: \'control-click\')' +
-                    '   on focal location on map." class="' + className +
-                    '   widgetTheme">' +                    
-                    '   <div class="controls">' +
-                    '     <span>' + 
-                    '       <button id="speciesListButton" ' + 
+                    '  "Use this control to select species group and radius.' +
+                    '  Then right click (Mac Users: \'control-click\')' +
+                    '  on focal location on map." class="' + className +
+                    '  widgetTheme">' +
+                    '  <button class="toggle">▶</button>' +
+                    '  <span class="title">Species List</span>' +
+                    '  <div class="speciesDisplay">' +
+                    '    <span>' + 
+                    '      <button id="speciesListButton" ' + 
                              'class="toggleBtn selected" ' +
-                    '         title="Click to activate species' + 
-                                    ' list querying.">' +
-                              'ON' +
-                    '       </button>' + 
-                    '     </span>' +
-                    '       Radius ' +
-                    '       <select class="radius">' +
-                    '           <option selected value="50">50 km</option>' +
-                    '           <option value="100">100 km</option>' +
-                    '           <option value="300">300 km</option>' +
-                    '       </select>' +
-                    '       Group ' +
-                    '       <select class="class" value="">' +
-                    '           <option selected' +
-                    '               value=" AND p.polygonres=100 ">' +
-                    '               Birds</option>' +
-                    '           <option value=" AND p.provider=\'fishes\' ">' +
-                    '               NA Freshwater Fishes</option>' +
-                    '           <option value=" AND p.class=\'reptilia\' ">' +
-                    '               Reptiles</option>' +
-                    '           <option value=" AND p.class=\'amphibia\' ">' +
-                    '               Amphibians</option>' +
-                    '           <option value=" AND p.class=\'mammalia\' ">' +
-                    '               Mammals</option>' +
-                    '       </select>' +
-                    '       <span class="types">' +
-                    '           <button class="range selected" ' +
-                    '               value=" AND p.type=\'range\'">' +
-                    '               <img ' +
-                    '                   title="Click to use Expert range maps' +
-                                            ' for query."' +
-                    '                   src="/static/maps/search/range.png">' +
-                    '           </button>' +
-                    '           <button class="ecoregion" ' +
-                    '               value=" AND p.type=\'ecoregion\' ">' +
-                    '               <img ' +
-                    '                   title="Click to use Regional' +
-                                            ' checklists for query." ' +
-                    '                   src="/static/maps/search/' +
-                                            'ecoregion.png">' +
-                    '           </button>' +
-                    '       </span>'+
-                    '   </div>' +
+                             'title="Click to activate species' + 
+                                 ' list querying.">' +
+                             'ON' +
+                    '      </button>' + 
+                    '    </span>' +
+                    '    <span>Radius </span>' +
+                    '    <select class="radius">' +
+                    '      <option selected value="50">50 km</option>' +
+                    '      <option value="100">100 km</option>' +
+                    '      <option value="300">300 km</option>' +
+                    '    </select>' +
+                    '    Group ' +
+                    '    <select class="class" value="">' +
+                    '      <option selected value=" AND p.polygonres=100 ">' +
+                    '        Birds</option>' +
+                    '      <option value=" AND p.provider=\'fishes\' ">' +
+                    '        NA Freshwater Fishes</option>' +
+                    '      <option value=" AND p.class=\'reptilia\' ">' +
+                    '        Reptiles</option>' +
+                    '      <option value=" AND p.class=\'amphibia\' ">' +
+                    '        Amphibians</option>' +
+                    '      <option value=" AND p.class=\'mammalia\' ">' +
+                    '        Mammals</option>' +
+                    '    </select>' +
+                    '    <span class="types">' +
+                    '      <button class="range selected" ' +
+                             'value=" AND p.type=\'range\'">' +
+                    '        <img title="Click to use Expert range maps' +
+                               ' for query."' +
+                    '          src="/static/maps/search/range.png">' +
+                    '      </button>' +
+                    '      <button class="ecoregion" ' +
+                    '        value=" AND p.type=\'ecoregion\' ">' +
+                    '        <img title="Click to use Regional' +
+                               ' checklists for query." ' +
+                               'src="/static/maps/search/ecoregion.png">' +
+                    '      </button>' +
+                    '    </span>' +
+                    '  </div>' +
+
+
                     '</div>';
 
             this._super(html);
@@ -1292,6 +1323,8 @@ mol.modules.map.query = function(mol) {
             this.classInput=$(this).find('.class');
             this.types=$(this).find('.types');
             this.queryButton=$(this).find('#speciesListButton');
+            this.toggleButton = $(this).find('.toggle');
+            this.speciesDisplay = $(this).find('.speciesDisplay');
             
             $(this.types).find('.ecoregion').toggle(false);
             $(this.types).find('.range').toggle(false);
