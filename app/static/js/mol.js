@@ -295,7 +295,16 @@ mol.modules.services.cartodb = function(mol) {
             }
         }
     );
+    mol.services.cartodb.TileApi = Class.extend(
+        {
+            init: function() {          
+                this.host = '' +
+                    'd3dvrpov25vfw0.cloudfront.net';
+            }
+        }
+    );
     mol.services.cartodb.sqlApi = new mol.services.cartodb.SqlApi();
+    mol.services.cartodb.tileApi = new mol.services.cartodb.TileApi();
 };
 mol.modules.map = function(mol) {
 
@@ -2992,7 +3001,7 @@ mol.modules.map.tiles = function(mol) {
                         layer.name, 
                         layer.dataset_id
                     ),
-                    hostname = 'mol.cartodb.com',//window.location.hostname,
+                    hostname =  mol.services.cartodb.tileApi.host,
                     style_table_name = layer.style_table;
                     info_query = sql; 
                     meta_query = "" +

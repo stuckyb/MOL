@@ -333,7 +333,7 @@ mol.modules.map.tiles = function(mol) {
                         layer.name, 
                         layer.dataset_id
                     ),
-                    hostname = 'mol.cartodb.com',//window.location.hostname,
+                    hostname =  mol.services.cartodb.tileApi.host,
                     style_table_name = layer.style_table;
                     info_query = sql; 
                     meta_query = "" +
