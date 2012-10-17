@@ -21,7 +21,7 @@ mol.modules.map.loading = function(mol) {
                 params = {
                     display: null, // The loader gif display
                     slot: mol.map.ControlDisplay.Slot.TOP,
-                    position: google.maps.ControlPosition.TOP_CENTER
+                    position: google.maps.ControlPosition.BOTTOM_CENTER
                 };
             
             this.loading = new mol.map.LoadingDisplay();
