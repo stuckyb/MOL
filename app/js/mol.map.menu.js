@@ -75,22 +75,6 @@ mol.modules.map.menu = function(mol) {
                         );
                     }
                 );
-                
-                this.bus.addHandler(
-                    'add-query-toggle-button',
-                    function(event) {
-                        $(self.bottomdisplay).prepend(event.button);
-                        self.bottomdisplay.queryItem = 
-                            $(self.bottomdisplay).find('#list');
-                            
-                        self.bottomdisplay.queryItem.click(
-                            function(event) {
-                                self.bus.fireEvent(
-                                    new mol.bus.Event('species-list-tool-toggle'));
-                            }
-                        );
-                    }
-                );
 
                 this.bus.addHandler(
                     'hide-layer-display-toggle',

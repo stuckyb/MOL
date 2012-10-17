@@ -83,36 +83,17 @@ mol.modules.map.query = function(mol) {
         },
 
         start : function() {
-            this.addQueryMenuButton();
             this.addQueryDisplay();
             this.addEventHandlers();
             
             //disable all map clicks
             this.toggleMapLayerClicks(true);
-            
         },
         
         toggleMapLayerClicks : function(boo) {            
             //true to disable
             this.bus.fireEvent(
                 new mol.bus.Event('layer-click-toggle', {disable: boo}));          
-        },
-        
-        addQueryMenuButton : function() {
-           var html = '' +
-                '  <div ' + 
-                    'title="Toggle species list radius tool ' + 
-                    '(right-click to use)" ' + 
-                    'id="list" ' + 
-                    'class="widgetTheme legend button">' + 
-                    'Species&nbsp;Lists' + 
-                '  </div>',
-                params = {
-                    button: html
-                },
-                event = new mol.bus.Event('add-query-toggle-button', params);
-                
-           this.bus.fireEvent(event); 
         },
         
         /*
@@ -309,8 +290,6 @@ mol.modules.map.query = function(mol) {
                 }
             );
 
-
-
             /*
              *  Assembles HTML for an species list given results from
              *  an AJAX call made in getList.
@@ -362,13 +341,18 @@ mol.modules.map.query = function(mol) {
 
             this.bus.addHandler(
                 'species-list-tool-toggle',
-                function(event) {
-                    self.enabled = !self.enabled;
+                function(event, params) {                    
+                    if(event.visible == true) {
+                        self.enabled = true;
+                    } else {
+                        self.enabled = false;
+                    }
+                    
                     if (self.listradius) {
                         self.listradius.setMap(null);
                     }
+                    
                     if (self.enabled == true) {
-                        $(self.display).show();
                         _.each(
                             self.features,
                             function(feature) {
@@ -380,7 +364,6 @@ mol.modules.map.query = function(mol) {
                         $(self.display.queryButton).html("ON");
                         self.toggleMapLayerClicks(true);
                     } else {
-                        $(self.display).hide();
                         _.each(
                             self.features,
                             function(feature) {
@@ -473,11 +456,9 @@ mol.modules.map.query = function(mol) {
                         $(this).text('▶');
                         params.visible = true;
                     }
-                    
-                    /*
+                   
                     self.bus.fireEvent(
-                        new mol.bus.Event('results-display-toggle', params));
-                    */
+                        new mol.bus.Event('species-list-tool-toggle', params));
                 }
             );
         },
