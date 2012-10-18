@@ -1260,13 +1260,13 @@ mol.modules.map.query = function(mol) {
                              'ON' +
                     '      </button>' + 
                     '    </span>' +
-                    '    <span>Radius </span>' +
+                         'Radius </span>' +
                     '    <select class="radius">' +
                     '      <option selected value="50">50 km</option>' +
                     '      <option value="100">100 km</option>' +
                     '      <option value="300">300 km</option>' +
                     '    </select>' +
-                    '    Group ' +
+                         'Group ' +
                     '    <select class="class" value="">' +
                     '      <option selected value=" AND p.polygonres=100 ">' +
                     '        Birds</option>' +
