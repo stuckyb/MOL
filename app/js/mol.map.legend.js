@@ -23,7 +23,7 @@ mol.modules.map.legend = function(mol) {
                     'id="legend" ' + 
                     'class="widgetTheme legend button">' + 
                     'Legend' + 
-                '  </div>',
+                '</div>',
                 params = {
                     button: html
                 },
