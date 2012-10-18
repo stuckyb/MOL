@@ -16,7 +16,6 @@ mol.modules.map = function(mol) {
             'metadata',
             'splash',
             'help',
-            'sidebar',
             'status',
             'images',
             'boot'
