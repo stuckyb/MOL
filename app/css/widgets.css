@@ -54,7 +54,6 @@ button{
     behavior: url(/css/pie/PIE.htc);
     width: auto;
     margin: 2px;
-    font-size: 1.1em;
     font-weight:700;
     color: rgb(240, 240, 260);
     background-color: rgba(25, 25, 25, 0.75);
@@ -152,25 +151,48 @@ button:hover{
 
 }
 
-.mol-LayerControl-Menu {
+.mol-BottomRightMenu {
     behavior: url(/css/pie/PIE.htc);
     width: 100%;
-    float: left;
-    list-style-type: none;
-    font-size: 0.8em;
+    float: right;
     pointer-events: auto;
     border-radius: 3px;
 }
+.mol-BottomRightMenu div:first-child{
+    -moz-border-radius-bottomleft: 3px;
+    border-bottom-left-radius: 3px;
+    -moz-border-radius-topleft: 3px;
+    border-top-left-radius: 3px;
+}
+.mol-BottomRightMenu div:last-child{
+    -moz-border-radius-bottomright: 3px;
+    border-bottom-right-radius: 3px;
+    -moz-border-radius-topright: 3px;
+    border-top-right-radius: 3px;
+}
+.mol-BottomRightMenu div {
+    display: inline-block;
+    text-align: center;
+    padding: 5px;
+    margin: 0px;
+}
+
+.mol-BottomRightMenu .button:hover {
+color: white;
+cursor: pointer;
+}
+
+.mol-BottomRightMenu {
+list-style-type: none;
+font-size: 0.8em;
+white-space: nowrap;
+}
+
 .mol-LayerControl-Menu .button:hover{
     color: #FFF;
     cursor: pointer;
 }
-.mol-LayerControl-Menu div{
-    float: right;
-    text-align: center;
-    padding: 5px;
-    width: 70px;
-}
+
 .mol-LayerControl-Menu div:last-child{
     behavior: url(/css/pie/PIE.htc);
     -moz-border-radius-topleft: 3px;
@@ -240,7 +262,38 @@ button:hover{
 }
 
 .mol-LayerControl-Layers{
+    font-size:0.8em;
     max-height: 475px;
+}
+
+.mol-LayerControl-Layers .scrollContainer{
+    max-height:380px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-top: 0.5em;
+    margin-bottom:0;
+}
+
+.mol-LayerControl-Layers .layersToggle{
+    float:right;
+}
+
+.mol-LayerControl-Layers .layerContainer {
+    height:38px;
+    cursor:inherit;
+}
+.mol-LayerControl-Layers .layersHeader {
+    margin: 5px;
+    margin-bottom: -5px;
+    padding: 5px;
+    padding-bottom:10px;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    pointer-events:auto;
+    cursor:default;
+}
+.mol-LayerControl-Layers .layersContainer {
     margin: 5px;
     padding: 5px;
     padding-top: 10px;
@@ -249,19 +302,6 @@ button:hover{
     -ms-border-radius: 3px;
     pointer-events:auto;
     cursor:default;
-}
-
-.mol-LayerControl-Layers .scrollContainer{
-    max-height:380px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    margin-top: 0;
-    margin-bottom:0;
-}
-
-.mol-LayerControl-Layers .layerContainer {
-    height:38px;
-    cursor:inherit;
 }
 
 .mol-LayerControl-Layers .keycatcher {
@@ -318,7 +358,7 @@ button:hover{
 }
 .mol-LayerControl-Layers .layerRecords {
     float: right;
-    font-size: 0.6em;
+    font-size: 0.8em;
 }
 .mol-LayerControl-Layers .staticLink{
     display: none;
@@ -364,14 +404,13 @@ button:hover{
 }
 .mol-LayerControl-Layers .layer .layerNomial {
     display: block;
-    font-size: 14px;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
 }
 .mol-LayerControl-Layers .layerEnglishName {
     display: block;
-    font-size: 0.6em;
+    font-size: 0.8em;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -533,7 +572,6 @@ button:hover{
 .mol-LayerControl-Layers .pageNavigation button {
 float: right;
 margin-right: 4px;
-font-size: 1.1em;
 padding: 3px;
 }
 
@@ -560,14 +598,14 @@ padding: 3px;
 .mol-LayerControl-Search .title{
     float:left;
     line-height: 25px;
-    font-size: 1.1em;
+    font-size: 0.8em;
     margin-right: 2px;
     -moz-user-select: none;
 }
 .mol-LayerControl-Search .searchDisplay{
     float:left;
     line-height: 25px;
-    font-size: 1.1em;
+    font-size: 0.8em;
     margin-right: 2px;
     -moz-user-select: none;
 }
@@ -592,7 +630,7 @@ padding: 3px;
     }
 .ui-autocomplete .ac-item {
     text-indent:-0.5em;
-    padding-left:1.0em;
+    padding-left:1.1em;
 }
 
 .ui-autocomplete .sci {
@@ -641,7 +679,7 @@ padding: 3px;
 
 .mol-LayerControl-Results .resultRecords{
     float: right;
-    font-size: 0.6em;
+    font-size: 0.8em;
 }
 
 .mol-LayerControl-Results ::-webkit-scrollbar {
@@ -789,6 +827,10 @@ div.mol-Dashboard-TableWindow {
     -ms-border-radius: 3px;
 }
 
+.mol-LayerControl-Results {
+    font-size:0.8em;
+}
+
 .mol-LayerControl-Results .filters{
     float: left;
     width: 30%;
@@ -800,7 +842,6 @@ div.mol-Dashboard-TableWindow {
 .mol-LayerControl-Results .filters .filter{
     padding: 4px;
     margin: 0px 0px 5px 0px;
-    font-size: 12px;
     -moz-border-radius: 3px;
     border-radius: 3px;
     pointer-events: auto;
@@ -812,7 +853,6 @@ div.mol-Dashboard-TableWindow {
 }
 .mol-LayerControl-Results .filters .filter .filterName{
     margin-bottom: 5px;
-    font-size: 1.1em;
 }
 
 .mol-LayerControl-Results .filters .filter .option a{
@@ -827,15 +867,15 @@ div.mol-Dashboard-TableWindow {
 }
 
 .mol-LayerControl-Results .filters .filter .all {
-    text-align: right; 
+    text-align: right;
     margin-right: 10px;
 }
 
 .mol-LayerControl-Results .filters .filter .option img{
     width: 12px;
-    height: 12px; 
+    height: 12px;
     margin: 0.5px;
-    
+
 }
 .mol-LayerControl-Results .filters .filter .option.selected {
     cursor: pointer;
@@ -896,7 +936,7 @@ div.mol-Dashboard-TableWindow {
     overflow-y: auto;
 }
 .mol-LayerControl-Results .resultEnglishName {
-    font-size: 0.6em;
+    font-size: 0.8em;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -991,7 +1031,6 @@ div.mol-Dashboard-TableWindow {
 .mol-LayerControl-Results .searchResults .pageNavigation button{
     float: right;
     margin-right: 4px;
-    font-size: 1.1em;
     padding: 3px;
 }
 
@@ -1023,7 +1062,7 @@ div.mol-Dashboard-TableWindow {
     clear:both;
     float:left;
     font-weight:normal;
-    font-size: 15px;
+    font-size: 0.8em;
     padding: 0 0 11px 10px;
 }
 .mol-LayerControl-Add .cancel{
@@ -1047,7 +1086,7 @@ div.mol-Dashboard-TableWindow {
 }
 
 /*
- * Start Query Bar 
+ * Start Query Bar
  */
 .mol-Map-QueryDisplay {
     float: right;
@@ -1058,7 +1097,7 @@ div.mol-Dashboard-TableWindow {
     white-space: nowrap;
     padding: 3px 5px 2px 5px;
     pointer-events:auto;
-    
+
 }
 
 .mol-Map-QueryDisplay .types button{
@@ -1092,7 +1131,7 @@ div.mol-Dashboard-TableWindow {
 .mol-Map-QueryDisplay span.title {
     float: left;
     line-height: 25px;
-    font-size: 1.1em;
+    font-size: 0.8em;
     margin-right: 2px;
     -moz-user-select: none;
     padding-left: 2px;
@@ -1152,7 +1191,7 @@ div.mol-Dashboard-TableWindow {
     float:right;
 }
 
-.mol-Map-ListQueryInfoWindow td.wiki:hover, 
+.mol-Map-ListQueryInfoWindow td.wiki:hover,
     .mol-Map-ListQueryInfoWindow td.iucn:hover{
     cursor: pointer;
     color: blue;
@@ -1306,7 +1345,7 @@ div.mol-Dashboard-TableWindow {
     clear:both;
     float:left;
     padding: 5px;
-    font-size:10pt;
+    font-size:0.8em;
     font-weight:700;
 }
 .mol-LayerMetadata .val {
