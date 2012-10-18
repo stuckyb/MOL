@@ -169,7 +169,7 @@ mol.modules.map.layers = function(mol) {
             fireEvents: function() {
                 var params = {
                         display: this.display,
-                        slot: mol.map.ControlDisplay.Slot.MIDDLE,
+                        slot: mol.map.ControlDisplay.Slot.BOTTOM,
                         position: google.maps.ControlPosition.TOP_RIGHT
                     },
                     event = new mol.bus.Event('add-map-control', params);
