@@ -169,7 +169,7 @@ button:hover{
     float: right;
     text-align: center;
     padding: 5px;
-    width: 90px;
+    width: 70px;
 }
 .mol-LayerControl-Menu div:last-child{
     behavior: url(/css/pie/PIE.htc);
