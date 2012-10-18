@@ -825,7 +825,8 @@ mol.modules.map.layers = function(mol) {
 
                         } else {
                             self.display.layersWrapper.animate(
-                                {height:self.display.layersHeader.height()+self.display.layersContainer.height()+35},
+                                {height:self.display.layersHeader.height()
+                                    +self.display.layersContainer.height()+35},
                                 1000,
                                 function() {
                                     $(that).text('▲');
@@ -848,7 +849,8 @@ mol.modules.map.layers = function(mol) {
                         if (opacity === undefined) {
                             params = {
                                 layer: layer,
-                                opacity: parseFloat(l.find('.opacity').slider("value"))
+                                opacity: parseFloat(l.find('.opacity')
+                                    .slider("value"))
                             },
                             e = new mol.bus.Event('layer-opacity', params);
                             self.bus.fireEvent(e);
