@@ -1105,6 +1105,11 @@ div.mol-Dashboard-TableWindow {
     margin-left: 4px;
 }
 
+.mol-Map-QueryDisplay div.types {
+    display:inline-block;
+    height:16px;
+}
+
 .mol-Map-QueryDisplay div.speciesDisplay {
     float: left;
     line-height: 25px;
