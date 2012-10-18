@@ -19,8 +19,26 @@ mol.modules.map.dashboard = function(mol) {
                 this.sources = {};
 
             },
+            
             start: function() {
                 this.initDialog();
+                this.addDashboardMenuButton();
+            },
+            
+            addDashboardMenuButton : function() {
+               var html = '' +
+                    '  <div ' + 
+                        'title="Toggle dashboard." ' + 
+                        'id="dashboard" ' + 
+                        'class="widgetTheme dash button">' + 
+                        'Dashboard' + 
+                    '</div>',
+                    params = {
+                        button: html
+                    },
+                    event = new mol.bus.Event('add-dashboard-toggle-button', params);
+                    
+               this.bus.fireEvent(event);
             },
 
             addEventHandlers: function() {
