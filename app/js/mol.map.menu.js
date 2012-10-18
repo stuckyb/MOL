@@ -32,13 +32,6 @@ mol.modules.map.menu = function(mol) {
             addEventHandlers: function() {
                 var self = this;
 
-                this.display.dashboardItem.click(
-                    function(event) {
-                        self.bus.fireEvent(
-                            new mol.bus.Event('taxonomy-dashboard-toggle'));
-                    }
-                );
-
                 this.display.layersToggle.click(
                     function(event) {
                         if(self.display.layersToggle[0].src
@@ -59,6 +52,37 @@ mol.modules.map.menu = function(mol) {
                         }
                     }
                 );
+                
+                this.bottomdisplay.about.click(
+                    function(Event) {
+                        window.open('/about/');
+                    }
+                );
+
+
+                this.bottomdisplay.help.click(
+                    function(Event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('help-display-dialog')
+                        );
+                    }
+                );
+
+                this.bottomdisplay.status.click(
+                    function(Event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('status-display-dialog')
+                        );
+                    }
+                );
+
+                this.bottomdisplay.feedback.click(
+                    function(Event) {
+                        self.bus.fireEvent(
+                            new mol.bus.Event('feedback-display-toggle')
+                        );
+                    }
+                );
 
                 this.bus.addHandler(
                     'add-legend-toggle-button',
@@ -71,6 +95,22 @@ mol.modules.map.menu = function(mol) {
                             function(event) {
                                 self.bus.fireEvent(
                                     new mol.bus.Event('legend-display-toggle'));
+                            }
+                        );
+                    }
+                );
+
+                this.bus.addHandler(
+                    'add-dashboard-toggle-button',
+                    function(event) {
+                        $(self.bottomdisplay).prepend(event.button);
+                        self.bottomdisplay.dashboardItem = 
+                            $(self.bottomdisplay).find('#dashboard');
+                            
+                        self.bottomdisplay.dashboardItem.click(
+                            function(event) {
+                                self.bus.fireEvent(
+                                    new mol.bus.Event('taxonomy-dashboard-toggle'));
                             }
                         );
                     }
@@ -142,17 +182,9 @@ mol.modules.map.menu = function(mol) {
                             'width="24px" ' + 
                             'src="/static/maps/layers/collapse.png">' +
                     '    </div>' +
-                    '    <div ' + 
-                            'title="Toggle taxonomy dashboard." ' + 
-                            'id="dashboard" ' + 
-                            'class="widgetTheme search button">' +
-                            'Dashboard' + 
-                    '    </div>' +
                     '</div>';
 
                 this._super(html);
-                this.searchItem = $(this).find('#search');
-                this.dashboardItem = $(this).find('#dashboard');
                 this.layersToggle = $(this).find('.layersToggle');
             }
         }
@@ -165,9 +197,17 @@ mol.modules.map.menu = function(mol) {
                     '<div ' + 
                         'id="bottomRightMenu" ' + 
                         'class="mol-LayerControl-Menu">' +
+                    '    <div title="Current known issues." class="widgetTheme status button">Status</div>' +
+                    '    <div title="About the Map of Life Project." class="widgetTheme about button">About</div>' +
+                    '    <div title="Submit feedback." class="widgetTheme feedback button">Feedback</div>' +
+                    '    <div title="Get help." class="widgetTheme help button">Help</div>' +
                     '</div>';
 
                 this._super(html);
+                this.about = $(this).find('.about');
+                this.help = $(this).find('.help');
+                this.feedback = $(this).find('.feedback');
+                this.status = $(this).find('.status');
             }
         }
     );
