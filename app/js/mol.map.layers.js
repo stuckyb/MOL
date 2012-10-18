@@ -40,20 +40,29 @@ mol.modules.map.layers = function(mol) {
                 );
                 this.display.layersToggle.click(
                     function(event) {
-                        if(self.display.layersContainer.is(':visible')) {
-                            self.display.layersContainer.hide(
-                                "slide",
-                                {direction: "up"},
-                                1000
+                        var that = this;
+                        if(self.display.expanded) {
+                            self.display.layersWrapper.animate(
+                                {height: self.display.layersHeader.height()+18},
+                                1000,
+                                  function() {
+                                    $(that).text('▼');
+                                    self.display.expanded = false;
+                                }
                             );
-                            $(this).text('▲')
+
+
                         } else {
-                            self.display.layersContainer.show(
-                                "slide",
-                                {direction: "up"},
-                                1000
+                            self.display.layersWrapper.animate(
+                                {height:self.display.layersHeader.height()
+                                    +self.display.layersContainer.height()+35},
+                                1000,
+                                function() {
+                                    $(that).text('▲');
+                                    self.display.expanded = true;
+                                }
                             );
-                            $(this).text('▼')
+
                         }
                     }
                 );
@@ -69,7 +78,8 @@ mol.modules.map.layers = function(mol) {
                         if (opacity === undefined) {
                             params = {
                                 layer: layer,
-                                opacity: parseFloat(l.find('.opacity').slider("value"))
+                                opacity: parseFloat(l.find('.opacity')
+                                    .slider("value"))
                             },
                             e = new mol.bus.Event('layer-opacity', params);
                             self.bus.fireEvent(e);
@@ -569,12 +579,12 @@ mol.modules.map.layers = function(mol) {
             init: function() {
                 var html = '' +
                     '<div class="mol-LayerControl-Layers">' +
-                        '<div class="layers">' +
-                            '<div class="layersHeader  widgetTheme">' +
+                        '<div class="layers widgetTheme">' +
+                            '<div class="layersHeader">' +
                                 '<button class="layersToggle button">▲</button>' +
                                 'Layers' +
                             '</div>' +
-                            '<div class="layersContainer  widgetTheme">' +
+                            '<div class="layersContainer">' +
                                 '<div class="scrollContainer">' +
                                     '<div id="sortable">' +
                                     '</div>' +
@@ -599,7 +609,10 @@ mol.modules.map.layers = function(mol) {
                 this.views = {};
                 this.layers = [];
                 this.layersToggle = $(this).find(".layersToggle");
+                this.layersWrapper = $(this).find(".layers");
                 this.layersContainer = $(this).find(".layersContainer");
+                this.layersHeader = $(this).find(".layersHeader");
+                this.expanded = true;
 
             },
 

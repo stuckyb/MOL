@@ -50,6 +50,7 @@
     -ms-user-select: none;
     user-select: none;
 }
+
 button{
     behavior: url(/css/pie/PIE.htc);
     width: auto;
@@ -257,15 +258,17 @@ white-space: nowrap;
 .mol-LayerControl-Menu div.label {
     padding-left: 14px;
 }
-.mol-LayerControl-Menu .layersToggle {
-    visibility:hidden;
-
-}
 
 .mol-LayerControl-Layers{
     font-size:0.8em;
     max-height: 475px;
 }
+
+.mol-LayerControl-Layers .layers {
+    float:right;
+    width:500px;
+}
+
 
 .mol-LayerControl-Layers .scrollContainer{
     max-height:380px;
@@ -285,22 +288,27 @@ white-space: nowrap;
 }
 .mol-LayerControl-Layers .layersHeader {
     margin: 5px;
-    margin-bottom: -5px;
+    margin-bottom: 0px;
     padding: 5px;
-    padding-bottom:10px;
+    line-height: 25px;
+}
+
+.mol-LayerControl-Layers .layers {
     border-radius: 3px;
     -moz-border-radius: 3px;
-    -ms-border-radius: 3px;
-    pointer-events:auto;
-    cursor:default;
+    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px;
+    overflow: hidden;
 }
+
 .mol-LayerControl-Layers .layersContainer {
     margin: 5px;
+    margin-top: 0px;
     padding: 5px;
     padding-top: 10px;
-    border-radius: 3px;
-    -moz-border-radius: 3px;
-    -ms-border-radius: 3px;
+    border-bottom-left-radius:3px;
+    border-bottom-right-radius:3px;
+    -moz-border-radius-bottomleft: 3px;
+    -moz-border-radius-bottomright: 3px;
     pointer-events:auto;
     cursor:default;
 }
