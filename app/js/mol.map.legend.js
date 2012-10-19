@@ -86,6 +86,7 @@ mol.modules.map.legend = function(mol) {
                         '           Type' +
                         '           <div class="legendRow"><div class="ecoregion legendItem"></div> Regional checklist</div>' +
                         '           <div class="legendRow"><div class="protectedarea legendItem"></div> Local inventory</div>' +
+                        '           <div class="legendRow"><div class="griddedsurvey legendItem"></div> Gridded survey</div>' +
                         '           <div class="legendRow"><div class="seasonality1 legendItem narrow"></div><div class="seasonality2 legendItem narrow"></div><div class="seasonality3 legendItem narrow"></div><div class="seasonality4 legendItem narrow"></div><div class="seasonality5 legendItem narrow"></div> Expert range map</div>' +
                         '           <div class="legendRow"><div class="legendItem"><img class="point" src="/static/maps/placemarks/mol_sprite.png"></div> Point observation</div>' +
                         '       </div>' +

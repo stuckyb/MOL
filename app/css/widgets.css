@@ -1261,16 +1261,22 @@ div.mol-Dashboard-TableWindow {
 .mol-Map-LegendDisplay .point {
      position:relative;
      left:5px;
-     bottom:6px;
+     bottom:4px;
 }
 .mol-Map-LegendDisplay .narrow {
      width: 3px;
 }
 .mol-Map-LegendDisplay .ecoregion {
       background-color:#000000;
-      opacity:0.50;
+      opacity:0.25;
       border: 1px solid #000000;
 }
+.mol-Map-LegendDisplay .griddedsurvey {
+    background-image: url(/static/maps/legend/griddedsurvey.png);
+    opacity: 0.5;
+}
+
+    
 .mol-Map-LegendDisplay .protectedarea {
       background-color:#6A0085;
       border:1px solid #000000;
