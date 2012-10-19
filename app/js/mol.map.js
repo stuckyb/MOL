@@ -255,7 +255,7 @@ mol.modules.map = function(mol) {
                     maxLat: 85,
                     mapTypeControl: false,
                     panControl: false,
-                    zoomControl: false,
+                    zoomControl: true,
                     streetViewControl: false,
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     styles: [

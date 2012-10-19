@@ -13,6 +13,7 @@ mol.modules.map.results = function(mol) {
             this.proxy = proxy;
             this.bus = bus;
             this.map = map;
+            this.maxLayers = ($.browser.chrome) ? 6 : 100;
             this.filters = { 
                 'name': {
                     title: 'Name', 
@@ -81,12 +82,20 @@ mol.modules.map.results = function(mol) {
             this.display.addAllButton.click(
                 function(event) {
                     var layers = self.display.getChecked();
-                    if(self.map.overlayMapTypes.length + layers.length > 100) {
-                        alert(
-                            'The map is currently limited to 100 layers ' +
-                            'at a time. Please remove some layers before ' +
-                            'adding more.'
-                        );
+                    if(self.map.overlayMapTypes.length + layers.length > self.maxLayers) {
+                        if(!$.browser.chrome) {
+                            alert(
+                                'The map is currently limited to {0}'.format(self.maxLayers) +
+                                ' layers at a time. Please remove some layers ' +
+                                ' before adding more.'
+                            );
+                        } else {
+                            alert(
+                                'An issue with Google Chrome currently limits the number '+
+                                ' of active layers in Map of Life to {0}'.format(self.maxLayers) +
+                                ' layers at a time. Other browsers may display up to 100 layers.'
+                            )
+                        }
                     } else {
                         self.bus.fireEvent(
                             new mol.bus.Event(

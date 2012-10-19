@@ -1,5 +1,4 @@
 /* BEGIN Shared Styles */
-
 /* sets defaults for units within a widget background greed fade theme,
  * as well as min-height and 100% width */
 .FIRST {
@@ -1276,23 +1275,21 @@ div.mol-Dashboard-TableWindow {
       background-color:#6A0085;
       border:1px solid #000000;
 }
-.mol-Map-LegendDisplay {
-      background-color:#99CC00
-}
+
 .mol-Map-LegendDisplay .seasonality1 {
-      background-color:#99CC00
+      background-color:#99CC00;
 }
 .mol-Map-LegendDisplay .seasonality2 {
-      background-color:#FFCC00
+      background-color:#FFCC00;
 }
 .mol-Map-LegendDisplay .seasonality3 {
-      background-color:#006BB4
+      background-color:#006BB4;
 }
 .mol-Map-LegendDisplay .seasonality4 {
-      background-color:#FF9900
+      background-color:#FF9900;
 }
 .mol-Map-LegendDisplay .seasonality5 {
-      background-color:#E25B5B
+      background-color:#E25B5B;
 }
 .mol-BaseMapControl {
     list-style-type: none;

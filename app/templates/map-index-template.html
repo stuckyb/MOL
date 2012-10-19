@@ -89,6 +89,7 @@
   <body>
     <div id="map_container" class="map_container"></div>
     <script type="text/javascript">
+      $.browser.chrome = /chrome/.test(navigator.userAgent.toLowerCase()); 
       $(document).ready(function() {
           {% if prod %}
           <!-- Production, so load app without logging and run it. -->

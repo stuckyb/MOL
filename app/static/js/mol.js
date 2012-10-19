@@ -563,7 +563,7 @@ mol.modules.map = function(mol) {
                     maxLat: 85,
                     mapTypeControl: false,
                     panControl: false,
-                    zoomControl: false,
+                    zoomControl: true,
                     streetViewControl: false,
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
                     styles: [
@@ -901,14 +901,7 @@ mol.modules.map.layers = function(mol) {
                                     }
                                 }
                                 catch(e) {
-                                    console.log(
-                                        '[Invalid extent for {0} \'{1}\'] {2}'
-                                        .format(
-                                            layer.dataset_id,
-                                            layer.name,
-                                            layer.extent
-                                        )
-                                    );
+                                    //invalid extent
                                 }
                             }
                         )
@@ -1599,7 +1592,7 @@ mol.modules.map.menu = function(mol) {
         fireEvents: function() {
             var params = {
                     display: this.display,
-                    slot: mol.map.ControlDisplay.Slot.LAST,
+                    slot: mol.map.ControlDisplay.Slot.BOTTOM,
                     position: google.maps.ControlPosition.RIGHT_BOTTOM
             };
             this.bus.fireEvent(new mol.bus.Event('add-map-control', params));
@@ -1646,6 +1639,7 @@ mol.modules.map.results = function(mol) {
             this.proxy = proxy;
             this.bus = bus;
             this.map = map;
+            this.maxLayers = ($.browser.chrome) ? 6 : 100;
             this.filters = { 
                 'name': {
                     title: 'Name', 
@@ -1714,12 +1708,20 @@ mol.modules.map.results = function(mol) {
             this.display.addAllButton.click(
                 function(event) {
                     var layers = self.display.getChecked();
-                    if(self.map.overlayMapTypes.length + layers.length > 100) {
-                        alert(
-                            'The map is currently limited to 100 layers ' +
-                            'at a time. Please remove some layers before ' +
-                            'adding more.'
-                        );
+                    if(self.map.overlayMapTypes.length + layers.length > self.maxLayers) {
+                        if(!$.browser.chrome) {
+                            alert(
+                                'The map is currently limited to {0}'.format(self.maxLayers) +
+                                ' layers at a time. Please remove some layers ' +
+                                ' before adding more.'
+                            );
+                        } else {
+                            alert(
+                                'An issue with Google Chrome currently limits the number '+
+                                ' of active layers in Map of Life to {0}'.format(self.maxLayers) +
+                                ' layers at a time. Other browsers may display up to 100 layers'
+                            )
+                        }
                     } else {
                         self.bus.fireEvent(
                             new mol.bus.Event(
@@ -4657,13 +4659,13 @@ mol.modules.map.tiles = function(mol) {
                     '      <option value=" AND p.provider=\'fishes\' ">' +
                     '        NA Freshwater Fishes</option>' +
                     '      <option value=" AND p.class=\'reptilia\' ">' +
-                    '        Reptiles</option>' +
+                    '        NA Reptiles</option>' +
                     '      <option value=" AND p.class=\'amphibia\' ">' +
                     '        Amphibians</option>' +
                     '      <option value=" AND p.class=\'mammalia\' ">' +
                     '        Mammals</option>' +
                     '    </select>' +
-                    '    <div class="types">' +
+                    '    <span class="types">' +
                     '      <button class="range selected" ' +
                              'value=" AND p.type=\'range\'">' +
                     '        <img title="Click to use Expert range maps' +
@@ -4676,7 +4678,7 @@ mol.modules.map.tiles = function(mol) {
                                ' checklists for query." ' +
                                'src="/static/maps/search/ecoregion.png">' +
                     '      </button>' +
-                    '    </div>' +
+                    '    </span>' +
                     '  </div>' +
 
 
@@ -5476,22 +5478,22 @@ mol.modules.map.splash = function(mol) {
                 this.helpDisplay.dialog(
                     {
                         autoOpen: false,
-			dialogClass: "mol-help",
+			            dialogClass: "mol-help",
                         height: 550,
-                        width: 850
+                        width: 700,
+                        modal: true
                     }
                 );
 
                 this.feedbackDisplay.dialog(
                     {
                         autoOpen: false,
-			dialogClass: "mol-help",
+			            dialogClass: "mol-help",
                         height: 550,
-                        width: 850
+                        width: 850,
+                        modal: true,
                     }
                 );
-
-
             }
         }
     );
@@ -5500,7 +5502,10 @@ mol.modules.map.splash = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<iframe id="help_dialog" class="mol-help iframe_content" src="/static/help/index.html"></iframe>';
+                    '<iframe id="help_dialog" ' + 
+                        'class="mol-help iframe_content" ' + 
+                        'src="/static/help/index.html">' + 
+                    '</iframe>';
 
                 this._super(html);
 
@@ -5513,7 +5518,17 @@ mol.modules.map.splash = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<iframe id="feedback_dialog" src="https://docs.google.com/spreadsheet/embeddedform?formkey=dC10Y2ZWNkJXbU5RQWpWbXpJTzhGWEE6MQ" width="760" height="625" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>';
+                    '<iframe id="feedback_dialog" ' + 
+                        'src="https://docs.google.com/' + 
+                        'spreadsheet/embeddedform?' + 
+                        'formkey=dC10Y2ZWNkJXbU5RQWpWbXpJTzhGWEE6MQ" ' + 
+                        'width="760" ' + 
+                        'height="625" ' + 
+                        'frameborder="0" ' + 
+                        'marginheight="0" ' + 
+                        'marginwidth="0">' + 
+                        'Loading...' + 
+                    '</iframe>';
 
                 this._super(html);
 
@@ -5550,15 +5565,16 @@ mol.modules.map.status = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: true,
-			width: 680,
-			height: 390,
-			dialogClass: "mol-status",
-			modal: true
+            			width: 680,
+            			height: 390,
+            			dialogClass: "mol-status",
+            			modal: true
                     }
                 );
-                 $(this.display).width('98%');
-
+                
+                $(this.display).width('98%');
             },
+            
             addEventHandlers : function () {
                  var self = this;
                  this.bus.addHandler(
@@ -5576,16 +5592,20 @@ mol.modules.map.status = function(mol) {
             init: function() {
                 var html = '' +
                 '<div>' +
-	            '  <iframe class="mol-status iframe_content ui-dialog-content" style="height:600px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/status/index.html"></iframe>' +
+	            '  <iframe ' + 
+	                   'class="mol-status iframe_content ui-dialog-content" ' + 
+	                   'style="height:600px; ' + 
+	                           'width: 98%; ' + 
+	                           'margin-left: -18px; ' + 
+	                           'margin-right: auto; ' + 
+	                           'display: block;" ' + 
+                       'src="/static/status/index.html">' + 
+                '  </iframe>' +
                 '</div>';
 
                 this._super(html);
                 this.iframe_content = $(this).find('.iframe_content');
-		this.mesg = $(this).find('.message');
-
-
-
-
+		        this.mesg = $(this).find('.message');
             }
         }
     );
@@ -5703,6 +5723,7 @@ mol.modules.map.boot = function(mol) {
             this.bus = bus;
             this.map = map;
             this.IE8 = false;
+            this.maxLayers = ($.browser.chrome) ? 6 : 25;
             this.sql = '' +
                 'SELECT DISTINCT l.scientificname as name,'+
                     't.type as type,'+
@@ -5767,25 +5788,19 @@ mol.modules.map.boot = function(mol) {
                 self.bus.fireEvent(new mol.bus.Event('toggle-splash'));
             } else {
                 // Otherwise, try and get a result using term
-                $.post(
-                'cache/get',
-                {
-                    //Number on the key is there to invalidate cache. 
-                    //Using date+time invalidated.
-                    key: 'boot-results-10152012210-{0}'.format(self.term), 
-                    sql: this.sql.format(self.term)
-                },
-                function(response) {
-                    var results = response.rows;
-                    if (results.length == 0) {
-                        self.bus.fireEvent(new mol.bus.Event('toggle-splash'));
-                        self.map.setCenter(new google.maps.LatLng(0,-50));
-                    } else {
-                        //parse the results
-                        self.loadLayers(self.getLayersWithIds(results));
-                    }
-                },
-                'json'
+                $.getJSON(
+                    mol.services.cartodb.sqlApi.jsonp_url.format(this.sql.format(self.term)),
+                    function(response) {
+                        var results = response.rows;
+                        if (results.length == 0) {
+                            self.bus.fireEvent(new mol.bus.Event('toggle-splash'));
+                            self.map.setCenter(new google.maps.LatLng(0,-50));
+                        } else {
+                            //parse the results
+                            self.loadLayers(self.getLayersWithIds(results));
+                        }
+                    },
+                    'json'
                 );
             }
         },
@@ -5794,7 +5809,7 @@ mol.modules.map.boot = function(mol) {
          * or fires the search results widgetif there are more.
          */
         loadLayers: function(layers) {
-            if (Object.keys(layers).length < 25) {
+            if (Object.keys(layers).length < this.maxLayers) {
                 this.bus.fireEvent(
                     new mol.bus.Event('add-layers', {layers: layers})
                 );

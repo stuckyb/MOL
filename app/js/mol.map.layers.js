@@ -121,14 +121,7 @@ mol.modules.map.layers = function(mol) {
                                     }
                                 }
                                 catch(e) {
-                                    console.log(
-                                        '[Invalid extent for {0} \'{1}\'] {2}'
-                                        .format(
-                                            layer.dataset_id,
-                                            layer.name,
-                                            layer.extent
-                                        )
-                                    );
+                                    //invalid extent
                                 }
                             }
                         )

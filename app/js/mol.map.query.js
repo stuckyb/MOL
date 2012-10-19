@@ -1271,7 +1271,7 @@ mol.modules.map.query = function(mol) {
                     '      <option value=" AND p.provider=\'fishes\' ">' +
                     '        NA Freshwater Fishes</option>' +
                     '      <option value=" AND p.class=\'reptilia\' ">' +
-                    '        Reptiles</option>' +
+                    '        NA Reptiles</option>' +
                     '      <option value=" AND p.class=\'amphibia\' ">' +
                     '        Amphibians</option>' +
                     '      <option value=" AND p.class=\'mammalia\' ">' +
