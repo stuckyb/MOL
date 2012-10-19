@@ -7,25 +7,25 @@ mol.modules.map.boot = function(mol) {
             this.proxy = proxy;
             this.bus = bus;
             this.IE8 = false;
-            this.sql = "" +
-                "SELECT DISTINCT l.scientificname as name," +
-                "    l.type as type," +
-                "    t.title as type_title," +
-                "    l.provider as source, " +
-                "    p.title as source_title," +
-                "    n.class as _class, " +
-                "    l.feature_count as feature_count," +
-                "    n.common_names_eng as names " +
-                "FROM layer_metadata l " +
-                "LEFT JOIN types t ON " +
-                "    l.type = t.type " +
-                "LEFT JOIN providers p ON " +
-                "    l.provider = p.provider " +
-                "LEFT JOIN taxonomy n ON " +
-                "    l.scientificname = n.scientificname " +
-                "WHERE " +
-                "    l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}'";
-            this.term = null;
+            this.sql = '' + //TODO replace with postgres function (issue #126)
+                'SELECT DISTINCT l.scientificname as name,'+
+                '       l.type as type,'+
+                '       t.title as type_title,'+
+                '       l.provider as source, '+
+                '       p.title as source_title,'+
+                '       n.class as _class, ' +
+                '       l.feature_count as feature_count,'+
+                '       n.common_names_eng as names,' +
+                '       CONCAT(\'{"sw":{"lng":\',ST_XMin(l.extent),\', "lat":\',ST_YMin(l.extent),\'} , "ne":{"lng":\',ST_XMax(l.extent),\', "lat":\',ST_YMax(l.extent),\'}}\') as extent ' +
+                'FROM layer_metadata l ' +
+                'LEFT JOIN types t ON ' +
+                '       l.type = t.type ' +
+                'LEFT JOIN providers p ON ' +
+                '       l.provider = p.provider ' +
+                'LEFT JOIN taxonomy n ON ' +
+                '       l.scientificname = n.scientificname ' +
+                'WHERE ' +
+                "  l.scientificname~*'\\m{0}' OR n.common_names_eng~*'\\m{0}'";
         },
         start: function() {
             this.loadTerm();
@@ -47,13 +47,14 @@ mol.modules.map.boot = function(mol) {
                 $.post(
                 'cache/get',
                 {
-                    key: 'search-results-{0}'.format(self.term),
+                    key: 'boot-results-08102012210-{0}'.format(self.term), //number on the key is there to invalidate cache. Using date+time invalidated.
                     sql: this.sql.format(self.term)
                 },
                 function(response) {
                     var results = mol.services.cartodb.convert(response);
                     if (Object.keys(results.layers).length == 0) {
                         self.bus.fireEvent(new mol.bus.Event('toggle-splash'));
+                        this.map.setCenter(new google.maps.LatLng(0,-50));
                     } else {
                         //parse the results
                         self.loadLayers(self.getLayersWithIds(results.layers));
@@ -68,9 +69,11 @@ mol.modules.map.boot = function(mol) {
          */
         loadLayers: function(layers) {
             if (Object.keys(layers).length < 25) {
-                this.bus.fireEvent(new mol.bus.Event('add-layers', {layers: layers}))
+                this.bus.fireEvent(new mol.bus.Event('add-layers', {layers: layers}));
+
             } else if (this.term != null) {
                 this.bus.fireEvent(new mol.bus.Event('search', {term: this.term}));
+                this.map.setCenter(new google.maps.LatLng(0,-50));
             }
         },
         /*

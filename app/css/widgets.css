@@ -1013,30 +1013,44 @@ padding: 3px;
      font-size: 12px;
      font-style:normal;
      font-weight:normal;
-     width:650px;
-     overflow-y:scroll;
+     overflow-y:auto;
      overflow-x:hidden;
-     margin:2px;
-     margin-top:6px;
+     margin:5px;
+     padding:3px;
 }
 
-.mol-Map-ListQueryInfoWindow td{
+.mol-Map-ListQueryInfoWindow .iucn_stats{
+    float:right;
+}
+
+.mol-Map-ListQueryInfoWindow td.wiki:hover, .mol-Map-ListQueryInfoWindow td.iucn:hover{
         cursor: pointer;
+        color: blue;
+        text-decoration: underline;
  }
-.mol-Map-ListQueryInfoWindow button{
-        font-size: 0.8em;
+
+.mol-Map-ListQueryInfoWindow tr.iucnvu td{
+        background: #cc9900;
+ }
+
+ .mol-Map-ListQueryInfoWindow tr.iucnen td{
+        background: #cc6633;
+ }
+
+ .mol-Map-ListQueryInfoWindow tr.iucncr td{
+        background: #cc3333;
  }
 
 .mol-Map-ListQueryInfoWindow .english{
-        max-width: 135px;
+        max-width: 150px;
         overflow: hidden;
         text-overflow:ellipsis;
  }
- .mol-Map-ListQueryInfoWindow .wiki{
-        max-width: 135px;
-        overflow: hidden;
-        text-overflow:ellipsis;
- }
+
+.mol-Map-ListDialogContent.ui-tabs div.ui-tabs-panel {
+    padding: 0;
+}
+
  .mol-Map-ListQueryEmptyInfoWindow {
      margin:5px;
      font-size: 14px;
