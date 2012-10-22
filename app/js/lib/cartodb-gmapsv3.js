@@ -198,7 +198,7 @@ var CartoDB = CartoDB || {};
           removeOldLayer(params.map,params.layer);
 
           // Setup new wax
-          params.tilejson.grids = wax.util.addUrlData(params.tilejson.grids_base,  'cache_buster=' + params.cache_buster);
+          params.tilejson.grids = wax.util.addUrlData(params.tilejson.grids_base, 'cache_buster=' + params.cache_buster);
 
           // Add map tiles
           params.layer = new wax.g.connector(params.tilejson);
@@ -237,7 +237,7 @@ var CartoDB = CartoDB || {};
       function generateTileJson(params) {
         var core_url = 'http://' + params.hostname;
         var base_url = core_url + '/tiles/' + params.style_table_name + '/{z}/{x}/{y}';
-        var tile_url = base_url + '.png?cache_buster=0';
+        var tile_url = base_url + '.png';
         var grid_url = base_url + '.grid.json';
 
         // SQL?
