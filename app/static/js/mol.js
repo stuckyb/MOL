@@ -1707,7 +1707,10 @@ mol.modules.map.results = function(mol) {
              */
             this.display.addAllButton.click(
                 function(event) {
-                    var layers = self.display.getChecked();
+                    var layers = self.display.getChecked(), clearResults = false;
+                    if(self.display.find('.result').filter(':visible').length == layers.length) {
+                        clearResults = true;
+                    } 
                     if(self.map.overlayMapTypes.length + layers.length > self.maxLayers) {
                         if(!$.browser.chrome) {
                             alert(
@@ -1715,6 +1718,7 @@ mol.modules.map.results = function(mol) {
                                 ' layers at a time. Please remove some layers ' +
                                 ' before adding more.'
                             );
+                            
                         } else {
                             alert(
                                 'An issue with Google Chrome currently limits the number '+
@@ -1731,6 +1735,13 @@ mol.modules.map.results = function(mol) {
                                 }
                             )
                         );
+                        if(clearResults) {
+                            self.display.toggle(false);
+                            self.display.clearResults();
+                            self.display.clearFilters();
+                            delete(self.results);
+                            
+                        }
                     }
                 }
             );
@@ -2115,7 +2126,7 @@ mol.modules.map.results = function(mol) {
 
 
         toggleSelections: function(showOrHide) {
-            $('.checkbox').each(
+            $(this).find('.checkbox').each(
                 function() {
                     $(this).attr('checked', showOrHide);
                 }
@@ -5751,7 +5762,7 @@ mol.modules.map.boot = function(mol) {
          * or fires the search results widgetif there are more.
          */
         loadLayers: function(layers) {
-            if (Object.keys(layers).length < this.maxLayers) {
+            if (Object.keys(layers).length <= this.maxLayers) {
                 this.bus.fireEvent(
                     new mol.bus.Event('add-layers', {layers: layers})
                 );

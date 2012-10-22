@@ -620,7 +620,9 @@ padding: 3px;
 .mol-LayerControl-Search .value{
     display:inline-block;
     margin-right: 5px;
-    /*width: 55%;*/
+    -moz-user-select: text;
+    -webkit-user-select: text;
+    -ms-user-select: text;
 }
 
 .ui-autocomplete {

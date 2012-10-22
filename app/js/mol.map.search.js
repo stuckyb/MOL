@@ -312,20 +312,26 @@ mol.modules.map.search = function(mol) {
          */
         search: function(term) {
             var self = this;
-                self.bus.fireEvent(
-                    new mol.bus.Event(
-                        'show-loading-indicator', 
-                        {source : "search-{0}".format(term)}
-                    )
-                );
+                
                 
                 $(self.display.searchBox).autocomplete('disable');
                 $(self.display.searchBox).autocomplete('enable');
                 if(term.length<3) {
-                    alert('' +
-                        'Please enter at least 3 characters in the search box.'
-                    );
+                    if ($.trim(term).length==0) {
+                        self.bus.fireEvent(new mol.bus.Event('clear-results'));
+                    } else {
+                        alert('' +
+                            'Please enter at least 3 characters ' +
+                            'in the search box.'
+                        );
+                    }
                 } else {
+                    self.bus.fireEvent(
+                        new mol.bus.Event(
+                            'show-loading-indicator', 
+                            {source : "search-{0}".format(term)}
+                        )
+                    );
                     $(self.display.searchBox).val(term);
                     $.getJSON(
                         mol.services.cartodb.sqlApi.jsonp_url.format(

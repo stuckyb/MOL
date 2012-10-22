@@ -46,7 +46,12 @@ mol.modules.map.results = function(mol) {
             this.addEventHandlers();
             this.fireEvents();
         },
-
+        clearResults: function() {
+            this.display.toggle(false);
+            this.display.clearResults();
+            this.display.clearFilters();
+            delete(this.results);
+        },
         /**
          * Adds a handler for the 'search-display-toggle' event which
          * controls display visibility. Also adds UI event handlers for the
@@ -70,6 +75,12 @@ mol.modules.map.results = function(mol) {
                 }
             );
             this.bus.addHandler(
+                'clear-results',
+                function(event) {
+                    self.clearResults();
+                }
+            );
+            this.bus.addHandler(
                 'results-map-selected',
                 function(event) {
                     self.display.addAllButton.click();
@@ -81,7 +92,10 @@ mol.modules.map.results = function(mol) {
              */
             this.display.addAllButton.click(
                 function(event) {
-                    var layers = self.display.getChecked();
+                    var layers = self.display.getChecked(), clearResults = false;
+                    if(self.display.find('.result').filter(':visible').length == layers.length) {
+                        clearResults = true;
+                    } 
                     if(self.map.overlayMapTypes.length + layers.length > self.maxLayers) {
                         if(!$.browser.chrome) {
                             alert(
@@ -89,6 +103,7 @@ mol.modules.map.results = function(mol) {
                                 ' layers at a time. Please remove some layers ' +
                                 ' before adding more.'
                             );
+                            
                         } else {
                             alert(
                                 'An issue with Google Chrome currently limits the number '+
@@ -105,6 +120,10 @@ mol.modules.map.results = function(mol) {
                                 }
                             )
                         );
+                        if(clearResults) {
+                            self.clearResults();
+                            
+                        }
                     }
                 }
             );
@@ -489,7 +508,7 @@ mol.modules.map.results = function(mol) {
 
 
         toggleSelections: function(showOrHide) {
-            $('.checkbox').each(
+            $(this).find('.checkbox').each(
                 function() {
                     $(this).attr('checked', showOrHide);
                 }
