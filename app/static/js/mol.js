@@ -1672,7 +1672,12 @@ mol.modules.map.results = function(mol) {
             this.addEventHandlers();
             this.fireEvents();
         },
-
+        clearResults: function() {
+            this.display.toggle(false);
+            this.display.clearResults();
+            this.display.clearFilters();
+            delete(this.results);
+        },
         /**
          * Adds a handler for the 'search-display-toggle' event which
          * controls display visibility. Also adds UI event handlers for the
@@ -1693,6 +1698,12 @@ mol.modules.map.results = function(mol) {
                 'results-select-all',
                 function(event) {
                     self.display.selectAllLink.click();
+                }
+            );
+            this.bus.addHandler(
+                'clear-results',
+                function(event) {
+                    self.clearResults();
                 }
             );
             this.bus.addHandler(
@@ -1736,10 +1747,7 @@ mol.modules.map.results = function(mol) {
                             )
                         );
                         if(clearResults) {
-                            self.display.toggle(false);
-                            self.display.clearResults();
-                            self.display.clearFilters();
-                            delete(self.results);
+                            self.clearResults();
                             
                         }
                     }
@@ -2632,20 +2640,26 @@ mol.modules.map.search = function(mol) {
          */
         search: function(term) {
             var self = this;
-                self.bus.fireEvent(
-                    new mol.bus.Event(
-                        'show-loading-indicator', 
-                        {source : "search-{0}".format(term)}
-                    )
-                );
+                
                 
                 $(self.display.searchBox).autocomplete('disable');
                 $(self.display.searchBox).autocomplete('enable');
                 if(term.length<3) {
-                    alert('' +
-                        'Please enter at least 3 characters in the search box.'
-                    );
+                    if ($.trim(term).length==0) {
+                        self.bus.fireEvent(new mol.bus.Event('clear-results'));
+                    } else {
+                        alert('' +
+                            'Please enter at least 3 characters ' +
+                            'in the search box.'
+                        );
+                    }
                 } else {
+                    self.bus.fireEvent(
+                        new mol.bus.Event(
+                            'show-loading-indicator', 
+                            {source : "search-{0}".format(term)}
+                        )
+                    );
                     $(self.display.searchBox).val(term);
                     $.getJSON(
                         mol.services.cartodb.sqlApi.jsonp_url.format(
