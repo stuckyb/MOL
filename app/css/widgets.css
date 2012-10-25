@@ -1035,13 +1035,12 @@ div.mol-Dashboard-TableWindow {
     width: 80%;
     float: right;
     text-align: right;
-    white-space:nowrap;
+    white-space: nowrap;
 }
 .mol-LayerControl-Results .searchResults .pageNavigation button{
     margin-right: 4px;
     padding: 3px;
 }
-
 
 /* BEGIN ADD UI
  * add, results
