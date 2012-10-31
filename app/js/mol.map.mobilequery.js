@@ -455,10 +455,13 @@ mol.modules.mobile.query = function(mol) {
                 lngHem = lngH,
                 content = con;
                 dlContent = dlCon,
-                iucnContent = iuCon;
+                iucnContent = iuCon,
+                params = {};
 
             listWindow = new mol.mobile.query.listDisplay();
-
+            params.display = listWindow;
+            this.bus.fireEvent(new mol.bus.Event('add-mobile-display', params));
+            
             listWindow.dialog({
                 autoOpen: true,
                 width: 680,
@@ -474,14 +477,7 @@ mol.modules.mobile.query = function(mol) {
                            position.latitude*1000)/1000) +
                            '&deg;&nbsp;' + lngHem
             });
-
-            $(".mol.mobile-ListDialog").parent().bind("resize", function() {
-                $(".mol.mobile-ListQueryInfoWindow")
-                    .height($(".mol.mobile-ListDialog").height()-125);
-
-                $("#gallery")
-                    .height($(".mol.mobile-ListDialog").height()-125);
-            });
+           
 
             //tabs() function needs document ready to
             //have been called on the dialog content
@@ -489,7 +485,7 @@ mol.modules.mobile.query = function(mol) {
                 var mmlHeight;
 
                 //initialize tabs and set height
-                listTabs = $("#tabs").tabs();
+                listTabs = $(listWindow).find("#tabs").tabs();
 
                 $("#tabs > #listTab").html(content[0]);
                 $("#tabs > #dlTab").html(dlContent[0]);
@@ -1024,7 +1020,7 @@ mol.modules.mobile.query = function(mol) {
             this._super(html);
             this.classInput=$(this).find('.class');
             this.speciesDisplay = $(this).find('.speciesDisplay');
-            this.getListButton = $(this).find('.getListButton');
+            this.getListButton = $(this).find('.getList');
 
         }
     });
