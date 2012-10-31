@@ -61,6 +61,12 @@ handlers:
 - url: /about.*
   script: homepage.application
 
+- url: /m
+  script: mobile.application
+
+- url: /m/.*
+  script: mobile.application
+
 - url: /
   script: app.application
 

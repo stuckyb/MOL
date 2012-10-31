@@ -25,13 +25,18 @@ class MapPage(BaseHandler):
         self.render_template('map-index-template.html',
                              {'prod': PROD, 'r': random.random()})
 
+class MobilePage(BaseHandler):
+    def get(self):
+        self.render_template('mobile-index-template.html',
+                             {'prod': PROD, 'r': random.random()})
+
+
 class TestPage(BaseHandler):
     def get(self):
         self.render_template('design.html', {})
 
 application = webapp2.WSGIApplication(
-         [('/', MapPage), ('/.*',MapPage),
-         ('/design', TestPage)],
+         [('/', MapPage), ('/.*',MapPage),('/design', TestPage)],
          debug=True)
 
 def main():
