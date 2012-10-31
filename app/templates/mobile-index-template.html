@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+
+<html xmlns:og="http://ogp.me/ns#"
+      xmlns:fb="https://www.facebook.com/2008/fbml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link rel="stylesheet" href="../../../js/lib/jquery/css/ui-lightness/jquery-ui-1.8.18.custom.css">
+    <link rel="stylesheet" href="../../../css/mol.css">
+    <link rel="stylesheet" href="../../../css/cartodb.css">
+    <link rel="stylesheet" href="../../../css/widgets.css">
+    <link rel="stylesheet" href="../../../css/tablesorter.css">
+    <link rel="stylesheet" href="../../../css/theme.blue.css">
+    <link rel="stylesheet" href="../../../css/jquery.qtip.min.css">
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        google.load("visualization", "1", {packages:["corechart"]});
+    </script>
+    <script type="text/javascript" src="../../../js/lib/jquery-1.7.1.js"></script>
+    <script type="text/javascript" src="../../../js/lib/jquery.numeric.js"></script>
+    <script type="text/javascript" src="../../../js/lib/jquery/js/jquery-ui-1.8.18.custom.min.js"></script>
+    <script type="text/javascript" src="../../../js/lib/jquery.imagesloaded.js"></script>
+    <script type="text/javascript" src="../../../js/lib/jquery.tablesorter.min.js"></script>
+    <script type="text/javascript" src="../../../js/lib/jquery.tablesorter.widgets.js"></script>
+    <script type="text/javascript" src="../../../js/lib/jquery.qtip.min.js"></script>
+    <script type="text/javascript" src="../../../js/lib/underscore-min.js"></script>
+    <script type="text/javascript" src="../../../js/lib/backbone-min.js"></script>
+    <script type="text/javascript" src="../../../js/lib/class.js"></script>
+    <script type="text/javascript" src="../../../js/mol.js"></script>
+    <script type="text/javascript" src="../../../js/mol.core.js"></script>
+    <script type="text/javascript" src="../../../js/mol.bus.js"></script>
+    <script type="text/javascript" src="../../../js/mol.services.js"></script>
+    <script type="text/javascript" src="../../../js/mol.services.cartodb.js"></script>
+    <script type="text/javascript" src="../../../js/mol.mvp.js"></script>
+    <script type="text/javascript" src="../../../js/mol.mobile.js"></script>
+    <script type="text/javascript" src="../../../js/mol.map.mobilequery.js"></script>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <title>Species Lists from the Map of Life</title>
+    <meta name="description" content="A knowledge-base and platform for species distribution map development." />
+    <meta name="keywords" content="map of life, biodiversity informatics, expert range maps, point occurrence, species occurrence, regional checklists, local inventories" />
+
+    <meta property="og:title" content="Map of Life" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="http://www.mappinglife.org/" />
+    <meta property="og:image" content="http://www.mappinglife.org/static/demo/ochotona-princeps-thumb.png"/>
+    <meta property="fb:admins" content="gaurav.vaidya"/>
+    <meta property="og:description" content="By bringing together all types of information about species distributions, providing model-based integration, and providing a system for users to build upon our knowledge, the Map of Life project hopes to support our community in understanding and saving the world's biodiversity." />
+
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-26993916-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+         })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+    <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+  </head>
+  <body>
+    <div id="mobile_container" data-role="page">
+        <div data-role="content">
+            <div class="mobile_container"></div>
+        </div>
+    </div>
+    <script type="text/javascript">
+      $(document).ready(function() {
+          {% if prod %}
+          <!-- Production, so load app without logging and run it. -->
+          env = mol(function(env) {
+             bus = env.bus.Bus()
+             proxy = new env.services.Proxy(bus)
+             me = new env.mobile.MobileEngine(proxy, bus)
+             me.start('body');
+                qe = new env.mobile.query.QueryEngine(proxy, bus)
+                qe.start()
+            }
+      });
+          {% else %}
+          env = mol(function(env) {
+            bus = env.bus.Bus()
+             proxy = new env.services.Proxy(bus)
+             me = new env.mobile.MobileEngine(proxy, bus)
+             me.start('body');
+             qe = new env.mobile.query.QueryEngine(proxy, bus);
+             qe.start()
+          });
+          {% endif %}
+      });
+    </script>
+  </body>
+</html>
