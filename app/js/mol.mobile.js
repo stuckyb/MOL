@@ -14,7 +14,7 @@ mol.modules.mobile = function(mol) {
             },
 
             start: function(container) {
-                this.display = $('.mobile_container');
+                this.display = $('body');
                 this.addControls();
                 this.addEventHandlers();
             },
@@ -31,15 +31,13 @@ mol.modules.mobile = function(mol) {
             addEventHandlers: function() {
                 var self = this;
                 this.bus.addHandler(
-                    'add-mobile-display',
+                    'add-page',
                     function (event) {
-
                         if(event.display) {
-                            self.display.append(event.display);
+                            self.display.page(event.display);
                         }
-
                     }
-                )
+                );
             }
         }
     );

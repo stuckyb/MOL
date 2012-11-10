@@ -1,0 +1,33 @@
+application: map-of-life
+version: m
+runtime: python27
+threadsafe: true
+api_version: 1
+
+inbound_services:
+- warmup
+
+builtins:
+- remote_api: on
+
+handlers:
+
+- url: /js/(.*\.(js))
+  static_files: js/\1
+  upload: js/(.*\.(js))
+  
+- url: /css/(.*\.(css|gif|png|jpg))
+  static_files: css/\1
+  upload: css/(.*\.(css|gif|png|jpg))
+
+- url: /(.*\.(gif|png|jpg))
+  static_files: images/\1
+  upload: images/(.*\.(gif|png|jpg))
+
+- url: /
+  script: app.application
+
+- url: /.*
+  script: app.application
+
+

@@ -27,7 +27,7 @@ mol.modules.mobile.query = function(mol) {
                 '    s.sequenceid as sequenceid, ' +
                 '    eolthumbnailurl as eol_thumb_url, ' +
                 '    page_id as eol_page_id ' +
-                'FROM {3} p ' +
+                'FROM polygons p ' +
                 'LEFT JOIN eol e ' +
                 '    ON p.scientificname = e.scientificname ' +
                 'LEFT JOIN synonym_metadata n ' +
@@ -46,7 +46,7 @@ mol.modules.mobile.query = function(mol) {
                 '    ST_DWithin(p.the_geom_webmercator,ST_Transform' +
                 //radius test
                 '    (ST_PointFromText(\'POINT({0})\',4326),3857),{1}) ' +
-                '    {2} ' + //other constraints
+                '    AND provider = \'jetz\' ' + //other constraints
                 'ORDER BY s.sequenceid, p.scientificname asc';
              // TODO: Docs for what this query does.
             this.csv_sql = '' +
@@ -61,7 +61,7 @@ mol.modules.mobile.query = function(mol) {
                 '    pv.title as "Source", ' +
                 '    t.year_assessed as "Year Assessed", ' +
                 '    s.sequenceid as "Sequence ID" ' +
-                'FROM {3} p ' +
+                'FROM polygons p ' +
                 'LEFT JOIN synonym_metadata n ' +
                 '    ON p.scientificname = n.scientificname ' +
                 'LEFT JOIN taxonomy t ' +
@@ -77,23 +77,18 @@ mol.modules.mobile.query = function(mol) {
                 '    ST_DWithin(p.the_geom_webmercator,ST_Transform' +
                 //radius test
                 '   (ST_PointFromText(\'POINT({0})\',4326),3857),{1}) ' +
-                '    {2} ' + //other constraints
+                '   AND provider = \'jetz\' ' + //other constraints
                 'ORDER BY "Sequence ID", "Scientific Name" asc';
             this.queryct=0;
         },
 
         start : function() {
-            this.addQueryDisplay();
+            this.addStartPage();
             this.addEventHandlers();
-            this.getNewList();
         },
 
-        getNewList: function (event) {
-            var listradius,
-                constraints = $(this.display.classInput).val(),
-                className =  $("option:selected",
-                    $(this.display.classInput)).text(),
-                position = {},
+        getList: function (event) {
+            var position = {},
                 self = this;
 
             if(navigator.geolocation != undefined) {
@@ -102,9 +97,7 @@ mol.modules.mobile.query = function(mol) {
                         position = newposition.coords;
                         self.getList(
                             position.latitude,
-                            position.longitude,
-                            constraints,
-                            className
+                            position.longitude
                         );
                     }
                 );
@@ -113,9 +106,7 @@ mol.modules.mobile.query = function(mol) {
                 position.longitude = prompt('What is your longitude?');
                 this.getList(
                     position.latitude,
-                    position.longitude,
-                    constraints,
-                    className
+                    position.longitude               
                 );
             }
 
@@ -124,15 +115,11 @@ mol.modules.mobile.query = function(mol) {
         /*
          *  Add the species list tool controls to the map.
          */
-        addQueryDisplay : function() {
+        addStartPage : function() {
             var params = {
                 display: null
             };
-
-            this.bus.fireEvent(new mol.bus.Event('register-list-click'));
-            this.enabled=true;
-            this.features={};
-            this.display = new mol.mobile.QueryDisplay();
+            this.display = new mol.mobile.StartPageDisplay();
             params.display = this.display;
             this.bus.fireEvent(new mol.bus.Event('add-mobile-display', params));
         },
@@ -140,19 +127,15 @@ mol.modules.mobile.query = function(mol) {
          *  Method to build and submit an AJAX call that retrieves species
          *  at a radius around a lat, long.
          */
-        getList: function(lat, lng, constraints, className) {
+        getList: function(lat, lng) {
             var self = this,
                 sql = this.sql.format(
                     (Math.round(lng*100)/100+ ' ' +Math.round(lat*100)/100),
-                    50000,
-                    constraints,
-                    'polygons'),
+                    50000),
                 csv_sql = escape(
                     this.csv_sql.format(
                         (Math.round(lng*100)/100+' '+Math.round(lat*100)/100),
-                        50000,
-                        constraints,
-                        'polygons'));
+                        50000));
 
 
             if (self.queryct > 0) {
@@ -165,71 +148,29 @@ mol.modules.mobile.query = function(mol) {
                     function(data, textStatus, jqXHR) {
                         var results = {
                             position:{latitude:lat, longitude: lng},
-                            constraints: constraints,
-                            className : className,
-                            response:data,
-                            sql:csv_sql
-                        },
-                        e = new mol.bus.Event('species-list-query-results',
-                            results);
-                        self.queryct--;
-                        self.bus.fireEvent(e);
+                            response:data
+                        }
+                        self.showList(results);
                     }
                 );
             }
         },
+        showList: function (results) {
+            var latHem,
+                lngHem,
+                listPage;
+               
 
+            if (!results.response.error) {
+	            this.listPage = new mol.mobile.StartPageDisplay();
+	            this.bus.fireEvent(new mol.bus.Event('add-page',{display: this.listPage}));
+			}
+        },	
         addEventHandlers : function () {
             var self = this;
             this.display.getListButton.click(
                 function() {
-                    self.getNewList();
-                }
-            );
-
-            /*
-             *  Assembles HTML for an species list given results from
-             *  an AJAX call made in getList.
-             */
-            this.bus.addHandler(
-                'species-list-query-results',
-                function (event) {
-                    var className,
-                        latHem,
-                        lngHem,
-                        listRowsDone;
-
-                    if (!event.response.error) {
-                        className = event.className;
-                        position = event.position;
-                        latHem = (position.latitude > 0) ? 'N' : 'S';
-                        lngHem = (position.longitude > 0) ? 'E' : 'W';
-
-                        listRowsDone = self.processListRows(
-                                            position,
-                                            className,
-                                            latHem,
-                                            lngHem,
-                                            event.response.rows,
-                                            event.sql);
-
-                        self.displayListWindow(
-                            position,
-                            listRowsDone.speciestotal,
-                            className,
-                            latHem,
-                            lngHem,
-                            event.response.rows,
-                            listRowsDone.content,
-                            listRowsDone.dlContent,
-                            listRowsDone.iucnContent);
-                    } else {
-
-                    }
-                    self.bus.fireEvent(
-                        new mol.bus.Event(
-                            'hide-loading-indicator',
-                            {source : 'listradius'}));
+                    self.getList();
                 }
             );
         },
@@ -460,64 +401,7 @@ mol.modules.mobile.query = function(mol) {
 
             listWindow = new mol.mobile.query.listDisplay();
             params.display = listWindow;
-            this.bus.fireEvent(new mol.bus.Event('add-mobile-display', params));
-            
-            listWindow.dialog({
-                autoOpen: true,
-                width: 680,
-                height: 415,
-                dialogClass: 'mol.mobile-ListDialog',
-                modal: false,
-                title: speciestotal + ' species of ' + className +
-                       ' within 50 km of ' +
-                       Math.abs(Math.round(
-                           position.latitude*1000)/1000) +
-                           '&deg;&nbsp;' + latHem + '&nbsp;' +
-                       Math.abs(Math.round(
-                           position.latitude*1000)/1000) +
-                           '&deg;&nbsp;' + lngHem
-            });
-           
-
-            //tabs() function needs document ready to
-            //have been called on the dialog content
-            $(function() {
-                var mmlHeight;
-
-                //initialize tabs and set height
-                listTabs = $(listWindow).find("#tabs").tabs();
-
-                $("#tabs > #listTab").html(content[0]);
-                $("#tabs > #dlTab").html(dlContent[0]);
-                $("#tabs > #iucnTab").html(iucnContent[0]);
-
-                $(".mol.mobile-ListQueryDownload").button();
-                mmlHeight = $(".mol.mobile-ListDialog").height();
-                $(".mol.mobile-ListQueryInfoWindow").height(mmlHeight-125);
-                $("#gallery").height(mmlHeight-125);
-
-                //list table creation
-                self.createSpeciesListTable(listWindow);
-
-                //chart creation
-                if(speciestotal > 0 ) {
-                    self.createIucnChart(rows, mmlHeight);
-                }
-
-                //image gallery creation
-                self.createImageGallery(rows, speciestotal);
-
-                listTabs.tabs("select", 0);
-            });
-
-
-
-            $(listWindow).dialog({
-               beforeClose: function(evt, ui) {
-                   listTabs.tabs("destroy");
-                   $(".mol.mobile-ListDialogContent").remove();
-               }
-            });
+            this.bus.fireEvent(new mol.bus.Event('add-page', params));         
         },
 
         /*
@@ -992,68 +876,32 @@ mol.modules.mobile.query = function(mol) {
         }
     });
 
-    mol.mobile.QueryDisplay = mol.mvp.View.extend({
-        init : function(names) {
-            var className = 'mol.mobile-QueryDisplay',
-                html = '' +
-                    '<div title=' +
-                    '  class="' + className +
-                    '  widgetTheme">' +
-                    '  <button class="getList">Get a list of species for this location</button>' +
-                    '  <div class="speciesDisplay">' +
-                         'Group ' +
-                    '    <select class="class" value="">' +
-                    '      <option selected value=" AND p.polygonres=100 ">' +
-                    '        Birds</option>' +
-                    '      <option value=" AND p.provider=\'fishes\' ">' +
-                    '        NA Freshwater Fishes</option>' +
-                    '      <option value=" AND p.class=\'reptilia\' ">' +
-                    '        NA Reptiles</option>' +
-                    '      <option value=" AND p.class=\'amphibia\' ">' +
-                    '        Amphibians</option>' +
-                    '      <option value=" AND p.class=\'mammalia\' ">' +
-                    '        Mammals</option>' +
-                    '    </select>' +
-                    '  </div>' +
-                    '</div>';
-
-            this._super(html);
-            this.classInput=$(this).find('.class');
-            this.speciesDisplay = $(this).find('.speciesDisplay');
-            this.getListButton = $(this).find('.getList');
-
-        }
-    });
-
-    mol.mobile.QueryResultDisplay = mol.mvp.View.extend({
+   
+    mol.mobile.StartPageDisplay = mol.mvp.View.extend({
         init : function(scientificname) {
-            var className = 'mol.mobile-QueryResultDisplay', html = '{0}';
-            this._super(html.format(scientificname));
+            var className = 'mol.mobile-QueryResultDisplay', 
+            	html = '' +
+            		'<div><button>Get List of Species</button></div>';
+            this._super(html);
+             this.getListButton = $(this).find('.getList');
+
         }
     });
 
-    mol.mobile.query.listDisplay = mol.mvp.View.extend({
+    mol.mobile.query.ListPageDisplay = mol.mvp.View.extend({
         init : function() {
-            var html = '' +
-                '<div class="mol.map-ListDialogContent ui-tabs" id="tabs">' +
-                '   <ul class="ui-tabs-nav">' +
-                '      <li><a href="#listTab">List</a></li>' +
-                '      <li><a href="#imagesTab">Images</a></li>' +
-                '      <li><a href="#iucnTab">IUCN</a></li>' +
-                '      <li><a href="#dlTab">Download</a></li>' +
-                '   </ul>' +
-                '   <div id="listTab" class="ui-tabs-panel">Content.</div>' +
-                '   <div id="imagesTab" class="ui-tabs-panel">' +
-                '       <div>' +
-                '           <span id="imgTotals"></span>' +
-                            'Source: <a href="http://eol.org/" ' +
-                            'target="_blank">Encyclopedia of Life</a> ' +
-                '       </div>' +
-                '       <ul id="gallery" style="overflow: auto;"></ul></div>' +
-                '   <div id="iucnTab" class="ui-tabs-panel">IUCN.</div>' +
-                '   <div id="dlTab" class="ui-tabs-panel">Download.</div>' +
+            var html = '' +       
+                '<div data-role="page">' +
                 '</div>';
             this._super(html);
         }
     });
+    
+    mol.mobile.query.ListRowDisplay = mol.mvp.View.extend({
+        init : function(scientificname) {
+            var html = '' +       
+                '<div>{0}</div>';
+            this._super(html.format(scientificname));
+        }
+    });  
 };

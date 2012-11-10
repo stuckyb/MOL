@@ -1,0 +1,75 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+	<title>Species Lists from the Map of Life</title> 
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+	<link rel="stylesheet" href="css/jquery/jquery.mobile-1.2.0.min.css" />
+	<script src="js/jquery/jquery-1.8.2.min.js"></script>
+	<script src="js/jquery/jquery.mobile-1.2.0.min.js"></script>
+	<script src="js/mol/main.js"></script>
+	<script src="js/mol/templates.js"></script>
+</head> 
+<body> 
+
+<div class="mainPage" id="main" data-role="page">
+	<div data-role="header">
+		<h1>Species Lists from the Map of Life</h1>
+	</div><!-- /header -->
+	<div data-role="navbar">
+		<ul>
+			<li><a href="#main" class="navbarButton ui-btn-active ui-state-persist">List</a></li>
+			<li><a href="#images" class="navbarButton">Images</a></li>
+			<li><a href="#settings" class="navbarButton">Settings</a></li>
+		</ul>
+	</div><!-- /navbar -->
+	<div class="content" data-role="content">			
+	</div><!-- /content -->
+</div><!-- /page -->
+<div class="imagesPage" id="images" data-role="page">
+	<div data-role="header">
+		<h1>Species Lists from the Map of Life</h1>
+	</div><!-- /header -->
+	<div data-role="navbar">
+		<ul>
+			<li><a href="#main"  class="navbarButton">List</a></li>
+			<li><a href="#images"  class="navbarButton  ui-btn-active ui-state-persist">Images</a></li>
+			<li><a href="#settings"  class="navbarButton">Settings</a></li>
+		</ul>
+	</div><!-- /navbar -->
+	<div class="content" data-role="content">			
+	</div><!-- /content -->
+</div><!-- /page -->
+<div class="settingsPage" id="settings" data-role="page">
+
+	<div data-role="header">
+		<h1>Settings</h1>
+	</div><!-- /header -->
+		<div data-role="navbar">
+		<ul>
+			<li><a href="#main"  class="navbarButton">List</a></li>
+			<li><a href="#images" class="navbarButton">Images</a></li>
+			<li><a href="#settings" class="navbarButton ui-btn-active ui-state-persist">Settings</a></li>
+		</ul>
+	</div><!-- /navbar -->
+		<span>Select a species group</span>
+		<select class="listType">
+			<option value="jetz_maps">Birds</option>
+			<option value="iucn_reptiles">Reptiles</option>
+			<option value="iucn_amphibians">Amphibians</option>
+			<option value="iucn_mammals">Mammals</option>
+		</select>
+		<span>Select a search radius</span>
+		<select class="listRadius">
+			<option value="50000">50 km</option>
+			<option value="100000">100 km</option>
+			<option value="300000">300 km</option>
+		</select>
+	<div class="content" data-role="content">			
+	</div><!-- /content -->
+
+</div><!-- /page -->
+	<script type="text/javascript">
+		var mol = new mol_mobile;
+	</script>
+</body>
+</html>
