@@ -19,10 +19,12 @@
 		<ul>
 			<li><a href="#main" class="navbarButton ui-btn-active ui-state-persist">List</a></li>
 			<li><a href="#images" class="navbarButton">Images</a></li>
+			<li><a href="#iucn" class="navbarButton">IUCN</a></li>
 			<li><a href="#settings" class="navbarButton">Settings</a></li>
 		</ul>
 	</div><!-- /navbar -->
-	<div class="content" data-role="content">			
+	<div class="content" data-role="content">
+		<ul class="speciesList" data-role="listview" data-inset="true" data-filter="true"></ul>			
 	</div><!-- /content -->
 </div><!-- /page -->
 <div class="imagesPage" id="images" data-role="page">
@@ -33,10 +35,12 @@
 		<ul>
 			<li><a href="#main"  class="navbarButton">List</a></li>
 			<li><a href="#images"  class="navbarButton  ui-btn-active ui-state-persist">Images</a></li>
+			<li><a href="#iucn" class="navbarButton">IUCN</a></li>
 			<li><a href="#settings"  class="navbarButton">Settings</a></li>
 		</ul>
 	</div><!-- /navbar -->
-	<div class="content" data-role="content">			
+	<div class="content" data-role="content">
+		<div class="imageGallery" data-role="listview" data-filter="true"></div>	
 	</div><!-- /content -->
 </div><!-- /page -->
 <div class="settingsPage" id="settings" data-role="page">
@@ -48,6 +52,7 @@
 		<ul>
 			<li><a href="#main"  class="navbarButton">List</a></li>
 			<li><a href="#images" class="navbarButton">Images</a></li>
+			<li><a href="#iucn" class="navbarButton">IUCN</a></li>
 			<li><a href="#settings" class="navbarButton ui-btn-active ui-state-persist">Settings</a></li>
 		</ul>
 	</div><!-- /navbar -->
@@ -63,6 +68,11 @@
 			<option value="50000">50 km</option>
 			<option value="100000">100 km</option>
 			<option value="300000">300 km</option>
+		</select>
+		<span>Name format</span>
+		<select class="nameType">
+			<option value="sci">Scientific (latin)</option>
+			<option value="eng">Common (english)</option>
 		</select>
 	<div class="content" data-role="content">			
 	</div><!-- /content -->

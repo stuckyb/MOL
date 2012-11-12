@@ -23,7 +23,8 @@ mol_mobile.prototype.attachEvents = function () {
 mol_mobile.prototype.getList = function () {
 	var self = this;
 	$.mobile.loading('show');
-	$(this.pages.main).find('.content').empty();
+	$(this.pages.main).find('.speciesList').empty();
+	$(this.pages.images).find('.imageGallery').empty();
 	$.getJSON(
 		this.url.format(
 			'SELECT * FROM get_species_list(\'{0}\',{1},{2},{3})'.format(
@@ -67,8 +68,8 @@ mol_mobile.prototype.getLocation = function () {
 mol_mobile.prototype.writeList = function(rows) {
 	var self = this,
 		//create a list
-		list = $(this.templates.main.list),
-		gallery = $(this.templates.images.gallery);
+		list = $(this.pages.main).find('.speciesList'),
+		gallery = $(this.pages.images).find('.imageGallery');
 	//add rows to it
 	$.each(
 		rows,
@@ -85,8 +86,7 @@ mol_mobile.prototype.writeList = function(rows) {
 	)
 	
 	//add it to the page
-	$(this.pages.main).find('.content').append(list);
-	$(this.pages.images).find('.content').append(gallery);
+	
 	
 } 
 /**
