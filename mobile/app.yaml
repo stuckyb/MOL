@@ -25,9 +25,12 @@ handlers:
   upload: images/(.*\.(gif|png|jpg))
 
 - url: /
-  script: app.application
+  script: app.app
 
 - url: /.*
-  script: app.application
+  script: app.app
 
 
+libraries:
+- name: jinja2
+  version: latest

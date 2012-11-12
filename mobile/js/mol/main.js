@@ -19,6 +19,23 @@ function mol_mobile () {
 }
 mol_mobile.prototype.attachEvents = function () {
 	var self = this;
+	$.each(
+		$.find('.pages'),
+		function(page) {
+			$(page).bind(
+				'swiperight',
+				function() {
+					alert('swiped right');
+				}
+			);
+			$(page).bind(
+				'swipeleft',
+				function() {
+					alert('swiped right');
+				}
+			);
+		}
+	)
 }
 mol_mobile.prototype.getList = function () {
 	var self = this;
@@ -67,25 +84,38 @@ mol_mobile.prototype.getLocation = function () {
 }
 mol_mobile.prototype.writeList = function(rows) {
 	var self = this,
-		//create a list
 		list = $(this.pages.main).find('.speciesList'),
 		gallery = $(this.pages.images).find('.imageGallery');
 	//add rows to it
 	$.each(
 		rows,
 		function(row) {
+			var galleryItem;
 			list.append(
-				$(self.templates.main.listItem.format(rows[row].scientificname))
+				$(self.templates.main.listItem.format(rows[row].scientificname, rows[row].english ))
 			);
 			if(rows[row].thumbsrc != null) {
-				gallery.append(
-					$(self.templates.images.galleryItem.format(rows[row].thumbsrc, rows[row].imgsrc ))
-				)
+				galleryItem=$(
+					self.templates.images.galleryItem
+						.format(
+							rows[row].scientificname.replace(/ /g, '_'), 
+							rows[row].thumbsrc, 
+							'<i>{0}</i>&nbsp;{1}'.format(rows[row].scientificname, rows[row].english),
+							rows[row].imgsrc
+						)
+				);
+				$(galleryItem).find('.photopopup').on({
+			        popupbeforeposition: function() {
+			            var maxHeight = $( window ).height() - 60 + "px";
+			            $( ".photopopup img" ).css( "max-height", maxHeight );
+			        }
+			    });
+				gallery.append(galleryItem);
 			}
 		}
 	)
 	
-	//add it to the page
+	
 	
 	
 } 

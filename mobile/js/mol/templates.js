@@ -2,10 +2,18 @@
 mol_mobile.prototype.templates = {
 	main : {
 		listItem : '' +
-			'<li class="speciesListItem">{0}</li>'
+			'<li class="speciesListItem"><i>{0}</i>&nbsp;{1}</li>'
 	},
 	images : {
 		galleryItem : '' +
-			'<a href="{1}"><img class="galleryItem" src="{0}"></a>',
+			'<span>'+
+				'<a href="#{0}-popup" data-rel="popup" class="galleryItem" class=>' +
+					'<img src="{1}">'+
+				'</a>'+
+				'<div data-role="popup" class="photopopup" id="{0}-popup">'+
+					'<img src=\'{3}\'" class="photo"><br>'+
+					'{2}'+
+				'</div>'+
+			'</span>',
 	}
 }
