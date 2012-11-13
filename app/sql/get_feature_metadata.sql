@@ -49,7 +49,7 @@ $$
                   '   d.' || data.geom_id || ' = g.' || data.geom_link_id  ||
 	          ' JOIN ' || data.occurrence_table || ' o ON ' ||
 	          '   (d.' || data.geom_id || ' = o.' || data.occurrence_geom_id || 
-		  ' 	AND ' || ' d.'|| data.speciesid || ' = o.' || data.species_link_id || ')' ||
+		  ' 	AND ' || ' d.'|| data.species_id || ' = o.' || data.species_link_id || ')' ||
                   ' WHERE d.cartodb_id = ' || cartodb_id;   
         ELSIF data.type = 'ecoregion' or data.type = 'taxogeochecklist' THEN 		
             -- Checklist with a seperate geometry table and taxonomy table
