@@ -218,8 +218,7 @@ mol.modules.map.layers = function(mol) {
                                                 }
                                             );  
                                                    
-                                            button.disabled = false;      
-                                                    
+                                            $(button).prop('disabled', false);            
                                             $(button).qtip('destroy');
                                         }
                                 );
@@ -227,19 +226,13 @@ mol.modules.map.layers = function(mol) {
                                 $(api.elements.content)
                                     .find('#cancelStyle').click(
                                         function(event) {
-                                            button.disabled = false;
-                                            
+                                            $(button).prop('disabled', false);
                                             $(button).qtip('destroy');
                                         }
                                     );
                             },
                             show: function(event, api) {                              
-                                button.disabled = true;
-                            },
-                            hide: function(event, api) {
-                                button.disabled = false;
-                                
-                                $(button).qtip('destroy');
+                                $(button).prop('disabled', true);
                             }
                         }
                     });
@@ -518,6 +511,7 @@ mol.modules.map.layers = function(mol) {
                                     
                                     l = self.display.getLayer(layer);
                                     b = $(l).find('.styler');
+                                    $(b).prop('disabled', false);
                                     $(b).qtip('destroy');
                                 }
                             );
@@ -815,8 +809,7 @@ mol.modules.map.layers = function(mol) {
                                                 .slider("value")) 
                                 );       
                                        
-                                button.disabled = false;      
-                                        
+                                $(button).prop('disabled', false);           
                                 $(button).qtip('destroy');
                             }
                         );
@@ -836,17 +829,13 @@ mol.modules.map.layers = function(mol) {
                         $(api.elements.content)
                             .find('#cancelStyle').click(
                                 function(event) {
-                                    button.disabled = false;
-                                    
+                                    $(button).prop('disabled', false);
                                     $(button).qtip('destroy');
                                 }
                             );
                     },
                     show: function(event, api) {                              
-                        button.disabled = true;
-                    },
-                    hidden: function(event, api) {
-                        button.disabled = false;
+                        $(button).prop('disabled', true);
                     }
                 }
             });
