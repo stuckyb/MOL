@@ -37,6 +37,9 @@ mol.modules.map.boot = function(mol) {
                     'd.style_table as style_table ' +
                     
                 'FROM layer_metadata l ' +
+                'LEFT JOIN syno sn ON  ' +
+                ' (l.scientificname = sn.scientificname OR ' +
+                ' l.scientificname = sn.mol_scientificname ) ' +
                 'LEFT JOIN data_registry d ON ' +
                     'l.dataset_id = d.dataset_id ' +
                 'LEFT JOIN types t ON ' +
@@ -48,7 +51,8 @@ mol.modules.map.boot = function(mol) {
                 'LEFT JOIN ac n ON ' +
                     'l.scientificname = n.n ' +
                 'WHERE ' +
-                     "n.n~*'\\m{0}' OR n.v~*'\\m{0}' " +
+                     "n.n~*'\\m{0}' OR n.v~*'\\m{0}' OR " +
+                     "sn.mol_scientificname~*'\\m{0}' " + 
                 'ORDER BY name, type_sort_order';
         },
         start: function() {
