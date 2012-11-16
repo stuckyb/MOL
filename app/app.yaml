@@ -1,5 +1,5 @@
 application: map-of-life
-version: canary
+version: ee
 runtime: python27
 threadsafe: true
 api_version: 1
@@ -19,6 +19,9 @@ handlers:
 - url: /tiles/.*
   script: tile_handler.application
 
+- url: /ee
+  script: ee_handler.application
+  
 - url: /js
   static_dir: js
 
@@ -66,5 +69,4 @@ handlers:
 
 - url: /.*
   script: app.application
-
 
