@@ -360,4 +360,38 @@ mol.modules.map.tiles = function(mol) {
             }
         }
     );
+    mol.map.tiles.EarthEngineTile = Class.extend({
+            init: function(layer, table, map) {
+                
+                        var eeMapOptions = {
+          getTileUrl: function(tile, zoom) {
+            var urlPattern = "https://earthengine.googleapis.com/map/{{ mapid }}/{Z}/{X}/{Y}?token={{ token }}";
+            var y = tile.y;
+            var tileRange = 1 << zoom;
+            if (y < 0 || y >= tileRange) {
+              return null;
+            }
+            var x = tile.x;
+            if (x < 0 || x >= tileRange) {
+              x = (x % tileRange + tileRange) % tileRange;
+            }
+            return urlPattern.replace("{X}",x).replace("{Y}",y).replace("{Z}",zoom);
+          },
+          tileSize: new google.maps.Size(256, 256),
+          maxZoom: 9,
+          minZoom: 0,
+        };
+
+      var mapType = new google.maps.ImageMapType(eeMapOptions);
+
+      function initialize() {
+       
+
+        var map = new google.maps.Map(document.getElementById("map"), mapOptions);
+        map.mapTypes.set('SRTM', mapType);
+        map.setMapTypeId('SRTM');
+     }
+            }
+        }
+    );
 };
