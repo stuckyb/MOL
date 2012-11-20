@@ -2834,7 +2834,7 @@ mol.modules.map.tiles = function(mol) {
                                             opacity: 0
                                         };
                                         e = new mol.bus.Event(
-                                            'layer-opacity', 
+                                            'layer-opacity',
                                             params
                                         );
                                         self.bus.fireEvent(e);
@@ -2902,7 +2902,7 @@ mol.modules.map.tiles = function(mol) {
                             function(layer) { // "lid" is short for layer id.
                                 var lid = layer.id;
                                 mapTypes.forEach(
-                                    function(mt, index) { 
+                                    function(mt, index) {
                                         if (mt != undefined && mt.name === lid) {
                                             if(mt.interaction != undefined) {
                                                 mt.interaction.remove();
@@ -2917,8 +2917,8 @@ mol.modules.map.tiles = function(mol) {
                 );
 
                     /**
-                     * Handler for when the reorder-layers event is fired. This 
-                     * renders the layers according to the list of layers 
+                     * Handler for when the reorder-layers event is fired. This
+                     * renders the layers according to the list of layers
                      * provided
                      */
                     this.bus.addHandler(
@@ -2931,8 +2931,8 @@ mol.modules.map.tiles = function(mol) {
                                    layers,
                                    function(lid) { // "lid" is short for layerId.
                                         mapTypes.forEach(
-                                             function(mt, index) { 
-                                                  if ((mt != undefined) && 
+                                             function(mt, index) {
+                                                  if ((mt != undefined) &&
                                                       (mt.name === lid)) {
                                                       mapTypes.removeAt(index);
                                                       mapTypes.insertAt(0, mt);
@@ -2964,7 +2964,7 @@ mol.modules.map.tiles = function(mol) {
                 );
             },
             /**
-             * Returns an array of layer objects that are not already on the 
+             * Returns an array of layer objects that are not already on the
              * map.
              *
              * @param layers an array of layer object {id, name, type, source}.
@@ -2995,35 +2995,49 @@ mol.modules.map.tiles = function(mol) {
             },
 
             /**
-             * Closure around the layer that returns the ImageMapType for the 
+             * Closure around the layer that returns the ImageMapType for the
              * tile.
              */
             getTile: function(layer) {
                 var name = layer.name,
                     type = layer.type,
-                    self = this,
+                    self = this;
+                if(layer.type=='cdb') {
                     maptype = new mol.map.tiles.CartoDbTile(
-                                layer, 
-                                layer.style_table, 
-                                this.map
+                        layer,
+                        layer.style_table,
+                        this.map
+                    );
+                    maptype.layer.params.layer.onbeforeload = function (){
+                        self.bus.fireEvent(
+                            new mol.bus.Event(
+                                "show-loading-indicator",
+                                {source : layer.id}
+                            )
+                        )
+                    };
+                    maptype.layer.params.layer.onafterload = function (){
+                        self.bus.fireEvent(
+                            new mol.bus.Event(
+                                "hide-loading-indicator",
+                                {source : layer.id}
+                            )
+                        )
+                    };
+                } else {
+                    $.getJSON(
+                        'ee',
+                        {
+                            sql: 'cdb sql to get geojson for ee',
+                            ee: 'ee magic to apply'
+                        },
+                        function (urlPattern) {
+                            maptype = new mol.map.tiles.EarthEngineTile(
+                                urlPattern,
+                                self.map
                             );
-                           
-                
-                maptype.layer.params.layer.onbeforeload = function (){
-                    self.bus.fireEvent(
-                        new mol.bus.Event(
-                            "show-loading-indicator",
-                            {source : layer.id}
-                        )
-                    )
-                };
-                maptype.layer.params.layer.onafterload = function (){
-                    self.bus.fireEvent(
-                        new mol.bus.Event(
-                            "hide-loading-indicator",
-                            {source : layer.id}
-                        )
-                    )
+                        }
+                    );
                 };
             }
         }
@@ -3035,19 +3049,19 @@ mol.modules.map.tiles = function(mol) {
                 var sql =  "" +
                     "SELECT * FROM " +
                     " get_mol_tile('{0}','{1}','{2}','{3}')".format(
-                        layer.source, 
-                        layer.type, 
-                        layer.name, 
+                        layer.source,
+                        layer.type,
+                        layer.name,
                         layer.dataset_id
                     ),
                     hostname =  mol.services.cartodb.tileApi.host,
                     style_table_name = layer.style_table;
-                    info_query = sql; 
+                    info_query = sql;
                     meta_query = "" +
                         "SELECT * FROM get_feature_metadata(TEXT('{0}'))",
                     tile_style =  null,
                     infowindow = true,
-                    hostname = (hostname === 'localhost') ? 
+                    hostname = (hostname === 'localhost') ?
                        '{0}:8080'.format(hostname) : hostname;
 
                 this.layer = new google.maps.CartoDBLayer({
@@ -3067,6 +3081,32 @@ mol.modules.map.tiles = function(mol) {
                         infowindow: infowindow,
                         opacity: 0.5
                 });
+            }
+        }
+    );
+    mol.map.tiles.EarthEngineTile = Class.extend({
+            init: function(ee, map) {
+                var eeMapOptions = {
+                        getTileUrl: function(tile, zoom) {
+                            var y = tile.y,
+                                x = tile.x,
+                                tileRange = 1 << zoom;
+                            if (y < 0 || y >= tileRange) {
+                                return null;
+                            }
+                            if (x < 0 || x >= tileRange) {
+                                x = (x % tileRange + tileRange) % tileRange;
+                            }
+                            return ee.urlPattern.replace("{X}",x).replace("{Y}",y).replace("{Z}",zoom);
+                        },
+                        tileSize: new google.maps.Size(256, 256),
+                        maxZoom: 9,
+                        minZoom: 0
+                },
+                mapType = new google.maps.ImageMapType(eeMapOptions);
+                //map.mapTypes.set('SRTM', mapType);
+                map.overlayMapTypes.insertAt(0, mapType);
+                return mapType;
             }
         }
     );
