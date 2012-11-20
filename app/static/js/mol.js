@@ -3028,12 +3028,12 @@ mol.modules.map.tiles = function(mol) {
                     $.getJSON(
                         'ee',
                         {
-                            sql: 'cdb sql to get geojson for ee',
-                            ee: 'ee magic to apply'
+                            sciname: layer.name
                         },
-                        function (urlPattern) {
+                        function (ee) {
                             maptype = new mol.map.tiles.EarthEngineTile(
-                                urlPattern,
+                                ee,
+                                layer,
                                 self.map
                             );
                         }
@@ -3085,7 +3085,7 @@ mol.modules.map.tiles = function(mol) {
         }
     );
     mol.map.tiles.EarthEngineTile = Class.extend({
-            init: function(ee, map) {
+            init: function(ee, layer, map) {
                 var eeMapOptions = {
                         getTileUrl: function(tile, zoom) {
                             var y = tile.y,
@@ -3104,7 +3104,7 @@ mol.modules.map.tiles = function(mol) {
                         minZoom: 0
                 },
                 mapType = new google.maps.ImageMapType(eeMapOptions);
-                //map.mapTypes.set('SRTM', mapType);
+                mapType.layer = layer;
                 map.overlayMapTypes.insertAt(0, mapType);
                 return mapType;
             }

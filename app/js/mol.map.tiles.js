@@ -262,8 +262,7 @@ mol.modules.map.tiles = function(mol) {
                     $.getJSON(
                         'ee',
                         {
-                            sql: 'cdb sql to get geojson for ee',
-                            ee: 'ee magic to apply'
+                            sciname: layer.name
                         },
                         function (ee) {
                             maptype = new mol.map.tiles.EarthEngineTile(
