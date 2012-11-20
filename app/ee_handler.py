@@ -62,9 +62,8 @@ class MainPage(webapp2.RequestHandler):
         result = result.rgb(255,0,0)
         
         mapit = Image1.cat(result)
-
         
-        mapid = mapit.getMapId({'min':0, 'max':1000})
+        mapid = mapit.getMapId({'min':1, 'max':1})
         template_values = {
           'mapid' : mapid['mapid'],
           'token' : mapid['token']
