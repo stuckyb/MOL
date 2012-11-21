@@ -31,43 +31,47 @@ class MainPage(webapp2.RequestHandler):
     def get(self):
         
         ee.Initialize(credentials, EE_URL)
+      
         sciname = self.request.get('sciname', None)
         
+        #Grab elevation and habitat values
         sql = "SELECT * FROM elevandhabitat e JOIN specieslist s ON e.scientific = s.latin WHERE s.latin = '%s'" % (sciname)
         url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
         value = urlfetch.fetch(url, deadline=60).content
+        val = json.loads(value)
+        speciesInfo = val["rows"][0]
         
-        cover = ee.Image('MCD12Q1/MCD12Q1_005_2001_01_01').select('Land_Cover_Type_1');
-        elev = ee.Image('srtm90_v4');
+        #Grab geojson
+        sql = "SELECT ST_AsGeoJson(ST_Transform(the_geom_webmercator,4326)) as geojson FROM jetz_maps where latin='%s'"  % (sciname)
+        url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
+        value = urlfetch.fetch(url, deadline=60).content
+        
+        geom = json.loads(value)
+        species = ee.FeatureCollection(geom["rows"][0]["geojson"])
+         
+        #Get land cover and elevation layers
+        cover = ee.Image('MCD12Q1/MCD12Q1_005_2001_01_01').select('Land_Cover_Type_1')
+        elev = ee.Image('srtm90_v4')
+
         output = ee.Image(0)
         species = ee.FeatureCollection('ft:1ugWA45wi7yRdIxKAEbcfd1ks8nhuTcIUyx1Lv18').filter(ee.Filter().eq('Latin',sciname))
-        Image1 = ee.Image(0).mask(0)
-        Image1 = Image1.rgb(255,255,255)
         
-        val = json.loads(value)
-        
-        #self.response.out.write(json.dumps(speciesInfo))
-        speciesInfo = val["rows"][0]
-        logging.info(json.dumps(speciesInfo))
-        
-        min = speciesInfo["finalmin"]
-        max = speciesInfo["finalmax"]
+        #parse the CDB response
+
+        min = int(speciesInfo["finalmin"])
+        max = int(speciesInfo["finalmax"])
         habitat_list = speciesInfo["habitatprefs"].split(",")
-        
+
         for pref in habitat_list:
-             output = output.where(cover.eq(int(pref)).And(elev.gt(int(min))).And(elev.lt(int(max))).clip(species))
-        
+            output = output.where(cover.eq(int(pref)).And(elev.gt(min)).And(elev.lt(max)).clip(species),1)
+
         result = output.mask(output)
-        
-        result = result.rgb(255,0,0)
-        
-        mapit = Image1.cat(result)
-        
-        mapid = mapit.getMapId({'min':1, 'max':1})
+        mapid = result.getMapId({'palette': 'FF0000'})
         template_values = {
-          'mapid' : mapid['mapid'],
-          'token' : mapid['token']
+            'mapid' : mapid['mapid'],
+            'token' : mapid['token']
         }
+        
         self.render_template('ee.js', template_values)
 
 application = webapp2.WSGIApplication([ ('/', MainPage), ('/.*', MainPage) ], debug=True)
