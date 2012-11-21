@@ -448,7 +448,7 @@ mol.modules.map.layers = function(mol) {
                     //we can fire opacity event with all layers
                     all.push({layer:layer, l:l, opacity:opacity});
                     
-                    //style legends
+                    //style legends initially
                     o = self.parseLayerStyle(layer, "orig");
                                     
                     //initalize css
@@ -703,7 +703,7 @@ mol.modules.map.layers = function(mol) {
             layer_orig_style = self.parseLayerStyle(layer, "orig");
             
             baseHtml = '' + 
-                   '<div class="mol-LayerControl-Styler ' + layer.source + '">' +
+                   '<div class="mol-LayerControl-Styler ' +layer.source+ '">' +
                    '  <div class="colorPickers"></div>' + 
                    '  <div class="sizerHolder"></div>' +
                    '  <div class="opacityHolder">' +
@@ -762,9 +762,8 @@ mol.modules.map.layers = function(mol) {
                         $(api.elements.content).find('#applyStyle').click(
                             function(event) {
                                 var o = {};
-                                
-                                if(layer.source == "iucn" || 
-                                   layer.source == "jetz") {
+
+                                if(layer.type == "range") {
                                     o.s1 = $('#showFill1Palette')
                                              .spectrum("get")
                                                 .toHexString();
@@ -782,25 +781,19 @@ mol.modules.map.layers = function(mol) {
                                         o.s5 = $('#showFill5Palette')
                                              .spectrum("get")
                                                 .toHexString();   
-                                    }
-                                    
-                                    o.border = $('#showBorderPalette')
-                                                .spectrum("get")
-                                                    .toHexString();                
-                                    o.size = $(api.elements.content)
-                                                .find('.sizer')
-                                                    .slider('value');                                                               
+                                    }                                                               
                                 } else {
                                     o.fill = $('#showFillPalette')
                                             .spectrum("get")
-                                                .toHexString();          
-                                    o.border = $('#showBorderPalette')
+                                                .toHexString();
+                                }
+                                
+                                o.border = $('#showBorderPalette')
                                                 .spectrum("get")
                                                     .toHexString();                
-                                    o.size = $(api.elements.content)
+                                o.size = $(api.elements.content)
                                                 .find('.sizer')
                                                     .slider('value');
-                                }
                                 
                                 self.updateLegendCss(
                                         button, 
@@ -850,22 +843,6 @@ mol.modules.map.layers = function(mol) {
                 }
             });
         },
-        
-        displayAllStyler: function() {
-            var baseHtml,
-                layer_curr_style,
-                layer_orig_style,
-                max,
-                min,
-                params = {
-                    layer: layer,
-                    style: null
-                },
-                q,
-                self = this;
-            
-            
-        },
             
         getStylerLayout: function(element, layer) {
             var pickers,
@@ -892,7 +869,7 @@ mol.modules.map.layers = function(mol) {
                $(element).find('.colorPickers').prepend(pickers);
                $(element).find('.sizerHolder').prepend(sizer);
             } else {
-                if(layer.source == "iucn" || layer.source == "jetz") {
+                if(layer.type == "range") {
                    pickers = '' +
                        '<span class="seasonLabel">Breeding</span>' +
                        '<div class="colorPicker">' + 
@@ -914,7 +891,6 @@ mol.modules.map.layers = function(mol) {
                        '  <span class="stylerLabel">Fill:&nbsp</span>' + 
                        '  <input type="text" id="showFill4Palette" />' +
                        '</div>';
-                   
                        
                    if (layer.source == "iucn") {
                        pickers+=''+
@@ -972,12 +948,11 @@ mol.modules.map.layers = function(mol) {
                 colors2 = ['#66C2A5','#FC8D62', '#8DA0CB',
                            '#E78AC3', '#A6D854', '#FFD92F','#E5C494'],
                 objs,
-                x,
                 max,
                 min,
                 layOpa;    
                             
-                if(lay.source == "iucn" || lay.source == "jetz") {
+                if(lay.type == "range") {
                    objs = [ {name: '#showFill1Palette', 
                              color: currSty.s1, 
                              def: origSty.s1},
@@ -1069,7 +1044,6 @@ mol.modules.map.layers = function(mol) {
                 s1Style, s2Style, s3Style, s4Style, s5Style,
                 s1, s2, s3, s4, s5;
                 
-                
             if(original == "current") {
                 style = layer.style;
             } else if(original == "orig") {
@@ -1101,7 +1075,7 @@ mol.modules.map.layers = function(mol) {
                                     sizeStyle.indexOf(':')+1,
                                     sizeStyle.indexOf(';'))))};
             } else {
-                if(layer.source == "iucn" || layer.source == "jetz") {
+                if(layer.type == "range") {
                     s1Style = style.substring(
                                     style.indexOf('seasonality=1'),
                                     style.length-1);
@@ -1160,46 +1134,31 @@ mol.modules.map.layers = function(mol) {
                                     s5.indexOf('#'),
                                     s5.indexOf(';'));
                     }
-                    
-                    borderStyle = style.substring(
-                                    style.indexOf('line-color'),
-                                    style.length-1); 
-                              
-                    sizeStyle = style.substring(
-                                    style.indexOf('line-width'),
-                                    style.length-1);                   
-                    
-                    o.border = borderStyle.substring(
-                                    borderStyle.indexOf('#'),
-                                    borderStyle.indexOf(';'));
-                                    
-                    o.size = Number($.trim(sizeStyle.substring(
-                                    sizeStyle.indexOf(':')+1,
-                                    sizeStyle.indexOf(';'))));
-                    
                 } else {
                     fillStyle = style.substring(
                                     style.indexOf('polygon-fill'),
-                                    style.length-1);
-                                    
-                    borderStyle = style.substring(
-                                    style.indexOf('line-color'),
-                                    style.length-1); 
-                              
-                    sizeStyle = style.substring(
-                                    style.indexOf('line-width'),
-                                    style.length-1);                   
+                                    style.length-1);                  
                     
                     o = {fill: fillStyle.substring(
                                     fillStyle.indexOf('#'),
-                                    fillStyle.indexOf(';')),
-                         border: borderStyle.substring(
-                                    borderStyle.indexOf('#'),
-                                    borderStyle.indexOf(';')),
-                         size: Number($.trim(sizeStyle.substring(
-                                    sizeStyle.indexOf(':')+1,
-                                    sizeStyle.indexOf(';'))))};
+                                    fillStyle.indexOf(';'))};
                 }
+                
+                borderStyle = style.substring(
+                                    style.indexOf('line-color'),
+                                    style.length-1); 
+                              
+                sizeStyle = style.substring(
+                                style.indexOf('line-width'),
+                                style.length-1);                   
+                
+                o.border = borderStyle.substring(
+                                borderStyle.indexOf('#'),
+                                borderStyle.indexOf(';'));
+                                
+                o.size = Number($.trim(sizeStyle.substring(
+                                sizeStyle.indexOf(':')+1,
+                                sizeStyle.indexOf(';'))));
             }
                            
             return o;
@@ -1240,7 +1199,6 @@ mol.modules.map.layers = function(mol) {
                                 midStyle.length
                              );
                 
-                
                 updatedStyle = spreStyle + 
                               smidStyle +
                               seasonProp + ":" + 
@@ -1277,12 +1235,7 @@ mol.modules.map.layers = function(mol) {
                 style = this.changeStyleProperty(
                             style, 'marker-width', newStyle.size, false);
             } else {
-                if(layer.source == "iucn" || layer.source == "jetz") {
-                    style = this.changeStyleProperty(
-                                style, 'line-color', newStyle.border, false);
-                    style = this.changeStyleProperty(
-                                style, 'line-width', newStyle.size, false);                         
-                    
+                if(layer.type == "range") {
                     style = this.changeStyleProperty(
                                 style, '1', newStyle.s1, true, 'polygon-fill');
                     style = this.changeStyleProperty(
@@ -1298,15 +1251,14 @@ mol.modules.map.layers = function(mol) {
                     }            
                 } else {
                     style = this.changeStyleProperty(
-                                style, 'line-color', newStyle.border, 
-                                    false);
-                    style = this.changeStyleProperty(
                                 style, 'polygon-fill', newStyle.fill, 
                                     false);
-                    style = this.changeStyleProperty(
-                                style, 'line-width', newStyle.size, 
-                                    false);
                 }
+                
+                style = this.changeStyleProperty(
+                                style, 'line-color', newStyle.border, false);
+                style = this.changeStyleProperty(
+                                style, 'line-width', newStyle.size, false); 
             }
             
             updatedStyle = style;
@@ -1315,7 +1267,7 @@ mol.modules.map.layers = function(mol) {
         },
             
         updateLegendCss: function(button, o, layer, opa) {
-            if(layer.source == "iucn" || layer.source == "jetz") {          
+            if(layer.type == "range") {          
                 $(button).find('.s1').css({
                     'background-color':o.s2, 
                     'opacity':opa});
@@ -1427,11 +1379,11 @@ mol.modules.map.layers = function(mol) {
                             );
                 } else {
                     style = this.changeStyleProperty(
-                                    style, 
-                                    'line-color', 
-                                    visible ? '#FF00FF' : oldStyle.border, 
-                                    false
-                                );
+                                style, 
+                                'line-color', 
+                                visible ? '#FF00FF' : oldStyle.border, 
+                                false
+                            );
                                 
                     style = this.changeStyleProperty(
                                 style, 
@@ -1449,7 +1401,6 @@ mol.modules.map.layers = function(mol) {
                     new mol.bus.Event(
                         'apply-layer-style', 
                         params));
-                
         },
             
         /**
