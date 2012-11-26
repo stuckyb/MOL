@@ -21,9 +21,9 @@ mol.modules.map.search = function(mol) {
             this.search_sql = '' +
                 'SELECT DISTINCT l.scientificname as name,'+
                     't.type as type,'+
-                    "case d.style_table when 'points_style' " + 
+                    "CASE d.style_table WHEN 'points_style' " + 
                         'THEN t.carto_css_point ' + 
-                        "when 'polygons_style' " + 
+                        "WHEN 'polygons_style' " + 
                         'THEN t.carto_css_poly END as css,' +
                     't.sort_order as type_sort_order, ' +
                     't.title as type_title, '+
@@ -322,7 +322,8 @@ mol.modules.map.search = function(mol) {
                 
                 
                 $(self.display.searchBox).autocomplete('disable');
-                $(self.display.searchBox).autocomplete('enable');
+                $(self.display.searchBox).autocomplete('close');
+                
                 if(term.length<3) {
                     if ($.trim(term).length==0) {
                         self.bus.fireEvent(new mol.bus.Event('clear-results'));
@@ -361,6 +362,7 @@ mol.modules.map.search = function(mol) {
                                     results
                                 )
                             );
+                            $(self.display.searchBox).autocomplete('enable');
                         }
                     );
                }

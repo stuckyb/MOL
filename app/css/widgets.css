@@ -1052,6 +1052,11 @@ div.mol-Dashboard-TableWindow {
     margin: 0.5px;
 
 }
+
+.mol-LayerControl-Results .filters .filter .option button{
+    margin-right: 0.4em;
+}
+
 .mol-LayerControl-Results .filters .filter .option.selected {
     cursor: pointer;
 }
