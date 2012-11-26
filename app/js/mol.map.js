@@ -257,66 +257,74 @@ mol.modules.map = function(mol) {
                     zoomControl: true,
                     streetViewControl: false,
                     mapTypeId: google.maps.MapTypeId.ROADMAP,
-                    styles: [
-                      {
-                        featureType: "administrative",
-                        stylers: [
-                          { visibility: "on" }
-                        ]
-                      },
-                      {
-                        featureType: "administrative.locality",
-                        stylers: [
-                          { visibility: "off" }
-                        ]
-                      },
-                      {
-                        featureType: "landscape",
-                        stylers: [
-                          { visibility: "off" }
-                        ]
-                      },
-                      {
-                        featureType: "road",
-                        stylers: [
-                          { visibility: "off" }
-                        ]
-                      },
-                      {
-                        featureType: "poi",
-                        stylers: [
-                          { visibility: "off" }
-                        ]
-                      },{
-                        featureType: "water",
-                        stylers: [
-                          { visibility: "on" },
-                          { saturation: -65 },
-                          { lightness: -15 },
-                          { gamma: 0.83 }
-                        ]
-                      },
-                      {
-                        featureType: "transit",
-                        stylers: [
-                          { visibility: "off" }
-                        ]
-                      },{
-                        featureType: "administrative",
-                        stylers: [
-                          { visibility: "on" }
-                        ]
-                      },{
-                        featureType: "administrative.country",
-                        stylers: [
-                          { visibility: "on" }
-                        ]
-                      },{
-                        featureType: "administrative.province",
-                       stylers: [
-                          { visibility: "on" }
-                        ]
-                      }
+                    styles:[ 
+                        {
+                            "stylers" : [{
+                                "saturation" : -65
+                            }, {
+                                "gamma" : 1.52
+                            }]
+                        }, {
+                            "featureType" : "administrative",
+                            "stylers" : [{
+                                "saturation" : -95
+                            }, {
+                                "gamma" : 2.26
+                            }]
+                        }, {
+                            "featureType" : "water",
+                            "elementType" : "labels",
+                            "stylers" : [{
+                                "visibility" : "off"
+                            }]
+                        }, {
+                            "featureType" : "administrative.locality",
+                            "stylers" : [{
+                                "visibility" : "off"
+                            }]
+                        }, {
+                            "featureType" : "road",
+                            "stylers" : [{
+                                "visibility" : "simplified"
+                            }, {
+                                "saturation" : -99
+                            }, {
+                                "gamma" : 2.22
+                            }]
+                        }, {
+                            "featureType" : "poi",
+                            "elementType" : "labels",
+                            "stylers" : [{
+                                "visibility" : "off"
+                            }]
+                        }, {
+                            "featureType" : "road.arterial",
+                            "stylers" : [{
+                                "visibility" : "off"
+                            }]
+                        }, {
+                            "featureType" : "road.local",
+                            "elementType" : "labels",
+                            "stylers" : [{
+                                "visibility" : "off"
+                            }]
+                        }, {
+                            "featureType" : "transit",
+                            "stylers" : [{
+                                "visibility" : "off"
+                            }]
+                        }, {
+                            "featureType" : "road",
+                            "elementType" : "labels",
+                            "stylers" : [{
+                                "visibility" : "off"
+                            }]
+                        }, {
+                            "featureType" : "poi",
+                            "stylers" : [{
+                                "saturation" : -55
+                            }]
+                        }
                     ]
                 };
 
