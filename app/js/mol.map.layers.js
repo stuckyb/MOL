@@ -349,6 +349,7 @@ mol.modules.map.layers = function(mol) {
             this.bus.addHandler(
                 'layer-click-toggle',
                 function(event) {
+                    
                     self.clickDisabled = event.disable;
                     
                     //true to disable
@@ -607,6 +608,10 @@ mol.modules.map.layers = function(mol) {
                                     }
                                 }
                             )
+                            
+                            if(self.clickDisabled) {
+                                isSelected = false;
+                            }
                             
                             self.toggleLayerHighlight(layer,boo,isSelected);
                             
