@@ -151,9 +151,6 @@ mol.modules.map.tiles = function(mol) {
                                                         if(mz.name === layer.id && sel) {
                                                             mz.interaction.add();
                                                             mz.interaction.clickAction = "full";
-                                                        } else {
-                                                            mz.interaction.remove();
-                                                            mz.interaction.clickAction = "";
                                                         }
                                                     }
                                                 );
