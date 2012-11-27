@@ -153,7 +153,7 @@ mol.modules.map.layers = function(mol) {
                             text: baseHtml,
                             title: {
                                 text: 'Style All Layers',
-                                button: false
+                                button: true
                             }
                         },
                         position: {
@@ -245,6 +245,10 @@ mol.modules.map.layers = function(mol) {
                             },
                             show: function(event, api) {                              
                                 $(button).prop('disabled', true);
+                            },
+                            hide: function(event, api) {
+                                $(button).prop('disabled', false);
+                                $(button).qtip('destroy');
                             }
                         }
                     });
@@ -760,7 +764,7 @@ mol.modules.map.layers = function(mol) {
                     text: baseHtml,
                     title: {
                         text: 'Layer Style',
-                        button: false
+                        button: true
                     }
                 },
                 position: {
@@ -872,6 +876,10 @@ mol.modules.map.layers = function(mol) {
                     },
                     show: function(event, api) {                              
                         $(button).prop('disabled', true);
+                    },
+                    hide: function(event, api) {
+                        $(button).prop('disabled', false);
+                        $(button).qtip('destroy');
                     }
                 }
             });
