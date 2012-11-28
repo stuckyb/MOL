@@ -923,21 +923,29 @@ mol.modules.map.layers = function(mol) {
                        '<div class="colorPicker">' + 
                        '  <span class="stylerLabel">Fill:&nbsp</span>' + 
                        '  <input type="text" id="showFill2Palette" />' +
+                       '  <input type="checkbox" id="seasChk2" ' + 
+                                'class="seasChk" checked="checked"/>' +
                        '</div>' +
                        '<span class="seasonLabel">Resident</span>' +
                        '<div class="colorPicker">' + 
                        '  <span class="stylerLabel">Fill:&nbsp</span>' + 
                        '  <input type="text" id="showFill1Palette" />' +
+                       '  <input type="checkbox" id="seasChk1" ' + 
+                                'class="seasChk" checked="checked"/>' +
                        '</div>' +
                        '<span class="seasonLabel">Non-breeding</span>' +
                        '<div class="colorPicker">' + 
                        '  <span class="stylerLabel">Fill:&nbsp</span>' + 
                        '  <input type="text" id="showFill3Palette" />' +
+                       '  <input type="checkbox" id="seasChk3" ' + 
+                                'class="seasChk" checked="checked"/>' +
                        '</div>' +
                        '<span class="seasonLabel">Passage</span>' +
                        '<div class="colorPicker">' + 
                        '  <span class="stylerLabel">Fill:&nbsp</span>' + 
                        '  <input type="text" id="showFill4Palette" />' +
+                       '  <input type="checkbox" id="seasChk4" ' + 
+                                'class="seasChk" checked="checked"/>' +
                        '</div>';
                    
                    //TODO issue #175 replace iucn ref                           
@@ -948,6 +956,8 @@ mol.modules.map.layers = function(mol) {
                            '<div class="colorPicker">' + 
                            '  <span class="stylerLabel">Fill:&nbsp</span>' + 
                            '  <input type="text" id="showFill5Palette" />' +
+                           '  <input type="checkbox" id="seasChk5" ' + 
+                                    'class="seasChk" checked="checked"/>' +
                            '</div>'+ 
                            '<span class="seasonLabel">' + 
                                'Extinct or Presence Uncertain</span>' +
@@ -1336,7 +1346,6 @@ mol.modules.map.layers = function(mol) {
                         style = this.changeStyleProperty(
                                 style, 'presence=6', newStyle.p, true, 
                                 'polygon-fill');                                         
-                    }            
                 } else {
                     style = this.changeStyleProperty(
                                 style, 'polygon-fill', newStyle.fill, 
@@ -1348,6 +1357,9 @@ mol.modules.map.layers = function(mol) {
                 style = this.changeStyleProperty(
                                 style, 'line-width', newStyle.size, false); 
             }
+            
+            console.log("updated style ");
+            console.log(style);
             
             updatedStyle = style;
             
