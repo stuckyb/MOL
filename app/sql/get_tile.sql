@@ -1,4 +1,4 @@
---get_mol_tile(text, text, text)
+--get_tile(text, text, text)
 -- Function to get tile data (the_geom_webmercator and cartodb_id) for a single MOL layer.
 -- Params:	
 --	provider: the data source
@@ -9,12 +9,13 @@
 -- 	cartodb_id: data table name + cartodb_id within data table.
 --	type: range, points, or checklist
 --	provider: the data source
---	seasonality: seasonality in source data format (some variety of int -- needs to mapped to mol seasonality)
+--	seasonality: an iucn seasonality code
+--	presence: an iucn presence code
 --	the_geom_webmercator: A 2D geometry column in the web mercator projection -- MultiPolygon or Point
 
-DROP function get_mol_tile(text, text, text, text);
-CREATE FUNCTION get_mol_tile(text, text, text, text)
-	RETURNS TABLE(cartodb_id text, type text, provider text, seasonality int, the_geom_webmercator geometry) 
+DROP function get_tile(text, text, text, text);
+CREATE FUNCTION get_tile(text, text, text, text)
+	RETURNS TABLE(cartodb_id text, type text, provider text, seasonality int, presence int, the_geom_webmercator geometry) 
 AS
 $$
 
@@ -33,6 +34,7 @@ $$
 		  ' CONCAT('''|| data.table_name ||'-'', cartodb_id) as cartodb_id, ' ||
                   ' TEXT('''||data.product_type||''') as type, TEXT('''||data.provider||''') as provider, ' ||
                   ' CAST(' || data.seasonality || ' as int) as seasonality, ' || 
+                  ' CAST(' || data.presence || ' as int) as presence, ' || 
                   data.geometry_field || 
                   ' FROM ' || data.table_name || 
                   ' WHERE ' ||  
@@ -42,6 +44,7 @@ $$
 		  ' DISTINCT CONCAT('''|| data.table_name || '-'', d.cartodb_id) as cartodb_id, ' ||
                   ' TEXT('''||data.product_type||''') as type, TEXT('''||data.provider||''') as provider, ' ||
                   ' CAST(' || data.seasonality || ' as int) as seasonality, ' || 
+                  ' CAST(' || data.presence || ' as int) as presence, ' || 
                   ' g.' || data.geometry_field || 
                   ' FROM ' || data.table_name || ' d ' ||
 	          ' JOIN ' || data.geom_table || ' g ON ' ||
@@ -54,6 +57,7 @@ $$
 		  ' DISTINCT CONCAT('''|| data.table_name ||'-'', d.cartodb_id) as cartodb_id, ' ||
                   ' TEXT('''||data.product_type||''') as type, TEXT('''||data.provider||''') as provider, ' ||
                   ' CAST(' || data.seasonality || ' as int) as seasonality, ' || 
+                  ' CAST(' || data.presence || ' as int) as presence, ' || 
                   ' g.' || data.geometry_field || 
                   ' FROM ' || data.table_name || ' d ' ||
                   ' JOIN ' || data.geom_table || ' g ON ' ||
