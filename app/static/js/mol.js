@@ -4013,11 +4013,18 @@ mol.modules.map.tiles = function(mol) {
                     self = this;
                 if(layer.type=='cdb') {
                     maptype = new mol.map.tiles.CartoDbTile(
+<<<<<<< HEAD
                                 layer, 
                                 layer.style_table, 
                                 this.map
                             );
     
+=======
+                        layer,
+                        layer.style_table,
+                        this.map
+                    );
+>>>>>>> a15008ce523923a5e7401e08e8aece24ff9d3455
                     maptype.layer.params.layer.onbeforeload = function (){
                         self.bus.fireEvent(
                             new mol.bus.Event(
@@ -4026,7 +4033,10 @@ mol.modules.map.tiles = function(mol) {
                             )
                         )
                     };
+<<<<<<< HEAD
                     
+=======
+>>>>>>> a15008ce523923a5e7401e08e8aece24ff9d3455
                     maptype.layer.params.layer.onafterload = function (){
                         self.bus.fireEvent(
                             new mol.bus.Event(
@@ -4039,8 +4049,12 @@ mol.modules.map.tiles = function(mol) {
                     $.getJSON(
                         'ee',
                         {
+<<<<<<< HEAD
                             sql: 'cdb sql to get geojson for ee',
                             ee: 'ee magic to apply'
+=======
+                            sciname: layer.name
+>>>>>>> a15008ce523923a5e7401e08e8aece24ff9d3455
                         },
                         function (ee) {
                             maptype = new mol.map.tiles.EarthEngineTile(
