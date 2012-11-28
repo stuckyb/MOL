@@ -20,6 +20,7 @@ mol.modules.map.search = function(mol) {
                 "SELECT n,v FROM ac WHERE n~*'\\m{0}' OR v~*'\\m{0}'";
             this.search_sql = '' +
                 'SELECT DISTINCT l.scientificname as name,'+
+                    '\'cdb\' as mode, ' +
                     't.type as type,'+
                     "CASE d.style_table WHEN 'points_style' " + 
                         'THEN t.carto_css_point ' + 

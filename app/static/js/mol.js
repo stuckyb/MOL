@@ -1287,6 +1287,18 @@ mol.modules.map.layers = function(mol) {
                             event.cancelBubble = true;
                         }
                     );
+                    l.ee_filter.click(
+                        function(event) {
+                            var params = {
+                                layer: layer
+                            };
+                            layer.mode = (layer.mode == 'cdb') ? 'ee' : 'cdb';
+                            
+                            self.bus.fireEvent(
+                                new mol.bus.Event('toggle-ee-filter',  params)
+                            );
+                        }
+                    )
 
                     //Click handler for zoom button 
                     //fires 'layer-zoom-extent'
@@ -1849,7 +1861,7 @@ mol.modules.map.layers = function(mol) {
                 s1, s2, s3, s4, s5;
                 
             if(original == "current") {
-                style = layer.style;
+                style = layer.css;
             } else if(original == "orig") {
                 style = layer.orig_style;
             } else {
@@ -2265,6 +2277,9 @@ mol.modules.map.layers = function(mol) {
                 '      <div title="{2}" class="layerNomial">{2}</div>' +
                 '      <div title="{3}" class="layerEnglishName">{3}</div>'+
                 '    </div>' +
+                '    <button title="Apply habitat filters." class="ee_filter">' + 
+                       'H' + 
+                '    </button>' +
                 '    <button title="Remove layer." class="close">' + 
                        'x' + 
                 '    </button>' +
@@ -2296,6 +2311,7 @@ mol.modules.map.layers = function(mol) {
             
             this.attr('id', layer.id);
             this.toggle = $(this).find('.toggle').button();
+            this.ee_filter = (this).find('.ee_filter');
             this.styler = $(this).find('.styler');
             this.zoom = $(this).find('.zoom');
             if(layer.extent == null) {
@@ -3350,6 +3366,7 @@ mol.modules.map.search = function(mol) {
                 "SELECT n,v FROM ac WHERE n~*'\\m{0}' OR v~*'\\m{0}'";
             this.search_sql = '' +
                 'SELECT DISTINCT l.scientificname as name,'+
+                    '\'cdb\' as mode, ' +
                     't.type as type,'+
                     "CASE d.style_table WHEN 'points_style' " + 
                         'THEN t.carto_css_point ' + 
@@ -3894,7 +3911,51 @@ mol.modules.map.tiles = function(mol) {
                         self.renderTiles(event.layers);
                     }
                 );
-
+                /**
+                 * Handler for when the toggle-ee-filter event is fired. This 
+                 * switches the layer's getTile to point to earth engine 
+                 */
+                this.bus.addHandler(
+                    'toggle-ee-filter',
+                    function(event) {
+                        var layer = event.layer;
+                        
+                        self.map.overlayMapTypes.forEach(
+                            function(maptype, index) {
+                                //find the overlaymaptype to switch to ee
+                                if (maptype.name === layer.id) {
+                                    //remove it from the map
+                                    self.map.overlayMapTypes.removeAt(index);
+                                    //make the layer
+                                    self.getTile(layer);
+                                    //fix the layer order
+                                    self.map.overlayMapTypes.forEach(
+                                        function(newmaptype, newindex) {
+                                            var mt,
+                                                e,
+                                                params = {
+                                                    layer: layer,
+                                                    opacity: maptype.opacity
+                                                };
+                                            if(newmaptype.name === layer.id) {
+                                                mt = self.map.overlayMapTypes.removeAt(newindex);
+                                                self.map.overlayMapTypes.insertAt(index, mt);
+                                                e = new mol.bus.Event(
+                                                    'layer-opacity', 
+                                                    params
+                                                );
+                                                self.bus.fireEvent(e);
+                                                return;
+                                            }
+                                        }
+                                    );
+                                }
+                            }
+                        );
+                        self.getTile(layer);
+                       
+                    }
+                );
                 /**
                  * Handler for when the remove-layers event is fired. This
                  * functions removes all layers from the Google Map. The
@@ -4011,20 +4072,13 @@ mol.modules.map.tiles = function(mol) {
                 var name = layer.name,
                     type = layer.type,
                     self = this;
-                if(layer.type=='cdb') {
+                if(layer.mode=='cdb') {
                     maptype = new mol.map.tiles.CartoDbTile(
-<<<<<<< HEAD
                                 layer, 
                                 layer.style_table, 
                                 this.map
                             );
     
-=======
-                        layer,
-                        layer.style_table,
-                        this.map
-                    );
->>>>>>> a15008ce523923a5e7401e08e8aece24ff9d3455
                     maptype.layer.params.layer.onbeforeload = function (){
                         self.bus.fireEvent(
                             new mol.bus.Event(
@@ -4033,10 +4087,7 @@ mol.modules.map.tiles = function(mol) {
                             )
                         )
                     };
-<<<<<<< HEAD
                     
-=======
->>>>>>> a15008ce523923a5e7401e08e8aece24ff9d3455
                     maptype.layer.params.layer.onafterload = function (){
                         self.bus.fireEvent(
                             new mol.bus.Event(
@@ -4046,22 +4097,32 @@ mol.modules.map.tiles = function(mol) {
                         )
                     };
                 } else {
+                    self.bus.fireEvent(new mol.bus.Event(
+                            "show-loading-indicator",
+                            {source : layer.id}
+                        )
+                    );
                     $.getJSON(
                         'ee',
                         {
-<<<<<<< HEAD
-                            sql: 'cdb sql to get geojson for ee',
-                            ee: 'ee magic to apply'
-=======
                             sciname: layer.name
->>>>>>> a15008ce523923a5e7401e08e8aece24ff9d3455
                         },
                         function (ee) {
-                            maptype = new mol.map.tiles.EarthEngineTile(
+                            var maptype = new mol.map.tiles.EarthEngineTile(
                                 ee,
                                 layer,
                                 self.map
                             );
+                            maptype.layer.tilesloaded = function (){
+                                self.bus.fireEvent(
+                                    new mol.bus.Event(
+                                        "hide-loading-indicator",
+                                        {source : layer.id}
+                                    )
+                                )
+                            };
+                            
+                            self.map.overlayMapTypes.insertAt(0,maptype.layer);
                         }
                     );
                 };
@@ -4073,8 +4134,8 @@ mol.modules.map.tiles = function(mol) {
         {
             init: function(layer, table, map) {
                 var sql =  "" +
-                    "SELECT * FROM " +
-                    " get_mol_tile('{0}','{1}','{2}','{3}')".format(
+                    "SELECT cache_key.* FROM " +
+                    " get_tile('{0}','{1}','{2}','{3}') cache_key".format(
                         layer.source,
                         layer.type,
                         layer.name,
@@ -4135,11 +4196,12 @@ mol.modules.map.tiles = function(mol) {
                         tileSize: new google.maps.Size(256, 256),
                         maxZoom: 9,
                         minZoom: 0
-                },
-                mapType = new google.maps.ImageMapType(eeMapOptions);
-                mapType.layer = layer;
-                map.overlayMapTypes.insertAt(0, mapType);
-                return mapType;
+                };
+                
+                this.layer= new google.maps.ImageMapType(eeMapOptions);
+                this.layer.layer = layer;
+                this.layer.name = layer.id;
+                
             }
         }
     );

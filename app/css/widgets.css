@@ -412,7 +412,7 @@ white-space: nowrap;
 .mol-LayerControl-Layers .layer .layerName{
     float: left;
     white-space:normal;
-    width: 280px;
+    max-width: 240px;
     margin-left: 5px;
     margin-right: 5px;
     -webkit-touch-callout: none;
@@ -576,19 +576,8 @@ white-space: nowrap;
 .mol-LayerControl-Layers .layer .toggle:checked + .customCheck:after {
     content:url('/static/maps/layers/active.png');
 }
-.mol-LayerControl-Layers .layer .close {
-    float: right;
-    position: relative;
-    width: 24px;
-    font-style: italic;
-    font-size: 1.2em;
-    height: 24px;
-}
 
-
-
-
-.mol-LayerControl-Layers .layer .zoom {
+.mol-LayerControl-Layers .layer .buttons {
     float: right;
     position: relative;
     width: 24px;

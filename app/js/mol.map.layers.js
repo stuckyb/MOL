@@ -500,6 +500,12 @@ mol.modules.map.layers = function(mol) {
                             event.cancelBubble = true;
                         }
                     );
+                    l.ee_filter.click(
+                        function(event) {
+                            self.displayHabitatStyler(this, layer);
+                            
+                        }
+                    )
 
                     //Click handler for zoom button 
                     //fires 'layer-zoom-extent'
@@ -860,7 +866,140 @@ mol.modules.map.layers = function(mol) {
                 }
             });
         },
+        displayHabitatStyler: function(button, layer) {
+            var baseHtml,
+                max,
+                min,
+                params = {
+                    layer: layer,
+                    style: null
+                },
+                q,
+                self = this;
             
+           
+            baseHtml = '' + 
+                   '<div class="mol-LayerControl-Styler">' +
+                        '<div class="habitats"></div>' +
+                        '<div>Elevation Range</div>' +
+                        '<div class="elev"></div>' +
+                        '<div id="elevValue">0m-10000m</div>' +
+                       '<div class="buttonWrapper">' +
+                            '<button id="applyHabitat">Apply</button>' +
+                            '<button id="resetHabitat">Reset</button>' +
+                            '<button id="cancel">Cancel</button>' +
+                       '</div>' +
+                   '</div>';
+            
+            $(button).removeData('qtip'); 
+            
+            q = $(button).qtip({
+                content: {
+                    text: baseHtml,
+                    title: {
+                        text: 'Habitat Preferences',
+                        button: false
+                    }
+                },
+                position: {
+                    at: 'left center',
+                    my: 'right top'
+                },
+                show: {
+                    event: 'click',
+                    delay: 0,
+                    ready: true,
+                    solo: true
+                },
+                hide: false,
+                style: {
+                    def: false,
+                    classes: 'ui-tooltip-widgettheme'
+                },
+                events: {
+                    render: function(event, api) {
+                        self.setHabitatProperties(
+                                    api.elements.content,
+                                    layer,
+                                    false);
+               
+                        $(api.elements.content).find('#applyStyle').click(
+                            function(event) {
+                                var params = {
+                                    layer: layer,
+                                    habitat: [],
+                                    elev: {min:0,max:10000}
+                                };
+                                self.updateLegendCss(
+                                        button, 
+                                        o, 
+                                        layer,
+                                        parseFloat($(api.elements.content)
+                                            .find('.opacity')
+                                                .slider("value")));
+                                
+                                self.updateLayerStyle(
+                                        button,
+                                        o,
+                                        layer,
+                                        parseFloat($(api.elements.content)
+                                            .find('.opacity')
+                                                .slider("value")) 
+                                );
+                                
+                                params.layer.mode = 'ee';
+                                self.bus.fireEvent(
+                                    new mol.bus.Event('toggle-ee-filter',  params)
+                                );
+                            }
+                        );
+                       
+                        $(api.elements.content)
+                            .find('#resetHabitat').click(
+                                function(event) {
+                                    self.setStylerProperties(
+                                                    api.elements.content,
+                                                    layer,
+                                                    layer_orig_style, 
+                                                    layer_orig_style,
+                                                    true);
+                                }
+                            );
+                            
+                        $(api.elements.content)
+                            .find('#cancelHabitat').click(
+                                function(event) {
+                                    $(button).prop('disabled', false);
+                                    $(button).qtip('destroy');
+                                }
+                            );
+                    },
+                    show: function(event, api) {                              
+                        $(button).prop('disabled', true);
+                    }
+                }
+            });
+        },
+        setHabitatProperties: function(cont, lay,  reset) {
+            var elev = [0,10000];//reset ? lay.orig_elev : lay.elev;
+                        
+                //get elevation range
+                $(cont).find('.elev').slider({
+                    range: true,
+                    min:0, 
+                    max:10000, 
+                    values:[0,10000],
+                    slide: function(event, ui) {
+                        $(cont).find('#elevValue').html(
+                            '{0}m-{1}m'.format(ui.values[0],ui.values[1])
+                        );
+                    }}
+                );
+                
+                $(cont).find('#elevValue').html(
+                    '{0}m-{1}m'.format(elev[0],elev[1])
+                );
+        },    
         getStylerLayout: function(element, layer) {
             var pickers,
                 sizer;    
@@ -1062,7 +1201,7 @@ mol.modules.map.layers = function(mol) {
                 s1, s2, s3, s4, s5;
                 
             if(original == "current") {
-                style = layer.style;
+                style = layer.css;
             } else if(original == "orig") {
                 style = layer.orig_style;
             } else {
@@ -1478,10 +1617,13 @@ mol.modules.map.layers = function(mol) {
                 '      <div title="{2}" class="layerNomial">{2}</div>' +
                 '      <div title="{3}" class="layerEnglishName">{3}</div>'+
                 '    </div>' +
-                '    <button title="Remove layer." class="close">' + 
+                '    <button title="Remove layer." class="close buttons">' + 
                        'x' + 
                 '    </button>' +
-                '    <button title="Zoom to layer extent." class="zoom">' +
+                '    <button title="Apply habitat filters." class="ee_filter buttons">' + 
+                       'h' + 
+                '    </button>' +
+                '    <button title="Zoom to layer extent." class="zoom buttons">' +
                        'z' +
                 '    </button>' +
                 '    <label class="buttonContainer">' +
@@ -1509,6 +1651,7 @@ mol.modules.map.layers = function(mol) {
             
             this.attr('id', layer.id);
             this.toggle = $(this).find('.toggle').button();
+            this.ee_filter = (this).find('.ee_filter');
             this.styler = $(this).find('.styler');
             this.zoom = $(this).find('.zoom');
             if(layer.extent == null) {
