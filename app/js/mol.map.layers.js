@@ -195,7 +195,7 @@ mol.modules.map.layers = function(mol) {
                                             
                                             color = $('#allFill')
                                                         .spectrum("get")
-                                                            .toHexString();
+                                                            .toHexString();               
                                             
                                             o.fill = color;
                                             o.size = 1;
@@ -210,10 +210,26 @@ mol.modules.map.layers = function(mol) {
                                             _.each(
                                                 self.display.layers,
                                                 function(layer) {
-                                                    var l;
+                                                    var l, current;
                                                             
                                                     l = self.display
-                                                            .getLayer(layer);                                
+                                                            .getLayer(layer);
+                                                        
+                                                    current = self
+                                                            .parseLayerStyle(
+                                                                layer, 
+                                                                "current");
+                                                            
+                                                    o.s1c = current.s1c;
+                                                    o.s2c = current.s2c;
+                                                    o.s3c = current.s3c;
+                                                    o.s4c = current.s4c;
+                                                    o.s5c = current.s5c;
+                                                    o.pc = current.pc;
+                                                    
+                                                    if(layer.type == "range") {
+                                                        o.size = 0;
+                                                    }                                                
                                                     
                                                     //update css
                                                     self.updateLegendCss(
@@ -807,29 +823,32 @@ mol.modules.map.layers = function(mol) {
                                     o.s1 = $('#showFill1Palette')
                                              .spectrum("get")
                                                 .toHexString();
-                                    o.s1c = $('#seasChk1').is(':checked');        
+                                    o.s1c = $('#seasChk1').is(':checked') ? 1:0;        
                                     o.s2 = $('#showFill2Palette')
                                              .spectrum("get")
                                                 .toHexString();
-                                    o.s2c = $('#seasChk2').is(':checked');            
+                                    o.s2c = $('#seasChk2').is(':checked') ? 1:0;            
                                     o.s3 = $('#showFill3Palette')
                                              .spectrum("get")
                                                 .toHexString();
-                                    o.s3c = $('#seasChk3').is(':checked');            
+                                    o.s3c = $('#seasChk3').is(':checked') ? 1:0;            
                                     o.s4 = $('#showFill4Palette')
                                              .spectrum("get")
                                                 .toHexString();
-                                    o.s4c = $('#seasChk4').is(':checked');             
+                                    o.s4c = $('#seasChk4').is(':checked') ? 1:0;            
                                      
                                     //TODO issue #175 replace iucn ref               
                                     if(layer.source == "iucn") {
                                         o.s5 = $('#showFill5Palette')
                                              .spectrum("get")
                                                 .toHexString();
-                                        o.s5c = $('#seasChk5').is(':checked');          
+                                        o.s5c = $('#seasChk5')
+                                                    .is(':checked') ? 1:0;          
                                         o.p = $('#showFill6Palette')
                                              .spectrum("get")
-                                                .toHexString();         
+                                                .toHexString(); 
+                                        o.pc = $('#seasChk6')
+                                                    .is(':checked') ? 1:0;                
                                     }                                                               
                                 } else {
                                     o.fill = $('#showFillPalette')
@@ -969,6 +988,8 @@ mol.modules.map.layers = function(mol) {
                            '<div class="colorPicker">' + 
                            '  <span class="stylerLabel">Fill:&nbsp</span>' + 
                            '  <input type="text" id="showFill6Palette" />' +
+                           '  <input type="checkbox" id="seasChk6" ' + 
+                                    'class="seasChk" checked="checked"/>' +
                            '</div>';
                    }
                    
@@ -1039,6 +1060,19 @@ mol.modules.map.layers = function(mol) {
                              color: currSty.border, 
                              def: origSty.border}       
                           ];
+                          
+                   $(cont).find('#seasChk1')
+                        .prop('checked', (currSty.s1c == 1) ? true : false);
+                   $(cont).find('#seasChk2')
+                        .prop('checked', (currSty.s2c == 1) ? true : false);
+                   $(cont).find('#seasChk3')
+                        .prop('checked', (currSty.s3c == 1) ? true : false);
+                   $(cont).find('#seasChk4')
+                        .prop('checked', (currSty.s4c == 1) ? true : false);
+                   $(cont).find('#seasChk5')
+                        .prop('checked', (currSty.s5c == 1) ? true : false);
+                   $(cont).find('#seasChk6')
+                        .prop('checked', (currSty.pc == 1) ? true : false);             
                    
                    //TODO issue #175 replace iucn ref           
                    if(lay.source == "iucn") {
@@ -1116,7 +1150,8 @@ mol.modules.map.layers = function(mol) {
                 fillStyle, borderStyle, sizeStyle,
                 style,
                 s1Style, s2Style, s3Style, s4Style, s5Style, pStyle,
-                s1, s2, s3, s4, s5, p;
+                s1, s2, s3, s4, s5, p, pc,
+                c1, c2, c3, c4, c5;
                 
             if(original == "current") {
                 style = layer.style;
@@ -1149,7 +1184,7 @@ mol.modules.map.layers = function(mol) {
                                     sizeStyle.indexOf(':')+1,
                                     sizeStyle.indexOf(';'))))};
             } else {
-                if(layer.type == "range") {
+                if(layer.type == "range") {                    
                     s1Style = style.substring(
                                     style.indexOf('seasonality=1'),
                                     style.length-1);
@@ -1157,7 +1192,11 @@ mol.modules.map.layers = function(mol) {
                     s1 = s1Style.substring(
                                     s1Style.indexOf('polygon-fill'),
                                     s1Style.length-1);
-                                
+                                    
+                    c1 = s1Style.substring(
+                                    s1Style.indexOf('polygon-opacity'),
+                                    s1Style.length-1);           
+  
                     s2Style = style.substring(
                                     style.indexOf('seasonality=2'),
                                     style.length-1);
@@ -1165,6 +1204,10 @@ mol.modules.map.layers = function(mol) {
                     s2 = s2Style.substring(
                                     s2Style.indexOf('polygon-fill'),
                                     s2Style.length-1);
+                                    
+                    c2 = s2Style.substring(
+                                    s2Style.indexOf('polygon-opacity'),
+                                    s2Style.length-1);                 
                                 
                     s3Style = style.substring(
                                     style.indexOf('seasonality=3'),
@@ -1173,6 +1216,10 @@ mol.modules.map.layers = function(mol) {
                     s3 = s3Style.substring(
                                     s3Style.indexOf('polygon-fill'),
                                     s3Style.length-1);
+                                    
+                    c3 = s3Style.substring(
+                                    s3Style.indexOf('polygon-opacity'),
+                                    s3Style.length-1);                 
                                 
                     s4Style = style.substring(
                                     style.indexOf('seasonality=4'),
@@ -1180,7 +1227,11 @@ mol.modules.map.layers = function(mol) {
                                         
                     s4 = s4Style.substring(
                                     s4Style.indexOf('polygon-fill'),
-                                    s4Style.length-1);             
+                                    s4Style.length-1); 
+                              
+                    c4 = s4Style.substring(
+                                    s4Style.indexOf('polygon-opacity'),
+                                    s4Style.length-1);                            
                                 
                     o = {s1: s1.substring(
                                     s1.indexOf('#'),
@@ -1193,7 +1244,19 @@ mol.modules.map.layers = function(mol) {
                                     s3.indexOf(';')),
                          s4: s4.substring(
                                     s4.indexOf('#'),
-                                    s4.indexOf(';'))};
+                                    s4.indexOf(';')),
+                         s1c: c1.substring(
+                                    c1.indexOf(':')+1,
+                                    c1.indexOf(';')),
+                         s2c: c2.substring(
+                                    c2.indexOf(':')+1,
+                                    c2.indexOf(';')),
+                         s3c: c3.substring(
+                                    c3.indexOf(':')+1,
+                                    c3.indexOf(';')),
+                         s4c: c4.substring(
+                                    c4.indexOf(':')+1,
+                                    c4.indexOf(';'))};
                     
                     //TODO issue #175 replace iucn ref    
                     if(layer.source == "iucn") {
@@ -1203,11 +1266,19 @@ mol.modules.map.layers = function(mol) {
                                         
                         s5 = s5Style.substring(
                                     s5Style.indexOf('polygon-fill'),
-                                    s5Style.length-1);           
+                                    s5Style.length-1); 
+                                    
+                        c5 = s5Style.substring(
+                                    s5Style.indexOf('polygon-opacity'),
+                                    s5Style.length-1);                        
                                     
                         o.s5 = s5.substring(
                                     s5.indexOf('#'),
                                     s5.indexOf(';'));
+                                    
+                        o.s5c = c5.substring(
+                                    c5.indexOf(':')+1,
+                                    c5.indexOf(';'));          
                                     
                         pStyle = style.substring(
                                     style.indexOf('presence=4'),
@@ -1215,11 +1286,19 @@ mol.modules.map.layers = function(mol) {
                                         
                         p = pStyle.substring(
                                     pStyle.indexOf('polygon-fill'),
-                                    pStyle.length-1);           
+                                    pStyle.length-1);      
+                                    
+                        pc = pStyle.substring(
+                                    pStyle.indexOf('polygon-opacity'),
+                                    pStyle.length-1);                  
                                     
                         o.p = p.substring(
                                     p.indexOf('#'),
-                                    p.indexOf(';'));            
+                                    p.indexOf(';')); 
+                                    
+                        o.pc = pc.substring(
+                                    pc.indexOf(':')+1,
+                                    pc.indexOf(';'));                       
                     }
                 } else {
                     fillStyle = style.substring(
@@ -1334,13 +1413,29 @@ mol.modules.map.layers = function(mol) {
                                 'polygon-fill');
                     style = this.changeStyleProperty(
                                 style, 'seasonality=4', newStyle.s4, true, 
-                                'polygon-fill');            
+                                'polygon-fill');
+                                
+                    style = this.changeStyleProperty(
+                                style, 'seasonality=1', newStyle.s1c, true, 
+                                'polygon-opacity');
+                    style = this.changeStyleProperty(
+                                style, 'seasonality=2', newStyle.s2c, true, 
+                                'polygon-opacity');
+                    style = this.changeStyleProperty(
+                                style, 'seasonality=3', newStyle.s3c, true, 
+                                'polygon-opacity');
+                    style = this.changeStyleProperty(
+                                style, 'seasonality=4', newStyle.s4c, true, 
+                                'polygon-opacity');                         
                     
                     //TODO issue #175 replace iucn ref                
                     if(layer.source == "iucn") {
                         style = this.changeStyleProperty(
                                 style, 'seasonality=5', newStyle.s5, true, 
                                 'polygon-fill');
+                        style = this.changeStyleProperty(
+                                style, 'seasonality=5', newStyle.s5c, true, 
+                                'polygon-opacity');         
                                 
                         style = this.changeStyleProperty(
                                 style, 'presence=4', newStyle.p, true, 
@@ -1350,7 +1445,17 @@ mol.modules.map.layers = function(mol) {
                                 'polygon-fill'); 
                         style = this.changeStyleProperty(
                                 style, 'presence=6', newStyle.p, true, 
-                                'polygon-fill');                                         
+                                'polygon-fill');
+                        style = this.changeStyleProperty(
+                                style, 'presence=4', newStyle.pc, true, 
+                                'polygon-opacity');
+                        style = this.changeStyleProperty(
+                                style, 'presence=5', newStyle.pc, true, 
+                                'polygon-opacity'); 
+                        style = this.changeStyleProperty(
+                                style, 'presence=6', newStyle.pc, true, 
+                                'polygon-opacity');        
+                    }                                                     
                 } else {
                     style = this.changeStyleProperty(
                                 style, 'polygon-fill', newStyle.fill, 
@@ -1363,28 +1468,25 @@ mol.modules.map.layers = function(mol) {
                                 style, 'line-width', newStyle.size, false); 
             }
             
-            console.log("updated style ");
-            console.log(style);
-            
             updatedStyle = style;
             
             return updatedStyle;
         },
             
         updateLegendCss: function(button, o, layer, opa) {
-            if(layer.type == "range") {          
+            if(layer.type == "range") {      
                 $(button).find('.s1').css({
                     'background-color':o.s2, 
-                    'opacity':opa});
+                    'opacity': (o.s2c == 0) ? 0 : opa});
                 $(button).find('.s2').css({
                     'background-color':o.s1,
-                    'opacity':opa});
+                    'opacity': (o.s1c == 0) ? 0 : opa});
                 $(button).find('.s3').css({
                     'background-color':o.s3,
-                    'opacity':opa});
+                    'opacity': (o.s3c == 0) ? 0 : opa});
                 $(button).find('.s4').css({
                     'background-color':o.s4,
-                    'opacity':opa});
+                    'opacity': (o.s4c == 0) ? 0 : opa});           
                 
                 $(button).find('.legend-seasonal')
                     .css({
