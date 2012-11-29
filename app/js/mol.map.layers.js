@@ -807,21 +807,26 @@ mol.modules.map.layers = function(mol) {
                                     o.s1 = $('#showFill1Palette')
                                              .spectrum("get")
                                                 .toHexString();
+                                    o.s1c = $('#seasChk1').is(':checked');        
                                     o.s2 = $('#showFill2Palette')
                                              .spectrum("get")
                                                 .toHexString();
+                                    o.s2c = $('#seasChk2').is(':checked');            
                                     o.s3 = $('#showFill3Palette')
                                              .spectrum("get")
                                                 .toHexString();
+                                    o.s3c = $('#seasChk3').is(':checked');            
                                     o.s4 = $('#showFill4Palette')
                                              .spectrum("get")
                                                 .toHexString();
+                                    o.s4c = $('#seasChk4').is(':checked');             
                                      
                                     //TODO issue #175 replace iucn ref               
                                     if(layer.source == "iucn") {
                                         o.s5 = $('#showFill5Palette')
                                              .spectrum("get")
-                                                .toHexString();  
+                                                .toHexString();
+                                        o.s5c = $('#seasChk5').is(':checked');          
                                         o.p = $('#showFill6Palette')
                                              .spectrum("get")
                                                 .toHexString();         
