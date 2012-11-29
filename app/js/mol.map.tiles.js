@@ -94,10 +94,14 @@ mol.modules.map.tiles = function(mol) {
                         var layer = event.layer,
                             opacity = event.opacity;
 
+                        console.log('tiles layer-opacity');
+                        
+
                         if (opacity === undefined) {
                             return;
                         }
 
+                        console.log("not undefined");
                         self.map.overlayMapTypes.forEach(
                             function(maptype, index) {
                                 if (maptype.name === layer.id) {

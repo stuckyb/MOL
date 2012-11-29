@@ -229,7 +229,17 @@ mol.modules.map.layers = function(mol) {
                                                     
                                                     if(layer.type == "range") {
                                                         o.size = 0;
-                                                    }                                                
+                                                    }
+                                                    
+                                                    if(layer.style_table == 
+                                                                "point_style") {
+                                                        o.size = 3;
+                                                    }        
+                                                    
+                                                    console.log("layer");
+                                                    console.log(layer.opacity);
+                                                    
+                                                    console.log($(l).find('.toggle').is(':checked'));                                      
                                                     
                                                     //update css
                                                     self.updateLegendCss(
@@ -244,7 +254,7 @@ mol.modules.map.layers = function(mol) {
                                                         $(l).find('.styler'),
                                                         o,
                                                         layer, 
-                                                        0.5
+                                                        $(l).find('.toggle').is(':checked') ? 0.5 : 0
                                                     );
                                                 }
                                             );  
@@ -277,27 +287,6 @@ mol.modules.map.layers = function(mol) {
             this.display.layersToggle.click(
                 function(event) {
                     self.layersToggle(event);
-                }
-            );
-            
-            this.bus.addHandler(
-                'layer-opacity',
-                function(event) {
-                    var layer = event.layer,
-                        l = self.display.getLayer(layer),
-                        opacity = event.opacity,
-                        params = {},
-                        e = null;
-
-                    if (opacity === undefined) {
-                        params = {
-                            layer: layer,
-                            opacity: parseFloat(l.find('.opacity')
-                                .slider("value"))
-                        },                        
-                        e = new mol.bus.Event('layer-opacity', params);
-                        self.bus.fireEvent(e);
-                    }
                 }
             );
 
