@@ -33,21 +33,16 @@ class MainPage(webapp2.RequestHandler):
         ee.Initialize(credentials, EE_URL)
       
         sciname = self.request.get('sciname', None)
-        
-        #Grab elevation and habitat values
-        sql = "SELECT * FROM elevandhabitat e JOIN specieslist s ON e.scientific = s.latin WHERE s.latin = '%s'" % (sciname)
-        url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
-        value = urlfetch.fetch(url, deadline=60).content
-        val = json.loads(value)
-        speciesInfo = val["rows"][0]
-        
+        habitats = self.request.get('habitats', None)
+	elevation = self.request.get('elevation', None) 
+
         #Grab geojson
         #sql = "SELECT ST_AsGeoJson(ST_Transform(the_geom_webmercator,4326)) as geojson FROM jetz_maps where latin='%s'"  % (sciname)
         #url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
         #value = urlfetch.fetch(url, deadline=60).content
         
         #geom = json.loads(value)
-        species = ee.FeatureCollection(geom["rows"][0]["geojson"])
+        #species = ee.FeatureCollection(geom["rows"][0]["geojson"])
          
         #Get land cover and elevation layers
         cover = ee.Image('MCD12Q1/MCD12Q1_005_2001_01_01').select('Land_Cover_Type_1')
@@ -58,9 +53,9 @@ class MainPage(webapp2.RequestHandler):
         
         #parse the CDB response
 
-        min = int(speciesInfo["finalmin"])
-        max = int(speciesInfo["finalmax"])
-        habitat_list = speciesInfo["habitatprefs"].split(",")
+        min = int(elevation.split(',')[0])
+        max = int(elevation.split(',')[1])
+        habitat_list = habitats.split(",")
 
         for pref in habitat_list:
             output = output.where(cover.eq(int(pref)).And(elev.gt(min)).And(elev.lt(max)).clip(species),1)

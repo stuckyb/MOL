@@ -415,12 +415,7 @@ white-space: nowrap;
     max-width: 240px;
     margin-left: 5px;
     margin-right: 5px;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+
 }
 .mol-LayerControl-Layers .layer .layerNomial {
     display: block;
@@ -437,14 +432,14 @@ white-space: nowrap;
     overflow: hidden;
 }
 
-.mol-LayerControl-Layers .layer .layerRecords {
     float: right;
     font-size: 0.8em;
     padding-top: 2px;
 }
 
 .mol-LayerControl-Layers .layer .type, 
-.mol-LayerControl-Layers .layer .source {
+.mol-LayerControl-Layers .layer .source,
+.mol-LayerControl-Layers .layer .ee_filter {
     float: left;
     text-align: center;
     width: 24px;
@@ -458,6 +453,7 @@ white-space: nowrap;
     height: 24px;
     padding: 0px;
 }
+
 
 .mol-LayerControl-Layers .layer button.styler{
     background-color: rgba(25, 25, 25, 0);
@@ -528,8 +524,11 @@ white-space: nowrap;
     height:5px;
 }
 
+
+
 .mol-LayerControl-Layers .layer .type img,
-.mol-LayerControl-Layers .layer .source img {
+.mol-LayerControl-Layers .layer .source img,
+.mol-LayerControl-Layers .layer .ee_filter img {
     height: 20px;
     width: 20px;
 }
@@ -648,6 +647,14 @@ white-space: nowrap;
 
 .mol-LayerControl-Styler .colorPicker {
     width: 130px;
+}
+
+.mol-LayerControl-Styler .selected{
+    text-decoration: underline;
+}
+
+.mol-LayerControl-Styler .habitats{
+    cursor: pointer;
 }
 
 .mol-LayerControl-Styler .colorPickers div + div {
@@ -769,7 +776,6 @@ white-space: nowrap;
     line-height: 25px;
     font-size: 0.8em;
     margin-right: 2px;
-    -moz-user-select: none;
 }
 .mol-LayerControl-Search .value{
     display:inline-block;

@@ -362,7 +362,9 @@ mol.modules.map.tiles = function(mol) {
                     $.getJSON(
                         'ee',
                         {
-                            sciname: layer.name
+                            sciname: layer.name,
+                            habitats: layer.selectedHabitats.join(','),
+		            elevation: layer.selectedElev.join(',')
                         },
                         function (ee) {
                             var maptype = new mol.map.tiles.EarthEngineTile(

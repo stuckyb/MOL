@@ -1289,14 +1289,8 @@ mol.modules.map.layers = function(mol) {
                     );
                     l.ee_filter.click(
                         function(event) {
-                            var params = {
-                                layer: layer
-                            };
-                            layer.mode = (layer.mode == 'cdb') ? 'ee' : 'cdb';
+                            self.displayHabitatClipping(this, layer);
                             
-                            self.bus.fireEvent(
-                                new mol.bus.Event('toggle-ee-filter',  params)
-                            );
                         }
                     )
 
@@ -1659,7 +1653,197 @@ mol.modules.map.layers = function(mol) {
                 }
             });
         },
+        displayHabitatClipping: function(button, layer) {
+            var baseHtml,
+                params = {
+                    layer: layer
+                },
+                q,
+                self = this;
             
+           
+            baseHtml = '' + 
+                   '<div class="mol-LayerControl-Styler">' +
+                        '<div class="habitats"></div>' +
+                        '<div class="sizerHolder">' +
+                        '<div class="sizerLabel elevLabel">' +
+                            'Elevation Range:<br>0m-10000m' +
+                        '</div>' +
+                        '<div class="elev"></div></div>' +
+                        '<div class="buttonWrapper">' +
+                            '<button class="apply">Apply</button>' +
+                            '<button class="reset">Reset</button>' +
+                            '<button class="cancel">Cancel</button>' +
+                       '</div>' +
+                   '</div>';
+            
+            $(button).removeData('qtip'); 
+            
+            q = $(button).qtip({
+                content: {
+                    text: baseHtml,
+                    title: {
+                        text: 'Habitat Preferences',
+                        button: false
+                    }
+                },
+                position: {
+                    at: 'left center',
+                    my: 'right top'
+                },
+                show: {
+                    event: 'click',
+                    delay: 0,
+                    ready: true,
+                    solo: true
+                },
+                hide: false,
+                style: {
+                    def: false,
+                    classes: 'ui-tooltip-widgettheme'
+                },
+                events: {
+                    render: function(event, api) {
+                        self.setHabitatProperties(
+                                    api.elements.content,
+                                    layer,
+                                    false);
+               
+                        $(api.elements.content).find('.apply').click(
+                            function(event) {
+                                var params = {
+                                    layer: layer
+                                };
+                                params.layer.mode = 'ee';
+                                self.bus.fireEvent(
+                                    new mol.bus.Event('toggle-ee-filter',  params)
+                                );
+                            }
+                        );
+                       
+                        $(api.elements.content)
+                            .find('.reset').click(
+                                function(event) {
+                                    self.setHabitatProperties(
+                                                    api.elements.content,
+                                                    layer,
+                                                    true);
+                                }
+                            );
+                            
+                        $(api.elements.content)
+                            .find('.cancel').click(
+                                function(event) {
+                                    $(button).prop('disabled', false);
+                                    $(button).qtip('destroy');
+                                }
+                            );
+                    },
+                    show: function(event, api) {                              
+                        $(button).prop('disabled', true);
+                    }
+                }
+            });
+        },
+        setHabitatProperties: function(cont, layer,  reset) {
+            var maxe, mine,
+                habitats = {
+                    1:'Evergreen Needleleaf Forests', 
+                    2:'Evergreen Broadleaf Forests',  
+                    3:'Deciduous Needleleaf Forests',  
+                    4:'Deciduous Broadleaf Forests',  
+                    5:'Mixed Forests',    
+                    6:'Closed Shrublands',    
+                    7:'Open Shrublands',    
+                    8:'Woody Savannas',    
+                    9:'Savannas',    
+                    10:'Grasslands',    
+                    11:'Permanent Wetlands',  
+                    12:'Cropland',    
+                    13:'Urban and Built-up',    
+                    14:'Cropland/Natural Vegetation Mosaics',  
+                    15:'Snow and Ice Barren',  
+                    16:'Barren',    
+                    17:'Water Bodies'},
+                selectedHabitats,
+                self = this; 
+                
+                //if no habitat prefs, then select all.
+                if(reset && (layer.habitat == null)) {
+                    selectedHabitats = _.keys(habitats);
+                } else if(reset || layer.selectedHabitats == undefined) {
+                    selectedHabitats = layer.habitat.split(',');
+                } else if(layer["selectedHabitats"]){
+                    selectedHabitats = layer.selectedHabitats;
+                } else {
+                    selectedHabitats = _.keys(habitats);
+                }
+                layer.selectedHabitats = selectedHabitats;
+                //if no elev prefs, then select all.
+                if(reset && (layer.mine == null || layer.maxe == null)) {
+                    selectedElev = [-500,9000];
+                } else if(reset || layer.selectedElev == undefined) {
+                    selectedElev = [layer.mine,layer.maxe];
+                } else if(layer["selectedElev"]){
+                    selectedElev = layer.selectedElev;
+                } else {
+                    selectedElev = [-500,9000];
+                }
+                layer.selectedElev = selectedElev;
+                //add the habitats
+                 $(cont).find('.habitats').empty();
+                _.each(
+                    habitats,
+                    function(habitat, habitat_code) {
+                        var html = '' +
+                            '<div class="habitat {0}" ' +
+                                'data-habitat="{1}">{2}</div>',
+                            display = $(html.format(
+                                (_.indexOf(layer.selectedHabitats,habitat_code)>=0) ?
+                                    'selected' : '',
+                                habitat_code,
+                                habitat)
+                            );
+                        display.click(
+                            function(event) {
+                                if($(this).hasClass('selected')) {
+                                    $(this).removeClass('selected');
+                                    layer.selectedHabitats = 
+                                        _.without(
+                                            layer.selectedHabitats,
+                                            [$(this).data('habitat').toString()]
+                                        );
+                                } else {
+                                    $(this).addClass('selected');
+                                    layer.selectedHabitats.push(
+                                        $(this).data('habitat').toString()
+                                    );
+                                }
+                            }
+                        );
+                        $(cont).find('.habitats').append(display);
+                    }.bind(layer)
+                );
+                
+                //get elevation range
+                $(cont).find('.elev').slider({
+                    range: true,
+                    min:-500, 
+                    max:9000, 
+                    values:layer.selectedElev,
+                    slide: function(event, ui) {
+                        $(cont).find('.elevLabel').html(
+                            'Elevation Range:<br>{0}m-{1}m'.format(ui.values[0],ui.values[1])
+                        );
+                        layer.selectedElev=ui.values;
+                    }.bind(layer)
+                    }
+                );
+                
+                $(cont).find('.elevLabel').html(
+                    'Elevation Range:<br>{0}m-{1}m'.format(mine,maxe)
+                );
+        },    
         getStylerLayout: function(element, layer) {
             var pickers,
                 sizer;    
@@ -2277,13 +2461,13 @@ mol.modules.map.layers = function(mol) {
                 '      <div title="{2}" class="layerNomial">{2}</div>' +
                 '      <div title="{3}" class="layerEnglishName">{3}</div>'+
                 '    </div>' +
-                '    <button title="Apply habitat filters." class="ee_filter">' + 
-                       'H' + 
-                '    </button>' +
-                '    <button title="Remove layer." class="close">' + 
+                '    <button title="Remove layer." class="close buttons">' + 
                        'x' + 
                 '    </button>' +
-                '    <button title="Zoom to layer extent." class="zoom">' +
+                '    <button title="Apply habitat filters." class="ee_filter buttons">' + 
+                       '<img src="/static/maps/search/habitat.png">' + 
+                '    </button>' +
+                '    <button title="Zoom to layer extent." class="zoom buttons">' +
                        'z' +
                 '    </button>' +
                 '    <label class="buttonContainer">' +
@@ -3394,9 +3578,16 @@ mol.modules.map.search = function(mol) {
                     'END as extent, ' +
                     'l.dataset_id as dataset_id, ' +
                     'd.dataset_title as dataset_title, ' + 
-                    'd.style_table as style_table ' +
-                    
+                    'd.style_table as style_table, ' +
+                    'e.finalmin as mine, ' +
+                    'e.finalmax as maxe, ' +
+                    'e.habitatprefs as habitat, ' +
+                    'NOT sl.latin IS Null as inft ' +
                 'FROM layer_metadata l ' +
+                'LEFT JOIN elevandhabitat e ON ' + 
+                    'l.scientificname = e.scientific ' +
+                'LEFT JOIN specieslist sl ON ' +
+                    'l.scientificname = sl.latin ' +
                 'LEFT JOIN data_registry d ON ' +
                     'l.dataset_id = d.dataset_id ' +
                 'LEFT JOIN types t ON ' +
@@ -4105,7 +4296,9 @@ mol.modules.map.tiles = function(mol) {
                     $.getJSON(
                         'ee',
                         {
-                            sciname: layer.name
+                            sciname: layer.name,
+                            habitats: layer.selectedHabitats.join(','),
+		            elevation: layer.selectedElev.join(',')
                         },
                         function (ee) {
                             var maptype = new mol.map.tiles.EarthEngineTile(
@@ -4205,7 +4398,8 @@ mol.modules.map.tiles = function(mol) {
             }
         }
     );
-};mol.modules.map.dashboard = function(mol) {
+};
+mol.modules.map.dashboard = function(mol) {
 
     mol.map.dashboard = {};
 
