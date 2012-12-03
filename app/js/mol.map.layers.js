@@ -1584,7 +1584,7 @@ mol.modules.map.layers = function(mol) {
                     style = this.changeStyleProperty(
                                 style, 
                                 'line-width', 
-                                visible ? 1 : oldStyle.size, 
+                                visible ? 2 : oldStyle.size, 
                                 false
                             );
                 }
