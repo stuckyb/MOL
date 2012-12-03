@@ -39,14 +39,21 @@ mol.modules.map.tiles = function(mol) {
                             params = null,
                             e = null;
 
+                        console.log("layer-toggle");
+                        console.log(showing);
+
                         if (showing) {
                             self.map.overlayMapTypes.forEach(
                                 function(mt, index) {
                                     if (mt != undefined && mt.name == layer.id) {
                                         params = {
                                             layer: layer,
-                                            opacity: mt.opacity_visible
+                                            opacity: 1,
+                                            style_opacity: layer.style_opacity
                                         };
+                                        
+                                        layer.opacity = 1;
+
                                         e = new mol.bus.Event('layer-opacity', params);
                                         self.bus.fireEvent(e);
                                         //if(maptype.interaction != undefined) {
@@ -62,21 +69,24 @@ mol.modules.map.tiles = function(mol) {
                             self.map.overlayMapTypes.forEach(
                                 function(mt, index) {
                                     if (mt != undefined && mt.name == layer.id) {
-                                        mt.opacity_visible = mt.opacity;
                                         params = {
                                             layer: layer,
-                                            opacity: 0
+                                            opacity: 0,
+                                            style_opacity: layer.style_opacity
                                         };
+                                        
+                                        layer.opacity = 0;
+                                        
                                         e = new mol.bus.Event(
                                             'layer-opacity', 
                                             params
                                         );
                                         self.bus.fireEvent(e);
+                                        
                                         if(mt.interaction != undefined) {
                                             mt.interaction.remove();
                                             mt.interaction.clickAction="";
                                         }
-                                        //self.map.overlayMapTypes.removeAt(index);
                                     }
                                 }
                             );
@@ -92,9 +102,13 @@ mol.modules.map.tiles = function(mol) {
                     'layer-opacity',
                     function(event) {
                         var layer = event.layer,
-                            opacity = event.opacity;
+                            opacity = event.opacity,
+                            style_opacity = event.style_opacity;
 
                         console.log('tiles layer-opacity');
+                        console.log(layer);
+                        console.log(opacity);
+                        console.log(style_opacity);
                         
 
                         if (opacity === undefined) {
@@ -105,7 +119,15 @@ mol.modules.map.tiles = function(mol) {
                         self.map.overlayMapTypes.forEach(
                             function(maptype, index) {
                                 if (maptype.name === layer.id) {
-                                    maptype.setOpacity(opacity);
+                                    
+                                    
+                                    if(opacity == 1) {
+                                        maptype.setOpacity(style_opacity);
+                                    } else {
+                                        maptype.setOpacity(opacity);
+                                    }
+                                    
+                                    
                                 }
                             }
                         );
@@ -121,6 +143,8 @@ mol.modules.map.tiles = function(mol) {
                         var layer = event.layer,
                             style = event.style;
                             sel = event.isSelected;
+                            
+                        console.log("apply-layer-style");    
                             
                         self.map.overlayMapTypes.forEach(
                             function(maptype, index) {
@@ -141,8 +165,14 @@ mol.modules.map.tiles = function(mol) {
                                                 e,
                                                 params = {
                                                     layer: layer,
-                                                    opacity: maptype.opacity
+                                                    opacity: layer.opacity,
+                                                    style_opacity: layer.style_opacity
                                                 };
+                                                
+                                            console.log("does apply-layer-style have style_opacity");
+                                            console.log(layer.opacity);
+                                            console.log(layer.style_opacity); 
+                                                
                                             if(newmaptype.name === layer.id) {
                                                 mt = self.map.overlayMapTypes.removeAt(newindex);
                                                 self.map.overlayMapTypes.insertAt(index, mt);
@@ -358,6 +388,7 @@ mol.modules.map.tiles = function(mol) {
                     layer.orig_style = layer.tile_style;
                     
                     layer.orig_opacity = layer.opacity;
+                    layer.style_opacity = layer.opacity;
                 }
 
                 this.layer = new google.maps.CartoDBLayer({

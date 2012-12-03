@@ -236,25 +236,21 @@ mol.modules.map.layers = function(mol) {
                                                         o.size = 3;
                                                     }        
                                                     
-                                                    console.log("layer");
-                                                    console.log(layer.opacity);
-                                                    
-                                                    console.log($(l).find('.toggle').is(':checked'));                                      
-                                                    
                                                     //update css
                                                     self.updateLegendCss(
                                                         $(l).find('.styler'), 
                                                         o, 
                                                         layer,
-                                                        0.5
+                                                        0.9
                                                     );
                         
                                                     //update tiles
+                                                    //TODO may not need this check
                                                     self.updateLayerStyle(
                                                         $(l).find('.styler'),
                                                         o,
                                                         layer, 
-                                                        $(l).find('.toggle').is(':checked') ? 0.5 : 0
+                                                        0.9
                                                     );
                                                 }
                                             );  
@@ -1116,7 +1112,7 @@ mol.modules.map.layers = function(mol) {
                 $(cont).find('#pointSizeValue').html(
                     $(cont).find('.sizer').slider('value') + "px"); 
 
-                layOpa = reset ? lay.orig_opacity : lay.opacity;
+                layOpa = reset ? lay.orig_opacity : lay.style_opacity;
                         
                 //opacity
                 $(cont).find('.opacity').slider({
@@ -1537,14 +1533,15 @@ mol.modules.map.layers = function(mol) {
 
             oparams = {
                 layer: lay,
-                opacity: opa
+                opacity: lay.opacity,
+                style_opacity: opa
             };
 
             //store the opacity on the layer object
-            lay.opacity = oparams.opacity;
-
+            lay.style_opacity = oparams.style_opacity;
+            
             self.bus.fireEvent(new mol.bus.Event(
-                'layer-opacity', oparams));
+                'layer-opacity', oparams));                
         },
 
         toggleLayerHighlight: function(layer, visible, sel) {
