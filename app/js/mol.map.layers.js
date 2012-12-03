@@ -245,7 +245,6 @@ mol.modules.map.layers = function(mol) {
                                                     );
                         
                                                     //update tiles
-                                                    //TODO may not need this check
                                                     self.updateLayerStyle(
                                                         $(l).find('.styler'),
                                                         o,

@@ -389,6 +389,7 @@ mol.modules.map.tiles = function(mol) {
                     
                     layer.orig_opacity = layer.opacity;
                     layer.style_opacity = layer.opacity;
+                    layer.opacity = 1;
                 }
 
                 this.layer = new google.maps.CartoDBLayer({
@@ -406,7 +407,7 @@ mol.modules.map.tiles = function(mol) {
                         meta_query: meta_query,
                         map_style: false,
                         infowindow: infowindow,
-                        opacity: layer.opacity
+                        opacity: layer.orig_opacity
                 });
             }
         }
