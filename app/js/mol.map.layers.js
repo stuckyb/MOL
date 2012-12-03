@@ -816,13 +816,14 @@ mol.modules.map.layers = function(mol) {
                                              .spectrum("get")
                                                 .toHexString();
                                     o.s3c = $('#seasChk3').is(':checked') ? 1:0;            
-                                    o.s4 = $('#showFill4Palette')
-                                             .spectrum("get")
-                                                .toHexString();
-                                    o.s4c = $('#seasChk4').is(':checked') ? 1:0;            
                                      
                                     //TODO issue #175 replace iucn ref               
                                     if(layer.source == "iucn") {
+                                        o.s4 = $('#showFill4Palette')
+                                             .spectrum("get")
+                                                .toHexString();
+                                        o.s4c = $('#seasChk4')
+                                                    .is(':checked') ? 1:0;
                                         o.s5 = $('#showFill5Palette')
                                              .spectrum("get")
                                                 .toHexString();
@@ -947,18 +948,18 @@ mol.modules.map.layers = function(mol) {
                        '  <input type="text" id="showFill3Palette" />' +
                        '  <input type="checkbox" id="seasChk3" ' + 
                                 'class="seasChk" checked="checked"/>' +
-                       '</div>' +
-                       '<span class="seasonLabel">Passage</span>' +
-                       '<div class="colorPicker">' + 
-                       '  <span class="stylerLabel">Fill:&nbsp</span>' + 
-                       '  <input type="text" id="showFill4Palette" />' +
-                       '  <input type="checkbox" id="seasChk4" ' + 
-                                'class="seasChk" checked="checked"/>' +
-                       '</div>';
+                       '</div>';                       
                    
                    //TODO issue #175 replace iucn ref                           
                    if (layer.source == "iucn") {
                        pickers+=''+
+                           '<span class="seasonLabel">Passage</span>' +
+                           '<div class="colorPicker">' + 
+                           '  <span class="stylerLabel">Fill:&nbsp</span>' + 
+                           '  <input type="text" id="showFill4Palette" />' +
+                           '  <input type="checkbox" id="seasChk4" ' + 
+                                    'class="seasChk" checked="checked"/>' +
+                           '</div>'+
                            '<span class="seasonLabel">' + 
                                'Seasonality Uncertain</span>' +
                            '<div class="colorPicker">' + 
@@ -1037,9 +1038,6 @@ mol.modules.map.layers = function(mol) {
                             {name: '#showFill3Palette', 
                              color: currSty.s3, 
                              def: origSty.s3},
-                            {name: '#showFill4Palette', 
-                             color: currSty.s4, 
-                             def: origSty.s4},
                             {name: '#showBorderPalette', 
                              color: currSty.border, 
                              def: origSty.border}       
@@ -1050,16 +1048,20 @@ mol.modules.map.layers = function(mol) {
                    $(cont).find('#seasChk2')
                         .prop('checked', (currSty.s2c == 1) ? true : false);
                    $(cont).find('#seasChk3')
-                        .prop('checked', (currSty.s3c == 1) ? true : false);
-                   $(cont).find('#seasChk4')
-                        .prop('checked', (currSty.s4c == 1) ? true : false);
-                   $(cont).find('#seasChk5')
-                        .prop('checked', (currSty.s5c == 1) ? true : false);
-                   $(cont).find('#seasChk6')
-                        .prop('checked', (currSty.pc == 1) ? true : false);             
+                        .prop('checked', (currSty.s3c == 1) ? true : false);     
                    
                    //TODO issue #175 replace iucn ref           
                    if(lay.source == "iucn") {
+                       $(cont).find('#seasChk4')
+                            .prop('checked', (currSty.s4c == 1) ? true : false);
+                       $(cont).find('#seasChk5')
+                            .prop('checked', (currSty.s5c == 1) ? true : false);
+                       $(cont).find('#seasChk6')
+                            .prop('checked', (currSty.pc == 1) ? true : false); 
+                       
+                       objs.push({name: '#showFill4Palette', 
+                                  color: currSty.s4, 
+                                  def: origSty.s4});                       
                        objs.push({name: '#showFill5Palette', 
                                   color: currSty.s5, 
                                   def: origSty.s5});
@@ -1203,19 +1205,7 @@ mol.modules.map.layers = function(mol) {
                                     
                     c3 = s3Style.substring(
                                     s3Style.indexOf('polygon-opacity'),
-                                    s3Style.length-1);                 
-                                
-                    s4Style = style.substring(
-                                    style.indexOf('seasonality=4'),
-                                    style.length-1);
-                                        
-                    s4 = s4Style.substring(
-                                    s4Style.indexOf('polygon-fill'),
-                                    s4Style.length-1); 
-                              
-                    c4 = s4Style.substring(
-                                    s4Style.indexOf('polygon-opacity'),
-                                    s4Style.length-1);                            
+                                    s3Style.length-1);                                 
                                 
                     o = {s1: s1.substring(
                                     s1.indexOf('#'),
@@ -1226,9 +1216,6 @@ mol.modules.map.layers = function(mol) {
                          s3: s3.substring(
                                     s3.indexOf('#'),
                                     s3.indexOf(';')),
-                         s4: s4.substring(
-                                    s4.indexOf('#'),
-                                    s4.indexOf(';')),
                          s1c: c1.substring(
                                     c1.indexOf(':')+1,
                                     c1.indexOf(';')),
@@ -1237,13 +1224,30 @@ mol.modules.map.layers = function(mol) {
                                     c2.indexOf(';')),
                          s3c: c3.substring(
                                     c3.indexOf(':')+1,
-                                    c3.indexOf(';')),
-                         s4c: c4.substring(
-                                    c4.indexOf(':')+1,
-                                    c4.indexOf(';'))};
+                                    c3.indexOf(';'))};
                     
                     //TODO issue #175 replace iucn ref    
                     if(layer.source == "iucn") {
+                        s4Style = style.substring(
+                                    style.indexOf('seasonality=4'),
+                                    style.length-1);
+                                        
+                        s4 = s4Style.substring(
+                                        s4Style.indexOf('polygon-fill'),
+                                        s4Style.length-1); 
+                                  
+                        c4 = s4Style.substring(
+                                        s4Style.indexOf('polygon-opacity'),
+                                        s4Style.length-1);  
+                        
+                        o.s4 = s4.substring(
+                                    s4.indexOf('#'),
+                                    s4.indexOf(';'));
+                        
+                        o.s4c = c4.substring(
+                                    c4.indexOf(':')+1,
+                                    c4.indexOf(';'));
+                        
                         s5Style = style.substring(
                                     style.indexOf('seasonality=5'),
                                     style.length-1);
@@ -1394,10 +1398,7 @@ mol.modules.map.layers = function(mol) {
                                 'polygon-fill');
                     style = this.changeStyleProperty(
                                 style, 'seasonality=3', newStyle.s3, true, 
-                                'polygon-fill');
-                    style = this.changeStyleProperty(
-                                style, 'seasonality=4', newStyle.s4, true, 
-                                'polygon-fill');
+                                'polygon-fill');                    
                                 
                     style = this.changeStyleProperty(
                                 style, 'seasonality=1', newStyle.s1c, true, 
@@ -1407,13 +1408,17 @@ mol.modules.map.layers = function(mol) {
                                 'polygon-opacity');
                     style = this.changeStyleProperty(
                                 style, 'seasonality=3', newStyle.s3c, true, 
-                                'polygon-opacity');
-                    style = this.changeStyleProperty(
-                                style, 'seasonality=4', newStyle.s4c, true, 
-                                'polygon-opacity');                         
+                                'polygon-opacity');                                             
                     
                     //TODO issue #175 replace iucn ref                
                     if(layer.source == "iucn") {
+                        style = this.changeStyleProperty(
+                                style, 'seasonality=4', newStyle.s4, true, 
+                                'polygon-fill');
+                        style = this.changeStyleProperty(
+                                style, 'seasonality=4', newStyle.s4c, true, 
+                                'polygon-opacity');        
+                        
                         style = this.changeStyleProperty(
                                 style, 'seasonality=5', newStyle.s5, true, 
                                 'polygon-fill');
@@ -1468,9 +1473,13 @@ mol.modules.map.layers = function(mol) {
                 $(button).find('.s3').css({
                     'background-color':o.s3,
                     'opacity': (o.s3c == 0) ? 0 : opa});
-                $(button).find('.s4').css({
-                    'background-color':o.s4,
-                    'opacity': (o.s4c == 0) ? 0 : opa});           
+                
+                //TODO issue #175 replace iucn ref                
+                if(layer.source == "iucn") {
+                    $(button).find('.s4').css({
+                        'background-color':o.s4,
+                        'opacity': (o.s4c == 0) ? 0 : opa}); 
+                }
                 
                 $(button).find('.legend-seasonal')
                     .css({
@@ -1694,6 +1703,7 @@ mol.modules.map.layers = function(mol) {
             this.pointLegend = $(this).find('.legend-point');
             this.polygonLegend = $(this).find('.legend-polygon');
             this.seasonalLegend = $(this).find('.legend-seasonal');
+            this.s4 = $(this).find('.s4');
             
             if(layer.style_table == "points_style") {
                 this.polygonLegend.hide();
@@ -1706,7 +1716,11 @@ mol.modules.map.layers = function(mol) {
                 //TODO issue #175 replace iucn ref    
                 if(layer.source == "iucn" || layer.source == "jetz") {
                     this.polygonLegend.hide();
-                    this.seasonalLegend.addClass(layer.source);                       
+                    this.seasonalLegend.addClass(layer.source); 
+                    
+                    if(layer.source == 'jetz') {
+                        this.s4.hide();
+                    }                      
                 } else {
                     this.seasonalLegend.hide();
                     this.polygonLegend.addClass(layer.type);
