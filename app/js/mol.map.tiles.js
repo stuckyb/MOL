@@ -39,13 +39,11 @@ mol.modules.map.tiles = function(mol) {
                             params = null,
                             e = null;
 
-                        console.log("layer-toggle");
-                        console.log(showing);
-
                         if (showing) {
                             self.map.overlayMapTypes.forEach(
                                 function(mt, index) {
-                                    if (mt != undefined && mt.name == layer.id) {
+                                    if (mt != undefined && 
+                                        mt.name == layer.id) {
                                         params = {
                                             layer: layer,
                                             opacity: 1,
@@ -54,11 +52,13 @@ mol.modules.map.tiles = function(mol) {
                                         
                                         layer.opacity = 1;
 
-                                        e = new mol.bus.Event('layer-opacity', params);
+                                        e = new mol.bus.Event(
+                                            'layer-opacity', 
+                                            params);
                                         self.bus.fireEvent(e);
                                         //if(maptype.interaction != undefined) {
-                                        //    maptype.interaction.add();
-                                        //    maptype.interaction.clickAction="full"
+                                        //maptype.interaction.add();
+                                        //maptype.interaction.clickAction="full"
                                         //}
                                         return;
                                     }
@@ -68,7 +68,8 @@ mol.modules.map.tiles = function(mol) {
                         } else { // Remove layer from map.
                             self.map.overlayMapTypes.forEach(
                                 function(mt, index) {
-                                    if (mt != undefined && mt.name == layer.id) {
+                                    if (mt != undefined && 
+                                        mt.name == layer.id) {
                                         params = {
                                             layer: layer,
                                             opacity: 0,
@@ -85,7 +86,7 @@ mol.modules.map.tiles = function(mol) {
                                         
                                         if(mt.interaction != undefined) {
                                             mt.interaction.remove();
-                                            mt.interaction.clickAction="";
+                                            mt.interaction.clickAction = "";
                                         }
                                     }
                                 }
@@ -104,30 +105,19 @@ mol.modules.map.tiles = function(mol) {
                         var layer = event.layer,
                             opacity = event.opacity,
                             style_opacity = event.style_opacity;
-
-                        console.log('tiles layer-opacity');
-                        console.log(layer);
-                        console.log(opacity);
-                        console.log(style_opacity);
-                        
-
+                            
                         if (opacity === undefined) {
                             return;
                         }
 
-                        console.log("not undefined");
                         self.map.overlayMapTypes.forEach(
                             function(maptype, index) {
                                 if (maptype.name === layer.id) {
-                                    
-                                    
                                     if(opacity == 1) {
                                         maptype.setOpacity(style_opacity);
                                     } else {
                                         maptype.setOpacity(opacity);
                                     }
-                                    
-                                    
                                 }
                             }
                         );
@@ -143,9 +133,7 @@ mol.modules.map.tiles = function(mol) {
                         var layer = event.layer,
                             style = event.style;
                             sel = event.isSelected;
-                            
-                        console.log("apply-layer-style");    
-                            
+ 
                         self.map.overlayMapTypes.forEach(
                             function(maptype, index) {
                                 //find the overlaymaptype to style
@@ -166,25 +154,30 @@ mol.modules.map.tiles = function(mol) {
                                                 params = {
                                                     layer: layer,
                                                     opacity: layer.opacity,
-                                                    style_opacity: layer.style_opacity
+                                                    style_opacity: 
+                                                        layer.style_opacity
                                                 };
                                                 
-                                            console.log("does apply-layer-style have style_opacity");
-                                            console.log(layer.opacity);
-                                            console.log(layer.style_opacity); 
-                                                
                                             if(newmaptype.name === layer.id) {
-                                                mt = self.map.overlayMapTypes.removeAt(newindex);
-                                                self.map.overlayMapTypes.insertAt(index, mt);
+                                                mt = self.map.overlayMapTypes
+                                                        .removeAt(newindex);
+                                                self.map.overlayMapTypes
+                                                        .insertAt(index, mt);
                                                 
-                                                self.map.overlayMapTypes.forEach(
+                                                self.map.overlayMapTypes
+                                                    .forEach(
                                                     function(mz) { 
                                                         mz.interaction.remove();
-                                                        mz.interaction.clickAction = "";
+                                                        mz.interaction
+                                                            .clickAction = "";
                                                                                                                
-                                                        if(mz.name === layer.id && sel) {
-                                                            mz.interaction.add();
-                                                            mz.interaction.clickAction = "full";
+                                                        if(mz.name === layer.id 
+                                                            && sel) {
+                                                            mz.interaction
+                                                                .add();
+                                                            mz.interaction
+                                                                .clickAction = 
+                                                                    "full";
                                                         }
                                                     }
                                                 );
