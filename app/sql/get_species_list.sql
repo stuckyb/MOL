@@ -39,7 +39,7 @@ $$
       sql = 'SELECT * from data_registry WHERE dataset_id = ''' || $1 || '''';
       FOR data in EXECUTE sql LOOP
          IF data.product_type = 'range' THEN
-		sql = ('SELECT DISTINCT d.' ||  data.scientificname || ' as scientificname, ' ||
+		sql = ('SELECT DISTINCT t.scientificname  as scientificname, ' ||
 		'    CASE e.good WHEN true THEN e.eolthumbnailurl ELSE '''' END as thumbsrc, ' ||
 	        '    CASE e.good WHEN true THEN e.eolmediaurl ELSE '''' END as imgsrc, ' ||
                 '    t.common_names_eng as english, ' ||
@@ -69,7 +69,7 @@ $$
                 '    '''||data.provider|| ''' = pv.provider ' ||		
 		' WHERE ST_DWithin(d.the_geom_webmercator,ST_Transform' ||
                 '    (ST_PointFromText(''POINT(' || $2 ||' ' || $3||')'',4326),3857),' || $4 ||')' ||
-		' ORDER BY s.sequenceid, d.' ||  data.scientificname ||' asc');
+		' ORDER BY s.sequenceid, t.scientificname  asc');
 		RETURN QUERY EXECUTE sql;
         ELSIF data.product_type = 'regionalchecklist' THEN
 		sql = ('SELECT DISTINCT ' ||  data.scientificname || ' as scientificname, ' ||
