@@ -358,13 +358,14 @@ mol.modules.map.tiles = function(mol) {
     mol.map.tiles.CartoDbTile = Class.extend(
         {
             init: function(layer, table, map) {
-                var sql =  "" +
-                    "SELECT * FROM " +
-                    " get_mol_tile_beta('{0}','{1}','{2}','{3}')".format(
+                var sql =  "" + //c is in case cache key starts with a number
+                    "SELECT c{4}.* FROM get_tile('{0}','{1}','{2}','{3}') c{4}"
+                    .format(
                         layer.source, 
                         layer.type, 
                         layer.name, 
-                        layer.dataset_id
+                        layer.dataset_id,
+                        mol.services.cartodb.tileApi.tile_cache_key
                     ),
                     hostname =  mol.services.cartodb.tileApi.host,
                     style_table_name = layer.style_table;
