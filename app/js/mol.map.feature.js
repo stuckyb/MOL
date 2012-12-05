@@ -41,14 +41,7 @@ mol.modules.map.feature = function(mol) {
                         
                     if(!self.clickDisabled && 
                         self.map.overlayMapTypes.length > 0) {
-                        
-                        //latlng
-                        mouseevent.latLng;
-                        
-                        //pixels
-                        tolerance;
-                        
-                        //layer id list
+
                         self.map.overlayMapTypes.forEach(
                             function(mt) {
                                 if(mt.opacity != 0) {
@@ -64,10 +57,21 @@ mol.modules.map.feature = function(mol) {
                                 reqLays.toString()
                         );
                         
-                        console.log(self.map.overlayMapTypes);   
+                        //testing
+                        self.processResults({});
                         
+                        //testng
+                        var results = {
+                                        latlng: mouseevent.latLng,
+                                        response: {}
+                                      };
+                        var e = new mol.bus.Event(
+                                        'feature-results', 
+                                        results
+                                    );    
+                        self.bus.fireEvent(e);
                         
-                        //make request
+                        /*
                         $.getJSON(
                             self.url.format(sql),
                             function(data, textStatus, jqXHR) {
@@ -75,16 +79,19 @@ mol.modules.map.feature = function(mol) {
                                         latlng: mouseevent.latLng,
                                         response: data
                                     },
-                                    e = new mol.bus.Event(
-                                        'feature-results',
+                                    e;
+                                    
+                                //call process results   
+                                self.processResults(data);
+                                 
+                                e = new mol.bus.Event(
+                                        'feature-results', 
                                         results
-                                    );
-                                    
-                                //call process results    
-                                    
+                                    );    
                                 self.bus.fireEvent(e);
                             }
                         );
+                        */
                         
                     }
                 }
@@ -93,25 +100,38 @@ mol.modules.map.feature = function(mol) {
             this.bus.addHandler(
                 'feature-results',
                 function(event) {
-                    self.showFeatures(event.params);
+                    console.log("event results");
+                    console.log(event);
+                    
+                    self.showFeatures(event);
                 }
             );
         },
         
         addFeatureDisplay : function() {
             this.display = new mol.map.FeatureDisplay();
+            
+        },
+        
+        processResults: function() {
+            var self = this;
+            
+            
         },
         
         showFeatures: function(params) {
             var infowindow = new google.maps.InfoWindow();
             infowindow.setPosition(params.latlng);
             
+            //$(document.body).appendChild($('.mol-Map-FeatureDisplay'));
+            this.display.accordion();
+            
             console.log("showFeatures");
             //$('.mol-Map-FeatureDisplay')
+            console.log($(this.display));
             
-            
-            //infowindow.setContent();
-            //infowindow.open(self.map);
+            infowindow.setContent($(this.display)[0]);
+            infowindow.open(self.map);
             
         }
     });
@@ -120,7 +140,13 @@ mol.modules.map.feature = function(mol) {
         init : function(names) {
             var className = 'mol-Map-FeatureDisplay',
                 html = '' +
-                    '<div></div>';
+                    '<div id="accordion">' + 
+                        '<h3><a href="#">First header</a></h3>' +
+                        '<div>First content panel</div>' +
+                        '<h3><a href="#">Second header</a></h3>' +
+                        '<div>Second content panel</div' +
+                    '</div>'+
+                    
 
             this._super(html);
         }
