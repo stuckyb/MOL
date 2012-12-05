@@ -68,7 +68,7 @@ $$
                 ' LEFT JOIN providers pv ON ' ||
                 '    '''||data.provider|| ''' = pv.provider ' ||		
 		' WHERE ST_DWithin(d.the_geom_webmercator,ST_Transform' ||
-                '    (ST_PointFromText(''POINT(' || $2 ||' ' || $3||')'',4326),3857),' || $4 ||')' ||
+                '    (ST_PointFromText(''POINT(' || $2 ||' ' || $3||')'',4326),3857),' || $4 ||'/cos(radians('||$3||')))' ||
 		' ORDER BY s.sequenceid, t.scientificname  asc');
 		RETURN QUERY EXECUTE sql;
         ELSIF data.product_type = 'regionalchecklist' THEN
@@ -103,7 +103,7 @@ $$
                 ' LEFT JOIN providers pv ON ' ||
                 '    ''' || data.provider || ''' = pv.provider ' ||		
 		' WHERE t.class = '''|| $5 ||''' AND ST_DWithin(g.the_geom_webmercator,ST_Transform' ||
-                '    (ST_PointFromText(''POINT(' || $2 ||' ' || $3 || ')'',4326),3857),' || $4 ||')' ||
+                '    (ST_PointFromText(''POINT(' || $2 ||' ' || $3 || ')'',4326),3857),' || $4 ||'/cos(radians('||$3||')))' ||
 		' ORDER BY s.sequenceid, ' ||  data.scientificname ||' asc');
 		RETURN QUERY EXECUTE sql;	
 	ELSE
