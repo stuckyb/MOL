@@ -10,7 +10,8 @@ mol.modules.map.feature = function(mol) {
             //TODO add
             this.url = 'http://mol.cartodb.com/api/v2/sql?callback=?&q={0}';
             //TODO add
-            this.sql = "SELECT * FROM get_features('{0}',{1},'{2}')";
+            this.sql = "SELECT * FROM " + 
+                       "get_map_feature_metadata({0},{1},{2},{3},'{4}')";
             
             this.clickDisabled = false;
         },
@@ -52,26 +53,13 @@ mol.modules.map.feature = function(mol) {
 
                         
                         sql = self.sql.format(
-                                mouseevent.latLng.toString(),
+                                mouseevent.latLng.lng(),
+                                mouseevent.latLng.lat(),
                                 tolerance,
+                                self.map.getZoom(),
                                 reqLays.toString()
                         );
                         
-                        //testing
-                        self.processResults({});
-                        
-                        //testng
-                        var results = {
-                                        latlng: mouseevent.latLng,
-                                        response: {}
-                                      };
-                        var e = new mol.bus.Event(
-                                        'feature-results', 
-                                        results
-                                    );    
-                        self.bus.fireEvent(e);
-                        
-                        /*
                         $.getJSON(
                             self.url.format(sql),
                             function(data, textStatus, jqXHR) {
@@ -81,7 +69,11 @@ mol.modules.map.feature = function(mol) {
                                     },
                                     e;
                                     
+                                console.log("results");
+                                console.log(data);
+                                    
                                 //call process results   
+                                /*
                                 self.processResults(data);
                                  
                                 e = new mol.bus.Event(
@@ -89,10 +81,9 @@ mol.modules.map.feature = function(mol) {
                                         results
                                     );    
                                 self.bus.fireEvent(e);
+                                */
                             }
                         );
-                        */
-                        
                     }
                 }
             );
