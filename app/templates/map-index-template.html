@@ -53,6 +53,7 @@
      <script type="text/javascript" src="../../../js/mol.map.menu.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.loading.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.dashboard.js"></script>
+     <script type="text/javascript" src="../../../js/mol.map.feature.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.query.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.basemap.js"></script>
      <script type="text/javascript" src="../../../js/mol.map.metadata.js"></script>
@@ -117,6 +118,8 @@
                 le.start()
                 de = new env.map.dashboard.DashboardEngine(proxy, bus)
                 de.start()
+                fe = new env.map.feature.FeatureEngine(proxy, bus, me.display.map)
+                fe.start()
                 qe = new env.map.query.QueryEngine(proxy, bus, me.display.map)
                 qe.start()
                 bme = new env.map.basemap.BaseMapEngine(proxy, bus, me.display.map)
@@ -156,6 +159,8 @@
                 le.start()
                 de = new env.map.dashboard.DashboardEngine(proxy, bus);
                  de.start()
+                 fe = new env.map.feature.FeatureEngine(proxy, bus, me.display.map)
+                fe.start()
                 qe = new env.map.query.QueryEngine(proxy, bus, me.display.map);
                 qe.start()
                 bme = new env.map.basemap.BaseMapEngine(proxy, bus, me.display.map)

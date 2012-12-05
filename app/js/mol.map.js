@@ -10,6 +10,7 @@ mol.modules.map = function(mol) {
             'menu',
             'loading',
             'dashboard',
+            'feature',
             'query',
             'basemap',
             'metadata',
