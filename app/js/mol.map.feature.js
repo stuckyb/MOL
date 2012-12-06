@@ -73,15 +73,17 @@ mol.modules.map.feature = function(mol) {
                                 console.log(data);
                                     
                                 //call process results   
-                                /*
-                                self.processResults(data);
+                                
+                                self.processResults(data.rows);
+                                
                                  
                                 e = new mol.bus.Event(
                                         'feature-results', 
                                         results
                                     );    
                                 self.bus.fireEvent(e);
-                                */
+                                
+                                
                             }
                         );
                     }
@@ -91,39 +93,75 @@ mol.modules.map.feature = function(mol) {
             this.bus.addHandler(
                 'feature-results',
                 function(event) {
-                    console.log("event results");
-                    console.log(event);
-                    
                     self.showFeatures(event);
                 }
             );
         },
         
         addFeatureDisplay : function() {
+            
             this.display = new mol.map.FeatureDisplay();
+            
+                        
+            console.log($(this.display));
+            console.log($(this.display)[0]);
             
         },
         
-        processResults: function() {
-            var self = this;
+        processResults: function(rows) {
+            var self = this,
+                content,
+                inside = '',
+                o,
+                vs,
+                i,
+                head,
+                title;
+                
+            //TODO remove everything from $(self.display);   
+
+            _.each(rows, function(row) {
+                console.log("row");
+                
+                o = JSON.parse(row.layer_features);
+                vs = _.values(o)[0][0];
+                
+                head = _.keys(o)[0].split("--");
+                
+                content = '' + 
+                '<h3><a href="#">' + head[1] + " - " + head[3] + '</a></h3>' +
+                '<div>' + inside + '</div>';
+                
+                if(_.isObject(vs)) {
+                    for(i=0;i < _.keys(vs).length; i++) {
+                        inside+=''+
+                            '<p>' + _.keys(vs)[i] + " : " 
+                                    + _.values(vs)[i] + '</p>';
+                    }
+                }
+                
+                console.log("content");
+                console.log(content);
+                
+                $(self.display).append(content);
+                
+                
+            });
             
-            
+            console.log($(self.display));
+            console.log($(self.display)[0]);
         },
         
         showFeatures: function(params) {
+            var self = this;
+            
             var infowindow = new google.maps.InfoWindow();
             infowindow.setPosition(params.latlng);
             
-            //$(document.body).appendChild($('.mol-Map-FeatureDisplay'));
-            this.display.accordion();
-            
-            console.log("showFeatures");
-            //$('.mol-Map-FeatureDisplay')
-            console.log($(this.display));
-            
-            infowindow.setContent($(this.display)[0]);
-            infowindow.open(self.map);
-            
+            $(self.display).accordion();
+                        
+            infowindow.setContent($(self.display)[0]);
+            infowindow.open(self.map);            
         }
     });
     
@@ -131,13 +169,7 @@ mol.modules.map.feature = function(mol) {
         init : function(names) {
             var className = 'mol-Map-FeatureDisplay',
                 html = '' +
-                    '<div id="accordion">' + 
-                        '<h3><a href="#">First header</a></h3>' +
-                        '<div>First content panel</div>' +
-                        '<h3><a href="#">Second header</a></h3>' +
-                        '<div>Second content panel</div' +
-                    '</div>'+
-                    
+                    '<div id="accordion"></div>';
 
             this._super(html);
         }
