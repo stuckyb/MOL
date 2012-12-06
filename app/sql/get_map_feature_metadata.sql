@@ -126,7 +126,10 @@ $$
 		--RETURN json_string;
 		EXECUTE sql;
 	        sql = 'SELECT CONCAT(''{"' || layer_ID || '":['',array_to_string(array_agg(layer_results.feature_metadata),'',''),'']}'') from layer_results';
-		RETURN QUERY EXECUTE sql;
+		SELECT count(*) FROM layer_results INTO results_length;
+		IF results_length > 0 THEN
+			RETURN QUERY EXECUTE sql;
+		END IF;
 		DROP TABLE layer_results;
 	END LOOP;
     END
