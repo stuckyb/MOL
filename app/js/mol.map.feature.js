@@ -50,7 +50,6 @@ mol.modules.map.feature = function(mol) {
                                 }
                             }  
                         );       
-
                         
                         sql = self.sql.format(
                                 mouseevent.latLng.lng(),
@@ -68,22 +67,15 @@ mol.modules.map.feature = function(mol) {
                                         response: data
                                     },
                                     e;
-                                    
-                                console.log("results");
-                                console.log(data);
-                                    
-                                //call process results   
-                                
+
                                 self.processResults(data.rows);
-                                
-                                 
+                                                                 
                                 e = new mol.bus.Event(
                                         'feature-results', 
                                         results
                                     );    
+                                    
                                 self.bus.fireEvent(e);
-                                
-                                
                             }
                         );
                     }
@@ -99,69 +91,76 @@ mol.modules.map.feature = function(mol) {
         },
         
         addFeatureDisplay : function() {
-            
             this.display = new mol.map.FeatureDisplay();
-            
-                        
-            console.log($(this.display));
-            console.log($(this.display)[0]);
-            
         },
         
         processResults: function(rows) {
             var self = this,
-                content,
-                inside = '',
                 o,
                 vs,
-                i,
                 head,
-                title;
-                
-            //TODO remove everything from $(self.display);   
+                content,
+                inside;
+
+            self.display = new mol.map.FeatureDisplay();
 
             _.each(rows, function(row) {
-                console.log("row");
-                
+                var i,
+                    k;
+
                 o = JSON.parse(row.layer_features);
                 vs = _.values(o)[0][0];
                 
                 head = _.keys(o)[0].split("--");
                 
-                content = '' + 
-                '<h3><a href="#">' + head[1] + " - " + head[3] + '</a></h3>' +
-                '<div>' + inside + '</div>';
-                
                 if(_.isObject(vs)) {
+                    content = '' + 
+                        '<h3>' + 
+                        '  <a href="#">' + head[1] + " - " + head[3] + '</a>' + 
+                        '</h3>';
+                    
+                    inside = '';
+                    
                     for(i=0;i < _.keys(vs).length; i++) {
-                        inside+=''+
-                            '<p>' + _.keys(vs)[i] + " : " 
-                                    + _.values(vs)[i] + '</p>';
+                        k = _.keys(vs)[i];
+                        inside+='<p>' + k + " : " + vs[k] + '</p>';          
                     }
+                    
+                    content+='<div>' + inside + '</div>';
+                    
+                    $(self.display).find('#accordion').append(content);
                 }
-                
-                console.log("content");
-                console.log(content);
-                
-                $(self.display).append(content);
-                
-                
             });
-            
-            console.log($(self.display));
-            console.log($(self.display)[0]);
         },
         
         showFeatures: function(params) {
             var self = this;
             
-            var infowindow = new google.maps.InfoWindow();
-            infowindow.setPosition(params.latlng);
+            $(self.display).find('#accordion').accordion({fillSpace: true});
             
-            $(self.display).accordion();
-                        
-            infowindow.setContent($(self.display)[0]);
-            infowindow.open(self.map);            
+            //getter
+            //var autoHeight = $(self.display).find('#accordion').accordion( "option", "autoHeight" );
+            //setter
+            //$(self.display).find('#accordion').accordion( "option", "autoHeight", false );
+            
+            self.display.dialog({
+                autoOpen: true,
+                width: 280,
+                height: 450,
+                dialogClass: 'mol-Map-FeatureDialog',
+                modal: false,
+                title: "temp"
+                /*
+                title: speciestotal + ' species of ' + className +
+                       ' within ' + listradius.radius/1000 + ' km of ' +
+                       Math.abs(Math.round(
+                           listradius.center.lat()*1000)/1000) +
+                           '&deg;&nbsp;' + latHem + '&nbsp;' +
+                       Math.abs(Math.round(
+                           listradius.center.lng()*1000)/1000) +
+                           '&deg;&nbsp;' + lngHem
+                */
+            });            
         }
     });
     
@@ -169,7 +168,10 @@ mol.modules.map.feature = function(mol) {
         init : function(names) {
             var className = 'mol-Map-FeatureDisplay',
                 html = '' +
-                    '<div id="accordion"></div>';
+                    '<div class="' + className + '" style="height: 400px">' +
+                        '<div id="accordion" ></div>' +
+                    '</div>';
+                //in-line div height     
 
             this._super(html);
         }
