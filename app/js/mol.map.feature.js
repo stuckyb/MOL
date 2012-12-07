@@ -99,6 +99,7 @@ mol.modules.map.feature = function(mol) {
                 o,
                 vs,
                 head,
+                sp,
                 content,
                 inside;
 
@@ -112,18 +113,27 @@ mol.modules.map.feature = function(mol) {
                 vs = _.values(o)[0][0];
                 
                 head = _.keys(o)[0].split("--");
+                sp = head[1].replace("_", " ");
+                sp = sp.charAt(0).toUpperCase() + sp.slice(1);
+                
+                console.log("vs");
+                console.log(vs);
+                console.log(vs["Source"]);
                 
                 if(_.isObject(vs)) {
                     content = '' + 
                         '<h3>' + 
-                        '  <a href="#">' + head[1] + " - " + head[3] + '</a>' + 
+                        '  <a href="#">' + sp + " - " + vs["Source"] + '</a>' + 
                         '</h3>';
                     
                     inside = '';
                     
                     for(i=0;i < _.keys(vs).length; i++) {
                         k = _.keys(vs)[i];
-                        inside+='<p>' + k + " : " + vs[k] + '</p>';          
+                        inside+='<div class="itemPair">' + 
+                                '  <div class="featureItem">' + k + ': </div>' + 
+                                '  <div class="featureData">' + vs[k] + '</div>' + 
+                                '</div>';          
                     }
                     
                     content+='<div>' + inside + '</div>';
@@ -135,31 +145,21 @@ mol.modules.map.feature = function(mol) {
         
         showFeatures: function(params) {
             var self = this;
-            
-            $(self.display).find('#accordion').accordion({fillSpace: true});
-            
-            //getter
-            //var autoHeight = $(self.display).find('#accordion').accordion( "option", "autoHeight" );
-            //setter
-            //$(self.display).find('#accordion').accordion( "option", "autoHeight", false );
-            
+
+            $(self.display).find('#accordion').accordion({
+                                                    autoHeight: false, 
+                                                    clearStyle: true});
+                                                    
             self.display.dialog({
                 autoOpen: true,
-                width: 280,
-                height: 450,
+                width: 350,
+                minHeight: 250,
                 dialogClass: 'mol-Map-FeatureDialog',
                 modal: false,
-                title: "temp"
-                /*
-                title: speciestotal + ' species of ' + className +
-                       ' within ' + listradius.radius/1000 + ' km of ' +
-                       Math.abs(Math.round(
-                           listradius.center.lat()*1000)/1000) +
-                           '&deg;&nbsp;' + latHem + '&nbsp;' +
-                       Math.abs(Math.round(
-                           listradius.center.lng()*1000)/1000) +
-                           '&deg;&nbsp;' + lngHem
-                */
+                title: 'At ' +
+                       Math.round(params.latlng.lat()*1000)/1000 +
+                       ', ' +
+                       Math.round(params.latlng.lng()*1000)/1000
             });            
         }
     });
@@ -168,7 +168,7 @@ mol.modules.map.feature = function(mol) {
         init : function(names) {
             var className = 'mol-Map-FeatureDisplay',
                 html = '' +
-                    '<div class="' + className + '" style="height: 400px">' +
+                    '<div class="' + className + '">' +
                         '<div id="accordion" ></div>' +
                     '</div>';
                 //in-line div height     
