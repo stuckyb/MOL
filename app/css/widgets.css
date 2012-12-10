@@ -1510,10 +1510,6 @@ div.mol-Map-FeatureDisplay.ui-dialog-content.ui-widget-content {
     padding: 0.5em 0.5em;
 }
 
-.mol-Map-FeatureDisplay .ui-accordion {
-    height: 100%;
-}
-
 .mol-Map-FeatureDisplay .ui-accordion .ui-accordion-header {
     background: #1D2B52;
     opacity: 0.75;
@@ -1535,6 +1531,8 @@ div.mol-Map-FeatureDisplay.ui-dialog-content.ui-widget-content {
     font-weight: normal;
     font-style: normal;
     padding: 0.4em 0.4em;
+    overflow-y: scroll;
+    max-height: 250px;
 }
 
 .mol-Map-FeatureDisplay .ui-accordion .ui-accordion-content p {

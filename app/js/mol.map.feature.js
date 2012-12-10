@@ -145,54 +145,64 @@ mol.modules.map.feature = function(mol) {
             var self = this,
                 o,
                 vs,
+                all,
                 head,
                 sp,
+                myLength,
                 content,
+                src,
+                entry,
                 inside;
 
             self.display = new mol.map.FeatureDisplay();
 
             _.each(rows, function(row) {
                 var i,
+                    j,
                     k;
-                    
-                console.log("row");
-                console.log(row);    
 
                 o = JSON.parse(row.layer_features);
+                all = _.values(o)[0];
                 
-                console.log(o);
-                vs = _.values(o)[0][0];
-                
-                console.log(vs);
+                src = all[0];
                 
                 head = _.keys(o)[0].split("--");
                 sp = head[1].replace("_", " ");
                 sp = sp.charAt(0).toUpperCase() + sp.slice(1);
                 
-                if(_.isObject(vs)) {
-                    content = '' + 
+                content = '' + 
                         '<h3>' + 
-                        '  <a href="#">' + sp + " - " + vs["Source"] + '</a>' + 
+                        '  <a href="#">' + sp + " - " + src["Source"] + '</a>' + 
                         '</h3>';
-                    
-                    inside = '';
-                    
+                
+                entry = '';
+                
+                //TODO replace with a limit on the query to how many records
+                //are returned
+                myLength = (all.length > 10) ? 10 : all.length;        
+                
+                for(j=0;j<myLength;j++) {
+                    vs = all[j];
+                    inside = ''; 
+                      
                     for(i=0;i < _.keys(vs).length; i++) {
                         k = _.keys(vs)[i];
-                        
-                        
-                        
                         inside+='<div class="itemPair">' + 
                                 '  <div class="featureItem">' + k + ': </div>' + 
                                 '  <div class="featureData">' + vs[k] + '</div>' + 
                                 '</div>';          
                     }
-                    
-                    content+='<div>' + inside + '</div>';
-                    
-                    $(self.display).find('#accordion').append(content);
+                     
+                    if(j!=0) {
+                        entry+="<div>&nbsp</div>";  
+                    } 
+                     
+                    entry+=inside;  
                 }
+                
+                content+='<div>' + entry + '</div>';
+                
+                $(self.display).find('#accordion').append(content);
             });
         },
         
