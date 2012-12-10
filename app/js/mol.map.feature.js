@@ -14,10 +14,11 @@ mol.modules.map.feature = function(mol) {
                        "get_map_feature_metadata({0},{1},{2},{3},'{4}')";
             
             this.clickDisabled = false;
+            this.makingRequest = false;
+            this.mapMarker;
         },
 
         start : function() {
-            this.addFeatureDisplay();
             this.addEventHandlers();
         },
         
@@ -38,46 +39,96 @@ mol.modules.map.feature = function(mol) {
                 function (mouseevent) {
                     var reqLays = [],
                         tolerance = 5,
-                        sql;
+                        sql,
+                        sym;
                         
                     if(!self.clickDisabled && 
                         self.map.overlayMapTypes.length > 0) {
-
-                        self.map.overlayMapTypes.forEach(
-                            function(mt) {
-                                if(mt.opacity != 0) {
-                                    reqLays.push(mt.name);
+                          
+                        if(self.makingRequest) {
+                            alert('Please wait for your feature metadata ' + 
+                              'request to complete before starting another.');
+                        } else {
+                            self.makingRequest = true;
+                          
+                            if(self.display) {
+                                if(self.display.dialog("isOpen")) {
+                                    self.display.dialog("close");
                                 }
-                            }  
-                        );       
-                        
-                        sql = self.sql.format(
-                                mouseevent.latLng.lng(),
-                                mouseevent.latLng.lat(),
-                                tolerance,
-                                self.map.getZoom(),
-                                reqLays.toString()
-                        );
-                        
-                        $.getJSON(
-                            self.url.format(sql),
-                            function(data, textStatus, jqXHR) {
-                                var results = {
-                                        latlng: mouseevent.latLng,
-                                        response: data
-                                    },
-                                    e;
-
-                                self.processResults(data.rows);
-                                                                 
-                                e = new mol.bus.Event(
-                                        'feature-results', 
-                                        results
-                                    );    
-                                    
-                                self.bus.fireEvent(e);
                             }
-                        );
+    
+                            self.map.overlayMapTypes.forEach(
+                                function(mt) {
+                                    if(mt.opacity != 0) {
+                                        reqLays.push(mt.name);
+                                    }
+                                }  
+                            );       
+                            
+                            sql = self.sql.format(
+                                    mouseevent.latLng.lng(),
+                                    mouseevent.latLng.lat(),
+                                    tolerance,
+                                    self.map.getZoom(),
+                                    reqLays.toString()
+                            );
+                            
+                            self.bus.fireEvent(new mol.bus.Event(
+                                'show-loading-indicator',
+                                {source : 'feature'}));
+                                
+                            sym = {
+                                    path: google.maps.SymbolPath.CIRCLE,
+                                    scale: 6,
+                                    strokeColor: 'black',
+                                    strokeWeight: 3,
+                                    fillColor: 'yellow',
+                                    fillOpacity: 1,
+                                  };    
+                                
+                            self.mapMarker = new google.maps.Marker(
+                                {
+                                    map: self.map,
+                                    icon: sym,
+                                    position: mouseevent.latLng,
+                                    clickable: false
+                                }
+                            );    
+                            
+                            $.getJSON(
+                                self.url.format(sql),
+                                function(data, textStatus, jqXHR) {
+                                    var results = {
+                                            latlng: mouseevent.latLng,
+                                            response: data
+                                        },
+                                        e;
+                                        
+                                    console.log("results");
+                                    console.log(data);    
+                                        
+                                    if(!data.error) {
+                                        self.processResults(data.rows);
+                                                                     
+                                        e = new mol.bus.Event(
+                                                'feature-results', 
+                                                results
+                                            );    
+                                            
+                                        self.bus.fireEvent(e);
+                                    } else {
+                                        self.mapMarker.setMap(null);
+                                    }   
+                                        
+                                    self.makingRequest = false;    
+                                    
+                                    self.bus.fireEvent(
+                                        new mol.bus.Event(
+                                          'hide-loading-indicator',
+                                          {source : 'feature'})); 
+                                }
+                            );
+                        }  
                     }
                 }
             );
@@ -88,10 +139,6 @@ mol.modules.map.feature = function(mol) {
                     self.showFeatures(event);
                 }
             );
-        },
-        
-        addFeatureDisplay : function() {
-            this.display = new mol.map.FeatureDisplay();
         },
         
         processResults: function(rows) {
@@ -108,17 +155,20 @@ mol.modules.map.feature = function(mol) {
             _.each(rows, function(row) {
                 var i,
                     k;
+                    
+                console.log("row");
+                console.log(row);    
 
                 o = JSON.parse(row.layer_features);
+                
+                console.log(o);
                 vs = _.values(o)[0][0];
+                
+                console.log(vs);
                 
                 head = _.keys(o)[0].split("--");
                 sp = head[1].replace("_", " ");
                 sp = sp.charAt(0).toUpperCase() + sp.slice(1);
-                
-                console.log("vs");
-                console.log(vs);
-                console.log(vs["Source"]);
                 
                 if(_.isObject(vs)) {
                     content = '' + 
@@ -130,6 +180,9 @@ mol.modules.map.feature = function(mol) {
                     
                     for(i=0;i < _.keys(vs).length; i++) {
                         k = _.keys(vs)[i];
+                        
+                        
+                        
                         inside+='<div class="itemPair">' + 
                                 '  <div class="featureItem">' + k + ': </div>' + 
                                 '  <div class="featureData">' + vs[k] + '</div>' + 
@@ -149,7 +202,7 @@ mol.modules.map.feature = function(mol) {
             $(self.display).find('#accordion').accordion({
                                                     autoHeight: false, 
                                                     clearStyle: true});
-                                                    
+                 
             self.display.dialog({
                 autoOpen: true,
                 width: 350,
@@ -159,7 +212,10 @@ mol.modules.map.feature = function(mol) {
                 title: 'At ' +
                        Math.round(params.latlng.lat()*1000)/1000 +
                        ', ' +
-                       Math.round(params.latlng.lng()*1000)/1000
+                       Math.round(params.latlng.lng()*1000)/1000,
+                beforeClose: function(evt, ui) {
+                    self.mapMarker.setMap(null);
+                }
             });            
         }
     });
