@@ -64,7 +64,7 @@ mol.modules.map.feature = function(mol) {
                 self.map,
                 "click",
                 function (mouseevent) {
-                    var tolerance = 5,
+                    var tolerance = 2,
                         sql,
                         sym;
                         
@@ -159,11 +159,11 @@ mol.modules.map.feature = function(mol) {
                 o,
                 vs,
                 all,
+                allobj,
                 head,
                 sp,
                 myLength,
                 content,
-                src,
                 entry,
                 inside;
 
@@ -175,8 +175,9 @@ mol.modules.map.feature = function(mol) {
                     k;
                     
                 o = JSON.parse(row.layer_features);
-                all = _.values(o)[0];                
-                src = all[0];
+                all = _.values(o)[0];
+                allobj = all[0];
+                                
                 
                 head = _.keys(o)[0].split("--");
                 sp = head[1].replace("_", " ");
@@ -184,7 +185,21 @@ mol.modules.map.feature = function(mol) {
                 
                 content = '' + 
                         '<h3>' + 
-                        '  <a href="#">' + sp + " - " + src["Source"] + '</a>' + 
+                        '  <a href="#">' + 
+                             sp +
+                        '    <button ' + 
+                                'class="source" ' + 
+                                'title="Layer Source: ' 
+                                + allobj["Source"] + '">' +
+                        '      <img src="/static/maps/search/' + head[3] + '.png">' +
+                        '    </button>' +
+                        '    <button ' + 
+                                'class="type" ' + 
+                                'title="Layer Type: ' 
+                                + allobj["Type"] + '">' + 
+                        '      <img src="/static/maps/search/' + head[2] + '.png">' +  
+                        '    </button>' + 
+                        '  </a>' + 
                         '</h3>';
 
                 //TODO try a stage content display
@@ -224,6 +239,38 @@ mol.modules.map.feature = function(mol) {
                 content+='<div>' + entry + '</div>';
                 
                 $(self.display).find('#accordion').append(content);
+                
+                $(self.display).find('.source').click(
+                    function(event) {
+                          self.bus.fireEvent(
+                              new mol.bus.Event(
+                                  'metadata-toggle',
+                                  {params : {
+                                      dataset_id: head[4],
+                                      title: allobj["Source"]
+                                  }}
+                              )
+                          );
+                          event.stopPropagation();
+                          event.cancelBubble = true;
+                      }
+                );
+                
+                $(self.display).find('.type').click(
+                    function(event) {
+                          self.bus.fireEvent(
+                              new mol.bus.Event(
+                                  'metadata-toggle',
+                                  {params : {
+                                      type: head[2],
+                                      title: allobj["Type"]
+                                  }}
+                              )
+                          );
+                          event.stopPropagation();
+                          event.cancelBubble = true;
+                      }
+                );
             });
         },
         

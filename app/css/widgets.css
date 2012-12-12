@@ -1511,8 +1511,7 @@ div.mol-Map-FeatureDisplay.ui-dialog-content.ui-widget-content {
 }
 
 .mol-Map-FeatureDisplay .ui-accordion .ui-accordion-header {
-    background: #1D2B52;
-    opacity: 0.75;
+    background: rgba(29, 43, 82, 0.75);
 }
 
 .mol-Map-FeatureDisplay .ui-accordion .ui-accordion-header .ui-icon{
@@ -1562,6 +1561,16 @@ div.mol-Map-FeatureDisplay.ui-dialog-content.ui-widget-content {
     line-height: 0;
 }
 
-.mol-Map-FeatureDisplay .ui-accordion .ui-accordion-content div div a{
-    color: #0000FF;
+.mol-Map-FeatureDisplay .ui-accordion-header button {
+    text-align: center;
+    width: 18px;
+    height: 18px;
+    padding: 0px;
+    padding-top: 1px;
 }
+
+.mol-Map-FeatureDisplay .ui-accordion-header a img{
+    width: 16px;
+    height: 16px;
+}
+
