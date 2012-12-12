@@ -228,12 +228,14 @@ mol.modules.map.feature = function(mol) {
         },
         
         showFeatures: function(params) {
-            var self = this;
+            var self = this,
+                latHem = (params.latlng.lat() > 0) ? 'N' : 'S',
+                lngHem = (params.latlng.lng() > 0) ? 'E' : 'W';
 
             $(self.display)
                 .find('#accordion')
                     .accordion({autoHeight: false, 
-                                clearStyle: true});
+                                clearStyle: true});                 
                  
             self.display.dialog({
                 autoOpen: true,
@@ -241,10 +243,13 @@ mol.modules.map.feature = function(mol) {
                 minHeight: 250,
                 dialogClass: 'mol-Map-FeatureDialog',
                 modal: false,
-                title: 'At ' +
-                       Math.round(params.latlng.lat()*1000)/1000 +
-                       ', ' +
-                       Math.round(params.latlng.lng()*1000)/1000,
+                title: 'Near ' +
+                       Math.abs(Math.round(
+                           params.latlng.lat()*1000)/1000) +
+                           '&deg;&nbsp;' + latHem + '&nbsp;' +
+                       Math.abs(Math.round(
+                           params.latlng.lng()*1000)/1000) +
+                           '&deg;&nbsp;' + lngHem,
                 beforeClose: function(evt, ui) {
                     self.mapMarker.setMap(null);
                 }
