@@ -100,16 +100,7 @@ mol.modules.map.feature = function(mol) {
                                     strokeWeight: 3,
                                     fillColor: 'yellow',
                                     fillOpacity: 1,
-                                  };    
-                                
-                            self.mapMarker = new google.maps.Marker(
-                                {
-                                    map: self.map,
-                                    icon: sym,
-                                    position: mouseevent.latLng,
-                                    clickable: false
-                                }
-                            );    
+                                  };     
                             
                             $.getJSON(
                                 self.url.format(sql),
@@ -118,9 +109,18 @@ mol.modules.map.feature = function(mol) {
                                             latlng: mouseevent.latLng,
                                             response: data
                                         },
-                                        e;   
+                                        e;
                                         
-                                    if(!data.error) {
+                                    if(!data.error && data.rows.length != 0) {
+                                        self.mapMarker = new google.maps.Marker(
+                                            {
+                                                map: self.map,
+                                                icon: sym,
+                                                position: mouseevent.latLng,
+                                                clickable: false
+                                            }
+                                        );
+                                        
                                         self.processResults(data.rows);
                                                                      
                                         e = new mol.bus.Event(
@@ -129,9 +129,7 @@ mol.modules.map.feature = function(mol) {
                                             );    
                                             
                                         self.bus.fireEvent(e);
-                                    } else {
-                                        self.mapMarker.setMap(null);
-                                    }   
+                                    }  
                                         
                                     self.makingRequest = false;    
                                     
