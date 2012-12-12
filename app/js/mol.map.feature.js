@@ -16,6 +16,7 @@ mol.modules.map.feature = function(mol) {
             this.clickDisabled = false;
             this.makingRequest = false;
             this.mapMarker;
+            this.activeLayers = [];
         },
 
         start : function() {
@@ -31,20 +32,43 @@ mol.modules.map.feature = function(mol) {
                     self.clickDisabled = event.disable;
                 }
             );
+            
+            this.bus.addHandler(
+                'add-layers',
+                function(event) {
+                    var newLays = _.map(event.layers, 
+                                        function(l) { return l.id });
+                    
+                    self.activeLayers = _.compact(
+                                            _.union(
+                                                newLays, 
+                                                self.activeLayers));     
+                }
+            );
+            
+            this.bus.addHandler(
+                'remove-layers',
+                function(event) {
+                    var oldLays = _.map(event.layers, 
+                                        function(l) { return l.id });
+                    
+                    self.activeLayers = _.compact(
+                                            _.without(
+                                                self.activeLayers, 
+                                                oldLays));                 
+                }
+            );
                 
             //may want to wait to add this until ready
             google.maps.event.addListener(
                 self.map,
                 "click",
                 function (mouseevent) {
-                    var reqLays = [],
-                        tolerance = 5,
+                    var tolerance = 5,
                         sql,
                         sym;
                         
-                    if(!self.clickDisabled && 
-                        self.map.overlayMapTypes.length > 0) {
-                          
+                    if(!self.clickDisabled && self.activeLayers.length > 0) {
                         if(self.makingRequest) {
                             alert('Please wait for your feature metadata ' + 
                               'request to complete before starting another.');
@@ -55,22 +79,14 @@ mol.modules.map.feature = function(mol) {
                                 if(self.display.dialog("isOpen")) {
                                     self.display.dialog("close");
                                 }
-                            }
-    
-                            self.map.overlayMapTypes.forEach(
-                                function(mt) {
-                                    if(mt.opacity != 0) {
-                                        reqLays.push(mt.name);
-                                    }
-                                }  
-                            );       
+                            }    
                             
                             sql = self.sql.format(
                                     mouseevent.latLng.lng(),
                                     mouseevent.latLng.lat(),
                                     tolerance,
                                     self.map.getZoom(),
-                                    reqLays.toString()
+                                    self.activeLayers.toString()
                             );
                             
                             self.bus.fireEvent(new mol.bus.Event(
@@ -102,10 +118,7 @@ mol.modules.map.feature = function(mol) {
                                             latlng: mouseevent.latLng,
                                             response: data
                                         },
-                                        e;
-                                        
-                                    console.log("results");
-                                    console.log(data);    
+                                        e;   
                                         
                                     if(!data.error) {
                                         self.processResults(data.rows);
@@ -160,10 +173,9 @@ mol.modules.map.feature = function(mol) {
                 var i,
                     j,
                     k;
-
+                    
                 o = JSON.parse(row.layer_features);
-                all = _.values(o)[0];
-                
+                all = _.values(o)[0];                
                 src = all[0];
                 
                 head = _.keys(o)[0].split("--");
@@ -174,12 +186,21 @@ mol.modules.map.feature = function(mol) {
                         '<h3>' + 
                         '  <a href="#">' + sp + " - " + src["Source"] + '</a>' + 
                         '</h3>';
+
+                //TODO try a stage content display
+                myLength = (all.length > 100) ? 100 : all.length; 
                 
-                entry = '';
+                if(myLength == 1) {
+                    entry = '<div>' + all.length + " record found.";
+                } else {
+                    entry = '<div>' + all.length + " records found.";
+                }
                 
-                //TODO replace with a limit on the query to how many records
-                //are returned
-                myLength = (all.length > 10) ? 10 : all.length;        
+                if(all.length > 100) {
+                    entry+=' Displaying first 100 records. Please zoom in before querying again to reduce the number of records found.</div>';  
+                } else {
+                    entry+='</div>';
+                }    
                 
                 for(j=0;j<myLength;j++) {
                     vs = all[j];
@@ -195,11 +216,11 @@ mol.modules.map.feature = function(mol) {
                      
                     if(j!=0) {
                         entry+="<div>&nbsp</div>";  
-                    } 
+                    }
                      
                     entry+=inside;  
                 }
-                
+
                 content+='<div>' + entry + '</div>';
                 
                 $(self.display).find('#accordion').append(content);
@@ -209,9 +230,10 @@ mol.modules.map.feature = function(mol) {
         showFeatures: function(params) {
             var self = this;
 
-            $(self.display).find('#accordion').accordion({
-                                                    autoHeight: false, 
-                                                    clearStyle: true});
+            $(self.display)
+                .find('#accordion')
+                    .accordion({autoHeight: false, 
+                                clearStyle: true});
                  
             self.display.dialog({
                 autoOpen: true,
