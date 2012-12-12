@@ -280,7 +280,7 @@ mol.modules.map = function(mol) {
                         }, {
                             "featureType" : "administrative.locality",
                             "stylers" : [{
-                                "visibility" : "off"
+                                "visibility" : "on"
                             }]
                         }, {
                             "featureType" : "road",
