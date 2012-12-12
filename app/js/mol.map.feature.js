@@ -37,12 +37,15 @@ mol.modules.map.feature = function(mol) {
                 'add-layers',
                 function(event) {
                     var newLays = _.map(event.layers, 
-                                        function(l) { return l.id });
+                                        function(l) { 
+                                          var o = {id:l.id, op:l.opacity};
+                                          
+                                          return o });
                     
                     self.activeLayers = _.compact(
                                             _.union(
                                                 newLays, 
-                                                self.activeLayers));     
+                                                self.activeLayers));                              
                 }
             );
             
@@ -50,12 +53,29 @@ mol.modules.map.feature = function(mol) {
                 'remove-layers',
                 function(event) {
                     var oldLays = _.map(event.layers, 
-                                        function(l) { return l.id });
-                    
-                    self.activeLayers = _.compact(
-                                            _.without(
+                                        function(l) { 
+                                            var o = {id:l.id, op:l.opacity};
+                                            return o;
+                                        });                       
+                                                
+                    _.each(oldLays, function(e) {
+                        self.activeLayers = _.reject(
                                                 self.activeLayers, 
-                                                oldLays));                 
+                                                function(ol) {
+                                                    return ol.id == e.id;
+                                                });
+                    });                                                                      
+                }
+            );
+            
+            this.bus.addHandler(
+                'layer-toggle',
+                function(event) {
+                    _.each(self.activeLayers, function(al) {
+                        if(al.id == event.layer.id) {
+                            al.op = event.showing ? 1 : 0;
+                        }  
+                    });             
                 }
             );
                 
@@ -65,6 +85,7 @@ mol.modules.map.feature = function(mol) {
                 "click",
                 function (mouseevent) {
                     var tolerance = 2,
+                        sqlLayers,
                         sql,
                         sym;
                         
@@ -79,14 +100,20 @@ mol.modules.map.feature = function(mol) {
                                 if(self.display.dialog("isOpen")) {
                                     self.display.dialog("close");
                                 }
-                            }    
+                            }   
+                            
+                            sqlLayers =  _.pluck(_.reject(
+                                            self.activeLayers, 
+                                            function(al) {
+                                                return al.op == 0;
+                                            }), 'id');         
                             
                             sql = self.sql.format(
                                     mouseevent.latLng.lng(),
                                     mouseevent.latLng.lat(),
                                     tolerance,
                                     self.map.getZoom(),
-                                    self.activeLayers.toString()
+                                    sqlLayers.toString()
                             );
                             
                             self.bus.fireEvent(new mol.bus.Event(
