@@ -359,39 +359,6 @@ mol.modules.map.layers = function(mol) {
                     
                     self.clickDisabled = event.disable;
                     
-                    //true to disable
-                    if(event.disable) {
-                        self.map.overlayMapTypes.forEach(
-                          function(mt) {
-                              mt.interaction.remove();
-                              mt.interaction.clickAction = "";
-                           }
-                        );
-                    } else {
-                        _.any($(self.display.list).children(),
-                            function(layer) {
-                                if($(layer).find('.layer')
-                                        .hasClass('selected')) {    
-                                    self.map.overlayMapTypes.forEach(
-                                        function(mt) {
-                                            if(mt.name == $(layer).attr('id')) {      
-                                                mt.interaction.add();
-                                                mt.interaction.clickAction
-                                                    = "full";
-                                            } else {
-                                                mt.interaction.remove();
-                                                mt.interaction.clickAction 
-                                                    = "";
-                                            }
-
-                                        }
-                                    );
-                                    
-                                    return true;     
-                                }
-                            }
-                        );
-                    }
                 }
             );
         },
@@ -456,13 +423,7 @@ mol.modules.map.layers = function(mol) {
                         new mol.bus.Event('show-layer-display-toggle')
                     );
 
-                    //disable interactivity to start
-                    self.map.overlayMapTypes.forEach(
-                        function(mt) {
-                            mt.interaction.remove();
-                            mt.interaction.clickAction = "";
-                        }
-                    );
+                    
                     
                     //Hack so that at the end 
                     //we can fire opacity event with all layers
@@ -598,23 +559,6 @@ mol.modules.map.layers = function(mol) {
                                 isSelected = true;
                             }
                             
-                            self.map.overlayMapTypes.forEach(
-                                function(mt) {
-                                    if(mt.name == layer.id && 
-                                       $(l.layer).hasClass('selected')) {
-                                        if(!self.clickDisabled) {
-                                           mt.interaction.add();
-                                           mt.interaction.clickAction = "full";
-                                        } else {
-                                           mt.interaction.remove();
-                                           mt.interaction.clickAction = "";
-                                        }
-                                    } else {
-                                        mt.interaction.remove();
-                                        mt.interaction.clickAction = "";
-                                    }
-                                }
-                            )
                             
                             if(self.clickDisabled) {
                                 isSelected = false;
@@ -700,23 +644,7 @@ mol.modules.map.layers = function(mol) {
                 this.display.list.find('.layer')
                     [this.display.list.find('.layer').length-1].click();
             } else if(sortedLayers.length > 1) {
-                //if multiple layers are being added
-                //layer clickability returned to the
-                //previously selected layer
                 
-                if(wasSelected.length > 0) {
-                    this.map.overlayMapTypes.forEach(
-                        function(mt) {
-                            if(mt.name == wasSelected.parent().attr("id")) {
-                                mt.interaction.add();
-                                mt.interaction.clickAction = "full";
-                            } else {
-                                mt.interaction.remove();
-                                mt.interaction.clickAction = "";
-                            }
-                        }
-                    );
-                }
                 
             }
             

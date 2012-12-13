@@ -16,6 +16,7 @@ mol.modules.services.cartodb = function(mol) {
             init: function() {          
                 this.host = '' +
                     'd3dvrpov25vfw0.cloudfront.net';
+                
                 //cache key is mmddyyyyhhmm of cache start
                 this.tile_cache_key = '121220121553';
             }
