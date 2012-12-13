@@ -408,7 +408,18 @@ mol.modules.map.tiles = function(mol) {
                         if (pendingurls.length === 0) {
                             self.onafterload();
                         }
+                    }).one("error", function() {
+            
+                        // Remove the image from our list of pending urls
+                        var index = $.inArray(this.__src__, pendingurls);
+                        pendingurls.splice(index, 1);
+                        // If the pending url list is empty, emit an event to 
+                        // indicate that the tiles are finished loading
+                        if (pendingurls.length === 0) {
+                            self.onafterload();
+                        }
                     });
+                    
                     return node;
                 };
                 this.layer.layer = layer;

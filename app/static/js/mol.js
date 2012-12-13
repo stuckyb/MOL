@@ -302,6 +302,7 @@ mol.modules.services.cartodb = function(mol) {
             init: function() {          
                 this.host = '' +
                     'd3dvrpov25vfw0.cloudfront.net';
+                
                 //cache key is mmddyyyyhhmm of cache start
                 this.tile_cache_key = '121220121553';
             }
@@ -506,21 +507,11 @@ mol.modules.map = function(mol) {
                            self.bus.fireEvent(new mol.bus.Event('show-loading-indicator',{source : "map"}));
                         }
                 );
-                /*
-                 *  Turn off the loading indicator display if there are no overlays, otherwise tie handlers to map tile img elements.
-                 */
+                
                 this.bus.addHandler(
                         'map-idle',
                         function() {
                             self.bus.fireEvent(new mol.bus.Event('hide-loading-indicator',{source : "map"}));
-                            if (self.display.map.overlayMapTypes.length > 0) {
-                                //self.bus.fireEvent(new mol.bus.Event('show-loading-indicator',{source : "overlays"}));
-                                /*$("img",self.display.map.overlayMapTypes).imagesLoaded (
-                                    function(images, proper, broken) {
-                                        self.bus.fireEvent( new mol.bus.Event('hide-loading-indicator',{source : "overlays"}));
-                                    }
-                                 );*/
-                            }
                         }
                 );
 
@@ -1150,39 +1141,6 @@ mol.modules.map.layers = function(mol) {
                     
                     self.clickDisabled = event.disable;
                     
-                    //true to disable
-                    if(event.disable) {
-                        self.map.overlayMapTypes.forEach(
-                          function(mt) {
-                              mt.interaction.remove();
-                              mt.interaction.clickAction = "";
-                           }
-                        );
-                    } else {
-                        _.any($(self.display.list).children(),
-                            function(layer) {
-                                if($(layer).find('.layer')
-                                        .hasClass('selected')) {    
-                                    self.map.overlayMapTypes.forEach(
-                                        function(mt) {
-                                            if(mt.name == $(layer).attr('id')) {      
-                                                mt.interaction.add();
-                                                mt.interaction.clickAction
-                                                    = "full";
-                                            } else {
-                                                mt.interaction.remove();
-                                                mt.interaction.clickAction 
-                                                    = "";
-                                            }
-
-                                        }
-                                    );
-                                    
-                                    return true;     
-                                }
-                            }
-                        );
-                    }
                 }
             );
         },
@@ -1247,13 +1205,7 @@ mol.modules.map.layers = function(mol) {
                         new mol.bus.Event('show-layer-display-toggle')
                     );
 
-                    //disable interactivity to start
-                    self.map.overlayMapTypes.forEach(
-                        function(mt) {
-                            mt.interaction.remove();
-                            mt.interaction.clickAction = "";
-                        }
-                    );
+                    
                     
                     //Hack so that at the end 
                     //we can fire opacity event with all layers
@@ -1389,23 +1341,6 @@ mol.modules.map.layers = function(mol) {
                                 isSelected = true;
                             }
                             
-                            self.map.overlayMapTypes.forEach(
-                                function(mt) {
-                                    if(mt.name == layer.id && 
-                                       $(l.layer).hasClass('selected')) {
-                                        if(!self.clickDisabled) {
-                                           mt.interaction.add();
-                                           mt.interaction.clickAction = "full";
-                                        } else {
-                                           mt.interaction.remove();
-                                           mt.interaction.clickAction = "";
-                                        }
-                                    } else {
-                                        mt.interaction.remove();
-                                        mt.interaction.clickAction = "";
-                                    }
-                                }
-                            )
                             
                             if(self.clickDisabled) {
                                 isSelected = false;
@@ -1491,23 +1426,6 @@ mol.modules.map.layers = function(mol) {
                 this.display.list.find('.layer')
                     [this.display.list.find('.layer').length-1].click();
             } else if(sortedLayers.length > 1) {
-                //if multiple layers are being added
-                //layer clickability returned to the
-                //previously selected layer
-                
-                if(wasSelected.length > 0) {
-                    this.map.overlayMapTypes.forEach(
-                        function(mt) {
-                            if(mt.name == wasSelected.parent().attr("id")) {
-                                mt.interaction.add();
-                                mt.interaction.clickAction = "full";
-                            } else {
-                                mt.interaction.remove();
-                                mt.interaction.clickAction = "";
-                            }
-                        }
-                    );
-                }
                 
             }
             
@@ -3991,13 +3909,21 @@ mol.modules.map.tiles = function(mol) {
             this.proxy = proxy;
             this.bus = bus;
             this.map = map;
+            this.clickAction = 'info';
             this.gmap_events = [];
             this.addEventHandlers();
         },
 
         addEventHandlers: function() {
             var self = this;
-
+            this.bus.addHandler(
+                'layer-click-toggle',
+                function(event) {
+                    if(event.disable) {
+                        self.clickAction = 'list';
+                    }
+                }
+            );
             /**
              * Handler for when the layer-toggle event is fired. This renders
              * the layer on the map if visible, and removes it if not visible.
@@ -4029,10 +3955,6 @@ mol.modules.map.tiles = function(mol) {
                                             'layer-opacity', 
                                             params);
                                         self.bus.fireEvent(e);
-                                        //if(maptype.interaction != undefined) {
-                                        //maptype.interaction.add();
-                                        //maptype.interaction.clickAction="full"
-                                        //}
                                         return;
                                     }
                                 }
@@ -4056,11 +3978,6 @@ mol.modules.map.tiles = function(mol) {
                                             params
                                         );
                                         self.bus.fireEvent(e);
-                                        
-                                        if(mt.interaction != undefined) {
-                                            mt.interaction.remove();
-                                            mt.interaction.clickAction = "";
-                                        }
                                     }
                                 }
                             );
@@ -4112,8 +4029,6 @@ mol.modules.map.tiles = function(mol) {
                                 //find the overlaymaptype to style
                                 if (maptype.name === layer.id) {
                                     //remove it from the map
-                                    maptype.interaction.remove();
-                                    maptype.interaction.clickAction = "";
                                     self.map.overlayMapTypes.removeAt(index);
                                     //add the style
                                     layer.tile_style = style;
@@ -4136,24 +4051,6 @@ mol.modules.map.tiles = function(mol) {
                                                         .removeAt(newindex);
                                                 self.map.overlayMapTypes
                                                         .insertAt(index, mt);
-                                                
-                                                self.map.overlayMapTypes
-                                                    .forEach(
-                                                    function(mz) { 
-                                                        mz.interaction.remove();
-                                                        mz.interaction
-                                                            .clickAction = "";
-                                                                                                               
-                                                        if(mz.name === layer.id 
-                                                            && sel) {
-                                                            mz.interaction
-                                                                .add();
-                                                            mz.interaction
-                                                                .clickAction = 
-                                                                    "full";
-                                                        }
-                                                    }
-                                                );
                                                 
                                                 e = new mol.bus.Event(
                                                     'layer-opacity', 
@@ -4203,9 +4100,6 @@ mol.modules.map.tiles = function(mol) {
                                 mapTypes.forEach(
                                     function(mt, index) { 
                                         if (mt != undefined && mt.name === lid) {
-                                            if(mt.interaction != undefined) {
-                                                mt.interaction.remove();
-                                            }
                                             mapTypes.removeAt(index);
                                         }
                                     }
@@ -4298,39 +4192,36 @@ mol.modules.map.tiles = function(mol) {
              * tile.
              */
             getTile: function(layer) {
-                var name = layer.name,
-                    type = layer.type,
-                    self = this,
+                var self = this,
                     maptype = new mol.map.tiles.CartoDbTile(
                                 layer, 
-                                layer.style_table, 
                                 this.map
                             );
-
-                maptype.layer.params.layer.onbeforeload = function (){
-                    self.bus.fireEvent(
-                        new mol.bus.Event(
-                            "show-loading-indicator",
-                            {source : layer.id}
+                    maptype.onbeforeload = function (){
+                        self.bus.fireEvent(
+                            new mol.bus.Event(
+                                "show-loading-indicator",
+                                {source : layer.id}
+                            )
                         )
-                    )
-                };
-                
-                maptype.layer.params.layer.onafterload = function (){
-                    self.bus.fireEvent(
-                        new mol.bus.Event(
-                            "hide-loading-indicator",
-                            {source : layer.id}
+                    };
+                    
+                    maptype.onafterload = function (){
+                        self.bus.fireEvent(
+                            new mol.bus.Event(
+                                "hide-loading-indicator",
+                                {source : layer.id}
+                            )
                         )
-                    )
-                };
+                    };
+                    this.map.overlayMapTypes.insertAt(0,maptype.layer);
             }
         }
      );
 
     mol.map.tiles.CartoDbTile = Class.extend(
         {
-            init: function(layer, table, map) {
+            init: function(layer, map) {
                 var sql =  "" + //c is in case cache key starts with a number
                     "SELECT c{4}.* FROM get_tile('{0}','{1}','{2}','{3}') c{4}"
                     .format(
@@ -4340,14 +4231,14 @@ mol.modules.map.tiles = function(mol) {
                         layer.dataset_id,
                         mol.services.cartodb.tileApi.tile_cache_key
                     ),
-                    hostname =  mol.services.cartodb.tileApi.host,
-                    style_table_name = layer.style_table;
-                    info_query = sql; 
-                    meta_query = "" +
-                        "SELECT * FROM get_feature_metadata(TEXT('{0}'))",
-                    infowindow = true,
-                    hostname = (hostname === 'localhost') ? 
-                       '{0}:8080'.format(hostname) : hostname;
+                    urlPattern = '' +
+                    'http://{HOST}/tiles/{STYLE_TABLE}/{Z}/{X}/{Y}.png?'+ 
+                    'sql={SQL}'+
+                    '&style={TILE_STYLE}',
+                    style_table_name = layer.style_table,
+                    pendingurls = [],
+                    options,
+                    self = this;
                 
                 if(layer.tile_style == undefined) {
                     layer.tile_style = "#" + layer.dataset_id + layer.css;
@@ -4359,23 +4250,71 @@ mol.modules.map.tiles = function(mol) {
                     layer.opacity = 1;
                 }
 
-                this.layer = new google.maps.CartoDBLayer({
-                        tile_name: layer.id,
-                        tile_style: layer.tile_style,
-                        hostname: hostname,
-                        map_canvas: 'map_container',
-                        map: map,
-                        user_name: 'mol',
-                        table_name: table,
-                        mol_layer: layer,
-                        style_table_name: layer.dataset_id,
-                        query: sql,
-                        info_query: info_query,
-                        meta_query: meta_query,
-                        map_style: false,
-                        infowindow: infowindow,
-                        opacity: layer.orig_opacity
-                });
+                
+                options = {
+                    getTileUrl: function(tile, zoom) {
+                        var y = tile.y,
+                            x = tile.x,
+                            tileRange = 1 << zoom,
+                            url;
+                        if (y < 0 || y >= tileRange) {
+                            return null;
+                        }
+                        if (x < 0 || x >= tileRange) {
+                            x = (x % tileRange + tileRange) % tileRange;
+                        }
+                        self.onbeforeload();
+                        url = urlPattern
+                            .replace("{HOST}",mol.services.cartodb.tileApi.host)
+                            .replace("{STYLE_TABLE}",layer.style_table)
+                            .replace("{SQL}",sql)
+                            .replace("{X}",x)
+                            .replace("{Y}",y)
+                            .replace("{Z}",zoom)
+                            .replace("{TILE_STYLE}",layer.tile_style);
+                        
+                        pendingurls.push(url);
+                        return(url);
+                    },
+                    tileSize: new google.maps.Size(256, 256),
+                    maxZoom: 9,
+                    minZoom: 0,
+                    opacity: layer.orig_opacity
+                };
+                
+                this.layer = new google.maps.ImageMapType(options);
+                this.baseGetTile = this.layer.getTile;
+                this.layer.getTile = function(tileCoord, zoom, ownerDocument) {
+                    // Get the DOM node generated by the out-of-the-box ImageMapType
+                    var node = self.baseGetTile(tileCoord, zoom, ownerDocument);
+                    
+                    // Listen for any images within the node to finish loading
+                    $("img", node).one("load", function() {
+            
+                        // Remove the image from our list of pending urls
+                        var index = $.inArray(this.__src__, pendingurls);
+                        pendingurls.splice(index, 1);
+                        // If the pending url list is empty, emit an event to 
+                        // indicate that the tiles are finished loading
+                        if (pendingurls.length === 0) {
+                            self.onafterload();
+                        }
+                    }).one("error", function() {
+            
+                        // Remove the image from our list of pending urls
+                        var index = $.inArray(this.__src__, pendingurls);
+                        pendingurls.splice(index, 1);
+                        // If the pending url list is empty, emit an event to 
+                        // indicate that the tiles are finished loading
+                        if (pendingurls.length === 0) {
+                            self.onafterload();
+                        }
+                    });
+                    
+                    return node;
+                };
+                this.layer.layer = layer;
+                this.layer.name = layer.id;
             }
         }
     );
