@@ -645,7 +645,6 @@ mol.modules.map.layers = function(mol) {
                     [this.display.list.find('.layer').length-1].click();
             } else if(sortedLayers.length > 1) {
                 
-                
             }
             
             //done making widgets, toggle on if we have layers.
