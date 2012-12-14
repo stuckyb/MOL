@@ -56,15 +56,10 @@ mol.modules.map.tiles = function(mol) {
                                             'layer-opacity', 
                                             params);
                                         self.bus.fireEvent(e);
-                                        //if(maptype.interaction != undefined) {
-                                        //maptype.interaction.add();
-                                        //maptype.interaction.clickAction="full"
-                                        //}
                                         return;
                                     }
                                 }
                             );
-                            //self.renderTiles([layer]);
                         } else { // Remove layer from map.
                             self.map.overlayMapTypes.forEach(
                                 function(mt, index) {
@@ -83,11 +78,6 @@ mol.modules.map.tiles = function(mol) {
                                             params
                                         );
                                         self.bus.fireEvent(e);
-                                        
-                                        if(mt.interaction != undefined) {
-                                            mt.interaction.remove();
-                                            mt.interaction.clickAction = "";
-                                        }
                                     }
                                 }
                             );
@@ -139,8 +129,6 @@ mol.modules.map.tiles = function(mol) {
                                 //find the overlaymaptype to style
                                 if (maptype.name === layer.id) {
                                     //remove it from the map
-                                    maptype.interaction.remove();
-                                    maptype.interaction.clickAction = "";
                                     self.map.overlayMapTypes.removeAt(index);
                                     //add the style
                                     layer.tile_style = style;
@@ -170,15 +158,6 @@ mol.modules.map.tiles = function(mol) {
                                                         mz.interaction.remove();
                                                         mz.interaction
                                                             .clickAction = "";
-                                                                                                               
-                                                        if(mz.name === layer.id 
-                                                            && sel) {
-                                                            mz.interaction
-                                                                .add();
-                                                            mz.interaction
-                                                                .clickAction = 
-                                                                    "full";
-                                                        }
                                                     }
                                                 );
                                                 
@@ -229,10 +208,8 @@ mol.modules.map.tiles = function(mol) {
                                 var lid = layer.id;
                                 mapTypes.forEach(
                                     function(mt, index) { 
-                                        if (mt != undefined && mt.name === lid) {
-                                            if(mt.interaction != undefined) {
-                                                mt.interaction.remove();
-                                            }
+                                        if (mt != undefined && 
+                                            mt.name === lid) {
                                             mapTypes.removeAt(index);
                                         }
                                     }
@@ -251,7 +228,7 @@ mol.modules.map.tiles = function(mol) {
                          'reorder-layers',
                          function(event) {
                               var layers = event.layers,
-                            mapTypes = self.map.overlayMapTypes;
+                              mapTypes = self.map.overlayMapTypes;
 
                               _.each(
                                    layers,
@@ -287,6 +264,13 @@ mol.modules.map.tiles = function(mol) {
                         var maptype = self.getTile(layer);
                     },
                     self
+                );
+                
+                self.map.overlayMapTypes
+                  .forEach(function(mz) { 
+                        mz.interaction.remove();
+                        mz.interaction.clickAction = "";
+                    }
                 );
             },
             /**
