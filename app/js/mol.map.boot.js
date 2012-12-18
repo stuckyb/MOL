@@ -11,6 +11,7 @@ mol.modules.map.boot = function(mol) {
             this.maxLayers = ($.browser.chrome) ? 6 : 25;
             this.sql = '' +
                 'SELECT DISTINCT l.scientificname as name,'+
+                    '\'cdb\' as mode, ' +
                     't.type as type,'+
                     "CASE d.style_table WHEN 'points_style' " + 
                         'THEN t.carto_css_point ' + 
@@ -38,9 +39,16 @@ mol.modules.map.boot = function(mol) {
                     'END as extent, ' +
                     'l.dataset_id as dataset_id, ' +
                     'd.dataset_title as dataset_title, ' + 
-                    'd.style_table as style_table ' +
-                    
+                    'd.style_table as style_table, ' +
+                    'e.finalmin as mine, ' +
+                    'e.finalmax as maxe, ' +
+                    'e.habitatprefs as habitat, ' +
+                    'NOT sl.latin IS Null as inft ' +
                 'FROM layer_metadata l ' +
+                'LEFT JOIN elevandhabitat e ON ' + 
+                    'l.scientificname = e.scientific ' +
+                'LEFT JOIN specieslist sl ON ' +
+                    'l.scientificname = sl.latin ' +
                 'LEFT JOIN data_registry d ON ' +
                     'l.dataset_id = d.dataset_id ' +
                 'LEFT JOIN types t ON ' +
