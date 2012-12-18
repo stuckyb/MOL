@@ -34,14 +34,53 @@ class MainPage(webapp2.RequestHandler):
       
         sciname = self.request.get('sciname', None)
         habitats = self.request.get('habitats', None)
-	elevation = self.request.get('elevation', None) 
-
-        #Grab geojson
-        #sql = "SELECT ST_AsGeoJson(ST_Transform(the_geom_webmercator,4326)) as geojson FROM jetz_maps where latin='%s'"  % (sciname)
-        #url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
-        #value = urlfetch.fetch(url, deadline=60).content
+        elevation = self.request.get('elevation', None) 
+        provider = self.request.get('provider', None)
+        provider = self.request.get('type', None)
+        dataset_id = self.request.get('dataset_id', None)
         
-        #geom = json.loads(value)
+        #Grab kml and spit it into FT
+        sql = "SELECT * FROM get_kml('%s','%s','%s','%s')"  % (provider, type, sciname, dataset_id)
+        url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
+        value = urlfetch.fetch(url, deadline=60).content
+        
+        result = json.loads(value)
+        rows = result["rows"]
+        
+        #create the new table
+        h = Http()
+        data = '''{  
+             "name": "MOL Polygon Data",
+             "columns": [
+              {
+               "name": "scientificname",
+               "type": "STRING"
+              },
+              {
+               "name": "geom",
+               "type": "GEOMETRY"
+              },
+              {
+               "name": "type",
+               "type": "STRING"
+              },
+              {
+               "name": "provider",
+               "type": "STRING"
+              },
+              {
+               "name": "dataset_id",
+               "type": "STRING"
+              }
+             ],
+             "description": "A MOL polygon cache item.",
+             "isExportable": true
+             }'''
+        response, content = h.request("https://www.googleapis.com/fusiontables/v1/tables?api") 
+        
+        for row in rows:
+            url = 
+        
         #species = ee.FeatureCollection(geom["rows"][0]["geojson"])
          
         #Get land cover and elevation layers
@@ -50,19 +89,17 @@ class MainPage(webapp2.RequestHandler):
 
         output = ee.Image(0)
         species = ee.FeatureCollection('ft:1ugWA45wi7yRdIxKAEbcfd1ks8nhuTcIUyx1Lv18').filter(ee.Filter().eq('Latin',sciname))
-        mask = ee.Image({
-            'algorithm': 'DrawVector',
-            'collection': species
-        },1)
+        
         #parse the CDB response
+
         min = int(elevation.split(',')[0])
         max = int(elevation.split(',')[1])
         habitat_list = habitats.split(",")
 
         for pref in habitat_list:
-            output = output.where(cover.eq(int(pref)).And(elev.gt(min)).And(elev.lt(max)),1)
+            output = output.where(cover.eq(int(pref)).And(elev.gt(min)).And(elev.lt(max)).clip(species),1)
 
-        result = output.mask(mask)
+        result = output.mask(output)
         mapid = result.getMapId({'palette': 'FF0000'})
         template_values = {
             'mapid' : mapid['mapid'],
