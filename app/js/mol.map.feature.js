@@ -12,12 +12,15 @@ mol.modules.map.feature = function(mol) {
             //TODO add
             this.sql = "SELECT * FROM " + 
                        "get_map_feature_metadata({0},{1},{2},{3},'{4}')";
+            this.mesql = "SELECT {5} as timestamp,* FROM " + 
+                       "get_feature_presence({0},{1},{2},{3},'{4}')";           
             
             this.clickDisabled = false;
             this.makingRequest = false;
             this.mapMarker;
             this.activeLayers = [];
-        },
+            
+            this.lastRequestTime;        },
 
         start : function() {
             this.addEventHandlers();
@@ -78,6 +81,89 @@ mol.modules.map.feature = function(mol) {
                     });             
                 }
             );
+            
+            /* might use later for cursor management
+             * 
+             * Google Maps doesn't make the cursor change until the mouse
+             * moves again, so if you change the cursor programmatically
+             * it isn't reflected on the map until the user moves the mouse
+             * again, making it look like there's a weird jerky lag in cursor
+             * change.
+             */
+            this.bus.addHandler(
+                'map-mouse-stop',
+                function(event) {
+                    var d;
+                    
+                    if(!self.clickDisabled && self.activeLayers.length > 0) {
+                        var tolerance = 2,
+                            sqlLayers,
+                            sql;
+                        
+                        sqlLayers =  _.pluck(_.reject(
+                                                self.activeLayers, 
+                                                function(al) {
+                                                    return al.op == 0;
+                                                }), 'id');         
+                              
+                        d = new Date();
+                        
+                        self.lastRequestTime = d.getTime()      
+                                
+                        sql = self.mesql.format(
+                                event.latLng.lng(),
+                                event.latLng.lat(),
+                                tolerance,
+                                self.map.getZoom(),
+                                sqlLayers.toString(),
+                                self.lastRequestTime
+                        );
+                        
+                        $.getJSON(
+                            self.url.format(sql),
+                            function(data, textStatus, jqXHR) {
+                                if(data.rows[0]["timestamp"] == d.getTime()) {
+                                    
+                                }
+                                
+                                if(data.rows[0]["get_feature_presence"]) {
+                                  self.map
+                                    .setOptions({ draggableCursor: 'pointer' }); 
+                                } else {
+                                  self.map
+                                    .setOptions(
+                                      { 
+                                        draggableCursor: 
+                                        'url(' + 
+                                        'http://maps.google.com/mapfiles/' + 
+                                        'openhand.cur' + 
+                                        '), move' 
+                                      }
+                                    ); 
+                                }                                                            
+                            }
+                        );  
+                      
+                    }  
+                }  
+            );
+            */
+            
+            /* might use this later for cursor management
+            google.maps.event.addListener(
+                self.map,
+                'mousemove',
+                function (mouseevent) {
+                    if(!self.clickDisabled && self.activeLayers.length > 0) {
+                       if(self.lastMapMoveEnd) {
+                           if(self.lastMapMoveEnd.readyState == 4) {
+                              self.lastMapMoveEnd.abort();
+                           }
+                       }
+                    }
+                }  
+            );
+            */
                 
             //may want to wait to add this until ready
             google.maps.event.addListener(
