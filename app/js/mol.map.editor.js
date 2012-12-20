@@ -88,7 +88,7 @@ mol.modules.map.editor = function(mol) {
                         gridres = 40075000/(256^self.map.getZoom()), 
                         sql = 'SELECT ' +
                             'ST_AsGeoJson(ST_Transform(' +
-                                'ST_Union(the_geom_webmercator)' +
+                                'ST_Simplify(ST_SnapToGrid(the_geom_webmercator,1000),10000)' +
                                 ',4326)' +
                             ') as geom ' +
                             'FROM get_tile(\'{1}\',\'{2}\',\'{3}\',\'{4}\')';
