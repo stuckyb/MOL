@@ -292,6 +292,9 @@ mol.modules.services.cartodb = function(mol) {
                 this.jsonp_url = '' +
                     'http://d3dvrpov25vfw0.cloudfront.net/' +
                     'api/v2/sql?callback=?&q={0}';
+                this.url = ''
+                    'http://d3dvrpov25vfw0.cloudfront.net/' +
+                    'api/v2/sql?q={0}';
                 //cache key is mmddyyyyhhmm
                 this.sql_cache_key = '120420121435';
             }
@@ -329,7 +332,8 @@ mol.modules.map = function(mol) {
             'help',
             'status',
             'images',
-            'boot'
+            'boot',
+            'editor'
     ];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
@@ -639,8 +643,9 @@ mol.modules.map = function(mol) {
                         }
                     ]
                 };
-
+                this.drawing = 
                 this.map = new google.maps.Map(this.element, mapOptions);
+                
             }
         }
     );
@@ -1327,7 +1332,16 @@ mol.modules.map.layers = function(mol) {
                             event.cancelBubble = true;
                         }
                     );
-                    
+                    l.edit.click(
+                        function(event) {
+                            self.bus.fireEvent(
+                                new mol.bus.Event(
+                                    'edit-layer',
+                                    {layer: layer}
+                                )
+                            )
+                        }
+                    );
                     // Click handler for style toggle 
                     l.styler.click(
                         function(event) {
@@ -2513,6 +2527,9 @@ mol.modules.map.layers = function(mol) {
                 '    <button title="Remove layer." class="close">' + 
                        'x' + 
                 '    </button>' +
+                '    <button title="Edit layer." class="edit">' +
+                       'e' +
+                '    </button>' +
                 '    <button title="Zoom to layer extent." class="zoom">' +
                        'z' +
                 '    </button>' +
@@ -2547,6 +2564,7 @@ mol.modules.map.layers = function(mol) {
                 this.zoom.css('visibility','hidden');
             }
             this.info = $(this).find('.info');
+            this.edit = $(this).find('.edit');
             this.close = $(this).find('.close');
             this.type = $(this).find('.type');
             this.source = $(this).find('.source');

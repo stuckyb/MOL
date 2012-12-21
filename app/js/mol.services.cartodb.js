@@ -6,6 +6,9 @@ mol.modules.services.cartodb = function(mol) {
                 this.jsonp_url = '' +
                     'http://d3dvrpov25vfw0.cloudfront.net/' +
                     'api/v2/sql?callback=?&q={0}';
+                this.url = ''
+                    'http://d3dvrpov25vfw0.cloudfront.net/' +
+                    'api/v2/sql?q={0}';
                 //cache key is mmddyyyyhhmm
                 this.sql_cache_key = '120420121435';
             }

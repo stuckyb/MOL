@@ -536,7 +536,16 @@ mol.modules.map.layers = function(mol) {
                             event.cancelBubble = true;
                         }
                     );
-                    
+                    l.edit.click(
+                        function(event) {
+                            self.bus.fireEvent(
+                                new mol.bus.Event(
+                                    'edit-layer',
+                                    {layer: layer}
+                                )
+                            )
+                        }
+                    );
                     // Click handler for style toggle 
                     l.styler.click(
                         function(event) {
@@ -1722,6 +1731,9 @@ mol.modules.map.layers = function(mol) {
                 '    <button title="Remove layer." class="close">' + 
                        'x' + 
                 '    </button>' +
+                '    <button title="Edit layer." class="edit">' +
+                       'e' +
+                '    </button>' +
                 '    <button title="Zoom to layer extent." class="zoom">' +
                        'z' +
                 '    </button>' +
@@ -1756,6 +1768,7 @@ mol.modules.map.layers = function(mol) {
                 this.zoom.css('visibility','hidden');
             }
             this.info = $(this).find('.info');
+            this.edit = $(this).find('.edit');
             this.close = $(this).find('.close');
             this.type = $(this).find('.type');
             this.source = $(this).find('.source');

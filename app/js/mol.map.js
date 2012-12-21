@@ -17,7 +17,8 @@ mol.modules.map = function(mol) {
             'help',
             'status',
             'images',
-            'boot'
+            'boot',
+            'editor'
     ];
 
     mol.map.MapEngine = mol.mvp.Engine.extend(
@@ -327,8 +328,9 @@ mol.modules.map = function(mol) {
                         }
                     ]
                 };
-
+                this.drawing = 
                 this.map = new google.maps.Map(this.element, mapOptions);
+                
             }
         }
     );
