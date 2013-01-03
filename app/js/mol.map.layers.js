@@ -279,6 +279,28 @@ mol.modules.map.layers = function(mol) {
                 }
             );
             
+            /*
+             * Toggle Click Handler for Layer Clicking
+             */
+            this.display.layerClickButton.click(
+                function(event) {
+                    var params = {};
+  
+                    if($(self.display.layerClickButton).hasClass('selected')) {
+                        params.disable = true;
+                        $(self.display.layerClickButton).removeClass('selected');
+                        $(self.display.layerClickButton).html("OFF");
+                    } else {
+                        params.disable = false;
+                        $(self.display.layerClickButton).addClass('selected');
+                        $(self.display.layerClickButton).html("ON");
+                    }
+                    
+                    self.bus.fireEvent(
+                        new mol.bus.Event('layer-clicking-toggle', params)); 
+                }
+            );
+            
             this.display.layersToggle.click(
                 function(event) {
                     self.layersToggle(event);
@@ -357,6 +379,12 @@ mol.modules.map.layers = function(mol) {
                 'layer-click-toggle',
                 function(event) {                    
                     self.clickDisabled = event.disable;
+                    
+                    //if false, unselect layer query
+                    if(self.clickDisabled) {
+                        $(self.display.layerClickButton).removeClass('selected');
+                        $(self.display.layerClickButton).html("OFF");
+                    }
                 }
             );
         },
@@ -1720,6 +1748,13 @@ mol.modules.map.layers = function(mol) {
                         '<div class="layersHeader">' +
                             '<button class="layersToggle button">▲</button>' +
                             'Layers' +
+		                    '<span class="title">Query Layers</span>' +
+		                    '<button id="layerClickButton" ' + 
+		                             'class="toggleBtn" ' +
+		                             'title="Click to activate map layer' + 
+		                                 ' querying.">' +
+		                             'OFF' +
+		                    '</button>' +
                         '</div>' +
                         '<div class="layersContainer">' +
                             '<div class="scrollContainer">' +
@@ -1756,6 +1791,7 @@ mol.modules.map.layers = function(mol) {
             this.layersWrapper = $(this).find(".layers");
             this.layersContainer = $(this).find(".layersContainer");
             this.layersHeader = $(this).find(".layersHeader");
+            this.layerClickButton = $(this).find('#layerClickButton');
             this.expanded = true;
         },
 

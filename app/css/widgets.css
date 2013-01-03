@@ -292,6 +292,25 @@ white-space: nowrap;
     line-height: 25px;
 }
 
+.mol-LayerControl-Layers .layers .layersHeader .title {
+    margin-left: 20px;
+}
+
+.mol-LayerControl-Layers .layers .layersHeader button.toggleBtn {
+    width:32px;
+    height: 22px;
+    color: #fff;
+    padding: 3px;
+}
+
+.mol-LayerControl-Layers .layers .layersHeader button.selected {
+    border: 3px solid rgba(255, 100, 88, .45);
+    border-radius:5px;
+    -moz-border-radius:5px;
+    -ms-border-radius:5px;
+    padding:0px;
+}
+
 .mol-LayerControl-Layers .layers {
     border-radius: 3px;
     -moz-border-radius: 3px;

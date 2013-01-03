@@ -15,7 +15,7 @@ mol.modules.map.feature = function(mol) {
             this.mesql = "SELECT {5} as timestamp,* FROM " + 
                        "get_feature_presence({0},{1},{2},{3},'{4}')";           
             
-            this.clickDisabled = false;
+            this.clickDisabled = true;
             this.makingRequest = false;
             this.mapMarker;
             this.activeLayers = [];
@@ -32,7 +32,20 @@ mol.modules.map.feature = function(mol) {
             this.bus.addHandler(
                 'layer-click-toggle',
                 function(event) {
-                    self.clickDisabled = event.disable;
+                    if(event.disable) {
+                      self.clickDisabled = event.disable;  
+                        
+                      self.map
+                        .setOptions(
+                          { 
+                            draggableCursor: 
+                            'url(' + 
+                            'http://maps.google.com/mapfiles/' + 
+                            'openhand.cur' + 
+                            '), move' 
+                          }
+                        ); 
+                    } 
                 }
             );
             
@@ -79,6 +92,29 @@ mol.modules.map.feature = function(mol) {
                             al.op = event.showing ? 1 : 0;
                         }  
                     });             
+                }
+            );
+            
+            this.bus.addHandler(
+                'layer-clicking-toggle',
+                function(event) {
+                    self.clickDisabled = event.disable;
+                    
+                    if(!self.clickDisabled) {
+                      self.map
+                        .setOptions({ draggableCursor: 'pointer' }); 
+                    } else {
+                      self.map
+                        .setOptions(
+                          { 
+                            draggableCursor: 
+                            'url(' + 
+                            'http://maps.google.com/mapfiles/' + 
+                            'openhand.cur' + 
+                            '), move' 
+                          }
+                        ); 
+                    }    
                 }
             );
             
