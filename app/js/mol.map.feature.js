@@ -90,6 +90,8 @@ mol.modules.map.feature = function(mol) {
              * again, making it look like there's a weird jerky lag in cursor
              * change.
              */
+            
+            /*
             this.bus.addHandler(
                 'map-mouse-stop',
                 function(event) {
