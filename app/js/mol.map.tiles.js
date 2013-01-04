@@ -337,7 +337,7 @@ mol.modules.map.tiles = function(mol) {
                     mol.services.cartodb.tileApi.tile_cache_key
                 ),
                 urlPattern = '' +
-                    'http://{HOST}/tiles/{STYLE_TABLE}/{Z}/{X}/{Y}.png?'+ 
+                    'http://{HOST}/tiles/{DATASET_ID}/{Z}/{X}/{Y}.png?'+ 
                     'sql={SQL}'+
                     '&style={TILE_STYLE}',
                 style_table_name = layer.style_table,
@@ -374,12 +374,13 @@ mol.modules.map.tiles = function(mol) {
                     }
                     url = urlPattern
                         .replace("{HOST}",mol.services.cartodb.tileApi.host)
-                        .replace("{STYLE_TABLE}",layer.style_table)
+                        .replace("{DATASET_ID}",layer.dataset_id)
                         .replace("{SQL}",sql)
                         .replace("{X}",x)
                         .replace("{Y}",y)
                         .replace("{Z}",zoom)
-                        .replace("{TILE_STYLE}",layer.tile_style);
+                        .replace("{TILE_STYLE}",
+                                 encodeURIComponent(layer.tile_style));
                     
                     pendingurls.push(url);
                     return(url);

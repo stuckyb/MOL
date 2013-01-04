@@ -1602,7 +1602,7 @@ mol.modules.map.layers = function(mol) {
 
                 style_desc = style;
 
-                params.style = style_desc;   
+                params.style = style_desc;
                 
                 self.bus.fireEvent(
                     new mol.bus.Event(
