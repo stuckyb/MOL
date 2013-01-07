@@ -561,9 +561,9 @@ mol.modules.map.layers = function(mol) {
                                     $(b).qtip('destroy');
                                 }
                             );
-                             
-                            self.displayLayerStyler(this, layer);
-                            
+                            if(layer.type != 'custom') { 
+                                self.displayLayerStyler(this, layer);
+                            }
                             event.stopPropagation();
                             event.cancelBubble = true;
                         }
@@ -583,7 +583,7 @@ mol.modules.map.layers = function(mol) {
                                 boo = false;
                             } else {
                                 
-                                if($(self.display)
+                                if($(self.display && l.type != 'custom')
                                         .find('.selected').length > 0) {       
                                     //get a reference to this layer    
                                     self.toggleLayerHighlight(
@@ -1181,7 +1181,7 @@ mol.modules.map.layers = function(mol) {
                 s1Style, s2Style, s3Style, s4Style, s5Style, pStyle,
                 s1, s2, s3, s4, s5, p, pc,
                 c1, c2, c3, c4, c5;
-                
+            
             if(original == "current") {
                 style = layer.style;
             } else if(original == "orig") {
@@ -1337,7 +1337,7 @@ mol.modules.map.layers = function(mol) {
                                     pc.indexOf(':')+1,
                                     pc.indexOf(';'));
                     }
-                } else {
+                } else  {
                     fillStyle = style.substring(
                                     style.indexOf('polygon-fill'),
                                     style.length-1);                  

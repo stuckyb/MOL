@@ -7,7 +7,7 @@ mol.modules.map.editor = function(mol) {
             this.proxy = proxy;
             this.bus = bus;
             this.map = map;
-            //this.editor = new google.maps.drawing.DrawingManager();
+            this.layers = []; //array of user defined layers.
         },
 
         start : function() {
@@ -33,17 +33,17 @@ mol.modules.map.editor = function(mol) {
             params.display = this.display;
             this.bus.fireEvent(new mol.bus.Event('add-map-control', params));
         },
-        addEditableLayer : function (json) {
+        addEditableLayer : function (layer, json, status, xhr) {
             var self = this;
-            this.layer = [];
-            if(this.editer == undefined) {
+            //this.layer = [];
+            /*if(this.editor == undefined) {
                 this.editor = new google.maps.drawing.DrawingManager({
-                      drawingMode: google.maps.drawing.OverlayType.POLYGON,
-                      drawingControl: true,
+                      //drawingMode: google.maps.drawing.OverlayType.POLYGON,
+                      //drawingControl: true,
                       drawingControlOptions: {
                         position: google.maps.ControlPosition.TOP_CENTER,
                         drawingModes: [
-                          google.maps.drawing.OverlayType.POLYGON
+                          //google.maps.drawing.OverlayType.POLYGON
                         ]
                       },
                       polygonOptions: {
@@ -56,7 +56,7 @@ mol.modules.map.editor = function(mol) {
                       }
                     });
                 this.editor.setMap(this.map);
-            }
+            }*/
             
             _.each(
                 json.rows,
@@ -65,8 +65,9 @@ mol.modules.map.editor = function(mol) {
                         feature = new GeoJSON(geojson);
                     if(feature.setMap != undefined) {
                         //feature.draggable=true;
-                        feature.setOptions({editable:true});
+                        feature.setOptions({editable:true, name: layer.id});
                         feature.setMap(self.map)
+                        self.layers.push({id: layer.id, overlay: feature});
                     } else {
                     
                         _.each(
@@ -74,21 +75,23 @@ mol.modules.map.editor = function(mol) {
                             function(f) {
                                 if(f.setMap != undefined) {
                                     //f.draggable=true;
-                                    f.setOptions({editable:true});
+                                    f.setOptions({editable:true, name: layer.id});
                                     f.setMap(self.map);
                                 }
-                                self.layer.push(f);
+                                self.layers.push({id: layer.id, overlay: f});
                             }
                         );
                     }
                 }
             );
+            this.bus.fireEvent(new mol.bus.Event('add-layers',{layers:[layer]}));
+            
             
             
         },
         defineRange: function () {
             var name = prompt(
-                'This feature creates a new range map based on currently ' +
+                'This feature creates a new range map based on the currently ' +
                 'visible layers. What species (scientific name) would you like ' +
                 'to define a range for?'
             );
@@ -99,7 +102,15 @@ mol.modules.map.editor = function(mol) {
         startEditing: function(name) {
             //TODO: zoom to max layer extent
             //first get a very simplified convex hull of all available maps
-            var layers = [], 
+            var layers = [], //all current layers
+                newLayer = {
+                    name: name, 
+                    type:'custom', 
+                    source:'webuser', 
+                    dataset_id: 'www', 
+                    id: 'layer--{0}--custom--webuser--www'
+                        .format(name.replace(/ /g, '_'))
+                },
                 tiles = [],
                 gridres = 40075000/(256^this.map.getZoom()), 
                 tilesql = ''+
@@ -108,11 +119,11 @@ mol.modules.map.editor = function(mol) {
                 sql = '' +
                     'SELECT ST_AsGeoJson(' +
                             'ST_Transform(' +
-                                'ST_SimplifyPreserveTopology(' +
+                                'ST_Simplify(' +
                                     'ST_Union(' +
                                         'ST_Buffer(g.geom,0)' +
                                     '),' +
-                                    '150000' +
+                                    '200000' +
                                 '),' +
                                 '4326' +
                             ')' +
@@ -162,7 +173,7 @@ mol.modules.map.editor = function(mol) {
                         tiles.join(' UNION ')
                     )
                 ),
-                this.addEditableLayer.bind(this)
+                this.addEditableLayer.bind(this, newLayer)
             );
         },
         addEventHandlers : function () {
@@ -176,6 +187,30 @@ mol.modules.map.editor = function(mol) {
                       self.defineRange();
                   }
             );
+            this.bus.addHandler(
+                'remove-layers',
+                function(event) {
+                    var layers = event.layers;
+                    _.each(
+                        layers,
+                        function(layer_to_remove) {
+                            _.each(
+                                function(existing_layer) {
+                                    if(existing_layer.id 
+                                        == layer_to_remove.id) {
+                                        existing_layer.overlay.setMap(null);
+                                        self.layers = _.without(
+                                            self.layers, 
+                                            existing_layer
+                                        ); 
+                                    }
+                                }
+                            );
+                        }
+                    )
+                }
+            );
+            /*editing of an existinglayer... TODO!*/
             this.bus.addHandler(
                 'edit-layer',
                 function(event) {
@@ -205,7 +240,7 @@ mol.modules.map.editor = function(mol) {
                     )
                     $.getJSON(
                         url,
-                        self.addEditableLayer.bind(self)
+                        self.addEditableLayer(newLayer).bind(self)
                     );
                 }
             )
