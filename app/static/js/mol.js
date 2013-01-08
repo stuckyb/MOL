@@ -6516,7 +6516,7 @@ mol.modules.map.splash = function(mol) {
                 self.bus.fireEvent(new mol.bus.Event('layers-toggle', {
                     visible: false
                 }));
-                self.bus.fireEvent(new mol.bus.Event('species-list-tool-toggle', 
+                self.bus.fireEvent(new mol.bus.Event('species-list-tool-toggle',
                     {visible: true}));
                 self.bus.fireEvent(new mol.bus.Event('species-list-query-click', {
                     gmaps_event: {
@@ -6530,8 +6530,8 @@ mol.modules.map.splash = function(mol) {
             var self = this;
             this.display.dialog({
                 autoOpen: true,
-                width: 800,
-                height: 580,
+                width: 360,
+                height: 360,
                 DialogClass: "mol-splash",
                 close: function() {
                     self.bus.fireEvent(new mol.bus.Event('dialog-closed-click'));
@@ -6602,20 +6602,20 @@ mol.modules.map.splash = function(mol) {
             var html = '' +
             '<div class="mol-Splash">' +
             '    <div class="message"></div>' +
-            '    <iframe class="mol-splash iframe_content ui-dialog-content" style="height:400px; width: 98%; margin-left: -18px; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
+            '    <iframe class="mol-splash iframe_content ui-dialog-content" style="height:200px; width: 98%; margin-left: -1.5em; margin-right: auto; display: block;" src="/static/splash/index.html"></iframe>' +
             '    <div id="footer_imgs" style="text-align: center">' + '<div>Sponsors, partners and supporters</div>' +
-            '        <a target="_blank" tabindex="-1" href="http://www.yale.edu/jetz/"><button><img width="72px" height="36px" title="Jetz Lab, Yale University" src="/static/home/yale.png"></button></a>' +
-            '        <a target="_blank" tabindex="-1" href="http://sites.google.com/site/robgur/"><button><img width="149px" height="36px" title="Guralnick Lab, University of Colorado Boulder" src="/static/home/cuboulder.png"></button></a>' +
-            '        <a target="_blank" tabindex="-1" href="http://www.gbif.org/"><button><img width="33px" height="32px" title="Global Biodiversity Information Facility" src="/static/home/gbif.png"></button></a>' +
-            '        <a target="_blank" tabindex="-1" href="http://www.eol.org/"><button><img width="51px" height="32px" title="Encyclopedia of Life" src="http://www.mappinglife.org/static/home/eol.png"></button></a>' +
-            '        <a target="_blank" tabindex="-1" href="http://www.nasa.gov/"><button><img width="37px" height="32px" title="National Aeronautics and Space Administration" src="http://www.mappinglife.org/static/home/nasa.png"></button></a>' +
-            '        <br>' +
-            '        <a target="_blank" tabindex="-1" href="http://www.nceas.ucsb.edu/"><button><img width="30px" height="32px" title="National Center for Ecological Analysis and Synthesis" src="http://www.mappinglife.org/static/home/nceas.png"></button></a>' +
-            '        <a target="_blank" tabindex="-1" href="http://www.iplantcollaborative.org/"><button><img width="105px" height="32px" title="iPlant Collaborative" src="http://www.mappinglife.org/static/home/iplant.png"></button></a>' +
-            '        <a target="_blank" tabindex="-1" href="http://www.nsf.gov/"><button><img width="32px" height="32px" title="National Science Foundation" src="http://www.mappinglife.org/static/home/nsf.png"></button></a>' +
-            '        <a target="_blank" tabindex="-1" href="http://www.senckenberg.de"><button><img width="81px" height="32px"title="Senckenberg" src="http://www.mappinglife.org/static/home/senckenberg.png"></button></a>' +
-            '        <a target="_blank" tabindex="-1" href="http://www.bik-f.de/"><button><img width="74px" height="32px" title="Biodiversität und Klima Forschungszentrum (BiK-F)" src="http://www.mappinglife.org/static/home/bik_bildzeichen.png"></button></a>' +
-            '        <a target="_blank" tabindex="-1" href="http://www.mountainbiodiversity.org/"><button><img width="59px" height="32px" title="Global Mountain Biodiversity Assessment" src="http://www.mappinglife.org/static/home/gmba.png"></button></a>' +
+            '        <a target="_blank" tabindex="-1" href="http://www.yale.edu/jetz/"><button><img width="36px" height="16px" title="Jetz Lab, Yale University" src="/static/home/yale.png"></button></a>' +
+            '        <a target="_blank" tabindex="-1" href="http://sites.google.com/site/robgur/"><button><img width="74px" height="16px" title="Guralnick Lab, University of Colorado Boulder" src="/static/home/cuboulder.png"></button></a>' +
+            '        <a target="_blank" tabindex="-1" href="http://www.gbif.org/"><button><img width="17px" height="16px" title="Global Biodiversity Information Facility" src="/static/home/gbif.png"></button></a>' +
+            '        <a target="_blank" tabindex="-1" href="http://www.eol.org/"><button><img width="26px" height="16px" title="Encyclopedia of Life" src="http://www.mappinglife.org/static/home/eol.png"></button></a>' +
+            '        <a target="_blank" tabindex="-1" href="http://www.nasa.gov/"><button><img width="14px" height="16px" title="National Aeronautics and Space Administration" src="http://www.mappinglife.org/static/home/nasa.png"></button></a>' +
+            //'        <br>' +
+            '        <a target="_blank" tabindex="-1" href="http://www.nceas.ucsb.edu/"><button><img width="15px" height="16px" title="National Center for Ecological Analysis and Synthesis" src="http://www.mappinglife.org/static/home/nceas.png"></button></a>' +
+            '        <a target="_blank" tabindex="-1" href="http://www.iplantcollaborative.org/"><button><img width="53px" height="16px" title="iPlant Collaborative" src="http://www.mappinglife.org/static/home/iplant.png"></button></a>' +
+            '        <a target="_blank" tabindex="-1" href="http://www.nsf.gov/"><button><img width="32px" height="16px" title="National Science Foundation" src="http://www.mappinglife.org/static/home/nsf.png"></button></a>' +
+            '        <a target="_blank" tabindex="-1" href="http://www.senckenberg.de"><button><img width="41px" height="16px"title="Senckenberg" src="http://www.mappinglife.org/static/home/senckenberg.png"></button></a>' +
+            '        <a target="_blank" tabindex="-1" href="http://www.bik-f.de/"><button><img width="37px" height="16px" title="Biodiversität und Klima Forschungszentrum (BiK-F)" src="http://www.mappinglife.org/static/home/bik_bildzeichen.png"></button></a>' +
+            '        <a target="_blank" tabindex="-1" href="http://www.mountainbiodiversity.org/"><button><img width="29px" height="16px" title="Global Mountain Biodiversity Assessment" src="http://www.mappinglife.org/static/home/gmba.png"></button></a>' +
             '    </div>' +
             '</div>';
             this._super(html);
@@ -6696,8 +6696,8 @@ mol.modules.map.splash = function(mol) {
                     {
                         autoOpen: false,
 			            dialogClass: "mol-help",
-                        height: 550,
-                        width: 700,
+                        height: 500,
+                        width: 800,
                         modal: true
                     }
                 );
@@ -6706,8 +6706,8 @@ mol.modules.map.splash = function(mol) {
                     {
                         autoOpen: false,
 			            dialogClass: "mol-help",
-                        height: 550,
-                        width: 850,
+                        height: 360,
+                        width: 360,
                         modal: true,
                     }
                 );
@@ -6719,9 +6719,9 @@ mol.modules.map.splash = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<iframe id="help_dialog" ' + 
-                        'class="mol-help iframe_content" ' + 
-                        'src="/static/help/index.html">' + 
+                    '<iframe id="help_dialog" ' +
+                        'class="mol-help iframe_content" ' +
+                        'src="/static/help/index.html">' +
                     '</iframe>';
 
                 this._super(html);
@@ -6735,16 +6735,17 @@ mol.modules.map.splash = function(mol) {
         {
             init: function() {
                 var html = '' +
-                    '<iframe id="feedback_dialog" ' + 
-                        'src="https://docs.google.com/' + 
-                        'spreadsheet/embeddedform?' + 
-                        'formkey=dC10Y2ZWNkJXbU5RQWpWbXpJTzhGWEE6MQ" ' + 
-                        'width="760" ' + 
-                        'height="625" ' + 
-                        'frameborder="0" ' + 
-                        'marginheight="0" ' + 
-                        'marginwidth="0">' + 
-                        'Loading...' + 
+                    '<iframe id="feedback_dialog" ' +
+                        'src="https://docs.google.com/' +
+                        'spreadsheet/embeddedform?' +
+                        'formkey=dC10Y2ZWNkJXbU5RQWpWbXpJTzhGWEE6MQ" ' +
+                        'width="340" ' +
+                        'height="340" ' +
+                        'frameborder="0" ' +
+                        'marginheight="0" ' +
+                        'marginwidth="0" ' +
+                        'class="mol-feedback iframe feedback">' +
+                        'Loading...' +
                     '</iframe>';
 
                 this._super(html);
@@ -6782,16 +6783,16 @@ mol.modules.map.status = function(mol) {
                 this.display.dialog(
                     {
                         autoOpen: true,
-            			width: 680,
-            			height: 390,
+            			width: 360,
+            			height: 360,
             			dialogClass: "mol-status",
             			modal: true
                     }
                 );
-                
+
                 $(this.display).width('98%');
             },
-            
+
             addEventHandlers : function () {
                  var self = this;
                  this.bus.addHandler(
@@ -6809,14 +6810,14 @@ mol.modules.map.status = function(mol) {
             init: function() {
                 var html = '' +
                 '<div>' +
-	            '  <iframe ' + 
-	                   'class="mol-status iframe_content ui-dialog-content" ' + 
-	                   'style="height:600px; ' + 
-	                           'width: 98%; ' + 
-	                           'margin-left: -18px; ' + 
-	                           'margin-right: auto; ' + 
-	                           'display: block;" ' + 
-                       'src="/static/status/index.html">' + 
+	            '  <iframe ' +
+	                   'class="mol-status iframe_content ui-dialog-content" ' +
+	                   'style="height:300px; ' +
+	                           'width: 98%; ' +
+	                           'margin-left: -20px; ' +
+	                           'margin-right: auto; ' +
+	                           'display: block;" ' +
+                       'src="/static/status/index.html">' +
                 '  </iframe>' +
                 '</div>';
 
