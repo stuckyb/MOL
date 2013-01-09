@@ -7,7 +7,7 @@ mol.modules.map.editor = function(mol) {
             this.proxy = proxy;
             this.bus = bus;
             this.map = map;
-            this.layers = []; //array of user defined layers.
+            this.map.editable_layers = []; //array of user defined layers.
         },
 
         start : function() {
@@ -57,7 +57,8 @@ mol.modules.map.editor = function(mol) {
                     });
                 this.editor.setMap(this.map);
             }*/
-
+            this.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source: layer.dataset_id }))
+            
             _.each(
                 json.rows,
                 function(row) {
@@ -67,7 +68,7 @@ mol.modules.map.editor = function(mol) {
                         //feature.draggable=true;
                         feature.setOptions({editable:true, name: layer.id});
                         feature.setMap(self.map)
-                        self.layers.push({id: layer.id, overlay: feature});
+                        self.map.editable_layers.push({id: layer.id, overlay: feature});
                     } else {
 
                         _.each(
@@ -78,7 +79,7 @@ mol.modules.map.editor = function(mol) {
                                     f.setOptions({editable:true, name: layer.id});
                                     f.setMap(self.map);
                                 }
-                                self.layers.push({id: layer.id, overlay: f});
+                                self.map.editable_layers.push({id: layer.id, overlay: f});
                             }
                         );
                     }
@@ -103,14 +104,21 @@ mol.modules.map.editor = function(mol) {
             //TODO: zoom to max layer extent
             //first get a very simplified convex hull of all available maps
             var layers = [], //all current layers
+                key = '{0}{1}'.format(name, new Date().getTime()), //unique layer id
                 newLayer = {
                     name: name,
                     type:'custom',
+                    type_title: 'User defined layer.',
+                    source_title: 'Web user',
+                    source_type: 'webuser',
+                    source_type_title: 'Web user',
                     source:'webuser',
-                    dataset_id: 'www',
-                    id: 'layer--{0}--custom--webuser--www'
-                        .format(name.replace(/ /g, '_')),
-                    english: ''
+                    dataset_id: key,
+                    id: 'layer--{0}--custom--webuser--{1}'
+                        .format(name.replace(/ /g, '_'),
+                        key),
+                    names: '',
+                    type_sort_order: 0
                 },
                 tiles = [],
                 gridres = 40075000/(256^this.map.getZoom()),
@@ -167,7 +175,8 @@ mol.modules.map.editor = function(mol) {
                     );
                 }
             );
-
+            
+            this.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source: newLayer.dataset_id }))
             $.getJSON(
                 mol.services.cartodb.sqlApi.jsonp_url.format(
                     sql.format(
@@ -196,12 +205,13 @@ mol.modules.map.editor = function(mol) {
                         layers,
                         function(layer_to_remove) {
                             _.each(
+                                self.map.editable_layers,
                                 function(existing_layer) {
                                     if(existing_layer.id
                                         == layer_to_remove.id) {
                                         existing_layer.overlay.setMap(null);
-                                        self.layers = _.without(
-                                            self.layers,
+                                        self.map.editable_layers = _.without(
+                                            self.map.editable_layers,
                                             existing_layer
                                         );
                                     }
@@ -243,6 +253,25 @@ mol.modules.map.editor = function(mol) {
                         url,
                         self.addEditableLayer(newLayer).bind(self)
                     );
+                }
+            );
+            /*editing of an existinglayer... TODO!*/
+            this.bus.addHandler(
+                'toggle-editing',
+                function(event) {
+                    var layer = event.layer;
+                            _.each(
+                                self.map.editable_layers,
+                                function(existing_layer) {
+                                    if(existing_layer.id
+                                        == layer.id) {
+                                        existing_layer.overlay.editable =
+                                            !existing_layer.overlay.editable;
+                                        existing_layer.overlay.editable_changed();
+                                    }
+                                }
+                            );
+                        
                 }
             )
         },
