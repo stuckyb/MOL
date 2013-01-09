@@ -16,11 +16,11 @@ mol.modules.map.editor = function(mol) {
             //disable all map clicks
             this.toggleMapLayerClicks(false);
         },
-        
-        toggleMapLayerClicks : function(boo) {            
+
+        toggleMapLayerClicks : function(boo) {
             //true to disable
             this.bus.fireEvent(
-                new mol.bus.Event('layer-click-toggle', {disable: boo}));          
+                new mol.bus.Event('layer-click-toggle', {disable: boo}));
         },
         addEditorDisplay : function() {
             var params = {
@@ -28,7 +28,7 @@ mol.modules.map.editor = function(mol) {
                 slot: mol.map.ControlDisplay.Slot.TOP,
                 position: google.maps.ControlPosition.TOP_RIGHT
             };
-            
+
             this.display = new mol.map.editor.EditorControlDisplay();
             params.display = this.display;
             this.bus.fireEvent(new mol.bus.Event('add-map-control', params));
@@ -57,7 +57,7 @@ mol.modules.map.editor = function(mol) {
                     });
                 this.editor.setMap(this.map);
             }*/
-            
+
             _.each(
                 json.rows,
                 function(row) {
@@ -69,7 +69,7 @@ mol.modules.map.editor = function(mol) {
                         feature.setMap(self.map)
                         self.layers.push({id: layer.id, overlay: feature});
                     } else {
-                    
+
                         _.each(
                             feature,
                             function(f) {
@@ -85,9 +85,9 @@ mol.modules.map.editor = function(mol) {
                 }
             );
             this.bus.fireEvent(new mol.bus.Event('add-layers',{layers:[layer]}));
-            
-            
-            
+
+
+
         },
         defineRange: function () {
             var name = prompt(
@@ -104,15 +104,16 @@ mol.modules.map.editor = function(mol) {
             //first get a very simplified convex hull of all available maps
             var layers = [], //all current layers
                 newLayer = {
-                    name: name, 
-                    type:'custom', 
-                    source:'webuser', 
-                    dataset_id: 'www', 
+                    name: name,
+                    type:'custom',
+                    source:'webuser',
+                    dataset_id: 'www',
                     id: 'layer--{0}--custom--webuser--www'
-                        .format(name.replace(/ /g, '_'))
+                        .format(name.replace(/ /g, '_')),
+                    english: ''
                 },
                 tiles = [],
-                gridres = 40075000/(256^this.map.getZoom()), 
+                gridres = 40075000/(256^this.map.getZoom()),
                 tilesql = ''+
                     'SELECT {0} as geom '+
                     'FROM get_tile(\'{1}\',\'{2}\',\'{3}\',\'{4}\')';
@@ -129,7 +130,7 @@ mol.modules.map.editor = function(mol) {
                             ')' +
                         ') as geom ' +
                     'FROM ({0}) g ';
-                    
+
             //make an array of layer ids
             this.map.overlayMapTypes.forEach(
                 function(mt,i) {
@@ -156,7 +157,7 @@ mol.modules.map.editor = function(mol) {
                     name = '{0}{1}'
                         .format(name[0].toUpperCase(),name.substr(1))
                         .replace('_', ' ');
-                            
+
                     return tilesql.format(
                             collectsql,
                             source,
@@ -166,7 +167,7 @@ mol.modules.map.editor = function(mol) {
                     );
                 }
             );
-            
+
             $.getJSON(
                 mol.services.cartodb.sqlApi.jsonp_url.format(
                     sql.format(
@@ -196,13 +197,13 @@ mol.modules.map.editor = function(mol) {
                         function(layer_to_remove) {
                             _.each(
                                 function(existing_layer) {
-                                    if(existing_layer.id 
+                                    if(existing_layer.id
                                         == layer_to_remove.id) {
                                         existing_layer.overlay.setMap(null);
                                         self.layers = _.without(
-                                            self.layers, 
+                                            self.layers,
                                             existing_layer
-                                        ); 
+                                        );
                                     }
                                 }
                             );
@@ -215,7 +216,7 @@ mol.modules.map.editor = function(mol) {
                 'edit-layer',
                 function(event) {
                     var layer = event.layer,
-                        gridres = 40075000/(256^self.map.getZoom()), 
+                        gridres = 40075000/(256^self.map.getZoom()),
                         sql = 'SELECT ' +
                             'ST_AsGeoJson('+
                                 'ST_Transform(the_geom_webmercator,4326)' +
@@ -252,12 +253,12 @@ mol.modules.map.editor = function(mol) {
             var html = '' +
                     '<div class="mol-Map-EditorDisplay widgetTheme">' +
                         '<button class="edit">' +
-                            'Define Range' + 
+                            'Define Range' +
                         '</button>' +
                     '</div>';
 
             this._super(html);
-            
+
             this.defineRange=$(this).find('.edit');
         }
     });
