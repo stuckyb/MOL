@@ -560,7 +560,7 @@ mol.modules.map.layers = function(mol) {
                                 $(this).text("Edit");
                                 $(self.display).find(".selected")
                                     .removeClass("selected");
-                                $(l.layer).addclass("selected");
+                                $(l.layer).addClass("selected");
                             }
                         }
                     );

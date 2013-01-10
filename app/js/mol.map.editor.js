@@ -33,31 +33,32 @@ mol.modules.map.editor = function(mol) {
             params.display = this.display;
             this.bus.fireEvent(new mol.bus.Event('add-map-control', params));
         },
-        addEditableLayer : function (layer, json, status, xhr) {
+        addEditableLayer : function (json, status, xhr) {
             var self = this;
             //this.layer = [];
-            /*if(this.editor == undefined) {
+            if(this.editor == undefined) {
                 this.editor = new google.maps.drawing.DrawingManager({
-                      //drawingMode: google.maps.drawing.OverlayType.POLYGON,
-                      //drawingControl: true,
+                      drawingMode: google.maps.drawing.OverlayType.POLYGON,
+                      drawingControl: true,
                       drawingControlOptions: {
                         position: google.maps.ControlPosition.TOP_CENTER,
                         drawingModes: [
-                          //google.maps.drawing.OverlayType.POLYGON
+                          google.maps.drawing.OverlayType.POLYGON
                         ]
                       },
                       polygonOptions: {
-                        fillColor: '#ffff00',
-                        fillOpacity: 1,
-                        strokeWeight: 5,
-                        clickable: true,
-                        zIndex: 1,
                         editable: true
                       }
-                    });
-                this.editor.setMap(this.map);
-            }*/
-            this.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source: layer.dataset_id }))
+                });
+                google.maps.event.addListener(
+                    this.editor, 
+                    'overlaycomplete', 
+                    this.overlayComplete.bind(self)
+                );
+            }
+            this.editor.setMap(this.map);
+            this.editor.polygonOptions.name = this.current_layer.id;
+            this.bus.fireEvent(new mol.bus.Event('hide-loading-indicator', {source: this.current_layer.dataset_id }))
             
             _.each(
                 json.rows,
@@ -66,9 +67,14 @@ mol.modules.map.editor = function(mol) {
                         feature = new GeoJSON(geojson);
                     if(feature.setMap != undefined) {
                         //feature.draggable=true;
-                        feature.setOptions({editable:true, name: layer.id});
-                        feature.setMap(self.map)
-                        self.map.editable_layers.push({id: layer.id, overlay: feature});
+                        feature.setOptions({editable:true, clickable:true, name: self.current_layer.id});
+                        google.maps.event.addListener(
+                            feature,
+                            'click',
+                            self.handleFeatureClick.bind(self, {id: self.current_layer.id, overlay: feature})  
+                        );
+                        feature.setMap(self.map);
+                        self.map.editable_layers.push({id: self.current_layer.id, overlay: feature});
                     } else {
 
                         _.each(
@@ -76,19 +82,47 @@ mol.modules.map.editor = function(mol) {
                             function(f) {
                                 if(f.setMap != undefined) {
                                     //f.draggable=true;
-                                    f.setOptions({editable:true, name: layer.id});
+                                    f.setOptions({editable:true, name: self.current_layer.id});
+                                    google.maps.event.addListener(
+                                        f,
+                                        'click',
+                                        self.handleFeatureClick.bind(self, {id: self.current_layer.id, overlay: f})  
+                                    );
                                     f.setMap(self.map);
                                 }
-                                self.map.editable_layers.push({id: layer.id, overlay: f});
+                                self.map.editable_layers.push({id: self.current_layer.id, overlay: f});
                             }
                         );
                     }
                 }
             );
-            this.bus.fireEvent(new mol.bus.Event('add-layers',{layers:[layer]}));
-
-
-
+            this.bus.fireEvent(new mol.bus.Event('add-layers',{layers:[this.current_layer]}));
+        },
+        overlayComplete: function (event) {
+            var self = this;
+            event.id = this.current_layer.id;
+            google.maps.event.addListener(
+                event.overlay,
+                'click',
+                self.handleFeatureClick.bind(self, event)
+            );
+            this.map.editable_layers.push(event);
+        },
+        handleFeatureClick: function(event) {
+            var display = new mol.map.editor.FeatureOptionsDisplay(event);
+            
+            display.cancel.click(
+                function(e) {
+                    display.dialog('close');
+                }
+            );
+            display.del.click(
+                function(e) {
+                    event.overlay.setMap(null);
+                    display.dialog('close');
+                }
+            );
+            $(display).dialog();
         },
         defineRange: function () {
             var name = prompt(
@@ -100,26 +134,23 @@ mol.modules.map.editor = function(mol) {
                 this.startEditing(name);
             }
         },
+        exportToWKT: function(polygon) { 
+             var numPoints = polygon.getVertexCount(); 
+             var mp = "MULTIPOLYGON ((("; 
+             for(var i=0; i < numPoints; i++) { 
+                var lat = polygon.getVertex(i).lat(); 
+                var lng = polygon.getVertex(i).lng(); 
+                mp += lng + " "+ lat + ","; 
+             } 
+             mp = mp.replace(/,$/,""); 
+             mp += ")))" 
+             return mp; 
+        },
         startEditing: function(name) {
             //TODO: zoom to max layer extent
             //first get a very simplified convex hull of all available maps
             var layers = [], //all current layers
                 key = '{0}{1}'.format(name, new Date().getTime()), //unique layer id
-                newLayer = {
-                    name: name,
-                    type:'custom',
-                    type_title: 'User defined layer.',
-                    source_title: 'Web user',
-                    source_type: 'webuser',
-                    source_type_title: 'Web user',
-                    source:'webuser',
-                    dataset_id: key,
-                    id: 'layer--{0}--custom--webuser--{1}'
-                        .format(name.replace(/ /g, '_'),
-                        key),
-                    names: '',
-                    type_sort_order: 0
-                },
                 tiles = [],
                 gridres = 40075000/(256^this.map.getZoom()),
                 tilesql = ''+
@@ -138,7 +169,21 @@ mol.modules.map.editor = function(mol) {
                             ')' +
                         ') as geom ' +
                     'FROM ({0}) g ';
-
+            this.current_layer = {
+                    name: name,
+                    type:'custom',
+                    type_title: 'User defined layer.',
+                    source_title: 'Web user',
+                    source_type: 'webuser',
+                    source_type_title: 'Web user',
+                    source:'webuser',
+                    dataset_id: key,
+                    id: 'layer--{0}--custom--webuser--{1}'
+                        .format(name.replace(/ /g, '_'),
+                        key),
+                    names: '',
+                    type_sort_order: 0
+            };
             //make an array of layer ids
             this.map.overlayMapTypes.forEach(
                 function(mt,i) {
@@ -176,14 +221,14 @@ mol.modules.map.editor = function(mol) {
                 }
             );
             
-            this.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source: newLayer.dataset_id }))
+            this.bus.fireEvent(new mol.bus.Event('show-loading-indicator', {source: this.current_layer.dataset_id }))
             $.getJSON(
                 mol.services.cartodb.sqlApi.jsonp_url.format(
                     sql.format(
                         tiles.join(' UNION ')
                     )
                 ),
-                this.addEditableLayer.bind(this, newLayer)
+                this.addEditableLayer.bind(this)
             );
         },
         addEventHandlers : function () {
@@ -209,6 +254,9 @@ mol.modules.map.editor = function(mol) {
                                 function(existing_layer) {
                                     if(existing_layer.id
                                         == layer_to_remove.id) {
+                                        if(existing_layer.overlay.editable) {
+                                            self.editor.setMap(null);
+                                        }
                                         existing_layer.overlay.setMap(null);
                                         self.map.editable_layers = _.without(
                                             self.map.editable_layers,
@@ -251,11 +299,11 @@ mol.modules.map.editor = function(mol) {
                     )
                     $.getJSON(
                         url,
-                        self.addEditableLayer(newLayer).bind(self)
+                        self.addEditableLayer.bind(self)
                     );
                 }
             );
-            /*editing of an existinglayer... TODO!*/
+            /*editing of an existing layer... TODO!*/
             this.bus.addHandler(
                 'toggle-editing',
                 function(event) {
@@ -267,6 +315,12 @@ mol.modules.map.editor = function(mol) {
                                         == layer.id) {
                                         existing_layer.overlay.editable =
                                             !existing_layer.overlay.editable;
+                                        if(!existing_layer.overlay.editable) {
+                                            self.editor.setMap(null);
+                                            //console.log(self.exportToWKT(existing_layer.overlay));
+                                        } else {
+                                            self.editor.setMap(self.map);
+                                        }
                                         existing_layer.overlay.editable_changed();
                                     }
                                 }
@@ -289,6 +343,28 @@ mol.modules.map.editor = function(mol) {
             this._super(html);
 
             this.defineRange=$(this).find('.edit');
+        }
+    });
+    mol.map.editor.FeatureOptionsDisplay = mol.mvp.View.extend({
+        init : function(names) {
+            var html = '' +
+                    '<div class="mol-Map-EditorFeatureOptions">' +
+                        'Set Seasonality'+
+                        '<select class="seasonality">'+
+                            '<option value="0">Wintering</option>' +
+                            '<option value="0">Wintering</option>' +
+                            '<option value="0">Wintering</option>' +
+                            '<option value="0">Wintering</option>' +
+                            '<option value="0">Wintering</option>' +
+                         '</select>' +
+                         '<br>' +
+                         '<button class="delete">Delete feature</button>' +
+                         '<button class="save">Save Changes</button>' +
+                         '<button class="cancel">Cancel</button>' +
+                    '</div>';
+            this._super(html);
+            this.del = $(this).find('.delete');
+            this.cancel = $(this).find('.cancel');
         }
     });
     mol.map.editor.NewRangeDialog = mol.mvp.View.extend({
