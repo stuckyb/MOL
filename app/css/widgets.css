@@ -588,7 +588,14 @@ white-space: nowrap;
 .mol-LayerControl-Layers .layer .zoom {
     float: right;
     position: relative;
-    width: 24px;
+    font-style: italic;
+    font-size: 1.2em;
+    height: 24px;
+}
+.mol-LayerControl-Layers .layer .edit {
+    float: right;
+    position: relative;
+    width: 68px;
     font-style: italic;
     font-size: 1.2em;
     height: 24px;
@@ -1262,6 +1269,20 @@ div.mol-Dashboard-TableWindow {
     position: absolute;
     bottom: 10px;
     right: 15px;
+}
+/*
+ * Start Editor Bar
+ */
+.mol-Map-EditorDisplay {
+    float: right;
+    display: table-cell;
+    height: 26px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    white-space: nowrap;
+    padding: 2px 3px 2px 3px;
+    pointer-events:auto;
+
 }
 
 /*

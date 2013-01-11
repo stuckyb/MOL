@@ -221,7 +221,8 @@ mol.modules.map.tiles = function(mol) {
                     'remove-layers',
                     function(event) {
                         var layers = event.layers,
-                            mapTypes = self.map.overlayMapTypes;
+                            mapTypes = self.map.overlayMapTypes,
+                            overlays = self.map.overlays;
 
                         _.each(
                             layers,
@@ -284,7 +285,9 @@ mol.modules.map.tiles = function(mol) {
                 _.each(
                     newLayers,
                     function(layer) {
-                        var maptype = self.getTile(layer);
+                        if(layer.type!='custom') { 
+                            self.getTile(layer);
+                        }
                     },
                     self
                 );
