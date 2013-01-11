@@ -24,7 +24,7 @@ mol.modules.map.styler = function(mol) {
             );
             
             this.bus.addHandler(
-                'reset-all-layer-styles',
+                'reset-layer-style',
                 function(event) {
                     var o = self.parseLayerStyle(event.params.layer, "orig");
                             
@@ -43,6 +43,187 @@ mol.modules.map.styler = function(mol) {
                         event.params.layer, 
                         event.params.layer.orig_opacity
                     );
+                }
+            );
+            
+            this.bus.addHandler(
+                'style-all-layers',
+                function(event) {
+                    var button = event.params.target,
+                        display = event.params.display,
+                        layers = event.params.layers,
+                        baseHtml,
+                        q;
+                    
+                    baseHtml = '' + 
+                           '<div class="mol-LayerControl-Styler">' +
+                           '  <div class="colorPickers">' + 
+                           '    <div class="colorPicker">' + 
+                           '      <span class="stylerLabel">Color:&nbsp</span>' + 
+                           '      <input type="text" id="allFill" />' +
+                           '    </div>' + 
+                           '  </div>' + 
+                           '  <div class="buttonWrapper allStyler">' +
+                           '    <button id="applyStyle">Apply</button>' +
+                           '    <button id="cancelStyle">Cancel</button>' +
+                           '  </div>' +      
+                           '</div>';
+                    
+                    $(button).removeData('qtip');
+                    
+                    q = $(button).qtip({
+                        content: {
+                            text: baseHtml,
+                            title: {
+                                text: 'Style All Layers',
+                                button: true
+                            }
+                        },
+                        position: {
+                            at: 'left center',
+                            my: 'right top'
+                        },
+                        show: {
+                            event: 'click',
+                            delay: 0,
+                            ready: true,
+                            solo: true
+                        },
+                        hide: false,
+                        style: {
+                            def: false,
+                            classes: 'ui-tooltip-widgettheme'
+                        },
+                        events: {
+                            render: function(event, api) {                                       
+                                var colors = ['black','white','red','yellow',
+                                              'blue','green','orange','purple'],
+                                    colors2 = ['#66C2A5','#FC8D62', '#8DA0CB',
+                                               '#E78AC3', '#A6D854', '#FFD92F',
+                                               '#E5C494'];
+         
+                                $("#allFill").spectrum({
+                                      color: 'black',
+                                      showPaletteOnly: true,
+                                      palette: [colors, colors2]
+                                });         
+
+                                $(api.elements.content)
+                                    .find('#applyStyle').click(
+                                        function(event) {
+                                            var o = {},
+                                                color;
+                                            
+                                            color = $('#allFill')
+                                                        .spectrum("get")
+                                                            .toHexString();               
+                                            
+                                            o.fill = color;
+                                            o.size = 1;
+                                            o.border = color;
+                                            o.s1 = color;
+                                            o.s2 = color;
+                                            o.s3 = color;
+                                            o.s4 = color;
+                                            o.s5 = color;
+                                            o.p = color;
+                                            
+                                            _.each(
+                                                layers,
+                                                function(layer) {
+                                                    var l, 
+                                                        current;
+                                                            
+                                                    l = display.getLayer(layer);
+                                                        
+                                                    current = self
+                                                            .parseLayerStyle(
+                                                                layer, 
+                                                                "current");
+                                                            
+                                                    o.s1c = current.s1c;
+                                                    o.s2c = current.s2c;
+                                                    o.s3c = current.s3c;
+                                                    o.s4c = current.s4c;
+                                                    o.s5c = current.s5c;
+                                                    o.pc = current.pc;
+                                                    
+                                                    if(layer.type == "range") {
+                                                        o.size = 0;
+                                                    }
+                                                    
+                                                    if(layer.style_table == 
+                                                                "point_style") {
+                                                        o.size = 3;
+                                                    }        
+                                                    
+                                                    //update css
+                                                    self.updateLegendCss(
+                                                        $(l).find('.styler'), 
+                                                        o, 
+                                                        layer,
+                                                        0.9
+                                                    );
+                        
+                                                    //update tiles
+                                                    self.updateLayerStyle(
+                                                        $(l).find('.styler'),
+                                                        o,
+                                                        layer, 
+                                                        0.9
+                                                    );
+                                                }
+                                            );  
+                                                   
+                                            $(button).prop('disabled', false);            
+                                            $(button).qtip('destroy');
+                                        }
+                                );
+                                    
+                                $(api.elements.content)
+                                    .find('#cancelStyle').click(
+                                        function(event) {
+                                            $(button).prop('disabled', false);
+                                            $(button).qtip('destroy');
+                                        }
+                                    );
+                            },
+                            show: function(event, api) {                              
+                                $(button).prop('disabled', true);
+                            },
+                            hide: function(event, api) {
+                                $(button).prop('disabled', false);
+                                $(button).qtip('destroy');
+                            }
+                        }
+                    });
+                }  
+            );
+            
+            this.bus.addHandler(
+                'initial-legend-style',
+                function(event) {
+                    var o = {};
+                    
+                    //style legends initially
+                    o = self.parseLayerStyle(event.params.layer, "orig");
+                                    
+                    //initalize css
+                    self.updateLegendCss(
+                        $(event.params.l).find('.styler'), 
+                        o, 
+                        event.params.layer,
+                        event.params.layer.orig_opacity
+                    );
+                }
+            );
+            
+            this.bus.addHandler(
+                'toggle-layer-highlight',
+                function(event) {
+                    self.toggleLayerHighlight(event.params.layer,
+                                              event.params.visible,
+                                              event.params.selected);
                 }
             );
         },
@@ -934,7 +1115,54 @@ mol.modules.map.styler = function(mol) {
             }                
             
             return updatedStyle;
-        }
+        },
+        
+        toggleLayerHighlight: function(layer, visible, sel) {
+            var o = {},
+                style_desc,
+                self = this,
+                style = layer.tile_style,
+                oldStyle,
+                params = {
+                    layer: layer,
+                    style: null,
+                    isSelected: sel
+                };
+                
+                oldStyle = self.parseLayerStyle(layer, "current");
+                
+                if(layer.style_table == "points_style") {
+                    style = this.changeStyleProperty(
+                                style, 
+                                'marker-line-color', 
+                                visible ? '#FF00FF' : oldStyle.border, 
+                                false
+                            );
+                } else {
+                    style = this.changeStyleProperty(
+                                style, 
+                                'line-color', 
+                                visible ? '#FF00FF' : oldStyle.border, 
+                                false
+                            );
+                                
+                    style = this.changeStyleProperty(
+                                style, 
+                                'line-width', 
+                                visible ? 2 : oldStyle.size, 
+                                false
+                            );
+                }
+
+                style_desc = style;
+
+                params.style = style_desc;   
+                
+                self.bus.fireEvent(
+                    new mol.bus.Event(
+                        'apply-layer-style', 
+                        params));
+        },
     });
     
     mol.map.styler.StylerDisplay = mol.mvp.View.extend({
