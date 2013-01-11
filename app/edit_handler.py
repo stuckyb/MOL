@@ -1,4 +1,4 @@
-"""This module contains a cache handler."""
+"""This module contains a handler that pushes geometries to a userdata table."""
 
 __author__ = 'Aaron Steele'
 
@@ -16,22 +16,34 @@ import webapp2
 from google.appengine.api import urlfetch
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-api_key = 'putkeyhere'
-sql = "INSERT INTO userdata \
-    (userid, scientificname, seasonality, the_geom, the_geom_webmercator) \
+api_key = ''
+
+class PutHandler(webapp2.RequestHandler):
+    """Request handler for cache requests."""
+    def post(self):
+        
+        sciname = self.request.get('scientificname')
+        userid = self.request.get('userid')
+        seasonality = self.request.get('seasonality')
+        description = self.request.get('description')
+        dataset_id = self.request.get('dataset_id')
+        geojson = self.request.get('geojson')
+        
+        sql = "INSERT INTO userdata \
+    (userid, scientificname, seasonality, description, dataset_id, the_geom) \
     VALUES( \
         '%s', \
         '%s', \
         '%s', \
-        ST_SetSRID(ST_GeomFromText('%s'),4326), \
-        ST_SetSRID(ST_GeomFromText('%s'),3857)"
-class PutHandler(webapp2.RequestHandler):
-    """Request handler for cache requests."""
-    def post(self):
-        url = 'http://mol.cartodb.com/api/v2/sql?%s' % urllib.urlencode(dict(q=sql))
+        '%s', \
+        '%s', \
+        ST_SetSRID(ST_GeomFromGeoJSON('%s'),4326) \
+        )" % (userid, sciname, seasonality, description, dataset_id, geojson)
+        
+        url = 'http://mol.cartodb.com/api/v2/sql?%s' % (urllib.urlencode(dict(q=sql, api_key=api_key)))
+        logging.info(url)
         value = urlfetch.fetch(url, deadline=60).content
-            if not json.loads(value).has_key('error') and not cache_buster:
-                cache.add(key.lower(), value)
+       
         self.response.headers["Cache-Control"] = "max-age=2629743" # Cache 1 month
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(value)

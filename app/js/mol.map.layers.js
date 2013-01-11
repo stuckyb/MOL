@@ -464,7 +464,7 @@ mol.modules.map.layers = function(mol) {
                         }
                     );
                     
-                    if(layer.type == 'custom') {
+                    if(layer.editing) {
                         l.styler.css('visibility','hidden');
                         l.find(".buttonContainer").hide();
                         $(self.display).find('.selected')
@@ -579,7 +579,7 @@ mol.modules.map.layers = function(mol) {
                                     $(b).qtip('destroy');
                                 }
                             );
-                            if(layer.type != 'custom') {
+                            if(!layer.editing) {
                                 self.displayLayerStyler(this, layer);
                             }
                             event.stopPropagation();
@@ -593,7 +593,7 @@ mol.modules.map.layers = function(mol) {
                                 isSelected = false;
 
                             $(l.layer).focus();
-                            if(layer.type=='custom') {
+                            if(layer.editing) {
                                 return;
                             }
                             if($(this).hasClass('selected')) {
@@ -726,7 +726,7 @@ mol.modules.map.layers = function(mol) {
             if(sortedLayers.length == 1) {
                 //if only one new layer is being added
                 //select it
-                if(sortedLayers[0].type != 'custom') {
+                if(!sortedLayers[0].editing) {
                     this.display.list.find('.layer')
                         [this.display.list.find('.layer').length-1].click();
                 }
@@ -769,7 +769,7 @@ mol.modules.map.layers = function(mol) {
                 },
                 q,
                 self = this;
-           if(layer.type == 'custom') {
+           if(layer.editing) {
                 return;
             }
             layer_curr_style = self.parseLayerStyle(layer, "current");
@@ -835,7 +835,7 @@ mol.modules.map.layers = function(mol) {
                         $(api.elements.content).find('#applyStyle').click(
                             function(event) {
                                 var o = {};
-                                if(layer.type == 'custom') {
+                                if(layer.editing) {
                                     return;
                                 }
                                 if(layer.type == "range") {
@@ -952,7 +952,7 @@ mol.modules.map.layers = function(mol) {
         getStylerLayout: function(element, layer) {
             var pickers,
                 sizer;
-            if(layer.type == 'custom') {
+            if(layer.editing) {
                 return;
             }
             if(layer.style_table == "points_style") {
@@ -1091,7 +1091,7 @@ mol.modules.map.layers = function(mol) {
                 max,
                 min,
                 layOpa;
-            if(lay.type == 'custom') {
+            if(lay.editing) {
                 return;
             }
                 if(lay.type == "range") {
@@ -1211,7 +1211,7 @@ mol.modules.map.layers = function(mol) {
                 s1Style, s2Style, s3Style, s4Style, s5Style, pStyle,
                 s1, s2, s3, s4, s5, p, pc,
                 c1, c2, c3, c4, c5;
-            if(layer.type == 'custom') {
+            if(layer.editing) {
                 return;
             }
             if(original == "current") {
@@ -1460,7 +1460,7 @@ mol.modules.map.layers = function(mol) {
         updateStyle: function(layer, style, newStyle) {
             var updatedStyle,
                 season;
-            if(layer.type == 'custom') {
+            if(layer.editing) {
                 return;
             }
             if(layer.style_table == "points_style") {
@@ -1558,7 +1558,7 @@ mol.modules.map.layers = function(mol) {
         },
 
         updateLegendCss: function(button, o, layer, opa) {
-            if(layer.type == 'custom') {
+            if(layer.editing) {
                 return;
             }
             if(layer.type == "range") {
@@ -1672,7 +1672,7 @@ mol.modules.map.layers = function(mol) {
                     style: null,
                     isSelected: sel
                 };
-            if(layer.type == 'custom') {
+            if(layer.editing) {
                 return;
             }
                 oldStyle = self.parseLayerStyle(layer, "current");
@@ -1828,8 +1828,8 @@ mol.modules.map.layers = function(mol) {
                 this.pointLegend.hide();
 
                 //TODO issue #175 replace iucn ref
-                if(layer.type == "range") {
-                    if(layer.source == "jetz" || layer.source == "iucn") {
+                if(layer.type == "range" || layer.type == "custom" ) {
+                    if(layer.source == "jetz" || layer.source == "iucn" || layer.source == "webuser") {
                        this.polygonLegend.hide();
 
                        if(layer.source == 'jetz') {
@@ -1903,7 +1903,7 @@ mol.modules.map.layers = function(mol) {
 
         addLayer: function(layer) {
             var ld = new mol.map.layers.LayerDisplay(layer);
-            if(layer.type=="custom") {
+            if(layer.editing) {
                 this.list.prepend(ld);
             } else {
                 this.list.append(ld);
