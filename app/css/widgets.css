@@ -1284,7 +1284,9 @@ div.mol-Dashboard-TableWindow {
     pointer-events:auto;
 
 }
-
+.mol-Map-EditorFeatureOptions {
+    size: 12pt;
+}
 /*
  * Start Query Bar
  */
