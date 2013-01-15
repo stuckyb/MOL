@@ -10,11 +10,12 @@ mol.modules.map.boot = function(mol) {
             this.IE8 = false;
             this.maxLayers = ($.browser.chrome) ? 6 : 25;
             this.sql = '' +
-                'SELECT DISTINCT l.scientificname as name,'+
+                 'SELECT DISTINCT l.scientificname as name,'+
+                    '\'cdb\' as mode, ' +
                     't.type as type,'+
-                    "CASE d.style_table WHEN 'points_style' " + 
-                        'THEN t.carto_css_point ' + 
-                        "WHEN 'polygons_style' " + 
+                    "CASE d.style_table WHEN 'points_style' " +
+                        'THEN t.carto_css_point ' +
+                        "WHEN 'polygons_style' " +
                         'THEN t.carto_css_poly END as css,' +
                     't.sort_order as type_sort_order, ' +
                     't.title as type_title, '+
@@ -22,7 +23,7 @@ mol.modules.map.boot = function(mol) {
                     'CONCAT(l.provider,\'\') as source, '+
                     'CONCAT(p.title,\'\') as source_title,'+
                     's.source_type as source_type, ' +
-                    's.title as source_type_title, ' +   
+                    's.title as source_type_title, ' +
                     'l.feature_count as feature_count, '+
                     'CONCAT(n.v,\'\') as names, ' +
                     'CASE WHEN l.extent is null THEN null ELSE ' +
@@ -37,10 +38,17 @@ mol.modules.map.boot = function(mol) {
                         '}}\') ' +
                     'END as extent, ' +
                     'l.dataset_id as dataset_id, ' +
-                    'd.dataset_title as dataset_title, ' + 
-                    'd.style_table as style_table ' +
-                    
+                    'd.dataset_title as dataset_title, ' +
+                    'd.style_table as style_table, ' +
+                    'e.finalmin as mine, ' +
+                    'e.finalmax as maxe, ' +
+                    'e.habitatprefs as habitat, ' +
+                    '(l.provider = \'jetz\') as inft ' +
                 'FROM layer_metadata l ' +
+                'LEFT JOIN elevandhabitat e ON ' +
+                    'l.scientificname = e.scientific ' +
+                //'LEFT JOIN specieslist sl ON ' +
+                //    'l.scientificname = sl.latin ' +
                 'LEFT JOIN data_registry d ON ' +
                     'l.dataset_id = d.dataset_id ' +
                 'LEFT JOIN types t ON ' +
@@ -63,7 +71,7 @@ mol.modules.map.boot = function(mol) {
          */
         loadTerm: function() {
             var self = this;
-            
+
             // Remove backslashes and replace characters that equal spaces.
             this.term = unescape(
                 window.location.pathname
@@ -72,7 +80,7 @@ mol.modules.map.boot = function(mol) {
                     .replace(/_/g, ' ')
             );
 
-            if ((this.getIEVersion() >= 0 && this.getIEVersion() <= 8) 
+            if ((this.getIEVersion() >= 0 && this.getIEVersion() <= 8)
                 || this.term == '') {
                 // If on IE8- or no query params, fire the splash event
                 self.bus.fireEvent(new mol.bus.Event('toggle-splash'));
@@ -95,7 +103,7 @@ mol.modules.map.boot = function(mol) {
             }
         },
         /*
-         * Adds layers to the map if there are fewer than 25 results, 
+         * Adds layers to the map if there are fewer than 25 results,
          * or fires the search results widgetif there are more.
          */
         loadLayers: function(layers) {

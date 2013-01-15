@@ -20,6 +20,7 @@ mol.modules.map.search = function(mol) {
                 "SELECT n,v FROM ac WHERE n~*'\\m{0}' OR v~*'\\m{0}'";
             this.search_sql = '' +
                 'SELECT DISTINCT l.scientificname as name,'+
+                    '\'cdb\' as mode, ' +
                     't.type as type,'+
                     "CASE d.style_table WHEN 'points_style' " + 
                         'THEN t.carto_css_point ' + 
@@ -47,9 +48,16 @@ mol.modules.map.search = function(mol) {
                     'END as extent, ' +
                     'l.dataset_id as dataset_id, ' +
                     'd.dataset_title as dataset_title, ' + 
-                    'd.style_table as style_table ' +
-                    
+                    'd.style_table as style_table, ' +
+                    'e.finalmin as mine, ' +
+                    'e.finalmax as maxe, ' +
+                    'e.habitatprefs as habitat, ' +
+                    '(l.provider = \'jetz\') as inft ' +
                 'FROM layer_metadata l ' +
+                'LEFT JOIN elevandhabitat e ON ' + 
+                    'l.scientificname = e.scientific ' +
+                //'LEFT JOIN specieslist sl ON ' +
+                //    'l.scientificname = sl.latin ' +
                 'LEFT JOIN data_registry d ON ' +
                     'l.dataset_id = d.dataset_id ' +
                 'LEFT JOIN types t ON ' +

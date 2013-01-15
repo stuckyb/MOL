@@ -130,20 +130,22 @@ mol.modules.map.query = function(mol) {
              * Toggle Click Handler for Species List Clicking
              */
             this.display.queryButton.click(
-                function(event) {
-                    var params = {};
+                function() {
+                    $(self.display.queryButton).toggleClass('selected');
                     
-                    params.visible = self.display.speciesDisplay
-                                        .is(':visible') ? false : true;
-                    
-                    self.bus.fireEvent(
-                        new mol.bus.Event('species-list-tool-toggle', params));
+                    if($(self.display.queryButton).hasClass('selected')) {
+                        $(self.display.queryButton).html("ON");
+                        self.toggleMapLayerClicks(true);
+                    } else {
+                        $(self.display.queryButton).html("OFF");
+                        self.toggleMapLayerClicks(false);
+                    }
                 }
             );
             this.bus.addHandler(
                 'dialog-closed-click',
                 function(event) {                  
-                    if($.cookie('mol_species_list_query_tip_disabled2') == null) {
+                    if($.cookie('mol_species_list_query_tip_disabled') == null) {
                         $(self.display.queryButton).qtip({
                             content: {
                                 text: 'Species list querying is currently ' +
@@ -171,7 +173,7 @@ mol.modules.map.query = function(mol) {
                         });
                         
                         $.cookie(
-                            'mol_species_list_query_tip_disabled2', 
+                            'mol_species_list_query_tip_disabled', 
                             'tip_seen',
                             {expires: 1});
                     }
@@ -294,12 +296,6 @@ mol.modules.map.query = function(mol) {
                         self.enabled = false;
                     }
                     
-                    if(self.enabled == false) {
-                        self.display.speciesDisplay.hide();
-                    } else {
-                        self.display.speciesDisplay.show();
-                    }
-                    
                     if (self.listradius) {
                         self.listradius.setMap(null);
                     }
@@ -312,7 +308,6 @@ mol.modules.map.query = function(mol) {
                                 feature.listWindow.setMap(self.map);
                             }
                         );
-                        
                         $(self.display.queryButton).addClass('selected');
                         $(self.display.queryButton).html("ON");
                         self.toggleMapLayerClicks(true);
@@ -326,7 +321,6 @@ mol.modules.map.query = function(mol) {
                                 feature.listradius.setMap(null);
                             }
                         );
-                        
                         $(self.display.queryButton).removeClass('selected');
                         $(self.display.queryButton).html("OFF");
                         self.toggleMapLayerClicks(false);
@@ -384,6 +378,33 @@ mol.modules.map.query = function(mol) {
                         $(self.display.types).find('.range')
                             .addClass('selected');
                     }
+                }
+            );
+            
+            /**
+             * Clicking the cancel button hides the search display and fires
+             * a cancel-search event on the bus.
+             */
+            this.display.toggleButton.click(
+                function(event) {
+                    var params = {
+                        visible: false
+                        }, 
+                        that = this;
+                    
+                    if(self.display.speciesDisplay.is(':visible')) {
+                        self.display.speciesDisplay.hide();
+                        $(this).text('◀');
+                        params.visible = false;
+                    } else {
+                        
+                        self.display.speciesDisplay.show();
+                        $(this).text('▶');
+                        params.visible = true;
+                    }
+                   
+                    self.bus.fireEvent(
+                        new mol.bus.Event('species-list-tool-toggle', params));
                 }
             );
         },
@@ -1176,14 +1197,15 @@ mol.modules.map.query = function(mol) {
                     '  Then right click (Mac Users: \'control-click\')' +
                     '  on focal location on map." class="' + className +
                     '  widgetTheme">' +
-                    '  <span class="title">Species Lists</span>' +
-                    '  <button id="speciesListButton" ' + 
+                    '  <button class="toggle">▶</button>' +
+                    '  <span class="title">Species List</span>' +
+                    '  <div class="speciesDisplay">' +
+                    '    <button id="speciesListButton" ' + 
                              'class="toggleBtn" ' +
                              'title="Click to activate species' + 
                                  ' list querying.">' +
                              'OFF' +
-                    '  </button>' +
-                    '  <div class="speciesDisplay" >' +
+                    '    </button>' + 
                          'Radius </span>' +
                     '    <select class="radius">' +
                     '      <option selected value="50">50 km</option>' +
@@ -1224,6 +1246,8 @@ mol.modules.map.query = function(mol) {
                     '      </button>' +
                     '    </span>' +
                     '  </div>' +
+
+
                     '</div>';
 
             this._super(html);
@@ -1232,8 +1256,8 @@ mol.modules.map.query = function(mol) {
             this.dataset_id=$(this).find('.dataset_id');
             this.types=$(this).find('.types');
             this.queryButton=$(this).find('#speciesListButton');
+            this.toggleButton = $(this).find('.toggle');
             this.speciesDisplay = $(this).find('.speciesDisplay');
-            $(this.speciesDisplay).hide();
             
             $(this.types).find('.ecoregion').toggle(false);
             $(this.types).find('.range').toggle(false);
