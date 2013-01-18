@@ -39,9 +39,8 @@ mol.modules.map.boot = function(mol) {
                     'l.dataset_id as dataset_id, ' +
                     'd.dataset_title as dataset_title, ' + 
                     'd.style_table as style_table ' +
-                    
-                'FROM layer_metadata l ' +
-                'LEFT JOIN data_registry d ON ' +
+                'FROM (SELECT scientificname, type, provider, dataset_id, extent, feature_count FROM layer_metadata l UNION ALL SELECT scientificname, type, provider, dataset_id, extent, feature_count FROM layer_metadata_cnba) l ' +
+               'LEFT JOIN data_registry d ON ' +
                     'l.dataset_id = d.dataset_id ' +
                 'LEFT JOIN types t ON ' +
                     'l.type = t.type ' +
@@ -52,7 +51,7 @@ mol.modules.map.boot = function(mol) {
                 'LEFT JOIN ac n ON ' +
                     'l.scientificname = n.n ' +
                 'WHERE ' +
-                     "n.n~*'\\m{0}' OR n.v~*'\\m{0}' " +
+                     "n.n~*'\\m{0}' OR n.v~*'\\m{0}' OR l.scientificname~*'\\m{0} " +
                 'ORDER BY name, type_sort_order';
         },
         start: function() {

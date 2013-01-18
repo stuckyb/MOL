@@ -12,7 +12,7 @@ mol.modules.map.dashboard = function(mol) {
                     'FROM get_dashboard_summary()';
                 this.dashboard_sql = '' +
                     'SELECT DISTINCT * ' +
-                    'FROM dash_cache ' +
+                    'FROM dash_cache_cnba ' +
                     'ORDER BY dataset_title asc';
                 this.summary = null;
                 this.types = {};

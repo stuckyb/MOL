@@ -290,7 +290,7 @@ mol.modules.services.cartodb = function(mol) {
         {
             init: function() {          
                 this.jsonp_url = '' +
-                    'http://d3dvrpov25vfw0.cloudfront.net/' +
+                    'http://mol.cartodb.com/' +
                     'api/v2/sql?callback=?&q={0}';
                 //cache key is mmddyyyyhhmm
                 this.sql_cache_key = '120420121435';
@@ -301,7 +301,7 @@ mol.modules.services.cartodb = function(mol) {
         {
             init: function() {          
                 this.host = '' +
-                    'd3dvrpov25vfw0.cloudfront.net';
+                    'mol.cartodb.com';
                 //cache key is mmddyyyyhhmm of cache start
                 this.tile_cache_key = '121220121553';
             }
@@ -3594,7 +3594,10 @@ mol.modules.map.search = function(mol) {
                     '<span class="eng">{1}</span>' +
                 '</div>';
             this.ac_sql = "" +
-                "SELECT n,v FROM ac WHERE n~*'\\m{0}' OR v~*'\\m{0}'";
+                "SELECT n,v FROM " +
+                " (SELECT n, v FROM ac UNION ALL " +
+                "  SELECT scientificname as n, null as v FROM layer_metadata_cnba) ac " + 
+                "  WHERE n~*'\\m{0}' OR v~*'\\m{0}'";
             this.search_sql = '' +
                 'SELECT DISTINCT l.scientificname as name,'+
                     't.type as type,'+
@@ -3624,9 +3627,8 @@ mol.modules.map.search = function(mol) {
                     'END as extent, ' +
                     'l.dataset_id as dataset_id, ' +
                     'd.dataset_title as dataset_title, ' + 
-                    'd.style_table as style_table ' +
-                    
-                'FROM layer_metadata l ' +
+                    'd.style_table as style_table ' +                    
+                'FROM (SELECT scientificname, type, provider, dataset_id, extent, feature_count FROM layer_metadata l UNION ALL SELECT scientificname, type, provider, dataset_id, extent, feature_count FROM layer_metadata_cnba) l ' +               
                 'LEFT JOIN data_registry d ON ' +
                     'l.dataset_id = d.dataset_id ' +
                 'LEFT JOIN types t ON ' +
@@ -3638,7 +3640,7 @@ mol.modules.map.search = function(mol) {
                 'LEFT JOIN ac n ON ' +
                     'l.scientificname = n.n ' +
                 'WHERE ' +
-                     "n.n~*'\\m{0}' OR n.v~*'\\m{0}' " +
+                     "n.n~*'\\m{0}' OR n.v~*'\\m{0}' OR l.scientificname~*'\\m{0} " +
                 'ORDER BY name, type_sort_order';
         },
 
@@ -4393,7 +4395,7 @@ mol.modules.map.tiles = function(mol) {
                     'FROM get_dashboard_summary()';
                 this.dashboard_sql = '' +
                     'SELECT DISTINCT * ' +
-                    'FROM dash_cache ' +
+                    'FROM dash_cache_cnba ' +
                     'ORDER BY dataset_title asc';
                 this.summary = null;
                 this.types = {};
@@ -6971,9 +6973,8 @@ mol.modules.map.boot = function(mol) {
                     'l.dataset_id as dataset_id, ' +
                     'd.dataset_title as dataset_title, ' + 
                     'd.style_table as style_table ' +
-                    
-                'FROM layer_metadata l ' +
-                'LEFT JOIN data_registry d ON ' +
+                'FROM (SELECT scientificname, type, provider, dataset_id, extent, feature_count FROM layer_metadata l UNION ALL SELECT scientificname, type, provider, dataset_id, extent, feature_count FROM layer_metadata_cnba) l ' +
+               'LEFT JOIN data_registry d ON ' +
                     'l.dataset_id = d.dataset_id ' +
                 'LEFT JOIN types t ON ' +
                     'l.type = t.type ' +
@@ -6984,7 +6985,7 @@ mol.modules.map.boot = function(mol) {
                 'LEFT JOIN ac n ON ' +
                     'l.scientificname = n.n ' +
                 'WHERE ' +
-                     "n.n~*'\\m{0}' OR n.v~*'\\m{0}' " +
+                     "n.n~*'\\m{0}' OR n.v~*'\\m{0}' OR l.scientificname~*'\\m{0} " +
                 'ORDER BY name, type_sort_order';
         },
         start: function() {
