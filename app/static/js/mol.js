@@ -3640,7 +3640,7 @@ mol.modules.map.search = function(mol) {
                 'LEFT JOIN ac n ON ' +
                     'l.scientificname = n.n ' +
                 'WHERE ' +
-                     "n.n~*'\\m{0}' OR n.v~*'\\m{0}' OR l.scientificname~*'\\m{0} " +
+                     "n.n~*'\\m{0}' OR n.v~*'\\m{0}' OR l.scientificname~*'\\m{0}' " +
                 'ORDER BY name, type_sort_order';
         },
 
@@ -6985,7 +6985,7 @@ mol.modules.map.boot = function(mol) {
                 'LEFT JOIN ac n ON ' +
                     'l.scientificname = n.n ' +
                 'WHERE ' +
-                     "n.n~*'\\m{0}' OR n.v~*'\\m{0}' OR l.scientificname~*'\\m{0} " +
+                     "n.n~*'\\m{0}' OR n.v~*'\\m{0}' OR l.scientificname~*'\\m{0}' " +
                 'ORDER BY name, type_sort_order';
         },
         start: function() {
