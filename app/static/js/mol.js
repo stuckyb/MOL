@@ -3625,10 +3625,12 @@ mol.modules.map.search = function(mol) {
                     'e.finalmin as mine, ' +
                     'e.finalmax as maxe, ' +
                     'e.habitatprefs as habitat, ' +
-                    'l.provider IS \'jetz\' as inft ' +
+                    '(l.provider = \'jetz\') as inft ' +
                 'FROM layer_metadata l ' +
                 'LEFT JOIN elevandhabitat e ON ' + 
                     'l.scientificname = e.scientific ' +
+                //'LEFT JOIN specieslist sl ON ' +
+                //    'l.scientificname = sl.latin ' +
                 'LEFT JOIN data_registry d ON ' +
                     'l.dataset_id = d.dataset_id ' +
                 'LEFT JOIN types t ON ' +
@@ -3973,7 +3975,8 @@ mol.modules.map.search = function(mol) {
             this.searchBox.html('');
         }
     });
-};/**
+};
+/**
  * This module handles add-layers events and layer-toggle events. tI basically
  * proxies the CartoDB JavaScript API for adding and removing CartoDB layers
  * to and from the map.
@@ -7109,12 +7112,12 @@ mol.modules.map.boot = function(mol) {
                     'e.finalmin as mine, ' +
                     'e.finalmax as maxe, ' +
                     'e.habitatprefs as habitat, ' +
-                    'NOT sl.latin IS Null as inft ' +
+                    '(l.provider = \'jetz\') as inft ' +
                 'FROM layer_metadata l ' +
                 'LEFT JOIN elevandhabitat e ON ' +
                     'l.scientificname = e.scientific ' +
-                'LEFT JOIN specieslist sl ON ' +
-                    'l.scientificname = sl.latin ' +
+                //'LEFT JOIN specieslist sl ON ' +
+                //    'l.scientificname = sl.latin ' +
                 'LEFT JOIN data_registry d ON ' +
                     'l.dataset_id = d.dataset_id ' +
                 'LEFT JOIN types t ON ' +
