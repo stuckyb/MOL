@@ -3594,9 +3594,9 @@ mol.modules.map.search = function(mol) {
                     '<span class="eng">{1}</span>' +
                 '</div>';
             this.ac_sql = "" +
-                "SELECT n,v FROM " +
+                "SELECT DISTINCT n,v FROM " +
                 " (SELECT n, v FROM ac UNION ALL " +
-                "  SELECT scientificname as n, null as v FROM layer_metadata_cnba) ac " + 
+                "  SELECT lc.scientificname as n, TRIM(tc.common_names_eng) as v FROM layer_metadata_cnba lc, taxonomy tc WHERE lc.scientificname = tc.scientificname ) ac " + 
                 "  WHERE n~*'\\m{0}' OR v~*'\\m{0}'";
             this.search_sql = '' +
                 'SELECT DISTINCT l.scientificname as name,'+
