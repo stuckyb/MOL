@@ -14,7 +14,6 @@ This manages the data and API communication.
 import json
 import urllib
 import urllib2
-import logging
 
 import httplib2
 
@@ -233,8 +232,6 @@ def send_(path, params, opt_method='POST'):
   if response.status != 200:
     raise ee_exception.EEException('Server error: %d' % e.code)
 
-  logging.info("content is ")
-  logging.info(content)
   content = json.loads(content)
   if 'error' in content:
     raise ee_exception.EEException(content['error'])

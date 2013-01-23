@@ -53,20 +53,30 @@ class MainPage(webapp2.RequestHandler):
         elev = ee.Image('srtm90_v4')
 
         output = ee.Image(0)
-        #species = ee.FeatureCollection('ft:1ugWA45wi7yRdIxKAEbcfd1ks8nhuTcIUyx1Lv18').filter(ee.Filter().eq('Latin',sciname))
-        species = ee.FeatureCollection('ft:1qJV-TVLFM85XIWGbaESWGLQ1rWqsCZuYBdhyOMg').filter(ee.Filter().eq('Latin',sciname))
-        species_image = ee.Image(0).toByte().paint(species,255)
+        empty = ee.Image(0)
+        fc = ee.FeatureCollection('ft:1qJV-TVLFM85XIWGbaESWGLQ1rWqsCZuYBdhyOMg').filter(ee.Filter().eq('Latin',sciname))
+        species = empty.toByte().paint(fc,1)
+       
+        
+       
         #parse the CDB response
-
+        
+        
         min = int(elevation.split(',')[0])
         max = int(elevation.split(',')[1])
         habitat_list = habitats.split(",")
-
+        
+        output = output.mask(species.neq(1))
         for pref in habitat_list:
             output = output.where(cover.eq(int(pref)).And(elev.gt(min)).And(elev.lt(max)),1)
 
-        result = output.mask(species_image)
-        mapid = species_image.getMapId({min: 0, max: 255, 'palette': 'FF0000'})
+        result = output.mask(output)
+        
+        mapid = result.getMapId({
+            'palette': '000000,FF0000',
+            'max': 1,
+            'opacity': 0.5
+        })
         template_values = {
             'mapid' : mapid['mapid'],
             'token' : mapid['token']
