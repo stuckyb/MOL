@@ -689,7 +689,8 @@ mol.modules.map.styler = function(mol) {
                    }            
                      
                    //TODO issue #175 replace iucn ref         
-                   if(layer.source == "iucn") {        
+                   if(layer.source == "iucn") {  
+                       pickers+=''+      
                            '<span class="seasonLabel">' + 
                                'Extinct or Presence Uncertain</span>' +
                            '<div class="colorPicker">' + 
