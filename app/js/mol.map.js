@@ -15,6 +15,7 @@ mol.modules.map = function(mol) {
             'basemap',
             'metadata',
             'splash',
+            'styler',
             'help',
             'status',
             'images',
