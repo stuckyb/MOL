@@ -1,0 +1,76 @@
+
+/**
+ * Document-wide styles.
+ **/
+body {
+    padding: 1em 3em;
+    font-family: sans-serif;
+    /*background: #f6f7b4;*/
+}
+
+a {
+	text-decoration: none;
+	color: #00A;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+h1 {
+	font-size: 180%;
+	text-align: left;
+	/*margin: 0;*/
+}
+
+h2 {
+	font-size: 130%;
+}
+
+div#metainfo {
+	margin-top: 1em;
+	font-size: 90%;
+}
+
+div#datatables {
+	margin-bottom: 1em;
+}
+
+div#datatables h2 {
+	font-size: 120%;
+}
+
+table {
+	border-spacing: 0;
+	border-collapse: collapse;
+}
+
+td, th {
+	font-size: 90%;
+	border: solid 1px #888;
+	padding: 1px 5px;
+	text-align: center;
+}
+
+th {
+	background: #ccccff;
+	font-weight: bold;
+}
+
+#uploadTarget {
+	display: none;
+}
+
+div.data_owner {
+	padding: 10px 10px;
+	border: solid 1px #888;
+	margin-bottom: 1em;
+	margin-right: 20px;
+	float: left;
+}
+
+div.data_owner p {
+	margin-top: 0;
+	font-weight: bold;
+}
+

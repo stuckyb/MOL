@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>User Upload Demo</title>
+
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="upload.css"/>
+
+    <script type="text/javascript" src="upload.js"></script>
+</head>
+
+<body>
+    <div id="metainfo">
+	    <!--Date and Time: date and time<br />Input file: file_name-->
+    </div>
+
+    <div id="datatables">
+        <div class="datatable">
+	    <h2>table_name</h2>
+	    <table>
+		    <!--tr><th>col1</th><th>col2</th><th>column3</th><th>column4</th></tr>
+		    <tr><td>data1</td><td>data2</td><td>more data</td><td>and more data</td-->
+	    </table>
+        </div>
+    </div>
+
+    <h2><a>Upload a Data File</a></h2>
+
+    <div class="upload">
+        <form id="uploadForm" enctype="multipart/form-data" method="post" action="rest/uploadDataSource"
+		target="uploadTarget">
+		<div class="data_owners">
+		<div class="data_owner">
+		<p>Data owner</p>
+		Name: <input name="own_name" size="20" /><br />
+		Address: <input name="own_address" size="40" /><br />
+		Phone: <input name="own_phone" size="16" maxlength="12" /><br />
+		Email: <input name="own_email" size="20" />
+		</div>
+		</div>
+		<div style="clear: both;"></div>
+		<input name="add_owner" type="button" value="Add Another Data Owner" />
+		<br /><br />
+
+		Keywords: <input name="keywords" size="40" /><br /><br />
+
+		License and Usage Rights: <select name="license">
+			<option value="CC Attribution">CC Attribution</option>
+			<option value="CC Attribution-ShareAlike">CC Attribution-ShareAlike</option>
+			<option value="CC Attribution-NoDerivs">CC Attribution-NoDerivs</option>
+			<option value="CC Attribution-NonCommercial">CC Attribution-NonCommercial</option>
+			<option value="CC Attribution-NonCommercial-ShareAlike">CC Attribution-NonCommercial-ShareAlike</option>
+			<option value="CC Attribution-NonCommercial-NoDerivs">CC Attribution-NonCommercial-NoDerivs</option>
+		</select><br /><br />
+
+		Embargo: <select name="embargo">
+			<option value="release now">release now</option>
+			<option value="do not release to public">do not release to public</option>
+			<option value="check regarding release in 6 months">check regarding release in 6 months</option>
+			<option value="check regarding release in 12 months">check regarding release in 12 months</option>
+		</select><br /><br />
+
+		<span>Data File:</span><br/>
+            <input type="file" name="file" size="44"/><br/>
+	    <input type="submit" value="Upload file" class="external"/><br />
+        </form>
+    </div>
+
+<iframe id="uploadTarget" name="uploadTarget"></iframe>
+
+</body>
+</html>
