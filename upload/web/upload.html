@@ -19,13 +19,22 @@
     </div>
 
     <div id="datatables">
+	<form id="dtablesform" name="dtablesform" action="#">
         <div class="datatable">
+	    <input type="radio" name="tablename" value="table_name" />
 	    <h2>table_name</h2>
 	    <table>
-		    <!--tr><th>col1</th><th>col2</th><th>column3</th><th>column4</th></tr>
-		    <tr><td>data1</td><td>data2</td><td>more data</td><td>and more data</td-->
+		    <!--tr>
+			<th>col1: <select name="map_col1"><option value="ScientificName">scientific name</option></select>
+		        </th><th>col2</th><th>column3</th><th>column4</th></tr>
+		    <tr class="maprow"><tr>
+		        <td>map to: <select name="map_col1"><option value="ScientificName">scientific name</option></select></td>
+		    <td></td><td></td><td></td>
+                    </tr>
+		    <tr><td>data1</td><td>data2</td><td>more data</td><td>and more data</td></tr-->
 	    </table>
         </div>
+        </form>
     </div>
 
     <h2><a>Upload a Data File</a></h2>

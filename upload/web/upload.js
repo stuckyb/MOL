@@ -31,8 +31,28 @@ function DataUploadManager() {
 
 	// Get the table DOM template.
 	this.dtdiv = $('#datatables');
-	this.dttemplate = this.dtdiv.children('div.datatable').remove()
+	this.dtform = $('#dtablesform');
+	//this.dttemplate = this.dtdiv.children('form > div.datatable').remove()
+	this.dttemplate = $('#datatables form div.datatable').remove();
+
+	// Construct a template drop-down list for DwC terms mapping.
+	this.maplist_template = $('<select name="template"><option value="none" selected="selected">--none--</option></select>');
+	var ml_node = this.maplist_template.get(0);
+	for (var cnt = 0; cnt < this.dwc_terms.length; cnt++) {
+		ml_node.add(Option(this.dwc_terms[cnt], this.dwc_terms[cnt]));
+	}
+
+	// These variables keep track of the currently selected table and store state information
+	// for when the selection changes.
+	this.selected_table = {
+		name: '',
+		table_elem: undefined,
+		old_th_row: undefined
+	};
 }
+
+// A list of the DwC terms that are supported for mapping.
+DataUploadManager.prototype.dwc_terms = ['ScientificName', 'Latitude', 'Longitude'];
 
 DataUploadManager.prototype.addOwner = function() {
 	var owners_div = $("#uploadForm > div.data_owners");
@@ -77,7 +97,7 @@ DataUploadManager.prototype.getUploadData = function() {
 	if (isJson(data))
 		this.processUploadData(JSON.parse(data));
 	else
-		alert("Error" + (data ? ":\n\nUnable to contact server for data upload\nResponse="+data : "."));
+		alert("Error" + (data ? ":\n\nUnable to contact server for data upload.\nResponse="+data : "."));
 }
 
 /**
@@ -85,9 +105,10 @@ DataUploadManager.prototype.getUploadData = function() {
  **/
 DataUploadManager.prototype.processUploadData = function(data) {
 	var cnt, cnt2;
+	this.datasource = data;
 
 	// Clear any content from previous uploads.
-	this.dtdiv.empty();
+	this.dtform.empty();
 
 	// Generate a list of the table names.
 	var tablenames = [];
@@ -112,6 +133,9 @@ DataUploadManager.prototype.processUploadData = function(data) {
 		// Set the table name.
 		newdt.children('h2').html(datatable.name);
 
+		// Set the value of the table name radio button.
+		newdt.children('input').attr('value', datatable.name);
+
 		// Create a row of <th> elements for the table column names.
 		rowhtml = datatable.columns.join('</th><th>');
 		rowhtml = '<tr><th>' + rowhtml + '</th></tr>';
@@ -124,8 +148,66 @@ DataUploadManager.prototype.processUploadData = function(data) {
 			$(rowhtml).appendTo(disptable);
 		}
 
-		newdt.appendTo(this.dtdiv);
+		newdt.appendTo(this.dtform);
 	}
+
+	// Set the event handler for the table selection radio buttons.
+	var self = this;
+	$(document.dtablesform.tablename).change(function(){ return self.tableButtonClicked(this); });
+}
+
+/**
+ * Handles selecting a different table name radio button.
+ **/
+DataUploadManager.prototype.tableButtonClicked = function(element) {
+	// Get the table information.
+	var index = this.findTableByName(element.value);
+	var datatable = this.datasource.tables[index];
+	//alert(datatable.name);
+	
+	// Get the DOM <table> element for this data table.
+	var disptable = $(element).siblings('table');
+	//alert(disptable);
+
+	// Create a row of <th> elements for the table column names with mapping drop-down lists.
+	var rowhtml = datatable.columns.join(': </th><th>');
+	rowhtml = '<tr><th>' + rowhtml + '</th></tr>';
+	var newtr = $('<tr></tr>');
+	var newth;
+	for (var cnt = 0; cnt < datatable.columns.length; cnt++) {
+		newth = $('<th>' + datatable.columns[cnt] + ': </th>');
+		newth.append(this.maplist_template.clone());
+		newtr.append(newth);
+	}
+
+	// Replace the old <th> row in the table with the new one.
+	var old_th_row = disptable.find('tr').first().remove();
+	disptable.prepend(newtr);
+
+	// If a different table was previously selected, restore it to the "unselected" state.
+	if (this.selected_table.name != '' && this.selected_table.name != datatable.name) {
+		this.selected_table.table_elem.find('tr').first().remove();
+		this.selected_table.table_elem.prepend(this.selected_table.old_th_row);
+	}
+
+	// Save the old row so it can be used to restore state if the table selection changes and
+	// update the table selection state information.
+	this.selected_table.name = datatable.name;
+	this.selected_table.table_elem = disptable;
+	this.selected_table.old_th_row = old_th_row;
+}
+
+/**
+ * Finds a table in the input datasource structure by name.
+ * Returns the index of the table if a matching name is found, -1 otherwise.
+ **/
+DataUploadManager.prototype.findTableByName = function(name) {
+	for (cnt = 0; cnt < this.datasource.tables.length; cnt++) {
+		if (this.datasource.tables[cnt].name == name)
+			return cnt;
+	}
+
+	return -1;
 }
 
 

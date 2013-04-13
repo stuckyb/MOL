@@ -36,11 +36,19 @@ div#datatables {
 	margin-bottom: 1em;
 }
 
-div#datatables h2 {
+div.datatable {
+	margin-top: 1em;
+	margin-bottom: 1.6em;
+}
+
+div.datatable h2 {
 	font-size: 120%;
+	display: inline;
 }
 
 table {
+	display: block;
+	margin-top: 1em;
 	border-spacing: 0;
 	border-collapse: collapse;
 }
