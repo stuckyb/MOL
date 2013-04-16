@@ -23,8 +23,22 @@ h1 {
 	/*margin: 0;*/
 }
 
+h2, h3 {
+	color: #00A;
+}
+
 h2 {
 	font-size: 130%;
+}
+
+div.uploadsection {
+	border: solid gray 1px;
+	padding: 14px 20px;
+}
+
+div.uploadsection h3 {
+	margin-top: 0;
+	font-size: 110%;
 }
 
 div#metainfo {

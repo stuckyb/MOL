@@ -14,32 +14,10 @@
 </head>
 
 <body>
-    <div id="metainfo">
-	    <!--Date and Time: date and time<br />Input file: file_name-->
-    </div>
+    <h2>User Data Upload</h2>
 
-    <div id="datatables">
-	<form id="dtablesform" name="dtablesform" action="#">
-        <div class="datatable">
-	    <input type="radio" name="tablename" value="table_name" />
-	    <h2>table_name</h2>
-	    <table>
-		    <!--tr>
-			<th>col1: <select name="map_col1"><option value="ScientificName">scientific name</option></select>
-		        </th><th>col2</th><th>column3</th><th>column4</th></tr>
-		    <tr class="maprow"><tr>
-		        <td>map to: <select name="map_col1"><option value="ScientificName">scientific name</option></select></td>
-		    <td></td><td></td><td></td>
-                    </tr>
-		    <tr><td>data1</td><td>data2</td><td>more data</td><td>and more data</td></tr-->
-	    </table>
-        </div>
-        </form>
-    </div>
-
-    <h2><a>Upload a Data File</a></h2>
-
-    <div class="upload">
+    <div class="uploadsection">
+	<h3>1. Choose a data file</h3>
         <form id="uploadForm" enctype="multipart/form-data" method="post" action="rest/uploadDataSource"
 		target="uploadTarget">
 		<div class="data_owners">
@@ -75,7 +53,34 @@
 
 		<span>Data File:</span><br/>
             <input type="file" name="file" size="44"/><br/>
-	    <input type="submit" value="Upload file" class="external"/><br />
+	    <input type="submit" value="inspect file..." class="external" /><br />
+        </form>
+    
+	<div id="metainfo">
+	    <!--Date and Time: date and time<br />Input file: file_name-->
+        </div>
+    </div>
+
+    <div class="uploadsection" id="datatables">
+	<h3>2. Choose a data table and columns</h3>
+	<form name="dtablesform" action="#">
+	<div id="dtcontainer">
+        <div class="datatable">
+	    <input type="radio" name="tablename" value="table_name" />
+	    <h2>table_name</h2>
+	    <table>
+		    <!--tr>
+			<th>col1: <select name="map_col1"><option value="ScientificName">scientific name</option></select>
+		        </th><th>col2</th><th>column3</th><th>column4</th></tr>
+		    <tr class="maprow"><tr>
+		        <td>map to: <select name="map_col1"><option value="ScientificName">scientific name</option></select></td>
+		    <td></td><td></td><td></td>
+                    </tr>
+		    <tr><td>data1</td><td>data2</td><td>more data</td><td>and more data</td></tr-->
+	    </table>
+	</div>
+    	</div>
+        <input type="button" name="next" value="upload the data..." />
         </form>
     </div>
 

@@ -29,9 +29,8 @@ function DataUploadManager() {
 	$("#uploadForm").submit(function(){ return self.uploadFormSubmitted(this); });
 	$("#uploadForm input[name=add_owner]").click(function(){ return self.addOwner(); });
 
-	// Get the table DOM template.
-	this.dtdiv = $('#datatables');
-	this.dtform = $('#dtablesform');
+	// Get the table DOM template for displaying tables in the source data.
+	this.dtcontainer = $('#dtcontainer');
 	//this.dttemplate = this.dtdiv.children('form > div.datatable').remove()
 	this.dttemplate = $('#datatables form div.datatable').remove();
 
@@ -49,10 +48,17 @@ function DataUploadManager() {
 		table_elem: undefined,
 		old_th_row: undefined
 	};
+
+	// Make sure the mapping section is hidden and the "continue" button is disabled.
+	$('#datatables').hide();
+	$(document.dtablesform.next).prop('disabled', true);
 }
 
 // A list of the DwC terms that are supported for mapping.
 DataUploadManager.prototype.dwc_terms = ['ScientificName', 'Latitude', 'Longitude'];
+
+// A list of the DwC terms that are required for mapping.
+DataUploadManager.prototype.required_terms = ['ScientificName', 'Latitude', 'Longitude'];
 
 DataUploadManager.prototype.addOwner = function() {
 	var owners_div = $("#uploadForm > div.data_owners");
@@ -108,7 +114,7 @@ DataUploadManager.prototype.processUploadData = function(data) {
 	this.datasource = data;
 
 	// Clear any content from previous uploads.
-	this.dtform.empty();
+	this.dtcontainer.empty();
 
 	// Generate a list of the table names.
 	var tablenames = [];
@@ -148,12 +154,19 @@ DataUploadManager.prototype.processUploadData = function(data) {
 			$(rowhtml).appendTo(disptable);
 		}
 
-		newdt.appendTo(this.dtform);
+		newdt.appendTo(this.dtcontainer);
 	}
 
 	// Set the event handler for the table selection radio buttons.
 	var self = this;
 	$(document.dtablesform.tablename).change(function(){ return self.tableButtonClicked(this); });
+
+	// Set the first table to be selected by default.
+	$(document.dtablesform.tablename[0]).attr('checked', 'checked');
+	$(document.dtablesform.tablename[0]).change();
+
+	// Make the mapping section visible.
+	$('#datatables').show();
 }
 
 /**
@@ -173,10 +186,14 @@ DataUploadManager.prototype.tableButtonClicked = function(element) {
 	var rowhtml = datatable.columns.join(': </th><th>');
 	rowhtml = '<tr><th>' + rowhtml + '</th></tr>';
 	var newtr = $('<tr></tr>');
-	var newth;
+	var newth, newdp;
+	var self = this;
 	for (var cnt = 0; cnt < datatable.columns.length; cnt++) {
 		newth = $('<th>' + datatable.columns[cnt] + ': </th>');
-		newth.append(this.maplist_template.clone());
+		newdp = this.maplist_template.clone();
+		newdp.attr('name', datatable.columns[cnt]);
+		newdp.change(function(){ return self.termMappingChanged(this); });
+		newth.append(newdp);
 		newtr.append(newth);
 	}
 
@@ -190,11 +207,48 @@ DataUploadManager.prototype.tableButtonClicked = function(element) {
 		this.selected_table.table_elem.prepend(this.selected_table.old_th_row);
 	}
 
+	// Reset the data structure that tracks column mapping.
+	this.column_mapping = {};
+	
 	// Save the old row so it can be used to restore state if the table selection changes and
 	// update the table selection state information.
 	this.selected_table.name = datatable.name;
 	this.selected_table.table_elem = disptable;
 	this.selected_table.old_th_row = old_th_row;
+}
+
+/**
+ * Handles changes to the term mapping drop-down lists.
+ **/
+DataUploadManager.prototype.termMappingChanged = function(element) {
+	var colname = element.name;
+	var term = element.options[element.selectedIndex].value;
+
+	// Make sure that the selected term is not already in use.
+	if (this.column_mapping.findValue(term) != null) {
+		alert('The term "' + term + '" is already mapped to another column.  Please choose a different term.');
+		element.selectedIndex = 0;
+		return;
+	}
+
+	// Update the mapping data structure.
+	this.column_mapping[colname] = term;
+
+	// See if all required terms have been mapped.
+	var total = 0;
+	for (var colname in this.column_mapping) {
+		if (this.required_terms.indexOf(this.column_mapping[colname]) != -1)
+			total++;
+	}
+	if (total == this.required_terms.length)
+		$(document.dtablesform.next).prop('disabled', false);
+}
+
+/**
+ * Responds to clicks of the "upload" button.  Sends the user-defined mapping to server, along
+ * with the file info, so the data can be uploaded on the server.
+ */
+DataUploadManager.prototype.uploadButtonClicked = function() {
 }
 
 /**
@@ -210,6 +264,19 @@ DataUploadManager.prototype.findTableByName = function(name) {
 	return -1;
 }
 
+
+/**
+ * A simple function to search an obect (i.e., associative array) for a particular
+ * value and return the matching key if the value is found.
+ **/
+Object.prototype.findValue = function(value) {
+	for (var key in this) {
+		if (this[key] == value)
+			return key;
+	}
+
+	return null;
+}
 
 function alertError(xhr, status, error) {
 	setStatus("");
