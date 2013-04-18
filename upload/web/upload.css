@@ -34,6 +34,7 @@ h2 {
 div.uploadsection {
 	border: solid gray 1px;
 	padding: 14px 20px;
+	margin-bottom: 14px;
 }
 
 div.uploadsection h3 {

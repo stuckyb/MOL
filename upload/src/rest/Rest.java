@@ -115,13 +115,13 @@ public class Rest {
     @Path("/uploadDataSource")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public String uploadDataSource(DataSourceMapping mapping) throws Exception {
+    public String[] uploadDataSource(DataSourceMapping mapping) throws Exception {
         DataSourceUploader uploader = new DataSourceUploader(mapping, getSqliteDataPath());
         
-        uploader.uploadData();
+        int rowcnt = uploader.uploadData();
         uploader.close();
         
-        return "success";
+        return new String[] {"success", String.valueOf(rowcnt)};
     }
     
     /**

@@ -6,7 +6,7 @@
  **/
 $(function() {
 	// Create a new DataUploadManager.
-	var duman = new DataUploadManager();
+	duman = new DataUploadManager();
 });
 
 
@@ -14,9 +14,6 @@ $(function() {
  * Handles the data source upload form.
  **/
 function DataUploadManager() {
-	// Get the DOM for the table row that we want to use as a template for creating new rows.
-	this.dbSourceTrTemplate = $("#schemaTable > tbody").children(":last").remove();
-
 	// Get the DOM for the data owner component to use as a template for creating new rows.
 	// We have to remove the template DOM from the document and add a copy so that subsequent
 	// copies don't clone the user's form entries.
@@ -32,7 +29,7 @@ function DataUploadManager() {
 	// Get the table DOM template for displaying tables in the source data.
 	this.dtcontainer = $('#dtcontainer');
 	//this.dttemplate = this.dtdiv.children('form > div.datatable').remove()
-	this.dttemplate = $('#datatables form div.datatable').remove();
+	this.dttemplate = $('#dtcontainer > div.datatable').remove();
 
 	// Construct a template drop-down list for DwC terms mapping.
 	this.maplist_template = $('<select name="template"><option value="none" selected="selected">--none--</option></select>');
@@ -55,6 +52,9 @@ function DataUploadManager() {
 
 	// Set the handler for the upload button.
 	$(document.dtablesform.next).click(function(){ self.uploadButtonClicked(); });
+
+	// Make sure the final section is also hidden.
+	$('#finished').hide();
 }
 
 // A list of the DwC terms that are supported for mapping.
@@ -165,8 +165,8 @@ DataUploadManager.prototype.processUploadData = function(data) {
 	$(document.dtablesform.tablename).change(function(){ return self.tableButtonClicked(this); });
 
 	// Set the first table to be selected by default.
-	$(document.dtablesform.tablename[0]).attr('checked', 'checked');
-	$(document.dtablesform.tablename[0]).change();
+	$(document.dtablesform.tablename).first().attr('checked', 'checked');
+	$(document.dtablesform.tablename).first().change();
 
 	// Make the mapping section visible.
 	$('#datatables').show();
@@ -229,7 +229,7 @@ DataUploadManager.prototype.termMappingChanged = function(element) {
 	var term = element.options[element.selectedIndex].value;
 
 	// Make sure that the selected term is not already in use.
-	if (this.column_mapping.findValue(term) != null) {
+	if (findKeyByValue(this.column_mapping, term) != null) {
 		alert('The term "' + term + '" is already mapped to another column.  Please choose a different term.');
 		element.selectedIndex = 0;
 		return;
@@ -266,7 +266,7 @@ DataUploadManager.prototype.uploadButtonClicked = function() {
 		}),
 		contentType: "application/json; charset=utf-8",
 		dataType: "text",
-		success: function(resultstr) { self.uploadComplete(resultstr); },
+		success: function(result) { self.uploadComplete(result); },
 		error: alertError
 	});
 }
@@ -275,7 +275,16 @@ DataUploadManager.prototype.uploadButtonClicked = function() {
  * Called upon successful completion of a data upload request.
  **/
 DataUploadManager.prototype.uploadComplete = function(resultstr) {
-	alert(resultstr);
+	if (isJson(resultstr)) {
+		var result = JSON.parse(resultstr);
+
+		if (result[0] == 'success') {
+			$('#finished > p').html(result[1] + ' records were uploaded.');
+			$('#finished').show();
+		} else
+			alert('Unexpected response to upload request: ' + result + '.');
+	} else
+		alert('Unable to parse non-JSON response from server for upload request.');
 }
 
 /**
@@ -283,7 +292,7 @@ DataUploadManager.prototype.uploadComplete = function(resultstr) {
  * Returns the index of the table if a matching name is found, -1 otherwise.
  **/
 DataUploadManager.prototype.findTableByName = function(name) {
-	for (cnt = 0; cnt < this.datasource.tables.length; cnt++) {
+	for (var cnt = 0; cnt < this.datasource.tables.length; cnt++) {
 		if (this.datasource.tables[cnt].name == name)
 			return cnt;
 	}
@@ -296,9 +305,9 @@ DataUploadManager.prototype.findTableByName = function(name) {
  * A simple function to search an obect (i.e., associative array) for a particular
  * value and return the matching key if the value is found.
  **/
-Object.prototype.findValue = function(value) {
-	for (var key in this) {
-		if (this[key] == value)
+findKeyByValue = function(object, value) {
+	for (var key in object) {
+		if (object[key] == value)
 			return key;
 	}
 

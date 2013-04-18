@@ -53,7 +53,13 @@ public class DataSourceUploader
         sldb = DriverManager.getConnection(connstr);
     }
     
-    public void uploadData() throws SQLException {
+    /**
+     * Uploads the data set to a PostgreSQL database.
+     * 
+     * @return The number of records processed.
+     * @throws SQLException 
+     */
+    public int uploadData() throws SQLException {
         Statement pgstmt = pgdb.createStatement();
         Statement slstmt = sldb.createStatement();
         
@@ -110,6 +116,9 @@ public class DataSourceUploader
         query += " FROM \"" + mapping.tablename + "\"";
         System.out.println(query);
         
+        // Keep track of how many records we process.
+        int recordcnt = 0;
+        
         // Execute the query and process the results.
         ResultSet slrs = slstmt.executeQuery(query);
         while (slrs.next()) {
@@ -119,6 +128,7 @@ public class DataSourceUploader
             }
             
             pstmt.addBatch();
+            recordcnt++;
         }
         
         // Run the queued INSERT queries.
@@ -126,6 +136,8 @@ public class DataSourceUploader
         
         pgstmt.close();
         slstmt.close();
+        
+        return recordcnt;
     }
     
     public void close() throws SQLException {
