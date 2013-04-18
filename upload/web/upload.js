@@ -49,9 +49,12 @@ function DataUploadManager() {
 		old_th_row: undefined
 	};
 
-	// Make sure the mapping section is hidden and the "continue" button is disabled.
+	// Make sure the mapping section is hidden and the "upload" button is disabled.
 	$('#datatables').hide();
 	$(document.dtablesform.next).prop('disabled', true);
+
+	// Set the handler for the upload button.
+	$(document.dtablesform.next).click(function(){ self.uploadButtonClicked(); });
 }
 
 // A list of the DwC terms that are supported for mapping.
@@ -137,7 +140,7 @@ DataUploadManager.prototype.processUploadData = function(data) {
 		disptable = newdt.children('table');
 
 		// Set the table name.
-		newdt.children('h2').html(datatable.name);
+		newdt.children('h3').html(datatable.name);
 
 		// Set the value of the table name radio button.
 		newdt.children('input').attr('value', datatable.name);
@@ -203,6 +206,7 @@ DataUploadManager.prototype.tableButtonClicked = function(element) {
 
 	// If a different table was previously selected, restore it to the "unselected" state.
 	if (this.selected_table.name != '' && this.selected_table.name != datatable.name) {
+		//alert(this.selected_table.table_elem.find('tr').first().html());
 		this.selected_table.table_elem.find('tr').first().remove();
 		this.selected_table.table_elem.prepend(this.selected_table.old_th_row);
 	}
@@ -249,6 +253,29 @@ DataUploadManager.prototype.termMappingChanged = function(element) {
  * with the file info, so the data can be uploaded on the server.
  */
 DataUploadManager.prototype.uploadButtonClicked = function() {
+	var url = 'rest/uploadDataSource';
+
+	var self = this;
+	$.ajax({
+		url: url,
+		type: "POST",
+		data: JSON.stringify({
+			datasource: this.datasource,
+			tablename: this.selected_table.name,
+			mapping: this.column_mapping
+		}),
+		contentType: "application/json; charset=utf-8",
+		dataType: "text",
+		success: function(resultstr) { self.uploadComplete(resultstr); },
+		error: alertError
+	});
+}
+
+/**
+ * Called upon successful completion of a data upload request.
+ **/
+DataUploadManager.prototype.uploadComplete = function(resultstr) {
+	alert(resultstr);
 }
 
 /**

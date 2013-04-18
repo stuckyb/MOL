@@ -3,7 +3,10 @@
 # rename this file to uploadsettings.props.
 
 # Postgres DB settings for the uploader.
-pg_db_name = ""
-pg_user = ""
-pg_pw = ""
+pg_server = localhost
+pg_server_tcp_port = 5432
+pg_db_name = mol_upload
+pg_db_schema = public
+pg_user = 
+pg_pw = 
 

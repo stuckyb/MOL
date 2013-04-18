@@ -27,6 +27,11 @@ public class DataSource
     public String dbfile;
     public ArrayList<DatabaseTable> tables;
     
+    /**
+     * For construction from JSON.
+     */
+    DataSource() {}
+    
     public DataSource(File sqlitefile, String source_fname,
             List<DataOwner> owners, String keywords, String license,
             String embargo)
@@ -72,5 +77,7 @@ public class DataSource
             dbtable = new DatabaseTable(dbconn, tname);
             tables.add(dbtable);
         }
+        
+        stmt.close();
     }
 }

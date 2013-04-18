@@ -55,10 +55,10 @@ public class Rest {
      * @return Mapping representation of tabular data in the file.
      */
     @POST
-    @Path("/uploadDataSource")
+    @Path("/inspectDataSource")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public DataSource uploadDataSource(
+    public DataSource inspectDataSource(
             @FormDataParam("own_name") List<FormDataBodyPart> own_name_bps,
             @FormDataParam("own_address") List<FormDataBodyPart> own_address_bps,
             @FormDataParam("own_phone") List<FormDataBodyPart> own_phone_bps,
@@ -109,6 +109,19 @@ public class Rest {
         }
         
         return new DataSource(sqliteFile, fileName, owners, keywords, license, embargo);
+    }
+    
+    @POST
+    @Path("/uploadDataSource")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public String uploadDataSource(DataSourceMapping mapping) throws Exception {
+        DataSourceUploader uploader = new DataSourceUploader(mapping, getSqliteDataPath());
+        
+        uploader.uploadData();
+        uploader.close();
+        
+        return "success";
     }
     
     /**

@@ -18,7 +18,7 @@
 
     <div class="uploadsection">
 	<h3>1. Choose a data file</h3>
-        <form id="uploadForm" enctype="multipart/form-data" method="post" action="rest/uploadDataSource"
+        <form id="uploadForm" enctype="multipart/form-data" method="post" action="rest/inspectDataSource"
 		target="uploadTarget">
 		<div class="data_owners">
 		<div class="data_owner">
@@ -53,7 +53,7 @@
 
 		<span>Data File:</span><br/>
             <input type="file" name="file" size="44"/><br/>
-	    <input type="submit" value="inspect file..." class="external" /><br />
+	    <input type="submit" value="Inspect source data..." class="external" /><br />
         </form>
     
 	<div id="metainfo">
@@ -67,7 +67,7 @@
 	<div id="dtcontainer">
         <div class="datatable">
 	    <input type="radio" name="tablename" value="table_name" />
-	    <h2>table_name</h2>
+	    <h3>table_name</h3>
 	    <table>
 		    <!--tr>
 			<th>col1: <select name="map_col1"><option value="ScientificName">scientific name</option></select>
@@ -80,7 +80,7 @@
 	    </table>
 	</div>
     	</div>
-        <input type="button" name="next" value="upload the data..." />
+        <input type="button" name="next" value="Upload the data..." />
         </form>
     </div>
 

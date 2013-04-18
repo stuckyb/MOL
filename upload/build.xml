@@ -209,6 +209,7 @@
             <lib dir="lib" excludes="servlet-api.jar, yuicompressor*.jar"/>
             <classes dir="${upload.output.dir}"/>
             <classes dir="" includes="sqlite/*.*"/>
+            <classes dir="" includes="uploadsettings.props"/>
         </war>
     </target>
 

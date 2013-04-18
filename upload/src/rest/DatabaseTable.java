@@ -16,6 +16,11 @@ public class DatabaseTable {
     public ArrayList<ArrayList> data;
 
     /**
+     * For construction from JSON.
+     */
+    DatabaseTable() {}
+    
+    /**
      * Construct the new DatabaseTable.  Expects a valid connection to a source
      * SQLite database and a valid table name in that database.  Inspects the
      * source database to determine the column names of the target table, then
@@ -64,5 +69,7 @@ public class DatabaseTable {
             
             data.add(row);
         }
+        
+        stmt.close();
     }
 }
