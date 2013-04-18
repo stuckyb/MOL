@@ -1,0 +1,9 @@
+# This file contains configuration settings for the user data upload application.
+# You will need to adjust the values of the settings so they match your system, then
+# rename this file to uploadsettings.props.
+
+# Postgres DB settings for the uploader.
+pg_db_name = ""
+pg_user = ""
+pg_pw = ""
+
