@@ -35,7 +35,7 @@ function DataUploadManager() {
 	this.maplist_template = $('<select name="template"><option value="none" selected="selected">--none--</option></select>');
 	var ml_node = this.maplist_template.get(0);
 	for (var cnt = 0; cnt < this.dwc_terms.length; cnt++) {
-		ml_node.add(Option(this.dwc_terms[cnt], this.dwc_terms[cnt]));
+		ml_node.add(new Option(this.dwc_terms[cnt], this.dwc_terms[cnt]));
 	}
 
 	// These variables keep track of the currently selected table and store state information
