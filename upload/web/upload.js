@@ -93,7 +93,7 @@ DataUploadManager.prototype.dwc_terms = ['acceptedNameUsage','acceptedNameUsageI
 'verbatimCoordinateSystem','verbatimDepth','verbatimElevation','verbatimEventDate',
 'verbatimLatitude','verbatimLocality','verbatimLongitude','verbatimSRS','verbatimTaxonRank',
 'vernacularName','waterBody','year'];
-//DataUploadManager.prototype.dwc_terms = ['scientificName', 'decimalLatitude', 'decimalLongitude'];
+DataUploadManager.prototype.dwc_terms = ['scientificName', 'decimalLatitude', 'decimalLongitude'];
 
 // A list of the DwC terms that are required for mapping.
 DataUploadManager.prototype.required_terms = ['scientificName', 'decimalLatitude', 'decimalLongitude'];

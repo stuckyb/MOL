@@ -48,7 +48,7 @@ public class DataSourceUploader
         pgdb = DriverManager.getConnection(connstr, user, password);
         
         // Connect to the source SQLite database.
-        connstr = "jdbc:sqlite:" + sqlitedatapath + mapping.datasource.dbfile;
+        connstr = "jdbc:sqlite:" + sqlitedatapath + mapping.datasource.sourcename + ".sqlite";
         //System.out.println(connstr);
         sldb = DriverManager.getConnection(connstr);
     }
@@ -67,10 +67,10 @@ public class DataSourceUploader
         String[] sourcecols = mapping.mapping.keySet().toArray(new String[0]);
         
         // Create a table for the data, dropping it first if it already exists.
-        String query = "DROP TABLE IF EXISTS \"" + schema + "\".\"" + mapping.tablename + "\"";
+        String query = "DROP TABLE IF EXISTS \"" + schema + "\".\"" + mapping.datasource.sourcename + "\"";
         pgstmt.execute(query);
         
-        query = "CREATE TABLE \"" + schema + "\".\"" + mapping.tablename + "\" (";
+        query = "CREATE TABLE \"" + schema + "\".\"" + mapping.datasource.sourcename + "\" (";
         int cnt = 0;
         for (String key : sourcecols) {
             if (cnt > 0)
@@ -84,7 +84,7 @@ public class DataSourceUploader
         
         // Generate a template for the PostgreSQL INSERT query, using the proper
         // column mappings.
-        query = "INSERT INTO \"" + schema + "\".\"" + mapping.tablename + "\" (";
+        query = "INSERT INTO \"" + schema + "\".\"" + mapping.datasource.sourcename + "\" (";
         cnt = 0;
         for (String key : sourcecols) {
             if (cnt > 0)

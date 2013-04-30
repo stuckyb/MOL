@@ -24,7 +24,7 @@ public class DataSource
     public String keywords;
     public String license;
     public String embargo;
-    public String dbfile;
+    public String sourcename;
     public ArrayList<DatabaseTable> tables;
     
     /**
@@ -32,7 +32,7 @@ public class DataSource
      */
     DataSource() {}
     
-    public DataSource(File sqlitefile, String source_fname,
+    public DataSource(File sqlitefile, String sourcename, String source_fname,
             List<DataOwner> owners, String keywords, String license,
             String embargo)
             throws SQLException, ClassNotFoundException {
@@ -48,7 +48,7 @@ public class DataSource
         this.embargo = embargo;
         datetime = DateFormat.getDateTimeInstance().format(new Date());
         this.source_fname = source_fname;
-        dbfile = sqlitefile.getName();
+        this.sourcename = sourcename;
 
         // Load the Sqlite JDBC driver.
         Class.forName("org.sqlite.JDBC");

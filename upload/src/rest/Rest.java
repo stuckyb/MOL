@@ -91,7 +91,8 @@ public class Rest {
         // Get the name of the uploaded file and create a new local file for the
         // SQLite representation of the data.
         String fileName = contentDisposition.getFileName();
-        File sqliteFile = createUniqueFile(fileName + ".sqlite", getSqliteDataPath());
+        String sourcename = createUniqueFileName(fileName, "sqlite", getSqliteDataPath());
+        File sqliteFile = new File(getSqliteDataPath() + sourcename + ".sqlite");
         if (fileName.endsWith(".sqlite"))  {
             // If we got a SQLite file, just copy it directly.
             writeFile(inputStream, sqliteFile);
@@ -108,7 +109,7 @@ public class Rest {
             tdr.closeFile();
         }
         
-        return new DataSource(sqliteFile, fileName, owners, keywords, license, embargo);
+        return new DataSource(sqliteFile, sourcename, fileName, owners, keywords, license, embargo);
     }
     
     @POST
@@ -140,23 +141,30 @@ public class Rest {
 
 
     /**
-     * Create new file in given folder, add incremental number to base if filename already exists.
+     * Create a unique file name, using the provided file name as a starting
+     * point.  Adds incremental number to base if file name already exists.
      *
      * @param fileName Name of the file.
+     * @param extension The extension to use when checking for existing files.
      * @param folder Folder where the file is created.
      * @return The new file.
      */
-    private File createUniqueFile(String fileName, String folder) {
-    	int dotIndex = fileName.lastIndexOf('.');
-    	if (dotIndex == -1)
-    		dotIndex = fileName.length();
-    	String base = fileName.substring(0, dotIndex);
-    	String ext = fileName.substring(dotIndex);
-        File file = new File(folder + fileName);
-        int i = 1;
-        while (file.exists())
-            file = new File(folder + base + "." + i++ + ext);
-        return file;
+    private String createUniqueFileName(String fileName, String extension, String folder) {
+        // replace spaces with underscores
+        String basename = fileName.replace(' ', '_');
+
+        // replace periods with underscores
+        basename = basename.replace('.', '_');
+        
+        String newfname = basename;
+        File file = new File(folder + newfname + "." + extension);
+        int i = 0;
+        while (file.exists()) {
+            newfname = basename + "_" + ++i;
+            file = new File(folder + newfname + "." + extension);
+        }
+        
+        return newfname;
     }
 
     /**
