@@ -35,6 +35,7 @@ div.uploadsection {
 	border: solid gray 1px;
 	padding: 14px 20px;
 	margin-bottom: 14px;
+	overflow: auto;
 }
 
 div.uploadsection h3 {
@@ -62,7 +63,6 @@ div.datatable h3 {
 }
 
 table {
-	display: block;
 	margin-top: 1em;
 	border-spacing: 0;
 	border-collapse: collapse;

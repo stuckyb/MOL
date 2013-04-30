@@ -58,10 +58,45 @@ function DataUploadManager() {
 }
 
 // A list of the DwC terms that are supported for mapping.
-DataUploadManager.prototype.dwc_terms = ['ScientificName', 'Latitude', 'Longitude'];
+// Excluded terms: all auxiliary terms.
+DataUploadManager.prototype.dwc_terms = ['acceptedNameUsage','acceptedNameUsageID','associatedMedia',
+'associatedOccurrences','associatedReferences','associatedSequences','associatedTaxa',
+'basisOfRecord','bed','behavior','catalogNumber','class','collectionCode','collectionID',
+'continent','coordinatePrecision','coordinateUncertaintyInMeters','country','countryCode',
+'county','dataGeneralizations','datasetID','datasetName','dateIdentified','day','dcterms:accessRights',
+'dcterms:bibliographicCitation','dcterms:language','dcterms:modified','dcterms:references',
+'dcterms:rights','dcterms:rightsHolder','dcterms:type','decimalLatitude','decimalLongitude',
+'disposition','dynamicProperties','earliestAgeOrLowestStage','earliestEonOrLowestEonothem',
+'earliestEpochOrLowestSeries','earliestEraOrLowestErathem','earliestPeriodOrLowestSystem',
+'endDayOfYear','establishmentMeans','eventDate','eventID','eventRemarks','eventTime','family',
+'fieldNotes','fieldNumber','footprintSpatialFit','footprintSRS','footprintWKT','formation',
+'genus','geodeticDatum','geologicalContextID','georeferencedBy','georeferencedDate',
+'georeferenceProtocol','georeferenceRemarks','georeferenceSources','georeferenceVerificationStatus',
+'group','habitat','higherClassification','higherGeography','higherGeographyID',
+'highestBiostratigraphicZone','identificationID','identificationQualifier','identificationReferences',
+'identificationRemarks','identificationVerificationStatus','identifiedBy','individualCount',
+'individualID','informationWithheld','infraspecificEpithet','institutionCode','institutionID',
+'island','islandGroup','kingdom','latestAgeOrHighestStage','latestEonOrHighestEonothem',
+'latestEpochOrHighestSeries','latestEraOrHighestErathem','latestPeriodOrHighestSystem',
+'lifeStage','lithostratigraphicTerms','locality','locationAccordingTo','locationID',
+'locationRemarks','lowestBiostratigraphicZone','maximumDepthInMeters','maximumDistanceAboveSurfaceInMeters',
+'maximumElevationInMeters','member','minimumDepthInMeters','minimumDistanceAboveSurfaceInMeters',
+'minimumElevationInMeters','month','municipality','nameAccordingTo','nameAccordingToID',
+'namePublishedIn','namePublishedInID','namePublishedInYear','nomenclaturalCode',
+'nomenclaturalStatus','occurrenceID','occurrenceRemarks','occurrenceStatus','order',
+'originalNameUsage','originalNameUsageID','otherCatalogNumbers','ownerInstitutionCode',
+'parentNameUsage','parentNameUsageID','phylum','pointRadiusSpatialFit','preparations',
+'previousIdentifications','recordedBy','recordNumber','reproductiveCondition','samplingEffort',
+'samplingProtocol','scientificName','scientificNameAuthorship','scientificNameID','sex',
+'specificEpithet','startDayOfYear','stateProvince','subgenus','taxonConceptID','taxonID',
+'taxonomicStatus','taxonRank','taxonRemarks','typeStatus','verbatimCoordinates',
+'verbatimCoordinateSystem','verbatimDepth','verbatimElevation','verbatimEventDate',
+'verbatimLatitude','verbatimLocality','verbatimLongitude','verbatimSRS','verbatimTaxonRank',
+'vernacularName','waterBody','year'];
+//DataUploadManager.prototype.dwc_terms = ['scientificName', 'decimalLatitude', 'decimalLongitude'];
 
 // A list of the DwC terms that are required for mapping.
-DataUploadManager.prototype.required_terms = ['ScientificName', 'Latitude', 'Longitude'];
+DataUploadManager.prototype.required_terms = ['scientificName', 'decimalLatitude', 'decimalLongitude'];
 
 DataUploadManager.prototype.addOwner = function() {
 	var owners_div = $("#uploadForm > div.data_owners");
@@ -234,9 +269,17 @@ DataUploadManager.prototype.termMappingChanged = function(element) {
 		element.selectedIndex = 0;
 		return;
 	}
-
-	// Update the mapping data structure.
-	this.column_mapping[colname] = term;
+	
+	// See if "none" or an actual term name was selected.
+	if (element.selectedIndex == 0) {
+		// '--none--' was selected, so delete the term mapping for this column,
+		// if it exists.
+		if (colname in this.column_mapping)
+			delete this.column_mapping[colname];
+	} else {
+		// Update the mapping data structure with the new term mapping.
+		this.column_mapping[colname] = term;
+	}
 
 	// See if all required terms have been mapped.
 	var total = 0;
@@ -246,6 +289,8 @@ DataUploadManager.prototype.termMappingChanged = function(element) {
 	}
 	if (total == this.required_terms.length)
 		$(document.dtablesform.next).prop('disabled', false);
+	else
+		$(document.dtablesform.next).prop('disabled', true);
 }
 
 /**
