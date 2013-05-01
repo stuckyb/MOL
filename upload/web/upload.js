@@ -93,7 +93,7 @@ DataUploadManager.prototype.dwc_terms = ['acceptedNameUsage','acceptedNameUsageI
 'verbatimCoordinateSystem','verbatimDepth','verbatimElevation','verbatimEventDate',
 'verbatimLatitude','verbatimLocality','verbatimLongitude','verbatimSRS','verbatimTaxonRank',
 'vernacularName','waterBody','year'];
-DataUploadManager.prototype.dwc_terms = ['scientificName', 'decimalLatitude', 'decimalLongitude'];
+//DataUploadManager.prototype.dwc_terms = ['scientificName', 'decimalLatitude', 'decimalLongitude'];
 
 // A list of the DwC terms that are required for mapping.
 DataUploadManager.prototype.required_terms = ['scientificName', 'decimalLatitude', 'decimalLongitude'];
@@ -220,11 +220,14 @@ DataUploadManager.prototype.tableButtonClicked = function(element) {
 	var disptable = $(element).siblings('table');
 	//alert(disptable);
 
+	// Reset the data structure that tracks column mapping.
+	this.column_mapping = {};
+	
 	// Create a row of <th> elements for the table column names with mapping drop-down lists.
 	var rowhtml = datatable.columns.join(': </th><th>');
 	rowhtml = '<tr><th>' + rowhtml + '</th></tr>';
 	var newtr = $('<tr></tr>');
-	var newth, newdp;
+	var newth, newdp, cnt2;
 	var self = this;
 	for (var cnt = 0; cnt < datatable.columns.length; cnt++) {
 		newth = $('<th>' + datatable.columns[cnt] + ': </th>');
@@ -233,6 +236,17 @@ DataUploadManager.prototype.tableButtonClicked = function(element) {
 		newdp.change(function(){ return self.termMappingChanged(this); });
 		newth.append(newdp);
 		newtr.append(newth);
+
+		// Try to automatically map the column, if possible.
+		var opt_dom = newdp.get(0);
+		cnt2 = 0;
+		do {
+			cnt2++;
+			if (opt_dom.options[cnt2].value == datatable.columns[cnt]) {
+				opt_dom.selectedIndex = cnt2;
+				newdp.change();
+			}
+		} while (cnt2 <= opt_dom.options.length && opt_dom.options[cnt2].value != datatable.columns[cnt]);
 	}
 
 	// Replace the old <th> row in the table with the new one.
@@ -246,9 +260,6 @@ DataUploadManager.prototype.tableButtonClicked = function(element) {
 		this.selected_table.table_elem.prepend(this.selected_table.old_th_row);
 	}
 
-	// Reset the data structure that tracks column mapping.
-	this.column_mapping = {};
-	
 	// Save the old row so it can be used to restore state if the table selection changes and
 	// update the table selection state information.
 	this.selected_table.name = datatable.name;
