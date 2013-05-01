@@ -242,11 +242,11 @@ DataUploadManager.prototype.tableButtonClicked = function(element) {
 		cnt2 = 0;
 		do {
 			cnt2++;
-			if (opt_dom.options[cnt2].value == datatable.columns[cnt]) {
+			if (opt_dom.options[cnt2].value.toLowerCase() == datatable.columns[cnt].toLowerCase()) {
 				opt_dom.selectedIndex = cnt2;
 				newdp.change();
 			}
-		} while (cnt2 <= opt_dom.options.length && opt_dom.options[cnt2].value != datatable.columns[cnt]);
+		} while (cnt2 < opt_dom.options.length - 1 && opt_dom.options[cnt2].value != datatable.columns[cnt]);
 	}
 
 	// Replace the old <th> row in the table with the new one.
